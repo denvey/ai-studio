@@ -340,9 +340,12 @@ async function connectCdp(cdpPort) {
 
     /** 每个场景都从干净页面开始：诊断缓冲区与 store 都重置。 */
     const navigateFresh = async (url) => {
+        const route = new URL(url);
+        // 用例通过中文名称定位控件，测试语言由入口指定。
+        route.searchParams.set("set-locale", "zh-CN");
         // 必须在导航前清空：导航后再清会吞掉 bootstrap 阶段的真实异常。
         problems.length = 0;
-        await send("Page.navigate", { url });
+        await send("Page.navigate", { url: route.href });
         const ok = await poll(`!!document.querySelector('[data-testid="inject-local-model"]')`, "lab mounted", 60000);
         if (!ok) throw new Error("Repro lab did not mount within 60s");
         return true;
