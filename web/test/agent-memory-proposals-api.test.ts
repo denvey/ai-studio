@@ -2,6 +2,7 @@ import { afterAll, expect, test } from "bun:test";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 // Isolate transport without module mocks leaking to unrelated API tests.
 const dir = mkdtempSync(join(tmpdir(), "memory-proposal-api-"));
@@ -13,7 +14,12 @@ writeFileSync(
     post: async (...args) => { calls.push(["post", ...args]); return {}; }
 }; export const compactApiParams = (value) => value;`,
 );
-writeFileSync(join(dir, "memories.ts"), readFileSync(new URL("../src/services/api/agent-memories.ts", import.meta.url), "utf8").replace('"./request"', JSON.stringify(requestPath)));
+writeFileSync(
+    join(dir, "memories.ts"),
+    readFileSync(new URL("../src/services/api/agent-memories.ts", import.meta.url), "utf8")
+        .replace('"./request"', JSON.stringify(requestPath))
+        .replace('"@/i18n"', JSON.stringify(fileURLToPath(new URL("../src/i18n/index.ts", import.meta.url)))),
+);
 const api: typeof import("../src/services/api/agent-memories") = await import(join(dir, "memories.ts"));
 const transport = await import(requestPath);
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
