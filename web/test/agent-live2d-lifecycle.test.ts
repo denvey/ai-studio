@@ -18,7 +18,7 @@ test("Live2D launcher remains mounted while the Agent panel is open", () => {
 test("launcher waits for appearance configuration and avatar manifest before displaying the default orb", () => {
     expect(partsSource).toContain("const appearanceResolved = useAppearanceStore((state) => state.resolved)");
     expect(partsSource).toContain("bundleManifestLoading || !appearanceResolved");
-    expect(partsSource).toContain("正在加载助手形象");
+    expect(partsSource).toContain('{translate("canvasTools.canvasCloudAgentPanelParts.loadingAssistantAvatar")}');
 });
 
 test("Live2D fallback is reserved for load or render failures and yielded render slots, not initial loading", () => {

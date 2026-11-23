@@ -44,9 +44,9 @@ describe("canvas library card", () => {
         expect(card).toContain('{projectName || t("canvasB.folderCard.freeCanvas")}');
         expect(canvasBZh.folderCard.freeCanvas).toBe("自由画布");
         expect(card).toContain("canvas-collection-badge");
-        expect(page).toContain('projectName={project.projectId ? projectNames.get(project.projectId) || "未同步项目" : undefined}');
+        expect(page).toContain('projectName={project.projectId ? projectNames.get(project.projectId) || translate("canvasTools.page.notSyncedToAProject") : undefined}');
         expect(page).not.toContain("已加载全部");
-        expect(page).toContain('aria-label="正在加载更多画布"');
+        expect(page).toContain('aria-label={translate("canvasTools.page.loadingMoreCanvases")}');
     });
     test("page header no longer offers deleting every loaded canvas", () => {
         expect(page).not.toContain("删除当前已加载画布");
@@ -74,7 +74,7 @@ describe("skills library", () => {
         expect(page).not.toContain("skills-tabs");
     });
     test("cards label their stats and keep add as a compact toggle", () => {
-        expect(page).toContain("人加入");
+        expect(page).toContain('{translate("shared.skills.joined")}');
         expect(page).toContain("aria-pressed={skill.isAdded}");
         expect(page).toContain("aria-pressed={skill.isLike}");
         expect(page).toContain("/skills/${encodeURIComponent(skill.skillId)}/edit");

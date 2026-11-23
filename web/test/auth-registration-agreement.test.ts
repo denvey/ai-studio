@@ -74,7 +74,7 @@ describe("注册服务协议", () => {
         expect(auth).toContain("agreementContent?: string;");
         expect(wallet).toContain("agreementTitle?: string");
         expect(wallet).toContain("agreementContent?: string");
-        expect(panel).toContain("服务协议名称与条款");
+        expect(panel).toContain('{translate("admin.accessSettingsPanel.item3TermsOfServiceTitleAndContent")}');
         expect(panel).toContain("saveAgreement");
     });
 });

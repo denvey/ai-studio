@@ -34,7 +34,7 @@ const LOCALE_PARAM = "set-locale";
  */
 export function switchLocale(next: AppLocale) {
     if (!isAppLocale(next) || next === useLocaleStore.getState().locale) return;
-    if (typeof window === "undefined") {
+    if (typeof window === "undefined" || !window.location) {
         useLocaleStore.getState().setLocale(next);
         return;
     }
@@ -44,7 +44,7 @@ export function switchLocale(next: AppLocale) {
 }
 
 // 必须先消费参数，i18n 才能在模块初始化时读到本次页面真正采用的语言。
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && window.location) {
     const url = new URL(window.location.href);
     const pending = url.searchParams.get(LOCALE_PARAM);
     if (isAppLocale(pending)) {

@@ -104,7 +104,7 @@ describe("模式接线", () => {
         const normalizedWorkbench = workbench.replace(/\s+/g, " ");
         expect(normalizedWorkbench).toContain('const isActor = object.kind === "actor" || object.primitive === "character";');
         // 姿态是检查器里的一个标签页：只对演员、且由 bones 能力放行。
-        expect(normalizedWorkbench).toContain('...(isActor && capabilities.bones ? [{ id: "pose" as const, label: "姿态" }] : []),');
+        expect(normalizedWorkbench).toContain('...(isActor && capabilities.bones ? [{ id: "pose" as const, label: translate("canvasTools.previs.previsInspectors.pose") }] : []),');
         // motionClips 不得再作为放行条件：带动画的普通模型不是演员。
         expect(workbench).not.toContain('object.primitive === "character" || motionClips.length) ? <>');
     });
@@ -112,9 +112,9 @@ describe("模式接线", () => {
     test("姿态模式提供全身与当前骨骼重置，不删除动画轨道", () => {
         const inspector = slice(workbench, "function ObjectInspector(", "function LightInspector(");
         const normalizedInspector = inspector.replace(/\s+/g, " ");
-        expect(normalizedInspector).toContain('onClick={() => applyPose("stand")}> 重置姿态 </Button>');
+        expect(normalizedInspector).toContain('onClick={() => applyPose("stand")}> {translate("canvasTools.previs.previsInspectors.resetPose")} </Button>');
         expect(inspector).toContain("delete boneOverrides[selectedBoneId]");
-        expect(normalizedInspector).toContain("> 重置当前部位 </Button>");
+        expect(normalizedInspector).toContain('onClick={resetSelectedBone}> {translate("canvasTools.previs.previsInspectors.resetCurrentBodyPart")} </Button>');
         expect(inspector).not.toContain("boneTracks: []");
     });
 
@@ -158,7 +158,7 @@ describe("模式接线", () => {
 
     test("运镜生成只更新首尾帧并提示到动画模式继续编辑，不清空手工关键帧", () => {
         expect(workbench).toContain("resolvePrevisCameraMoveKeyframes(item.keyframes");
-        expect(workbench).toContain("已更新运镜首尾关键帧，可在动画模式继续编辑");
+        expect(workbench).toContain('translate("canvasTools.previs.canvasPrevisWorkbench.updatedCameraMovementStartAndEndKeyframesContinueEditingIn")');
         expect(workbench).not.toContain("keyframes: [{ id: nanoid(), time: 0, transform: start }");
     });
 
@@ -243,7 +243,7 @@ describe("模式控件可发现、可键盘、小屏可达", () => {
     test("有可见文字标签与 hint title，不是纯图标", () => {
         expect(nav).toContain("{item.label}");
         expect(nav).toContain("title={item.hint}");
-        expect(nav).toContain('aria-label="预演台模式"');
+        expect(nav).toContain('aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.previsWorkbenchMode")}');
     });
 
     test("带 data-mode 测试锚点：E2E 不靠中文文案定位模式按钮", () => {

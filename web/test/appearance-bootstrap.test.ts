@@ -7,7 +7,7 @@ test("initial HTML stays brand neutral until the public appearance is resolved",
     const [html, mainSource] = await Promise.all([Bun.file(new URL("../index.html", import.meta.url)).text(), Bun.file(new URL("../src/main.tsx", import.meta.url)).text()]);
 
     expect(html).not.toContain("影策");
-    expect(html).toContain("<title>正在加载</title>");
+    expect(html).toContain("<title>…</title>");
     expect(mainSource).toContain("bootstrapAppearance()");
     expect(mainSource).toContain('import("./application")');
     expect(mainSource.indexOf("bootstrapAppearance()")).toBeLessThan(mainSource.indexOf('import("./application")'));
@@ -93,15 +93,15 @@ test("appearance management exposes light and dark logo uploads plus the frame s
     ]);
 
     expect(pageSource).toContain('slot="logo-dark"');
-    expect(pageSource).toContain("浅色模式 Logo");
-    expect(pageSource).toContain("深色模式 Logo（可选）");
-    expect(pageSource).toContain("禁用 Logo 后面的圆角矩形外框");
+    expect(pageSource).toContain('title={translate("adminPages.settings.appearanceSettingsPage.lightModeLogo")}');
+    expect(pageSource).toContain('{translate("adminPages.settings.appearanceSettingsPage.darkModeLogoOptional")}');
+    expect(pageSource).toContain('{translate("adminPages.settings.appearanceSettingsPage.removeTheRoundedFrameBehindTheLogo")}');
     expect(pageSource).toContain("<Switch");
     expect(pageSource).toContain("checked={!logoFrameEnabled}");
     expect(pageSource).toContain("setLogoFrameEnabled(!checked)");
     expect(pageSource).not.toContain("<Checkbox");
-    expect(pageSource).toContain("深浅模式 Logo 预览");
-    expect(pageSource).toContain("登录页视频自动播放");
+    expect(pageSource).toContain('{translate("adminPages.settings.appearanceSettingsPage.lightAndDarkModeLogoPreview")}');
+    expect(pageSource).toContain('{translate("adminPages.settings.appearanceSettingsPage.autoplayLoginPageVideo")}');
     expect(pageSource).toContain("authVideoAutoplay");
     expect(brandSource).toContain("useActiveTheme");
     expect(brandSource).toContain("data-logo-frame-enabled");
@@ -117,7 +117,7 @@ test("object storage can adopt the configured English brand identifier without r
     const source = await Promise.resolve(moduleGroupSource("pages/admin/settings/storage-settings-page.tsx"));
 
     expect(source).toContain("state.appearance.brandSlug");
-    expect(source).toContain("使用品牌标识");
+    expect(source).toContain('{translate("adminPages.settings.storageSettingsPage.useBrandID")}');
     expect(source).toContain('form.setFieldValue("pathPrefix", brandSlug)');
     expect(source).toContain("setting.pathPrefix || DEFAULT_OSS_PATH_PREFIX");
 });
@@ -125,8 +125,8 @@ test("object storage can adopt the configured English brand identifier without r
 test("appearance management exposes a server-side reset to the built-in Yingce brand", async () => {
     const [pageSource, apiSource] = await Promise.all([Promise.resolve(moduleGroupSource("pages/admin/settings/appearance-settings-page.tsx")), Bun.file(new URL("../src/services/api/appearance.ts", import.meta.url)).text()]);
 
-    expect(pageSource).toContain("恢复影策默认");
+    expect(pageSource).toContain('{translate("adminPages.settings.appearanceSettingsPage.restoreYingceDefaults")}');
     expect(pageSource).toContain("resetAdminAppearance()");
-    expect(pageSource).toContain("已上传文件仍保留在存储资源中");
+    expect(pageSource).toContain('translate("adminPages.settings.appearanceSettingsPage.theBrandNameEnglishIDLogosCanvasAgentNameText")');
     expect(apiSource).toContain('http.delete<{ setting: AdminAppearance }>("/admin/settings/appearance")');
 });

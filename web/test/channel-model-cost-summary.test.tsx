@@ -110,7 +110,7 @@ test("disabled tiers are excluded and empty costs are explicit", () => {
 
 test("model list uses the cost component without gating it on user prices", async () => {
     const source = await Bun.file(new URL("../src/pages/admin/components/channel-model-manager.tsx", import.meta.url)).text();
-    expect(source).toContain('title: "规格成本价 / 销售价 / 加价"');
+    expect(source).toContain('title: translate("admin.channelModelManager.tierCostSellingPriceMarkup")');
     expect(source).toContain("<ChannelModelCostSummary item={item} />");
     expect(source).not.toContain("billingSummary(item)");
 });

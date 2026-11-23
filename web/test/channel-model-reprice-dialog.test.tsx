@@ -76,6 +76,6 @@ test("token fields stay inside a single model row and tier upstream overrides st
 test("recalculate button reruns the current margin and precision even when they are unchanged", async () => {
     const source = await Bun.file(new URL("../src/pages/admin/components/channel-model-reprice-dialog.tsx", import.meta.url)).text();
     expect(source).toContain("onClick={() => recalculate(margin, decimalPlaces)}");
-    expect(source).toContain("重新计算");
+    expect(source).toContain('translate("admin.channelModelRepriceDialog.recalculate")');
     expect(source).toContain("previewModelRepricing(items, nextMargin, places)");
 });

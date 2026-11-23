@@ -1394,7 +1394,7 @@
         "episodeAddedBreakdown": "已添加第 {{number}} 集，开始拆镜",
         "episodeInsertedAdaptation": "已插入第 {{number}} 集，开始改编",
         "episodeInsertedBreakdown": "已插入第 {{number}} 集，开始拆镜",
-        "appearanceLimit": "本体图是默认造型；追加造型最多 {{max}} 套（{{count}}/{{max}}）",
+        "appearanceLimit": "角色本体即基础造型；额外妆造最多 {{max}} 套（{{count}}/{{max}}）",
         "sourceDialoguePreserved": "原文 {{count}} 句台词都已逐字保留在镜头里",
         "sourceDialogueMissing": "原文 {{total}} 句台词中有 {{missing}} 句没有逐字出现在镜头里",
         "assetRatioIssue": "角色参考图所用的图片模型给不出 {{ratios}} 画幅，保存时会被拒绝。请在上方换用能指定这个尺寸的角色图片模型。",

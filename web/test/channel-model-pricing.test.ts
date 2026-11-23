@@ -121,6 +121,6 @@ test("manager preserves cross-page selection and API uses one atomic request", a
     const api = await Bun.file(new URL("../src/services/api/wallet.ts", import.meta.url)).text();
     expect(source).toContain("preserveSelectedRowKeys: true");
     expect(source).toContain("items.filter((item) => selectedModelIds.includes(item.id))");
-    expect(source).toContain("统一调价");
+    expect(source).toContain('translate("admin.channelModelManager.bulkPriceAdjustment")');
     expect(api).toContain("/models/batch-reprice");
 });
