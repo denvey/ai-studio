@@ -8,6 +8,7 @@ import { canvasNodeMaterialSummary, canvasNodeSearchContext, canvasNodeSearchTim
 import { useEffectiveConfig, type AiConfig } from "@/stores/use-config-store";
 import { getNodeListLabel } from "@/lib/canvas/node-registry";
 import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 const RESULT_LIST_ID = "canvas-node-search-results";
 
@@ -41,7 +42,7 @@ export function CanvasNodeSearchModal({ open, nodes, onClose, onFocus }: { open:
 
     return (
         <Modal
-            title="搜索画布节点"
+            title={translate("canvasC.nodeList.searchLabel")}
             open={open}
             footer={null}
             width="min(760px, calc(100vw - 32px))"
@@ -57,16 +58,16 @@ export function CanvasNodeSearchModal({ open, nodes, onClose, onFocus }: { open:
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={handleInputKeyDown}
                 prefix={<Search className="size-4 opacity-50" />}
-                placeholder="搜索节点、章节、镜头、模型或标签…"
-                aria-label="搜索画布节点"
+                placeholder={translate("canvasC.nodeList.searchPlaceholder")}
+                aria-label={translate("canvasC.nodeList.searchLabel")}
                 aria-controls={RESULT_LIST_ID}
                 aria-activedescendant={results[activeIndex] ? `canvas-node-search-result-${results[activeIndex].id}` : undefined}
             />
             <div className="mt-2 flex min-h-7 items-center justify-between gap-3 border-b pb-2 text-[var(--fs-label)] tracking-[0.015em] text-foreground/45">
-                <span className="tabular-nums">{query.trim() ? `找到 ${results.length} 个节点` : `最近编辑 · ${results.length} 个节点`}</span>
-                <span className="hidden sm:inline">↑↓ 选择 · Enter 定位 · Esc 关闭</span>
+                <span className="tabular-nums">{query.trim() ? translate("canvasTools.canvasNodeSearchModal.foundNodes", { v0: String(results.length) }) : translate("canvasTools.canvasNodeSearchModal.recentlyEditedNodes", { v0: String(results.length) })}</span>
+                <span className="hidden sm:inline">{translate("canvasTools.canvasNodeSearchModal.selectEnterLocateEscClose")}</span>
             </div>
-            <div id={RESULT_LIST_ID} role="listbox" aria-label="画布节点搜索结果" className="thin-scrollbar max-h-[54vh] overflow-y-auto overscroll-contain py-2">
+            <div id={RESULT_LIST_ID} role="listbox" aria-label={translate("canvasTools.canvasNodeSearchModal.canvasNodeSearchResults")} className="thin-scrollbar max-h-[54vh] overflow-y-auto overscroll-contain py-2">
                 {results.length ? results.map((node, index) => (
                     <CanvasNodeSearchResult
                         key={node.id}
@@ -76,7 +77,7 @@ export function CanvasNodeSearchModal({ open, nodes, onClose, onFocus }: { open:
                         onActivate={() => setActiveIndex(index)}
                         onSelect={() => focusNode(node)}
                     />
-                )) : <WorkspaceState icon="canvas" compact title="没有匹配节点" description="换一个节点、章节、镜头、模型或标签继续搜索。" />}
+                )) : <WorkspaceState icon="canvas" compact title={translate("canvasC.nodeList.emptyTitle")} description={translate("canvasTools.canvasNodeSearchModal.tryAnotherNodeChapterShotModelOrTag")} />}
             </div>
         </Modal>
     );
@@ -114,13 +115,13 @@ const CanvasNodeSearchResult = memo(function CanvasNodeSearchResult({ node, conf
                     <span className="truncate" title={context}>{context}</span>
                 </span>
                 <span className="mt-1 hidden items-center gap-3 text-[var(--fs-label)] tabular-nums tracking-[0.015em] text-foreground/40 max-sm:flex">
-                    <time dateTime={times.createdAt} title={fullTime(times.createdAt)}>创建 {times.createdLabel}</time>
-                    <time dateTime={times.updatedAt} title={fullTime(times.updatedAt)}>编辑 {times.updatedLabel}</time>
+                    <time dateTime={times.createdAt} title={fullTime(times.createdAt)}>{translate("canvasTools.inline.canvasNodeSearchModal.created", { v0: String(times.createdLabel) })}</time>
+                    <time dateTime={times.updatedAt} title={fullTime(times.updatedAt)}>{translate("canvasTools.inline.canvasNodeSearchModal.edited", { v0: String(times.updatedLabel) })}</time>
                 </span>
             </span>
             <span className="grid min-w-[112px] gap-0.5 border-l pl-3 text-[var(--fs-label)] tabular-nums tracking-[0.015em] text-foreground/40 max-sm:hidden" style={{ borderColor: "color-mix(in srgb, var(--foreground) 8%, transparent)" }}>
-                <span className="flex items-center gap-2"><Clock3 className="size-3" /><span>创建</span><time className="ml-auto" dateTime={times.createdAt} title={fullTime(times.createdAt)}>{times.createdLabel}</time></span>
-                <span className="flex items-center gap-2"><Pencil className="size-3" /><span>编辑</span><time className="ml-auto" dateTime={times.updatedAt} title={fullTime(times.updatedAt)}>{times.updatedLabel}</time></span>
+                <span className="flex items-center gap-2"><Clock3 className="size-3" /><span>{translate("canvasA.characterLibrary.create")}</span><time className="ml-auto" dateTime={times.createdAt} title={fullTime(times.createdAt)}>{times.createdLabel}</time></span>
+                <span className="flex items-center gap-2"><Pencil className="size-3" /><span>{translate("account.settings.channels.edit")}</span><time className="ml-auto" dateTime={times.updatedAt} title={fullTime(times.updatedAt)}>{times.updatedLabel}</time></span>
             </span>
         </button>
     );
@@ -161,6 +162,6 @@ function CanvasNodeSearchThumbnail({ node }: { node: CanvasNodeData }) {
 }
 
 function fullTime(value?: string) {
-    if (!value) return "时间未记录";
+    if (!value) return translate("canvasC.nodeList.timeUnknown");
     return new Date(value).toLocaleString("zh-CN", { hour12: false });
 }

@@ -16,6 +16,8 @@ import { parseGeminiImagePayload, parseImagePayload, readAxiosError } from "@/se
 import { toChatCompletionMessages, toChatCompletionToolChoice, toClaudeBody, toGeminiBody, toGeminiToolOptions, toResponseInput, toResponseTool, withSystemMessage } from "@/services/api/image-protocols";
 import { requestGeminiStreamingResponse, requestStreamingChatCompletion, requestStreamingClaude, requestStreamingResponse } from "@/services/api/image-streaming";
 import { resolveTextWire } from "@/services/api/text-wire";
+import { translate } from "@/i18n";
+
 export { buildBackendToolRequests } from "@/services/api/image-protocols";
 export type { AiTextContentPart, AiTextMessage, ResponseFunctionTool, ResponseInputMessage, ResponseToolCall, ToolChoice, ToolResponseResult } from "@/services/api/image-contracts";
 
@@ -67,7 +69,7 @@ export async function requestGeneration(config: AiConfig, prompt: string, option
         try {
             return await requestGeminiImages(requestConfig, prompt, [], n, buildGeminiImageGenerationConfig(normalizedImage.size, normalizedImage.quality), options);
         } catch (error) {
-            throw new Error(readAxiosError(error, "请求失败"));
+            throw new Error(readAxiosError(error, translate("errors.requestFailed")));
         }
     }
     if (requestConfig.interfaceType === "grok-image") {
@@ -91,7 +93,7 @@ export async function requestGeneration(config: AiConfig, prompt: string, option
             );
             return parseImagePayload(responseData);
         } catch (error) {
-            throw new Error(readAxiosError(error, "Grok 图片生成失败"));
+            throw new Error(readAxiosError(error, translate("shared.api.image.grokImageGenerationFailed")));
         }
     }
     const quality = imageProfile.quality.supported && normalizedImage.quality !== "auto" ? normalizeQuality(normalizedImage.quality) || normalizedImage.quality : undefined;
@@ -123,7 +125,7 @@ export async function requestGeneration(config: AiConfig, prompt: string, option
         const images = parseImagePayload(responseData);
         return images;
     } catch (error) {
-        throw new Error(readAxiosError(error, "请求失败"));
+        throw new Error(readAxiosError(error, translate("errors.requestFailed")));
     }
 }
 
@@ -142,16 +144,16 @@ export async function requestEdit(config: AiConfig, prompt: string, references: 
     const n = Number(normalizedImage.count);
     const requestPrompt = buildImageReferencePromptText(prompt, references);
     if (requestConfig.interfaceType === "gemini-image") {
-        if (mask) throw new Error("Gemini 调用格式暂不支持蒙版编辑");
+        if (mask) throw new Error(translate("shared.api.image.theGeminiRequestFormatDoesNotSupportMaskEditingYet"));
         try {
             return await requestGeminiImages(requestConfig, requestPrompt, references, n, buildGeminiImageGenerationConfig(normalizedImage.size, normalizedImage.quality), options);
         } catch (error) {
-            throw new Error(readAxiosError(error, "请求失败"));
+            throw new Error(readAxiosError(error, translate("errors.requestFailed")));
         }
     }
     if (requestConfig.interfaceType === "grok-image") {
-        if (mask) throw new Error("Grok 图片协议不支持蒙版编辑，请移除蒙版后重试");
-        if (references.length !== 1) throw new Error("Grok 图片编辑必须提供且仅支持 1 张参考图");
+        if (mask) throw new Error(translate("shared.api.image.theGrokImageProtocolDoesNotSupportMaskEditingRemove"));
+        if (references.length !== 1) throw new Error(translate("shared.api.image.grokImageEditingRequiresExactly1ReferenceImage"));
         try {
             const imageUrl = await grokImageInputURL(references[0]);
             const size = normalizedImage.size && normalizedImage.size !== "auto" ? normalizedImage.size : undefined;
@@ -174,11 +176,11 @@ export async function requestEdit(config: AiConfig, prompt: string, references: 
             );
             return parseImagePayload(response);
         } catch (error) {
-            throw new Error(readAxiosError(error, "Grok 图片编辑失败"));
+            throw new Error(readAxiosError(error, translate("shared.api.image.grokImageEditingFailed")));
         }
     }
     if (isVolcengineArkImageProtocol(requestConfig.interfaceType)) {
-        if (mask) throw new Error("火山方舟图片协议不支持蒙版编辑，请移除蒙版后重试");
+        if (mask) throw new Error(translate("shared.api.image.theVolcanoArkImageProtocolDoesNotSupportMaskEditing"));
         const quality = imageProfile.quality.supported && normalizedImage.quality !== "auto" ? normalizeQuality(normalizedImage.quality) || normalizedImage.quality : undefined;
         const sizeRequest = resolveImageRequestSize(imageProfile, imageProfile.resolution.supported ? normalizedImage.imageResolution : quality, normalizedImage.size);
         const requestSize = sizeRequest?.parameter === "size" ? { ...sizeRequest, value: normalizeVolcengineArkImageSize(sizeRequest.value)! } : sizeRequest;
@@ -199,7 +201,7 @@ export async function requestEdit(config: AiConfig, prompt: string, references: 
             );
             return parseImagePayload(response);
         } catch (error) {
-            throw new Error(readAxiosError(error, "火山方舟图片生成失败"));
+            throw new Error(readAxiosError(error, translate("shared.api.image.volcanoArkImageGenerationFailed")));
         }
     }
     const quality = imageProfile.quality.supported && normalizedImage.quality !== "auto" ? normalizeQuality(normalizedImage.quality) || normalizedImage.quality : undefined;
@@ -228,7 +230,7 @@ export async function requestEdit(config: AiConfig, prompt: string, references: 
         const images = parseImagePayload(await imageChannelTransport(requestConfig).postForm<ImageApiResponse>(aiApiUrl(requestConfig, "/images/edits"), formData, { signal: options?.signal, headers: aiHeaders(requestConfig) }));
         return images;
     } catch (error) {
-        throw new Error(readAxiosError(error, "请求失败"));
+        throw new Error(readAxiosError(error, translate("errors.requestFailed")));
     }
 }
 
@@ -246,48 +248,50 @@ export async function requestImageQuestion(config: AiConfig, messages: AiTextMes
     const requestConfig = resolveModelRequestConfig(config, config.model || config.textModel);
     try {
         if (requestConfig.apiFormat === "gemini") {
-            const answer = (await requestGeminiStreamingResponse(requestConfig, toGeminiBody(requestConfig, messages), onDelta, options)).content || "没有返回内容";
-            if (answer === "没有返回内容") onDelta(answer);
+            const content = (await requestGeminiStreamingResponse(requestConfig, toGeminiBody(requestConfig, messages), onDelta, options)).content;
+            const answer = content || translate("shared.api.image.noContentReturned");
+            if (!content) onDelta(answer);
             return answer;
         }
         const route = await textRequestRoute(requestConfig);
         if (route === "claude") {
-            const answer = (await requestStreamingClaude(requestConfig, toClaudeBody(requestConfig, messages), onDelta, options)).content || "没有返回内容";
-            if (answer === "没有返回内容") onDelta(answer);
+            const content = (await requestStreamingClaude(requestConfig, toClaudeBody(requestConfig, messages), onDelta, options)).content;
+            const answer = content || translate("shared.api.image.noContentReturned");
+            if (!content) onDelta(answer);
             return answer;
         }
         if (route === "chat") {
-            const answer =
-                (
-                    await requestStreamingChatCompletion(
-                        requestConfig,
-                        {
-                            model: requestConfig.model,
-                            messages: toChatCompletionMessages(withSystemMessage(requestConfig, messages)),
-                        },
-                        onDelta,
-                        options,
-                    )
-                ).content || "没有返回内容";
-            if (answer === "没有返回内容") onDelta(answer);
-            return answer;
-        }
-        const answer =
-            (
-                await requestStreamingResponse(
+            const content = (
+                await requestStreamingChatCompletion(
                     requestConfig,
                     {
                         model: requestConfig.model,
-                        input: toResponseInput(withSystemMessage(requestConfig, messages)),
+                        messages: toChatCompletionMessages(withSystemMessage(requestConfig, messages)),
                     },
                     onDelta,
                     options,
                 )
-            ).content || "没有返回内容";
-        if (answer === "没有返回内容") onDelta(answer);
+            ).content;
+            const answer = content || translate("shared.api.image.noContentReturned");
+            if (!content) onDelta(answer);
+            return answer;
+        }
+        const content = (
+            await requestStreamingResponse(
+                requestConfig,
+                {
+                    model: requestConfig.model,
+                    input: toResponseInput(withSystemMessage(requestConfig, messages)),
+                },
+                onDelta,
+                options,
+            )
+        ).content;
+        const answer = content || translate("shared.api.image.noContentReturned");
+        if (!content) onDelta(answer);
         return answer;
     } catch (error) {
-        throw new Error(readAxiosError(error, "请求失败"));
+        throw new Error(readAxiosError(error, translate("errors.requestFailed")));
     }
 }
 
@@ -341,7 +345,7 @@ export async function requestToolResponse(config: AiConfig, messages: ResponseIn
             options,
         );
     } catch (error) {
-        throw new Error(readAxiosError(error, "请求失败"));
+        throw new Error(readAxiosError(error, translate("errors.requestFailed")));
     }
 }
 

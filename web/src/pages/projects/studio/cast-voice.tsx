@@ -7,6 +7,7 @@ import { useVoiceRecording } from "@/hooks/use-voice-recording";
 import { clearDramaCastVoice, setDramaCastVoice, type DramaCast } from "@/services/api/drama";
 import { listVoiceProfiles } from "@/services/api/projects";
 import { getResourceAccess, resolveResourceAccessURL, resourceStorageKey, uploadResourceFile } from "@/services/api/resources";
+import { translate } from "@/i18n";
 
 const VOICE_PROFILES_KEY = ["voice-profiles"] as const;
 const MAX_SAMPLE_BYTES = 20 * 1024 * 1024;
@@ -44,14 +45,14 @@ function useSamplePlayer(resourceId: string) {
             audio.onended = () => setPlaying(false);
             audio.onerror = () => {
                 setPlaying(false);
-                message.error("声音样本播放失败，请重试");
+                message.error(translate("drama.studio.castVoice.voiceSamplePlaybackFailedTryAgain"));
             };
             await audio.play();
             if (version !== requestRef.current) audio.pause();
         } catch (error) {
             if (version !== requestRef.current) return;
             setPlaying(false);
-            message.error(error instanceof Error ? error.message : "声音样本播放失败");
+            message.error(error instanceof Error ? error.message : translate("drama.studio.castVoice.voiceSamplePlaybackFailed"));
         }
     };
     return { playing, toggle };
@@ -65,14 +66,18 @@ export function CastVoicePreview({ resourceId, name }: { resourceId?: string; na
             type="button"
             className="drama-voice-preview"
             disabled={!resourceId}
-            aria-label={resourceId ? `${player.playing ? "暂停" : "试听"}${name}的音频` : `${name}未绑定音频`}
+            aria-label={
+                resourceId
+                    ? translate("drama.studio.castVoice.audioFor", { v0: String(player.playing ? translate("canvasA.outbox.pause") : translate("settings.preferences.previewSound")), v1: String(name) })
+                    : translate("drama.studio.castVoice.hasNoAudio", { v0: String(name) })
+            }
             onClick={(event) => {
                 event.stopPropagation();
                 void player.toggle();
             }}
         >
             {player.playing ? <Pause className="size-3.5" /> : resourceId ? <Play className="size-3.5" /> : <MicOff className="size-3.5" />}
-            {resourceId ? (player.playing ? "暂停试听" : "有音频 · 试听") : "无音频"}
+            {resourceId ? (player.playing ? translate("drama.studio.castVoice.pausePreview") : translate("drama.studio.castVoice.audioAvailablePreview")) : translate("drama.studio.castVoice.noAudio")}
         </button>
     );
 }
@@ -95,27 +100,27 @@ export function CastVoiceField({ projectId, cast, restyle, onChanged }: { projec
     const recorder = useVoiceRecording({ maxDuration: MAX_RECORD_SECONDS * 20 });
     const finishingRef = useRef(false);
     const done = (result: { affectedSegments: number }, text: string) => {
-        message.success(result.affectedSegments ? `${text}；${result.affectedSegments} 个剧情段的视频需重新生成` : text);
+        message.success(result.affectedSegments ? translate("drama.studio.castVoice.segmentVideosNeedRegeneration", { v0: String(text), v1: String(result.affectedSegments) }) : text);
         void queryClient.invalidateQueries({ queryKey: VOICE_PROFILES_KEY });
         onChanged();
     };
     const bind = useMutation({
         mutationFn: (input: { voiceProfileId?: string; sampleResourceId?: string; voiceName?: string }) => setDramaCastVoice(projectId, cast.id, { ...input, restyleSegments: restyle }),
-        onSuccess: (result) => done(result, "已指定角色声音"),
-        onError: (error) => message.error(error instanceof Error ? error.message : "指定声音失败"),
+        onSuccess: (result) => done(result, translate("drama.studio.castVoice.characterVoiceAssigned")),
+        onError: (error) => message.error(error instanceof Error ? error.message : translate("drama.studio.castVoice.failedToAssignVoice")),
     });
     const upload = useMutation({
         mutationFn: async ({ file, name }: { file: Blob; name: string }) => {
             const resource = await uploadResourceFile(file, "audio", { fileName: name });
             return setDramaCastVoice(projectId, cast.id, { sampleResourceId: resource.id, voiceName: name.replace(/\.[^.]+$/, "").slice(0, 60), restyleSegments: restyle });
         },
-        onSuccess: (result) => done(result, "已上传并指定角色声音"),
-        onError: (error) => message.error(error instanceof Error ? error.message : "上传失败"),
+        onSuccess: (result) => done(result, translate("drama.studio.castVoice.characterVoiceUploadedAndAssigned")),
+        onError: (error) => message.error(error instanceof Error ? error.message : translate("library.assets.batch.uploadFailed")),
     });
     const clear = useMutation({
         mutationFn: () => clearDramaCastVoice(projectId, cast.id, restyle),
-        onSuccess: (result) => done(result, "已清除角色声音，按声线描述生成"),
-        onError: (error) => message.error(error instanceof Error ? error.message : "清除失败"),
+        onSuccess: (result) => done(result, translate("drama.studio.castVoice.characterVoiceClearedGenerationWillUseTheVoiceDescription")),
+        onError: (error) => message.error(error instanceof Error ? error.message : translate("drama.studio.castVoice.failedToClear")),
     });
     const busy = bind.isPending || upload.isPending || clear.isPending;
     const recording = recorder.state !== "idle";
@@ -125,11 +130,11 @@ export function CastVoiceField({ projectId, cast, restyle, onChanged }: { projec
         try {
             const blob = await recorder.stop();
             if (!blob || !blob.size) {
-                message.warning("没有录到声音，请重试");
+                message.warning(translate("drama.studio.castVoice.noAudioRecordedTryAgain"));
                 return;
             }
             const extension = blob.type.includes("ogg") ? "ogg" : blob.type.includes("mp4") ? "m4a" : "webm";
-            upload.mutate({ file: blob, name: `${cast.name}录音.${extension}` });
+            upload.mutate({ file: blob, name: translate("drama.studio.castVoice.recording2", { v0: String(cast.name), v1: String(extension) }) });
         } finally {
             finishingRef.current = false;
         }
@@ -142,22 +147,34 @@ export function CastVoiceField({ projectId, cast, restyle, onChanged }: { projec
     return (
         <div className="drama-voice">
             <div className="drama-voice-current">
-                <button type="button" className="drama-voice-play" disabled={!sampleId} aria-label={sampleId ? `${player.playing ? "暂停" : "试听"}${cast.name}的声音` : "未指定声音样本"} onClick={() => void player.toggle()}>
+                <button
+                    type="button"
+                    className="drama-voice-play"
+                    disabled={!sampleId}
+                    aria-label={
+                        sampleId
+                            ? translate("drama.studio.castVoice.voiceFor", { v0: String(player.playing ? translate("canvasA.outbox.pause") : translate("settings.preferences.previewSound")), v1: String(cast.name) })
+                            : translate("drama.studio.castVoice.noVoiceSampleSelected")
+                    }
+                    onClick={() => void player.toggle()}
+                >
                     {player.playing ? <Pause className="size-3.5" /> : sampleId ? <Play className="size-3.5" /> : <Mic className="size-3.5" />}
                 </button>
-                <span className="min-w-0 flex-1 truncate">{sampleId ? current?.name || "已指定声音样本" : "未指定声音样本，按声线描述生成"}</span>
-                {sampleId ? <Button size="small" type="text" icon={<X className="size-3.5" />} loading={clear.isPending} disabled={busy && !clear.isPending} aria-label="清除角色声音" onClick={() => clear.mutate()} /> : null}
+                <span className="min-w-0 flex-1 truncate">{sampleId ? current?.name || translate("drama.studio.castVoice.voiceSampleSelected") : translate("drama.studio.castVoice.noVoiceSampleSelectedGenerateFromTheVoiceDescription")}</span>
+                {sampleId ? (
+                    <Button size="small" type="text" icon={<X className="size-3.5" />} loading={clear.isPending} disabled={busy && !clear.isPending} aria-label={translate("drama.studio.castVoice.clearCharacterVoice")} onClick={() => clear.mutate()} />
+                ) : null}
             </div>
             {recording ? (
                 <div className="drama-voice-recording" role="status">
                     <span className="drama-voice-dot" aria-hidden="true" />
-                    正在录音 {Math.floor(recorder.duration)} / {MAX_RECORD_SECONDS} 秒
+                    {translate("drama.studio.castVoice.recording")} {Math.floor(recorder.duration)} / {MAX_RECORD_SECONDS} {translate("account.settings.models.unitSecond")}
                     <span className="flex-1" />
                     <Button size="small" onClick={() => recorder.cancel()}>
-                        取消
+                        {translate("common.cancel")}
                     </Button>
                     <Button size="small" type="primary" icon={<Square className="size-3" />} onClick={() => void finishRecording()}>
-                        完成
+                        {translate("account.payment.done")}
                     </Button>
                 </div>
             ) : (
@@ -166,18 +183,24 @@ export function CastVoiceField({ projectId, cast, restyle, onChanged }: { projec
                         size="small"
                         className="min-w-0 flex-1"
                         value={current?.id ?? null}
-                        placeholder={profilesQuery.isLoading ? "正在读取声音库…" : profiles.length ? "从声音库选择" : "声音库里还没有样本"}
+                        placeholder={
+                            profilesQuery.isLoading
+                                ? translate("drama.studio.castVoice.loadingVoiceLibrary")
+                                : profiles.length
+                                  ? translate("drama.studio.castVoice.chooseFromVoiceLibrary")
+                                  : translate("drama.studio.castVoice.noSamplesInTheVoiceLibraryYet")
+                        }
                         options={profiles.map((profile) => ({ value: profile.id, label: profile.name }))}
                         disabled={busy || !profiles.length}
                         showSearch
                         optionFilterProp="label"
-                        aria-label="从声音库选择"
+                        aria-label={translate("drama.studio.castVoice.chooseFromVoiceLibrary")}
                         onChange={(id: string | null) => {
                             if (id && id !== cast.voiceProfileId) bind.mutate({ voiceProfileId: id });
                         }}
                     />
                     <Button size="small" icon={<Upload className="size-3.5" />} loading={upload.isPending} disabled={busy && !upload.isPending} onClick={() => fileRef.current?.click()}>
-                        上传
+                        {translate("canvasA.assetView.upload")}
                     </Button>
                     <Button
                         size="small"
@@ -185,11 +208,11 @@ export function CastVoiceField({ projectId, cast, restyle, onChanged }: { projec
                         disabled={busy}
                         onClick={() =>
                             void recorder.start().catch(() => {
-                                message.error("无法使用麦克风，请检查浏览器权限");
+                                message.error(translate("drama.studio.castVoice.microphoneUnavailableCheckBrowserPermissions"));
                             })
                         }
                     >
-                        录制
+                        {translate("drama.studio.castVoice.record")}
                     </Button>
                 </div>
             )}
@@ -199,13 +222,13 @@ export function CastVoiceField({ projectId, cast, restyle, onChanged }: { projec
                 type="file"
                 accept={AUDIO_ACCEPT}
                 className="hidden"
-                aria-label={`上传${cast.name}的声音样本`}
+                aria-label={translate("drama.studio.castVoice.uploadAVoiceSampleFor", { v0: String(cast.name) })}
                 onChange={(event) => {
                     const file = event.target.files?.[0];
                     event.target.value = "";
                     if (!file) return;
                     if (file.size > MAX_SAMPLE_BYTES) {
-                        message.warning("声音样本不超过 20MB，建议 5–15 秒");
+                        message.warning(translate("drama.studio.castVoice.voiceSamplesMustBeNoLargerThan20MB5"));
                         return;
                     }
                     upload.mutate({ file, name: file.name });

@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { releasePrevisFocusAfterPointer } from "@/lib/canvas/previs/previs-shortcuts";
 import type { PrevisRenderMode } from "@/types/previs";
+import { translate } from "@/i18n";
 
 type PrevisViewportDockProps = {
     transformMode: "select" | "translate" | "rotate" | "scale";
@@ -22,39 +23,39 @@ type PrevisViewportDockProps = {
 
 /** 渲染视图按钮的展示顺序与图标。实际可见项由 renderModes 过滤。 */
 const RENDER_VIEW_BUTTONS: Array<{ mode: PrevisRenderMode; label: string; icon: ReactNode }> = [
-    { mode: "beauty", label: "构图预览", icon: <Camera /> },
-    { mode: "clay", label: "彩色白膜", icon: <Palette /> },
-    { mode: "pose", label: "骨骼视图", icon: <Bone /> },
-    { mode: "depth", label: "深度视图", icon: <Layers /> },
-    { mode: "normal", label: "法线视图", icon: <Compass /> },
+    { mode: "beauty", label: translate("canvasTools.previs.previsViewportDock.compositionPreview"), icon: <Camera /> },
+    { mode: "clay", label: translate("canvasTools.previs.previsViewportDock.coloredClayRender"), icon: <Palette /> },
+    { mode: "pose", label: translate("canvasTools.previs.previsViewportDock.rigView"), icon: <Bone /> },
+    { mode: "depth", label: translate("canvasTools.previs.previsViewportDock.depthView"), icon: <Layers /> },
+    { mode: "normal", label: translate("canvasTools.previs.previsViewportDock.normalView"), icon: <Compass /> },
 ];
 
 export function PrevisViewportDock({ transformMode, renderMode, renderModes, onTransformModeChange, onRenderModeChange, onAddActor, onAddBox, onAddLight, onAddCamera, onAlignCamera }: PrevisViewportDockProps) {
     return (
-        <nav className="previs-viewport-dock" aria-label="预演台视口工具">
-            <DockButton label="移动对象" active={transformMode === "translate"} onClick={() => onTransformModeChange("translate")}>
+        <nav className="previs-viewport-dock" aria-label={translate("canvasTools.previs.previsViewportDock.previsViewportTools")}>
+            <DockButton label={translate("canvasTools.previs.previsViewportDock.moveObject")} active={transformMode === "translate"} onClick={() => onTransformModeChange("translate")}>
                 <Move3D />
             </DockButton>
-            <DockButton label="旋转对象" active={transformMode === "rotate"} onClick={() => onTransformModeChange("rotate")}>
+            <DockButton label={translate("canvasTools.previs.previsViewportDock.rotateObject")} active={transformMode === "rotate"} onClick={() => onTransformModeChange("rotate")}>
                 <Rotate3D />
             </DockButton>
-            <DockButton label="缩放对象" active={transformMode === "scale"} onClick={() => onTransformModeChange("scale")}>
+            <DockButton label={translate("canvasTools.previs.previsViewportDock.scaleObject")} active={transformMode === "scale"} onClick={() => onTransformModeChange("scale")}>
                 <Scaling />
             </DockButton>
             <DockDivider />
-            <DockButton label="添加演员" onClick={onAddActor}>
+            <DockButton label={translate("canvasTools.previs.previsViewportDock.addActor")} onClick={onAddActor}>
                 <UserRound />
             </DockButton>
-            <DockButton label="添加立方体" onClick={onAddBox}>
+            <DockButton label={translate("canvasTools.previs.previsViewportDock.addCube")} onClick={onAddBox}>
                 <Box />
             </DockButton>
-            <DockButton label="添加灯光" onClick={onAddLight}>
+            <DockButton label={translate("canvasTools.previs.previsViewportDock.addLight")} onClick={onAddLight}>
                 <Lightbulb />
             </DockButton>
-            <DockButton label="添加摄影机" onClick={onAddCamera}>
+            <DockButton label={translate("canvasTools.previs.previsViewportDock.addCamera")} onClick={onAddCamera}>
                 <Camera />
             </DockButton>
-            <DockButton label="摄影机对齐当前视图" onClick={onAlignCamera}>
+            <DockButton label={translate("canvasTools.previs.previsViewportDock.alignTheCameraToTheCurrentView")} onClick={onAlignCamera}>
                 <Crosshair />
             </DockButton>
             <DockDivider />

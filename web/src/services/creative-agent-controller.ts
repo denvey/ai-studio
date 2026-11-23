@@ -21,6 +21,8 @@ import { useCanvasStore } from "@/stores/canvas/use-canvas-store";
 import { creativeVideoSpecificationError } from "@/lib/creation/creative-agent-state";
 import { updateCreativePlan } from "@/lib/creation/creative-plan";
 import { generationErrorMessage } from "@/lib/generation-error";
+import { currentLocale, translate } from "@/i18n";
+
 
 export type CreativeCanvasAdapter = { canvasId: string; read: () => CanvasSnapshot; apply: (ops: CanvasOperation[]) => Promise<CanvasSnapshot> };
 export type CreativeControllerView = { run?: CreationRun; state: CreativeAgentState; busy: boolean; hasControl: boolean; error?: string; quote?: CreativeQuote };
@@ -47,7 +49,7 @@ export class CreativeAgentController {
 
     private emit() { if (!this.disposed) this.options.onChange({ run: this.run, state: this.state, busy: this.busy, hasControl: this.hasControl, error: this.error, quote: this.quote() }); }
     private assertLive() { if (this.disposed || this.abort.signal.aborted || this.scope !== getActiveUserScope()) throw new DOMException("执行已停止或账号已切换", "AbortError"); }
-    private guard(): CreationGuard { this.assertLive(); if (!this.run || !this.hasControl) throw new Error("请先接管当前任务，再继续操作"); return { owner: this.owner, executionEpoch: this.run.executionEpoch }; }
+    private guard(): CreationGuard { this.assertLive(); if (!this.run || !this.hasControl) throw new Error(translate("shared.creativeAgentController.takeOverTheCurrentTaskBeforeContinuing")); return { owner: this.owner, executionEpoch: this.run.executionEpoch }; }
     private accept(detail: CreationRunDetail) { this.run = detail.run; this.state = readCreativeState(detail.run.state); this.submissions = detail.submissions || []; }
     private async save(status: CreationStatus = this.run?.status || "idle") {
         const guard = this.guard();
@@ -55,7 +57,7 @@ export class CreativeAgentController {
         this.assertLive(); this.emit();
     }
     private async action(operation: () => Promise<void>, takeOver = false) {
-        if (this.busy) throw new Error("上一项操作仍在处理，请稍候");
+        if (this.busy) throw new Error(translate("shared.creativeAgentController.thePreviousActionIsStillProcessingPleaseWait"));
         if (this.disposed || this.scope !== getActiveUserScope()) throw new DOMException("页面已关闭", "AbortError");
         this.busy = true; this.error = undefined; this.emit();
         try { if (this.run) await this.ensureControl(takeOver); await operation(); }
@@ -97,7 +99,7 @@ export class CreativeAgentController {
             if (this.abort.signal.aborted) return;
             void this.api.heartbeat(this.run.id, this.guard(), this.abort.signal).then((result) => {
                 if (!this.disposed && this.run) this.run = { ...this.run, leaseExpiresAt: result.leaseExpiresAt };
-            }).catch(() => { if (this.disposed) return; this.hasControl = false; this.abort.abort(); this.error = "连接暂时中断，正在恢复。已有作品会保留。"; this.emit(); });
+            }).catch(() => { if (this.disposed) return; this.hasControl = false; this.abort.abort(); this.error = translate("shared.creativeAgentController.theConnectionWasInterruptedAndIsRecoveringExistingWorkWill"); this.emit(); });
         }, 15_000);
     }
     private restoring?: Promise<void>;
@@ -114,7 +116,7 @@ export class CreativeAgentController {
             const detail = await this.api.get(this.run!.id, this.abort.signal);
             this.assertLive();
             const run = detail.run;
-            if (!takeOver && run.executionOwner && run.executionOwner !== this.owner && Date.parse(run.leaseExpiresAt || "") > Date.now()) throw new Error("当前创作连接已切换，请点击重试连接继续。");
+            if (!takeOver && run.executionOwner && run.executionOwner !== this.owner && Date.parse(run.leaseExpiresAt || "") > Date.now()) throw new Error(translate("shared.creativeAgentController.theCreationConnectionHasChangedClickRetryConnectionToContinue"));
             // Only replace the lease here; never overwrite local edits or unknown submission results.
             this.run = { ...this.run!, executionOwner: run.executionOwner, executionEpoch: run.executionEpoch, leaseExpiresAt: run.leaseExpiresAt };
             await this.claim();
@@ -135,7 +137,7 @@ export class CreativeAgentController {
         if (!this.hasControl || !this.run) return;
         const guard = this.guard();
         this.abort.abort();
-        this.state = { ...this.state, error: "已暂停后续操作。已提交的生成任务仍可在任务中心继续运行。" };
+        this.state = { ...this.state, error: translate("shared.creativeAgentController.furtherActionsArePausedSubmittedGenerationTasksCanContinueRunning") };
         try {
             this.run = await this.api.save(this.run.id, { ...guard, revision: this.run.revision, status: "paused", state: this.state as unknown as Record<string, unknown> });
         } finally {
@@ -147,7 +149,7 @@ export class CreativeAgentController {
 
     async requestModification() {
         await this.action(async () => {
-            if (this.state.media.some((item) => ["queued", "running"].includes(item.status))) throw new Error("已有生成还在处理，请继续处理以同步结果，完成后再修改方案。");
+            if (this.state.media.some((item) => ["queued", "running"].includes(item.status))) throw new Error(translate("shared.creativeAgentController.generationIsStillProcessingContinueToSyncTheResultThen"));
             this.run = await this.api.invalidateProposal(this.run!.id, { ...this.guard(), revision: this.run!.revision }, this.abort.signal);
             this.state = { ...this.state, modificationRequested: true, pendingPayment: undefined, pendingEdits: undefined, pendingRedo: undefined };
             await this.save("idle");
@@ -158,7 +160,7 @@ export class CreativeAgentController {
         if (!text.trim()) return;
         await this.action(async () => {
             this.guard();
-            if (this.state.media.some((item) => ["queued", "running"].includes(item.status))) throw new Error("请先暂停或等当前生成完成，再调整需求；已提交任务不会被文字修改取消");
+            if (this.state.media.some((item) => ["queued", "running"].includes(item.status))) throw new Error(translate("shared.creativeAgentController.pauseOrWaitForGenerationToFinishBeforeChangingRequirements"));
             if (this.run?.approvedProposalVersion) this.run = await this.api.invalidateProposal(this.run.id, { ...this.guard(), revision: this.run.revision }, this.abort.signal);
             this.state = { ...this.state, questions: undefined, answers: undefined, pendingPayment: undefined, planning: undefined, pendingEdits: undefined, pendingRedo: undefined, error: undefined, messages: [...this.state.messages, { id: nanoid(), role: "user", text: text.trim() }] };
             await this.save("running");
@@ -168,7 +170,7 @@ export class CreativeAgentController {
     async answer(answers: CreativeAnswers, continuePlanning = true) {
         await this.action(async () => {
             const question = this.state.questions;
-            if (!question) throw new Error("当前没有待回答问题");
+            if (!question) throw new Error(translate("shared.creativeAgentController.noQuestionsAwaitingAnAnswer"));
             const brief = applyCreativeAnswers(question, question, answers, this.state.brief, this.assets());
             const summary = question.questions.map((item) => `${item.title}：${JSON.stringify(brief[item.field]?.value ?? "由助手建议")}`).join("\n");
             this.state = { ...this.state, brief, questions: { ...question, status: "submitted" }, answers, messages: [...this.state.messages, { id: nanoid(), role: "user", text: summary, question: { ...question, status: "submitted" }, answers }] };
@@ -180,7 +182,7 @@ export class CreativeAgentController {
     async presentInteraction(data: Record<string, unknown>, revalidate = false) {
         await this.action(async () => {
             this.guard();
-            if (revalidate && (this.state.proposal || this.state.canvasApplied || this.run?.approvedProposalVersion || this.state.pendingPayment?.length || this.state.media.some((item) => item.taskId))) throw new Error("此方案已有批准或执行记录，不能重复呈现，请修改方案后重新确认");
+            if (revalidate && (this.state.proposal || this.state.canvasApplied || this.run?.approvedProposalVersion || this.state.pendingPayment?.length || this.state.media.some((item) => item.taskId))) throw new Error(translate("shared.creativeAgentController.thisPlanHasAlreadyBeenApprovedOrExecutedAndCannot"));
             if (this.state.externalInteractionPresented && !revalidate) return;
             this.state = { ...this.state, externalInteractionPresented: true };
             await this.consumePlanning({ resultJson: JSON.stringify({ toolCalls: [{ id: "interaction", type: "function", function: { name: "creative_respond", arguments: JSON.stringify(data) } }] }) } as GenerationTask);
@@ -191,11 +193,11 @@ export class CreativeAgentController {
         const config = this.options.config(), selected = model || this.state.textModel || config.textModel || config.model;
         const next: AiConfig = { ...config, model: selected, count: "1", taskWorkflowProvider: "model" };
         const requestConfig = resolveModelRequestConfig(next, selected);
-        if (!logicalModelIDForConfig(next) && !requestConfig.channelId) throw new Error("智能创作需要系统受管模型，请选择系统模型；自定义渠道和本机模型仍可使用原直接生成入口");
+        if (!logicalModelIDForConfig(next) && !requestConfig.channelId) throw new Error(translate("shared.creativeAgentController.smartCreationRequiresASystemManagedModelSelectASystem"));
         return next;
     }
     private async preparePlanning(prompt: string) {
-        if (this.state.modelCalls >= 32) throw new Error("此任务已达到 32 次分析调用上限，请新建任务并沿用当前方案");
+        if (this.state.modelCalls >= 32) throw new Error(translate("shared.creativeAgentController.thisTaskHasReachedTheLimitOf32AnalysisRequests"));
         const config = this.requestConfig();
         const skills = await listAddedSkills();
         const prepared = await skillRuntime.prepare({ profile: "creation", prompt, skills: skills.skills || [], selectedSkillIds: this.state.selectedSkillIds });
@@ -215,7 +217,7 @@ export class CreativeAgentController {
     }
     private async ensurePlanningSubmission() {
         const planning = this.state.planning;
-        if (!planning) throw new Error("缺少待恢复的规划内容");
+        if (!planning) throw new Error(translate("shared.creativeAgentController.missingPlanContentToResume"));
         let submission = this.submissions.find((item) => item.itemKey === planning.itemKey);
         if (!submission) {
             const config = this.requestConfig(planning.model);
@@ -234,7 +236,7 @@ export class CreativeAgentController {
         if (!pending?.length) return undefined;
         const amount = pending.reduce((sum, item) => sum + item.quote.amountMicrocredits, 0);
         const estimated = pending.some((item) => item.quote.estimated);
-        return { id: pending.map((item) => item.id).join(":"), title: this.state.planning && !this.state.planning.consumed ? "确认本次理解与规划费用" : "确认本批生成费用", items: pending.map((item) => { const media = this.state.media.find((media) => media.submissionId === item.id); const node = this.state.proposal?.workflow.nodes.find((node) => node.ref === media?.ref); return { id: item.id, label: node?.title || "理解需求并生成问答或方案", model: item.quote.model, quantity: 1, specification: [...Object.entries(item.quote.options || {}).filter(([, value]) => value !== undefined && value !== "").map(([key, value]) => `${({ size: "比例/尺寸", videoSeconds: "时长（秒）", vquality: "清晰度", quality: "质量", count: "数量" } as Record<string, string>)[key] || key}：${String(value)}`), `${item.quote.billingMode === "token" ? "按用量" : item.quote.billingMode === "per_second" ? "按秒" : item.quote.billingMode === "per_character" ? "按字符" : "按次"}计费，本项${item.quote.estimated ? "预计" : ""} ${(item.quote.amountMicrocredits / 1_000_000).toLocaleString("zh-CN", { maximumFractionDigits: 6 })} 积分`].join(" · ") }; }), amountLabel: `${estimated ? "预计 " : ""}${(amount / 1_000_000).toLocaleString("zh-CN", { maximumFractionDigits: 6 })} 积分`, basis: estimated ? "按实际用量结算，此金额为估算，不是费用上限。仅批准列出的调用。" : "按当前报价，仅批准本批列出的生成项。", expiresAt: pending.map((item) => item.quote.expiresAt).sort()[0], approvedQuantity: pending.filter((item) => item.approvedAt).length };
+        return { id: pending.map((item) => item.id).join(":"), title: this.state.planning && !this.state.planning.consumed ? translate("shared.creativeAgentController.confirmUnderstandingAndPlanningFees") : translate("shared.creativeAgentController.confirmGenerationFeesForThisBatch"), items: pending.map((item) => { const media = this.state.media.find((media) => media.submissionId === item.id); const node = this.state.proposal?.workflow.nodes.find((node) => node.ref === media?.ref); return { id: item.id, label: node?.title || translate("shared.creativeAgentController.understandRequirementsAndPrepareQuestionsOrAProposal"), model: item.quote.model, quantity: 1, specification: [...Object.entries(item.quote.options || {}).filter(([, value]) => value !== undefined && value !== "").map(([key, value]) => `${({ size: translate("shared.creativeAgentController.aspectRatioSize"), videoSeconds: translate("shared.creativeAgentController.durationSeconds"), vquality: translate("shared.creativeAgentController.sharpness"), quality: translate("shared.creativeAgentController.quality"), count: translate("shared.creativeAgentController.quantity") } as Record<string, string>)[key] || key}：${String(value)}`), translate("shared.creativeAgentController.billingThisItemCredits", { v0: String(item.quote.billingMode === "token" ? translate("shared.creativeAgentController.byUsage") : item.quote.billingMode === "per_second" ? translate("shared.creativeAgentController.perSecond") : item.quote.billingMode === "per_character" ? translate("shared.creativeAgentController.perCharacter") : translate("shared.creativeAgentController.perCall")), v1: String(item.quote.estimated ? translate("shared.modelPricing.estimated") : ""), v2: String((item.quote.amountMicrocredits / 1_000_000).toLocaleString(currentLocale(), { maximumFractionDigits: 6 })) })].join(" · ") }; }), amountLabel: translate("shared.creativeAgentController.credits", { v0: String(estimated ? (translate("shared.modelPricing.estimated") + " ") : ""), v1: String((amount / 1_000_000).toLocaleString(currentLocale(), { maximumFractionDigits: 6 })) }), basis: estimated ? translate("shared.creativeAgentController.billedByActualUsageThisIsAnEstimateNotA") : translate("shared.creativeAgentController.atCurrentPricesApprovalCoversOnlyTheGenerationItemsListed"), expiresAt: pending.map((item) => item.quote.expiresAt).sort()[0], approvedQuantity: pending.filter((item) => item.approvedAt).length };
     }
 
     async approvePayment() {
@@ -245,7 +247,7 @@ export class CreativeAgentController {
         }
         await this.action(async () => {
             const ids = this.state.pendingPayment;
-            if (!ids?.length) throw new Error("当前没有待批准费用");
+            if (!ids?.length) throw new Error(translate("shared.creativeAgentController.noCostsAwaitingApproval"));
             const unapproved = ids.filter((id) => { const item = this.submissions.find((item) => item.id === id); return item && !item.taskId && !item.approvedAt && !item.revokedAt; });
             if (this.run!.status === "paused") await this.save("waiting_payment");
             if (unapproved.length) {
@@ -257,7 +259,7 @@ export class CreativeAgentController {
     }
     async refreshQuotes() {
         await this.action(async () => {
-            if (!this.state.pendingPayment?.length) throw new Error("当前没有待更新报价");
+            if (!this.state.pendingPayment?.length) throw new Error(translate("shared.creativeAgentController.noQuoteAwaitingAnUpdate"));
             for (const id of [...this.state.pendingPayment]) {
                 if (this.submissions.find((item) => item.id === id)?.taskId) continue;
                 const next = await this.api.refreshQuote(this.run!.id, { ...this.guard(), submissionId: id }, this.abort.signal);
@@ -282,7 +284,7 @@ export class CreativeAgentController {
             await this.consumePlanning(completed);
             return;
         }
-        if (!this.options.canvas()) throw new Error("媒体生成只能在对应画布页面继续");
+        if (!this.options.canvas()) throw new Error(translate("shared.creativeAgentController.mediaGenerationCanOnlyContinueOnItsCanvasPage"));
         await this.save("running");
         const errors: string[] = [];
         for (const id of ids) {
@@ -315,7 +317,7 @@ export class CreativeAgentController {
         const protocol = [...(this.state.planning?.protocol || []), ...calls.map(toolInput), ...results];
         this.state = { ...this.state, modelCalls: this.state.modelCalls + 1, pendingPayment: undefined, planning: this.state.planning ? { ...this.state.planning, consumed: true, protocol } : undefined };
         if (!first) {
-            if (!output.text?.trim()) throw new Error("助手没有返回可展示的内容");
+            if (!output.text?.trim()) throw new Error(translate("shared.creativeAgentController.theAssistantReturnedNoDisplayableContent"));
             this.state = { ...this.state, messages: [...this.state.messages, { id: nanoid(), role: "assistant", text: output.text }] };
             await this.save("idle"); return;
         }
@@ -323,7 +325,7 @@ export class CreativeAgentController {
         const scene = typeof data.scenario === "string" && Object.hasOwn(CREATIVE_SCENARIOS, data.scenario) ? data.scenario as CreativeAgentState["scene"] : this.state.scene;
         const brief = mergeCreativeBrief(this.state.brief, data.brief, scene, this.state.messages.findLast((message) => message.role === "user")?.text || "");
         const questions = normalizeCreativeQuestions(data.questions, scene, brief, { interactionId: nanoid(), revision: 1 }, this.assets());
-        const message = typeof data.message === "string" ? data.message : output.text || "已整理你的要求。";
+        const message = typeof data.message === "string" ? data.message : output.text || translate("shared.creativeAgentController.yourRequirementsHaveBeenOrganized");
         this.state = { ...this.state, scene, brief, dynamicPlan: updateCreativePlan(data.plan, this.state.dynamicPlan, nanoid()), messages: [...this.state.messages, { id: nanoid(), role: "assistant", text: message }], questions: undefined, answers: undefined };
         if (questions.questions.length) {
             this.state = { ...this.state, questions };
@@ -337,12 +339,12 @@ export class CreativeAgentController {
         }
         if (Array.isArray(data.edits) && data.edits.length) {
             const canvas = this.options.canvas();
-            if (!canvas) throw new Error("请进入画布后再调整节点");
+            if (!canvas) throw new Error(translate("shared.creativeAgentController.openTheCanvasBeforeAdjustingNodes"));
             const current = canvas.read();
             const ops: CanvasOperation[] = data.edits.map((raw) => {
                 const edit = raw as Record<string, unknown>;
                 const id = typeof edit.nodeId === "string" ? edit.nodeId : "";
-                if (!current.nodes.some((node) => node.id === id)) throw new Error("助手建议修改的节点不存在");
+                if (!current.nodes.some((node) => node.id === id)) throw new Error(translate("shared.creativeAgentController.theNodeTheAssistantSuggestedEditingDoesNotExist"));
                 return { type: "update_node", id, patch: { ...(typeof edit.title === "string" ? { title: edit.title } : {}) }, metadata: { ...(typeof edit.prompt === "string" ? { prompt: edit.prompt, composerContent: edit.prompt } : {}), ...(typeof edit.content === "string" && current.nodes.find((node) => node.id === id)?.type === "text" ? { content: edit.content } : {}) } };
             });
             this.state = { ...this.state, pendingEdits: ops };
@@ -353,12 +355,12 @@ export class CreativeAgentController {
     async approveProposal() {
         await this.action(async () => {
             const proposal = this.state.proposal;
-            if (!proposal || this.run?.status !== "waiting_proposal") throw new Error("当前方案已过期或无需确认");
+            if (!proposal || this.run?.status !== "waiting_proposal") throw new Error(translate("shared.creativeAgentController.theCurrentPlanHasExpiredOrDoesNotRequireConfirmation"));
             assertCreativeBriefSpecifications(proposal, this.state.brief);
             const snapshot = this.options.canvas()?.read() || { projectId: "", title: "", nodes: [], connections: [], selectedNodeIds: [], viewport: { x: 0, y: 0, k: 1 } };
             const ops = creativeProposalOps(this.run!.id, proposal, snapshot, this.options.config());
             proposal.extra = { ...(proposal.extra as Record<string, unknown> || {}), nodeIds: Object.fromEntries(proposal.workflow.nodes.map((node) => [node.ref, creativeNodeId(this.run!.id, proposal.version, node.ref)])) };
-            this.state = { ...this.state, proposal, operations: ops, messages: [...this.state.messages, { id: nanoid(), role: "assistant", text: `方案 v${proposal.version}：${proposal.title}`, proposal }] };
+            this.state = { ...this.state, proposal, operations: ops, messages: [...this.state.messages, { id: nanoid(), role: "assistant", text: translate("shared.creativeAgentController.proposalV", { v0: String(proposal.version), v1: String(proposal.title) }), proposal }] };
             await this.save("waiting_proposal");
             this.run = await this.api.approveProposal(this.run!.id, { ...this.guard(), revision: this.run!.revision, proposalVersion: proposal.version, proposal, ops }, this.abort.signal);
             const linked = await this.api.canvas(this.run.id, this.guard(), this.abort.signal);
@@ -371,17 +373,17 @@ export class CreativeAgentController {
     async approveEdits() {
         await this.action(async () => {
             const ops = this.state.pendingEdits;
-            if (!ops?.length) throw new Error("当前没有待确认节点调整");
+            if (!ops?.length) throw new Error(translate("shared.creativeAgentController.noNodeChangesAwaitingConfirmation"));
             const version = Math.max(this.state.proposal?.version || 0, this.run?.approvedProposalVersion || 0) + 1;
             this.run = await this.api.approveProposal(this.run!.id, { ...this.guard(), revision: this.run!.revision, proposalVersion: version, proposal: { title: "局部节点调整", ops }, ops }, this.abort.signal);
             await this.commitOps(ops);
-            this.state = { ...this.state, pendingEdits: undefined, messages: [...this.state.messages, { id: nanoid(), role: "assistant", text: "已更新指定节点字段。" }] };
+            this.state = { ...this.state, pendingEdits: undefined, messages: [...this.state.messages, { id: nanoid(), role: "assistant", text: translate("shared.creativeAgentController.theSpecifiedNodeFieldsHaveBeenUpdated") }] };
             await this.save("idle");
         });
     }
     private async applyProposal() {
         if (this.state.canvasApplied) return;
-        if (!this.state.operations || !this.state.proposal) throw new Error("缺少已批准方案的操作记录，请重新核对");
+        if (!this.state.operations || !this.state.proposal) throw new Error(translate("shared.creativeAgentController.theApprovedPlanSOperationRecordsAreMissingCheckAgain"));
         await this.commitOps(this.state.operations);
         this.state = { ...this.state, canvasApplied: true };
         await this.save("running");
@@ -392,7 +394,7 @@ export class CreativeAgentController {
     }
     private async commitOpsExclusive(ops: CanvasOperation[]) {
         const adapter = this.options.canvas();
-        if (!adapter || adapter.canvasId !== this.run?.canvasId) throw new Error("对应画布尚未加载，不能执行画布操作");
+        if (!adapter || adapter.canvasId !== this.run?.canvasId) throw new Error(translate("shared.creativeAgentController.theCorrespondingCanvasIsNotLoadedCanvasOperationsCannotRun"));
         this.guard();
         const remote = await this.api.canvasSnapshot(this.run.id, this.abort.signal);
         const remoteSnapshot = { ...adapter.read(), projectId: remote.document.id, nodes: remote.document.nodes, connections: remote.document.connections };
@@ -416,11 +418,11 @@ export class CreativeAgentController {
     private async prepareMediaBatch() {
         const proposal = this.state.proposal;
         const adapter = this.options.canvas();
-        if (!proposal || !adapter || !this.state.canvasApplied) throw new Error("请先在画布中完成方案接续");
+        if (!proposal || !adapter || !this.state.canvasApplied) throw new Error(translate("shared.creativeAgentController.resumeThePlanOnTheCanvasFirst"));
         const existingRefs = Object.keys((proposal.extra as { existingAssets?: Record<string, unknown> } | undefined)?.existingAssets || {});
         const ready = new Set([...existingRefs, ...this.state.media.filter((item) => item.status === "ready").map((item) => item.ref)]);
         if (this.state.media.every((item) => item.status === "ready")) {
-            this.state = { ...this.state, pendingPayment: undefined, messages: [...this.state.messages, { id: nanoid(), role: "assistant", text: "本次产物已生成并保存，可以在会话和画布查看。" }] };
+            this.state = { ...this.state, pendingPayment: undefined, messages: [...this.state.messages, { id: nanoid(), role: "assistant", text: translate("shared.creativeAgentController.theOutputHasBeenGeneratedAndSavedViewItIn") }] };
             await this.save("completed"); return;
         }
         const candidates = this.state.media.filter((media) => media.status === "pending" && proposal.generationItems.find((item) => item.ref === media.ref)?.referenceRefs?.every((ref) => ready.has(ref)) !== false);
@@ -428,13 +430,13 @@ export class CreativeAgentController {
         for (const media of candidates) {
             const item = proposal.generationItems.find((item) => item.ref === media.ref)!;
             const snapshot = adapter.read(), node = snapshot.nodes.find((node) => node.id === media.nodeId);
-            if (!node) throw new Error(`节点 ${media.ref} 已被删除，请核对后继续，不会重新创建`);
+            if (!node) throw new Error(translate("shared.creativeAgentController.nodeWasDeletedCheckBeforeContinuingItWillNotBe", { v0: String(media.ref) }));
             const nodeIds = (proposal.extra as { nodeIds?: Record<string, string> } | undefined)?.nodeIds;
             const referenceNodes = [...(item.referenceRefs || []).map((ref) => nodeIds?.[ref] || this.state.media.find((media) => media.ref === ref)?.nodeId || creativeNodeId(this.run!.id, proposal.version, ref)), ...(proposal.workflow.nodes.find((node) => node.ref === item.ref)?.referenceNodeIds || [])].map((id) => snapshot.nodes.find((node) => node.id === id));
             const referenceImages = referenceNodes.map((reference) => {
                 const storageKey = typeof reference?.metadata?.storageKey === "string" ? reference.metadata.storageKey : "";
                 const resourceId = resourceIdFromStorageKey(storageKey);
-                if (!reference || !resourceId || reference.metadata?.status !== "success") throw new Error("引用素材尚未就绪，请选择实际可用的资源");
+                if (!reference || !resourceId || reference.metadata?.status !== "success") throw new Error(translate("shared.creativeAgentController.referencedAssetsAreNotReadySelectAvailableResources"));
                 return { id: reference.id, name: reference.title || "参考图", type: reference.metadata?.mimeType || "image/png", storageKey, dataUrl: resourceFileUrl(resourceId) };
             });
             const config = { ...this.requestConfig(item.model), count: "1", ...(item.size ? { size: item.size } : {}), ...(item.seconds !== undefined ? { videoSeconds: String(item.seconds) } : {}), ...(item.quality ? item.mode === "video" ? { vquality: item.quality } : { quality: item.quality } : {}) };
@@ -444,7 +446,7 @@ export class CreativeAgentController {
             this.upsertSubmission(submission); this.setMedia(media.ref, { submissionId: submission.id }); ids.push(submission.id);
             this.state = { ...this.state, pendingPayment: [...ids] }; await this.save("waiting_payment");
         }
-        if (!ids.length) { await this.save("paused"); throw new Error("当前没有可执行项，请先处理失败任务或核对素材依赖"); }
+        if (!ids.length) { await this.save("paused"); throw new Error(translate("shared.creativeAgentController.noExecutableItemsAvailableResolveFailedTasksOrCheckAsset")); }
     }
     private async observeMedia(media: CreativeMediaState) {
         let task: GenerationTask;
@@ -458,10 +460,10 @@ export class CreativeAgentController {
         this.guard();
         try {
             const result = parseBackendGenerationResult(task), output = result.video || result.images?.[0];
-            if (!output?.storageKey || !resourceIdFromStorageKey(output.storageKey)) throw new Error("任务已完成，但资源尚未就绪；请恢复回写，不要重新生成");
+            if (!output?.storageKey || !resourceIdFromStorageKey(output.storageKey)) throw new Error(translate("shared.creativeAgentController.theTaskIsCompleteButResourcesAreNotReadyResume"));
             const adapter = this.options.canvas();
             const node = adapter?.read().nodes.find((node) => node.id === media.nodeId);
-            if (!node) throw new Error("目标节点已删除，产物仍保留在任务中心和素材库");
+            if (!node) throw new Error(translate("shared.creativeAgentController.theTargetNodeWasDeletedOutputRemainsInTheTask"));
             const generationItem = this.state.proposal?.generationItems.find((item) => item.ref === media.ref);
             const producedModel = submittedProducedModel(task.model) || submittedProducedModel(generationItem?.model);
             const metadata = { content: resourceFileUrl(resourceIdFromStorageKey(output.storageKey)!), storageKey: output.storageKey, status: "success" as const, naturalWidth: output.width, naturalHeight: output.height, bytes: output.bytes, mimeType: output.mimeType, ...(result.video ? { durationMs: result.video.durationMs } : {}), generationTaskId: task.id, producedModel, producedModelCandidate: undefined };
@@ -479,7 +481,7 @@ export class CreativeAgentController {
     async resume() {
         await this.action(async () => {
             this.guard(); this.accept(await this.api.get(this.run!.id, this.abort.signal));
-            if (this.state.modificationRequested) throw new Error("请先说明想修改的内容，调整后的方案需要重新确认。");
+            if (this.state.modificationRequested) throw new Error(translate("shared.creativeAgentController.describeTheChangesYouWantFirstTheRevisedPlanRequires"));
             this.state = { ...this.state, error: undefined };
             await this.save(this.state.questions?.status === "pending" ? "waiting_answer" : "running");
             if (this.state.pendingRedo) { await this.continueRedo(); return; }
@@ -517,19 +519,19 @@ export class CreativeAgentController {
     }
     async redo(ref: string) {
         await this.action(async () => {
-            if (this.state.pendingRedo) throw new Error("已有待恢复的重做操作，请先核对状态并继续");
+            if (this.state.pendingRedo) throw new Error(translate("shared.creativeAgentController.aRedoOperationIsAwaitingRecoveryCheckItsStatusAnd"));
             const media = this.state.media.find((item) => item.ref === ref);
-            if (!media) throw new Error("生成项不存在");
-            if (media.taskId) { const task = await this.queryTask(media.taskId, { signal: this.abort.signal }); if (["running", "queued"].includes(task.status) || task.billing?.status === "uncertain") throw new Error("原任务仍在执行或账务待核对，不能重新扣费"); }
+            if (!media) throw new Error(translate("shared.creativeAgentController.generationItemDoesNotExist"));
+            if (media.taskId) { const task = await this.queryTask(media.taskId, { signal: this.abort.signal }); if (["running", "queued"].includes(task.status) || task.billing?.status === "uncertain") throw new Error(translate("shared.creativeAgentController.theOriginalTaskIsStillRunningOrItsChargesAre")); }
             const canvas = this.options.canvas();
             const proposal = this.state.proposal;
-            if (!canvas || !proposal) throw new Error("请先打开对应画布");
+            if (!canvas || !proposal) throw new Error(translate("shared.creativeAgentController.openTheCorrespondingCanvasFirst"));
             const snapshot = canvas.read();
             const node = snapshot.nodes.find((node) => node.id === media.nodeId);
-            if (!node) throw new Error("目标节点已删除，不能自动重建");
+            if (!node) throw new Error(translate("shared.creativeAgentController.theTargetNodeWasDeletedAndCannotBeRecreatedAutomatically"));
             const version = Math.max(proposal.version, this.run!.approvedProposalVersion || 0) + 1;
             const nodeIds = (proposal.extra as { nodeIds?: Record<string, string> } | undefined)?.nodeIds || Object.fromEntries(proposal.workflow.nodes.map((node) => [node.ref, creativeNodeId(this.run!.id, proposal.version, node.ref)]));
-            const operations: CanvasOperation[] = Object.values(nodeIds).map((id) => { const current = snapshot.nodes.find((node) => node.id === id); if (!current) throw new Error("原方案节点已被删除，请核对方案后继续"); return { type: "update_node", id, metadata: { ...current.metadata } }; });
+            const operations: CanvasOperation[] = Object.values(nodeIds).map((id) => { const current = snapshot.nodes.find((node) => node.id === id); if (!current) throw new Error(translate("shared.creativeAgentController.theOriginalPlanSNodeWasDeletedCheckThePlan")); return { type: "update_node", id, metadata: { ...current.metadata } }; });
             const nextProposal = { ...proposal, version, extra: { ...(proposal.extra as Record<string, unknown> || {}), nodeIds }, generationItems: proposal.generationItems.map((item) => item.ref === ref ? { ...item, model: String(node.metadata?.model || item.model), size: node.metadata?.size || item.size, seconds: node.metadata?.seconds ? Number(node.metadata.seconds) : item.seconds, quality: (item.mode === "video" ? node.metadata?.vquality : node.metadata?.quality) || item.quality } : item) };
             assertCreativeBriefSpecifications(nextProposal, this.state.brief);
             this.state = { ...this.state, proposal: nextProposal, operations, pendingPayment: undefined, planning: undefined, pendingRedo: { ref, attempt: media.attempt + 1, proposalVersion: version } };
@@ -539,7 +541,7 @@ export class CreativeAgentController {
     }
     private async continueRedo() {
         const intent = this.state.pendingRedo, proposal = this.state.proposal, operations = this.state.operations;
-        if (!intent || !proposal || proposal.version !== intent.proposalVersion || !operations || !this.state.media.some((media) => media.ref === intent.ref)) throw new Error("重做记录不完整，请重新核对方案");
+        if (!intent || !proposal || proposal.version !== intent.proposalVersion || !operations || !this.state.media.some((media) => media.ref === intent.ref)) throw new Error(translate("shared.creativeAgentController.theRedoRecordIsIncompleteCheckThePlanAgain"));
         if (this.run!.approvedProposalVersion !== intent.proposalVersion || !this.run!.approvedProposalHash) {
             this.run = await this.api.approveProposal(this.run!.id, { ...this.guard(), revision: this.run!.revision, proposalVersion: intent.proposalVersion, proposal, ops: operations }, this.abort.signal);
         }
@@ -555,7 +557,7 @@ function reconcileOps(ops: CanvasOperation[], snapshot: CanvasSnapshot): CanvasO
     return ops.filter((op) => {
         if (op.type === "add_node") return !snapshot.nodes.some((node) => node.id === op.id);
         if (op.type === "connect_nodes") return !snapshot.connections.some((edge) => edge.id === op.id || edge.fromNodeId === op.fromNodeId && edge.toNodeId === op.toNodeId);
-        if (op.type === "run_generation") throw new Error("画布写入不能直接提交收费生成");
+        if (op.type === "run_generation") throw new Error(translate("shared.creativeAgentController.canvasWritesCannotDirectlySubmitPaidGeneration"));
         return true;
     });
 }

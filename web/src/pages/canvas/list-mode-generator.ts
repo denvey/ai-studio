@@ -8,6 +8,7 @@ import type { AiConfig } from "@/stores/use-config-store";
 import type { ReferenceVideo } from "@/types/media";
 import { createStoryboardRow, cinematicStoryboardColumns, storyboardRowsOutputContract } from "@/lib/canvas/canvas-project-domain";
 import type { StoryboardColumn } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 const LIST_MODE_SYSTEM_PROMPT = `你是一个电商内容分析助手。用户会给你产品图片和一个任务描述。
 请严格根据用户要求的数量生成数据；如果用户说“生成5个卖点”，就必须返回5行，每行一个独立卖点。
@@ -171,23 +172,23 @@ function videoUrlsFromPrompt(prompt: string) {
 
 function storyboardColumnLabel(column: StoryboardColumn) {
     const labels: Partial<Record<StoryboardColumn, string>> = {
-        durationSeconds: "时长（秒）",
-        plotDescription: "画面描述",
-        dialogue: "台词/旁白",
-        narrativeIntent: "叙事目的",
-        viewerPOV: "观看视角",
-        performanceBlocking: "动作调度",
-        shotSize: "景别",
-        emotion: "情绪",
-        lightingAndAtmosphere: "光影氛围",
-        audioEffects: "音效/音乐",
-        camera: "镜头设计",
-        motion: "运镜",
-        timeBeats: "时间节拍",
-        imageGenerationPrompt: "首帧提示词",
-        videoMotionPrompt: "视频提示词",
-        continuityOut: "结尾状态",
-        negativePrompt: "负面提示词",
+        durationSeconds: translate("canvasTools.listModeGenerator.durationSeconds"),
+        plotDescription: translate("canvasTools.listModeGenerator.frameDescription"),
+        dialogue: translate("canvasTools.listModeGenerator.dialogueVoiceOver"),
+        narrativeIntent: translate("canvasTools.listModeGenerator.narrativePurpose"),
+        viewerPOV: translate("canvasTools.listModeGenerator.viewerPerspective"),
+        performanceBlocking: translate("canvasTools.listModeGenerator.performanceBlocking"),
+        shotSize: translate("canvasTools.listModeGenerator.shotSize"),
+        emotion: translate("canvasTools.listModeGenerator.emotion"),
+        lightingAndAtmosphere: translate("canvasTools.listModeGenerator.lightingAndMood"),
+        audioEffects: translate("canvasTools.listModeGenerator.soundEffectsMusic"),
+        camera: translate("canvasTools.listModeGenerator.shotDesign"),
+        motion: translate("canvasA.toolPicker.motion.short"),
+        timeBeats: translate("canvasTools.listModeGenerator.timingBeats"),
+        imageGenerationPrompt: translate("canvasTools.listModeGenerator.firstFramePrompt"),
+        videoMotionPrompt: translate("canvasTools.listModeGenerator.videoPrompt"),
+        continuityOut: translate("canvasTools.listModeGenerator.endState"),
+        negativePrompt: translate("canvasTools.listModeGenerator.negativePrompt"),
     };
     return labels[column] || column;
 }
@@ -323,7 +324,7 @@ export async function handleListGenerate({
     const isVideoAnalysis = videoNodes.length > 0 || promptVideoUrls.length > 0;
 
     if (imageNodes.length === 0 && !isVideoAnalysis) {
-        message.warning("请先连接图片或视频到当前文本节点，也可以直接粘贴可访问的视频地址");
+        message.warning(translate("canvasTools.listModeGenerator.connectAnImageOrVideoToTheCurrentTextNode"));
         return;
     }
 
@@ -340,10 +341,10 @@ export async function handleListGenerate({
             options: modelRequestOptions(config, "text"),
         };
         const preferredModel = resolveCanvasGenerationModel(config, sourceNode.metadata?.model, "text") || resolveCanvasGenerationModel(config, config.textModel, "text");
-        if (!preferredModel) throw new Error("当前没有可用的文本模型，请先在模型设置中选择模型");
+        if (!preferredModel) throw new Error(translate("canvasTools.listModeGenerator.noTextModelIsAvailableSelectAModelInModel"));
         const compatibleModel = preferredModel;
         if (!compatibleModel || modelCompatibilityError(config, compatibleModel, requirements)) {
-            throw new Error("当前文本模型未配置所需的图片或视频输入能力，请在节点中选择能力匹配的模型；不会自动切换模型");
+            throw new Error(translate("canvasTools.listModeGenerator.theCurrentTextModelLacksTheRequiredImageOrVideo"));
         }
         const sourceNodeForConfig = { ...sourceNode, metadata: { ...(sourceNode.metadata || {}), model: compatibleModel } };
         const listConfig = { ...buildGenerationConfig(config, sourceNodeForConfig, "text", requirements), model: compatibleModel };
@@ -383,7 +384,7 @@ export async function handleListGenerate({
         if (isVideoAnalysis) {
             const storyboard = parseStoryboardJson(text);
             if (!storyboard) {
-                message.error("视频分析返回格式异常，请重试");
+                message.error(translate("canvasTools.listModeGenerator.unexpectedVideoAnalysisResponseFormatPleaseTryAgain"));
                 return;
             }
             const storyboardRows = storyboard.rows.map((row, index) => ({ ...row, shotNumber: index + 1 }));
@@ -393,9 +394,9 @@ export async function handleListGenerate({
                 aiGenerated: true,
                 contentKind: "storyboard",
                 storyboardRows,
-                storyboardTitle: storyboard.title || "视频脚本拆解",
+                storyboardTitle: storyboard.title || translate("canvasTools.listModeGenerator.videoScriptBreakdown"),
                 storyboardSourceNodeIds: [...videoNodes.map((node) => node.id), ...imageNodes.map((node) => node.id)],
-                referenceColumns: [{ id: "ai-ref", label: "输入视频", type: "image" }],
+                referenceColumns: [{ id: "ai-ref", label: translate("canvasTools.listModeGenerator.inputVideo"), type: "image" }],
                 textColumns: cinematicStoryboardColumns()
                     .filter((column) => !["shotNumber", "assets"].includes(column))
                     .map((column) => ({ id: `storyboard-${column}`, label: storyboardColumnLabel(column), type: "text" as const })),
@@ -412,7 +413,7 @@ export async function handleListGenerate({
             const batchNode: CanvasNodeData = {
                 id: batchNodeId,
                 type: CanvasNodeType.BatchTable,
-                title: storyboard.title || "视频分镜多维表格",
+                title: storyboard.title || translate("canvasTools.listModeGenerator.videoStoryboardTable"),
                 position: { x: sourcePos.x + 400, y: sourcePos.y },
                 width: 1280,
                 height: 560,
@@ -429,19 +430,19 @@ export async function handleListGenerate({
             setNodes((prev) => [...prev, batchNode]);
             setConnections((prev) => [...prev, ...newConnections]);
             setDialogNodeId(batchNodeId);
-            message.success(`已生成视频分镜表：${storyboardRows.length} 个镜头`);
+            message.success(translate("canvasTools.listModeGenerator.videoStoryboardGeneratedShots", { v0: String(storyboardRows.length) }));
             return;
         }
         const parsed = parseListModeJson(text);
 
         if (!parsed) {
-            message.error("AI 返回格式异常，请重试");
+            message.error(translate("canvasTools.listModeGenerator.unexpectedAIResponseFormatPleaseTryAgain"));
             return;
         }
 
         const rowsForTable = normalizeRequestedRows(parsed, targetRowCount);
         if (targetRowCount && rowsForTable.length !== targetRowCount) {
-            throw new Error(`模型只返回了 ${rowsForTable.length} 行，未满足你要求的 ${targetRowCount} 行，请重试`);
+            throw new Error(translate("canvasTools.listModeGenerator.theModelReturnedOnlyRowsFewerThanTheRequestedPlease", { v0: String(rowsForTable.length), v1: String(targetRowCount) }));
         }
 
         // Build batch table data
@@ -451,7 +452,7 @@ export async function handleListGenerate({
             type: "text" as const,
         }));
 
-        const referenceColumn = { id: "ai-ref", label: "输入", type: "image" as const };
+        const referenceColumn = { id: "ai-ref", label: translate("canvasTools.listModeGenerator.input"), type: "image" as const };
 
         const rows: CanvasBatchRow[] = rowsForTable.map((row, rowIndex) => {
             const imageNode = imageNodes[rowIndex % imageNodes.length];
@@ -489,7 +490,7 @@ export async function handleListGenerate({
         const batchNode: CanvasNodeData = {
             id: batchNodeId,
             type: CanvasNodeType.BatchTable,
-            title: "AI 多维表格",
+            title: translate("canvasTools.listModeGenerator.aIMultidimensionalTable"),
             position: { x: sourcePos.x + 400, y: sourcePos.y },
             width: 1280,
             height: 560,
@@ -514,9 +515,9 @@ export async function handleListGenerate({
         setConnections((prev) => [...prev, ...newConnections]);
         setDialogNodeId(batchNodeId);
 
-        message.success(`已生成多维表格：${parsed.columns.length} 列 × ${rows.length} 行`);
+        message.success(translate("canvasTools.listModeGenerator.multidimensionalTableGeneratedColumnsRows", { v0: String(parsed.columns.length), v1: String(rows.length) }));
     } catch (err) {
-        message.error(err instanceof Error ? err.message : "列表生成失败");
+        message.error(err instanceof Error ? err.message : translate("canvasTools.listModeGenerator.listGenerationFailed"));
     } finally {
         setRunningNodeId(null);
     }

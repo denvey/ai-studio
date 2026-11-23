@@ -14,6 +14,7 @@ import { AdminDataTable, AdminStatusBadge, AdminTableEmpty, PaginationBar } from
 import { loginEventLabels, loginLogDevice, loginMethodLabels, loginSourceLabels } from "./login-log-display";
 import { LoginLogDetailDrawer } from "./login-log-detail-drawer";
 import "./login-logs-page.css";
+import { translate } from "@/i18n";
 
 export default function LoginLogsPage() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -64,7 +65,7 @@ export default function LoginLogsPage() {
                 if (page > 1 && data.logs.length === 0) update({ page: 1 }, true);
             })
             .catch((cause) => {
-                if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : "读取登录日志失败");
+                if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : translate("adminPages.loginLogs.loginLogsPage.failedToLoadLoginLogs2"));
             })
             .finally(() => {
                 if (!controller.signal.aborted) setLoading(false);
@@ -74,26 +75,26 @@ export default function LoginLogsPage() {
 
     const columns: ColumnsType<LoginLog> = [
         {
-            title: "时间",
+            title: translate("adminPages.loginLogs.loginLogsPage.time"),
             width: 180,
             render: (_, log) => (
-                <button type="button" className="admin-log-detail-link" aria-label={`查看登录日志 ${log.id} 详情`} onClick={() => setDetailId(log.id)}>
+                <button type="button" className="admin-log-detail-link" aria-label={translate("adminPages.loginLogs.loginLogsPage.viewDetailsForLoginLog", { v0: String(log.id) })} onClick={() => setDetailId(log.id)}>
                     {dayjs(log.createdAt).format("YYYY-MM-DD HH:mm:ss")}
                 </button>
             ),
         },
         {
-            title: "用户 / 账号",
+            title: translate("adminPages.loginLogs.loginLogsPage.userAccount"),
             width: 190,
             render: (_, log) => (
                 <div className="min-w-0">
-                    <div className="truncate font-medium">{log.displayName || log.username || "未关联用户"}</div>
-                    <div className="truncate text-xs text-foreground/50">{log.username ? `@${log.username}` : log.account || "账号未识别"}</div>
+                    <div className="truncate font-medium">{log.displayName || log.username || translate("adminPages.loginLogs.loginLogsPage.noLinkedUser")}</div>
+                    <div className="truncate text-xs text-foreground/50">{log.username ? `@${log.username}` : log.account || translate("adminPages.loginLogs.loginLogsPage.unrecognizedAccount")}</div>
                 </div>
             ),
         },
         {
-            title: "事件",
+            title: translate("adminPages.loginLogs.loginLogsPage.event"),
             width: 160,
             render: (_, log) => (
                 <div>
@@ -102,11 +103,15 @@ export default function LoginLogsPage() {
                 </div>
             ),
         },
-        { title: "登录方式", width: 165, render: (_, log) => loginMethodLabels[log.method] },
-        { title: "结果", width: 92, render: (_, log) => <AdminStatusBadge label={log.result === "success" ? "成功" : "失败"} tone={log.result === "success" ? "success" : "error"} /> },
-        { title: "IP", dataIndex: "ip", width: 175, render: (value: string) => <span className="break-all font-mono text-xs">{value || "未记录"}</span> },
+        { title: translate("auth.login.method"), width: 165, render: (_, log) => loginMethodLabels[log.method] },
         {
-            title: "浏览器 / 系统",
+            title: translate("adminPages.loginLogs.loginLogsPage.result"),
+            width: 92,
+            render: (_, log) => <AdminStatusBadge label={log.result === "success" ? translate("adminPages.loginLogs.loginLogsPage.success") : translate("library.assets.batch.failed")} tone={log.result === "success" ? "success" : "error"} />,
+        },
+        { title: "IP", dataIndex: "ip", width: 175, render: (value: string) => <span className="break-all font-mono text-xs">{value || translate("adminPages.loginLogs.loginLogsPage.notRecorded")}</span> },
+        {
+            title: translate("adminPages.loginLogs.loginLogsPage.browserSystem"),
             width: 190,
             render: (_, log) => {
                 const device = loginLogDevice(log.userAgent);
@@ -119,7 +124,7 @@ export default function LoginLogsPage() {
             },
         },
         {
-            title: "失败原因",
+            title: translate("adminPages.loginLogs.loginLogsPage.failureReason"),
             width: 250,
             render: (_, log) =>
                 log.result === "failed" ? (
@@ -134,11 +139,11 @@ export default function LoginLogsPage() {
 
     return (
         <AdminPageFrame
-            title="用户登录日志"
-            description="登录、注册后自动登录与主动退出 · 时间按当前设备时区显示"
+            title={translate("adminPages.loginLogs.loginLogsPage.userLoginLogs")}
+            description={translate("adminPages.loginLogs.loginLogsPage.signInsAutomaticSignInsAfterRegistrationAndExplicitSign")}
             actions={
                 <Button icon={<RefreshCw className="size-4" />} loading={loading} onClick={() => setRetry((value) => value + 1)}>
-                    刷新
+                    {translate("common.refresh")}
                 </Button>
             }
         >
@@ -146,11 +151,11 @@ export default function LoginLogsPage() {
                 <Alert
                     type="error"
                     showIcon
-                    title="登录日志读取失败"
+                    title={translate("adminPages.loginLogs.loginLogsPage.failedToLoadLoginLogs")}
                     description={error}
                     action={
                         <Button size="small" onClick={() => setRetry((value) => value + 1)}>
-                            重试
+                            {translate("common.retry")}
                         </Button>
                     }
                 />
@@ -163,54 +168,69 @@ export default function LoginLogsPage() {
                             className="admin-login-log-search"
                             prefix={<Search className="size-4 text-foreground/40" />}
                             value={keyword}
-                            placeholder="搜索用户昵称、账号或 ID"
-                            aria-label="搜索登录日志用户"
+                            placeholder={translate("adminPages.loginLogs.loginLogsPage.searchUserNicknameAccountOrID")}
+                            aria-label={translate("adminPages.loginLogs.loginLogsPage.searchLoginLogUsers")}
                             onValueChange={(value) => update({ keyword: value, page: 1 }, true)}
                         />
-                        <Select ariaLabel="事件类型" value={event} options={[{ value: "", label: "全部事件" }, ...Object.entries(loginEventLabels).map(([value, label]) => ({ value, label }))]} onChange={(value) => update({ event: value, page: 1 })} />
                         <Select
-                            ariaLabel="登录方式"
+                            ariaLabel={translate("adminPages.loginLogs.loginLogsPage.eventType")}
+                            value={event}
+                            options={[{ value: "", label: translate("adminPages.loginLogs.loginLogsPage.allEvents") }, ...Object.entries(loginEventLabels).map(([value, label]) => ({ value, label }))]}
+                            onChange={(value) => update({ event: value, page: 1 })}
+                        />
+                        <Select
+                            ariaLabel={translate("auth.login.method")}
                             value={method}
-                            options={[{ value: "", label: "全部登录方式" }, ...Object.entries(loginMethodLabels).map(([value, label]) => ({ value, label }))]}
+                            options={[{ value: "", label: translate("adminPages.loginLogs.loginLogsPage.allSignInMethods") }, ...Object.entries(loginMethodLabels).map(([value, label]) => ({ value, label }))]}
                             onChange={(value) => update({ method: value, page: 1 })}
                         />
                         <Select
-                            ariaLabel="登录结果"
+                            ariaLabel={translate("adminPages.loginLogs.loginLogsPage.signInResult")}
                             value={result}
                             options={[
-                                { value: "", label: "全部结果" },
-                                { value: "success", label: "成功" },
-                                { value: "failed", label: "失败" },
+                                { value: "", label: translate("adminPages.loginLogs.loginLogsPage.allResults") },
+                                { value: "success", label: translate("adminPages.loginLogs.loginLogsPage.success") },
+                                { value: "failed", label: translate("library.assets.batch.failed") },
                             ]}
                             onChange={(value) => update({ result: value, page: 1 })}
                         />
-                        <AdminSearchInput allowClear value={ip} placeholder="筛选 IP" aria-label="筛选登录 IP" onValueChange={(value) => update({ ip: value, page: 1 }, true)} />
+                        <AdminSearchInput
+                            allowClear
+                            value={ip}
+                            placeholder={translate("adminPages.loginLogs.loginLogsPage.filterByIP")}
+                            aria-label={translate("adminPages.loginLogs.loginLogsPage.filterSignInIP")}
+                            onValueChange={(value) => update({ ip: value, page: 1 }, true)}
+                        />
                         <DatePicker.RangePicker
                             className="admin-login-log-dates"
                             showTime
                             format="YYYY-MM-DD HH:mm:ss"
-                            aria-label="登录日志时间范围"
+                            aria-label={translate("adminPages.loginLogs.loginLogsPage.loginLogTimeRange")}
                             value={[from && dayjs(from).isValid() ? dayjs(from) : null, to && dayjs(to).isValid() ? dayjs(to) : null]}
-                            placeholder={["开始时间", "结束时间"]}
+                            placeholder={[translate("adminPages.loginLogs.loginLogsPage.startTime"), translate("adminPages.loginLogs.loginLogsPage.endTime")]}
                             onChange={(dates) => update({ from: dates?.[0]?.toISOString() || "", to: dates?.[1]?.toISOString() || "", page: 1 })}
                         />
                         <Button
                             type="text"
                             className="admin-login-log-reset"
                             disabled={!filtered}
-                            title={filtered ? "清除全部筛选条件" : "当前未应用筛选"}
+                            title={filtered ? translate("adminPages.loginLogs.loginLogsPage.clearAllFilters") : translate("adminPages.loginLogs.loginLogsPage.noFiltersApplied")}
                             icon={<RotateCcw className="size-3.5" />}
                             onClick={() => update({ keyword: "", event: "", method: "", result: "", ip: "", from: "", to: "", page: 1 })}
                         >
-                            重置
+                            {translate("account.layout.list.reset")}
                         </Button>
                     </div>
                 }
                 empty={
                     error ? (
-                        <AdminTableEmpty title="日志暂时无法读取" description="请重试，当前未展示查询结果。" />
+                        <AdminTableEmpty title={translate("adminPages.loginLogs.loginLogsPage.logsAreTemporarilyUnavailable")} description={translate("adminPages.loginLogs.loginLogsPage.tryAgainNoQueryResultsAreCurrentlyDisplayed")} />
                     ) : (
-                        <AdminTableEmpty filtered={filtered} title={filtered ? "没有匹配的登录日志" : "暂无登录日志"} description={filtered ? "调整筛选条件后重试。" : "开始记录后的登录与主动退出事件将显示在这里。"} />
+                        <AdminTableEmpty
+                            filtered={filtered}
+                            title={filtered ? translate("adminPages.loginLogs.loginLogsPage.noMatchingLoginLogs") : translate("adminPages.loginLogs.loginLogsPage.noLoginLogsYet")}
+                            description={filtered ? translate("adminPages.loginLogs.loginLogsPage.adjustTheFiltersAndTryAgain") : translate("adminPages.loginLogs.loginLogsPage.signInAndExplicitSignOutEventsRecordedFromNow")}
+                        />
                     )
                 }
                 footer={<PaginationBar alwaysShow current={page} pageSize={pageSize} total={total} onChange={(next, size) => update({ page: next, pageSize: size })} />}

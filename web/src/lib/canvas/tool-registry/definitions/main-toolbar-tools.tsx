@@ -2,19 +2,21 @@ import { PanelsTopLeft, Eraser, FolderOpen, Hand, MousePointer2, Palette, Person
 
 import { registerToolbarTools, type ToolDefinition } from "@/lib/canvas/tool-registry";
 import type { CanvasToolMode } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 const canvasModeOptions = [
-    { id: "box-select", label: "区域选择", icon: <MousePointer2 />, value: "box-select" },
-    { id: "move", label: "抓手工具", icon: <Hand />, value: "move" },
+    { id: "box-select", label: translate("shared.canvas.toolRegistry.definitions.mainToolbarTools.regionSelection"), icon: <MousePointer2 />, value: "box-select" },
+    { id: "move", label: translate("shared.canvas.toolRegistry.definitions.mainToolbarTools.panTool"), icon: <Hand />, value: "move" },
 ];
 
 export const mainToolbarTools: ToolDefinition[] = [
-    { id: "tool-workspace", toolbar: "main", category: "navigation", label: "工作区", icon: <PanelsTopLeft />, defaultVisible: true, defaultOrder: 65, run: ctx => ctx.handlers.onOpenWorkspace?.() },
+    { id: "tool-workspace", toolbar: "main", category: "navigation", label: translate("shared.canvas.toolRegistry.definitions.mainToolbarTools.workspace"), icon: <PanelsTopLeft />, defaultVisible: true, defaultOrder: 65, run: ctx => ctx.handlers.onOpenWorkspace?.() },
     {
         id: "tool-canvas-mode",
         toolbar: "main",
         category: "navigation",
-        label: "抓手 / 框选",
+        label: translate("shared.canvas.toolRegistry.definitions.mainToolbarTools.panBoxSelect"),
         icon: <MousePointer2 />,
         defaultVisible: true,
         defaultOrder: 10,
@@ -29,7 +31,7 @@ export const mainToolbarTools: ToolDefinition[] = [
         id: "tool-undo",
         toolbar: "main",
         category: "history",
-        label: "撤销",
+        label: translate("account.settings.memory.actors.restore"),
         icon: <Undo2 />,
         defaultVisible: true,
         defaultOrder: 30,
@@ -40,7 +42,7 @@ export const mainToolbarTools: ToolDefinition[] = [
         id: "tool-redo",
         toolbar: "main",
         category: "history",
-        label: "重做",
+        label: translate("shared.canvas.toolRegistry.definitions.mainToolbarTools.redo"),
         icon: <Redo2 />,
         defaultVisible: true,
         defaultOrder: 40,
@@ -51,7 +53,7 @@ export const mainToolbarTools: ToolDefinition[] = [
         id: "tool-add",
         toolbar: "main",
         category: "create",
-        label: "添加节点",
+        label: translate("canvasA.createMenu.title"),
         icon: <Plus />,
         defaultVisible: true,
         defaultOrder: 50,
@@ -63,7 +65,7 @@ export const mainToolbarTools: ToolDefinition[] = [
         id: "tool-assets",
         toolbar: "main",
         category: "resource",
-        label: "素材库",
+        label: translate("canvasB.mention.assetLibrary"),
         icon: <FolderOpen />,
         defaultVisible: true,
         defaultOrder: 60,
@@ -74,7 +76,7 @@ export const mainToolbarTools: ToolDefinition[] = [
         id: "tool-pose-library",
         toolbar: "main",
         category: "resource",
-        label: "姿势库",
+        label: translate("shared.canvas.toolRegistry.definitions.mainToolbarTools.poseLibrary"),
         icon: <PersonStanding />,
         defaultVisible: true,
         defaultOrder: 62,
@@ -85,7 +87,7 @@ export const mainToolbarTools: ToolDefinition[] = [
         id: "tool-style",
         toolbar: "main",
         category: "appearance",
-        label: "画布外观",
+        label: translate("canvasC.toolbar.appearance"),
         icon: <Palette />,
         defaultVisible: true,
         defaultOrder: 70,
@@ -97,7 +99,7 @@ export const mainToolbarTools: ToolDefinition[] = [
         id: "tool-settings",
         toolbar: "main",
         category: "appearance",
-        label: "工具栏设置",
+        label: translate("shared.canvas.toolRegistry.definitions.mainToolbarTools.toolbarSettings"),
         icon: <Settings2 />,
         defaultVisible: true,
         defaultOrder: 80,
@@ -109,7 +111,7 @@ export const mainToolbarTools: ToolDefinition[] = [
         id: "tool-delete",
         toolbar: "main",
         category: "danger",
-        label: (ctx) => ctx.selectedCount > 1 ? `删除 ${ctx.selectedCount} 个节点` : "删除选中节点",
+        label: (ctx) => ctx.selectedCount > 1 ? translate("shared.canvas.toolRegistry.definitions.mainToolbarTools.deleteNodes", { v0: String(ctx.selectedCount) }) : translate("shared.canvas.toolRegistry.definitions.mainToolbarTools.deleteSelectedNodes"),
         icon: <Trash2 />,
         defaultVisible: true,
         defaultOrder: 90,
@@ -121,7 +123,7 @@ export const mainToolbarTools: ToolDefinition[] = [
         id: "tool-clear",
         toolbar: "main",
         category: "danger",
-        label: "清空画布",
+        label: translate("shared.canvas.toolRegistry.definitions.mainToolbarTools.clearCanvas"),
         icon: <Eraser />,
         defaultVisible: true,
         defaultOrder: 100,

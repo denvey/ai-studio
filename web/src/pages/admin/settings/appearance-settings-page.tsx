@@ -13,11 +13,12 @@ import { DEFAULT_UPDATE_ANNOUNCEMENT, normalizeUpdateAnnouncement, validateUpdat
 import { App, Button, Tabs, Form, Input } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useBlocker } from "react-router";
-import { cloneSkinDefinition, DEFAULT_CLASSIC_SKIN, normalizeSkinDefinition, type SkinDefinition, duplicateSkinDefinition } from "@/lib/skin-themes";
+import { cloneSkinDefinition, DEFAULT_CLASSIC_SKIN, normalizeSkinDefinition, type SkinDefinition, duplicateSkinDefinition, skinDisplayName } from "@/lib/skin-themes";
 import { DEFAULT_CANVAS_APPEARANCE, type CanvasAppearance } from "@/lib/canvas/agent-appearance";
 import { getAdminAppearance, type AdminAppearance, type AppearanceAssetSlot, resetAdminAppearance, uploadAppearanceAsset, updateAdminAppearance } from "@/services/api/appearance";
 import { normalizeDraftCopy, normalizeSingleLine, hasUnsupportedControlCharacter, validateSkinDrafts, useAppearancePreviews, AppearanceSkeleton, AssetPicker, LogoThemePreview } from "./appearance-settings-parts";
 import { type DraftFiles, FILE_RULES, type ResetState } from "./appearance-settings-parts";
+import { translate } from "@/i18n";
 
 export { type DraftFiles, FILE_RULES, type ResetState } from "./appearance-settings-parts";
 
@@ -121,7 +122,7 @@ export default function AppearanceSettingsPage() {
                 if (requestVersion === requestVersionRef.current) applySetting(value);
             } catch (error) {
                 if (requestVersion !== requestVersionRef.current) return;
-                const detail = error instanceof Error ? error.message : "读取外观配置失败";
+                const detail = error instanceof Error ? error.message : translate("adminPages.settings.appearanceSettingsPage.failedToLoadAppearanceSettings");
                 setLoadError(detail);
                 if (!initial) message.error(detail);
             } finally {
@@ -144,10 +145,10 @@ export default function AppearanceSettingsPage() {
     useEffect(() => {
         if (blocker.state !== "blocked") return;
         modal.confirm({
-            title: "放弃站点及外观调整？",
-            content: "当前品牌、画布 Agent、更新公告、SEO、备案、皮肤或媒体配置尚未保存，离开后草稿会丢失。线上站点不会改变。",
-            okText: "放弃并离开",
-            cancelText: "继续编辑",
+            title: translate("adminPages.settings.appearanceSettingsPage.discardSiteAndAppearanceChanges"),
+            content: translate("adminPages.settings.appearanceSettingsPage.currentBrandingCanvasAgentAnnouncementsSEOICPRegistrationThemeOr"),
+            okText: translate("adminPages.settings.appearanceSettingsPage.discardAndLeave"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
             okButtonProps: { danger: true },
             onOk: () => blocker.proceed(),
             onCancel: () => blocker.reset(),
@@ -167,7 +168,7 @@ export default function AppearanceSettingsPage() {
         if (!file) return;
         const rule = FILE_RULES[slot];
         if (!rule.accept.split(",").includes(file.type) || file.size <= 0 || file.size > rule.maxBytes) {
-            message.error(`${rule.label}须使用支持的格式，且不超过 ${rule.maxBytes >> 20}MB`);
+            message.error(translate("adminPages.settings.appearanceSettingsPage.mustUseASupportedFormatAndBeNoLargerThan", { v0: String(rule.label), v1: String(rule.maxBytes >> 20) }));
             if (inputRefs[slot].current) inputRefs[slot].current.value = "";
             return;
         }
@@ -223,7 +224,7 @@ export default function AppearanceSettingsPage() {
         Object.values(inputRefs).forEach((ref) => {
             if (ref.current) ref.current.value = "";
         });
-        message.info("已撤销未保存的外观调整");
+        message.info(translate("adminPages.settings.appearanceSettingsPage.unsavedAppearanceChangesDiscarded"));
     };
 
     const requestRefresh = () => {
@@ -233,10 +234,10 @@ export default function AppearanceSettingsPage() {
             return;
         }
         modal.confirm({
-            title: "放弃调整并重新读取？",
-            content: "重新读取会丢弃当前品牌、画布 Agent、更新公告、SEO、备案、皮肤和待上传文件。",
-            okText: "放弃并刷新",
-            cancelText: "继续编辑",
+            title: translate("adminPages.settings.appearanceSettingsPage.discardChangesAndReload"),
+            content: translate("adminPages.settings.appearanceSettingsPage.reloadingDiscardsCurrentBrandingCanvasAgentAnnouncementsSEOICPRegistration"),
+            okText: translate("adminPages.settings.appearanceSettingsPage.discardAndRefresh"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
             okButtonProps: { danger: true },
             onOk: () => load(false),
         });
@@ -245,10 +246,10 @@ export default function AppearanceSettingsPage() {
     const restoreBuiltInAppearance = () => {
         if (!setting?.configured || saving || refreshing || restoring || canvasUploading) return;
         modal.confirm({
-            title: "恢复影策默认品牌标识？",
-            content: "品牌名称、英文标识、Logo、画布 Agent 名称/文案/形象、更新公告、登录页文案、视频、封面、SEO、备案和皮肤主题会立即恢复为项目内置值；自定义公告会清空并关闭，展示原有更新日志。已上传文件仍保留在存储资源中，不会被删除。",
-            okText: "恢复默认",
-            cancelText: "取消",
+            title: translate("adminPages.settings.appearanceSettingsPage.restoreYingceSDefaultBranding"),
+            content: translate("adminPages.settings.appearanceSettingsPage.theBrandNameEnglishIDLogosCanvasAgentNameText"),
+            okText: translate("adminPages.settings.appearanceSettingsPage.resetToDefaults"),
+            cancelText: translate("common.cancel"),
             okButtonProps: { danger: true },
             onOk: async () => {
                 setRestoring(true);
@@ -260,9 +261,9 @@ export default function AppearanceSettingsPage() {
                     Object.values(inputRefs).forEach((ref) => {
                         if (ref.current) ref.current.value = "";
                     });
-                    message.success("已恢复影策默认品牌标识");
+                    message.success(translate("adminPages.settings.appearanceSettingsPage.yingceSDefaultBrandingRestored"));
                 } catch (error) {
-                    message.error(error instanceof Error ? error.message : "恢复默认外观失败");
+                    message.error(error instanceof Error ? error.message : translate("adminPages.settings.appearanceSettingsPage.failedToRestoreDefaultAppearance"));
                     throw error;
                 } finally {
                     setRestoring(false);
@@ -281,7 +282,7 @@ export default function AppearanceSettingsPage() {
         }
         if (![canvas.agentName, canvas.panelTitle, canvas.welcomeTitle, canvas.inputPlaceholder].every((text) => text.trim())) {
             setActiveTab("canvas");
-            message.error("请填写助手名称、面板标题、欢迎标题和输入框提示");
+            message.error(translate("adminPages.settings.appearanceSettingsPage.pleaseEnterTheAssistantNamePanelTitleWelcomeTitleAnd"));
             return;
         }
         const nextBrandName = brandName.trim();
@@ -296,40 +297,40 @@ export default function AppearanceSettingsPage() {
         const nextRedeemPurchaseUrl = normalizeSingleLine(redeemPurchaseUrl);
         if (!nextBrandName || Array.from(nextBrandName).length > 40) {
             setActiveTab("brand");
-            message.error("品牌名称必须为 1 到 40 个字符");
+            message.error(translate("adminPages.settings.appearanceSettingsPage.brandNameMustBe140Characters"));
             return;
         }
         if (!/^[a-z0-9](?:[a-z0-9-]{0,46}[a-z0-9])?$/.test(nextBrandSlug)) {
             setActiveTab("brand");
-            message.error("英文品牌标识须为 1 到 48 位小写字母、数字或连字符");
+            message.error(translate("adminPages.settings.appearanceSettingsPage.englishBrandIDMustContain148LowercaseLettersNumbers"));
             return;
         }
         if (!nextAuthHeroTitle || Array.from(nextAuthHeroTitle).length > 80 || hasUnsupportedControlCharacter(nextAuthHeroTitle)) {
             setActiveTab("auth");
-            message.error("登录页主标题必须为 1 到 80 个字符，可使用换行");
+            message.error(translate("adminPages.settings.appearanceSettingsPage.loginPageHeadingMustBe180CharactersLineBreaks"));
             return;
         }
         if (Array.from(nextAuthHeroDescription).length > 160 || hasUnsupportedControlCharacter(nextAuthHeroDescription)) {
             setActiveTab("auth");
-            message.error("登录页说明文案不能超过 160 个字符，可使用换行");
+            message.error(translate("adminPages.settings.appearanceSettingsPage.loginPageDescriptionCannotExceed160CharactersLineBreaksAre"));
             return;
         }
         for (const [value, label, max, tab] of [
-            [nextSeoTitle, "SEO 标题", 70, "seo"],
-            [nextSeoDescription, "SEO 描述", 200, "seo"],
-            [nextSeoKeywords, "SEO 关键词", 300, "seo"],
-            [nextFooterCopyright, "版权信息", 160, "footer"],
-            [nextIcpFilingNumber, "备案号", 64, "footer"],
+            [nextSeoTitle, translate("adminPages.settings.appearanceSettingsPage.sEOTitle"), 70, "seo"],
+            [nextSeoDescription, translate("adminPages.settings.appearanceSettingsPage.sEODescription"), 200, "seo"],
+            [nextSeoKeywords, translate("adminPages.settings.appearanceSettingsPage.sEOKeywords"), 300, "seo"],
+            [nextFooterCopyright, translate("adminPages.settings.appearanceSettingsPage.copyrightNotice"), 160, "footer"],
+            [nextIcpFilingNumber, translate("adminPages.settings.appearanceSettingsPage.iCPRegistrationNumber"), 64, "footer"],
         ] as const) {
             if (Array.from(value).length > max || hasUnsupportedControlCharacter(value)) {
                 setActiveTab(tab);
-                message.error(`${label}不能超过 ${max} 个字符，且不能包含控制字符`);
+                message.error(translate("adminPages.settings.appearanceSettingsPage.cannotExceedCharactersOrContainControlCharacters", { v0: String(label), v1: String(max) }));
                 return;
             }
         }
         if (icpFilingEnabled && !nextIcpFilingNumber) {
             setActiveTab("footer");
-            message.error("显示备案号前请先填写备案号");
+            message.error(translate("adminPages.settings.appearanceSettingsPage.pleaseEnterAnICPRegistrationNumberBeforeEnablingItsDisplay"));
             return;
         }
         if (nextRedeemPurchaseUrl) {
@@ -338,7 +339,7 @@ export default function AppearanceSettingsPage() {
                 if (parsed.protocol !== "https:" || !parsed.host) throw new Error("invalid");
             } catch {
                 setActiveTab("footer");
-                message.error("兑换码购买链接必须是有效的 HTTPS 地址");
+                message.error(translate("adminPages.settings.appearanceSettingsPage.redemptionCodePurchaseLinkMustBeAValidHTTPSURL"));
                 return;
             }
         }
@@ -392,14 +393,14 @@ export default function AppearanceSettingsPage() {
             Object.values(inputRefs).forEach((ref) => {
                 if (ref.current) ref.current.value = "";
             });
-            message.success("站点及外观配置已保存并立即生效");
+            message.success(translate("adminPages.settings.appearanceSettingsPage.siteAndAppearanceSettingsSavedAndApplied"));
         } catch (error) {
-            const detail = error instanceof Error ? error.message : "保存外观配置失败";
+            const detail = error instanceof Error ? error.message : translate("adminPages.settings.appearanceSettingsPage.failedToSaveAppearanceSettings");
             if (uploadedIDs.length) {
                 try {
                     await deleteAdminResources(uploadedIDs);
                 } catch {
-                    message.warning("保存失败，且临时上传文件未能自动清理；可在存储资源中检查");
+                    message.warning(translate("adminPages.settings.appearanceSettingsPage.saveFailedAndTemporaryUploadsCouldNotBeRemovedAutomatically"));
                 }
             }
             message.error(detail);
@@ -411,9 +412,13 @@ export default function AppearanceSettingsPage() {
     const previews = useAppearancePreviews(setting, files, resets);
     const lightLogoSelected = Boolean(files.logo || (!resets.logo && setting?.logoResourceId));
     const darkLogoSelected = Boolean(files["logo-dark"] || (!resets["logo-dark"] && setting?.darkLogoResourceId));
-    const status = setting?.configured ? <AdminStatusBadge label="已自定义" tone="success" /> : <AdminStatusBadge label="使用原始外观" tone="neutral" />;
+    const status = setting?.configured ? (
+        <AdminStatusBadge label={translate("adminPages.settings.appearanceSettingsPage.customized")} tone="success" />
+    ) : (
+        <AdminStatusBadge label={translate("adminPages.settings.appearanceSettingsPage.usingOriginalAppearance")} tone="neutral" />
+    );
     const copyCustomized = normalizeDraftCopy(authHeroTitle) !== DEFAULT_PUBLIC_APPEARANCE.authHeroTitle || normalizeDraftCopy(authHeroDescription) !== DEFAULT_PUBLIC_APPEARANCE.authHeroDescription;
-    const draftBrandName = brandName.trim() || "站点名称";
+    const draftBrandName = brandName.trim() || translate("adminPages.settings.appearanceSettingsPage.siteName");
     const selectedSkin = skinThemes.find((skin) => skin.id === skinId) || skinThemes[0] || DEFAULT_CLASSIC_SKIN;
 
     const changeSkin = (next: SkinDefinition) => {
@@ -436,10 +441,10 @@ export default function AppearanceSettingsPage() {
         const target = skinThemes.find((theme) => theme.id === targetID);
         if (!target || target.locked) return;
         modal.confirm({
-            title: `删除主题“${target.name}”？`,
-            content: "删除会随本页其他调整一起保存；保存前仍可点击“撤销调整”恢复。若它当前启用，将自动切回经典黑白。",
-            okText: "删除主题",
-            cancelText: "取消",
+            title: translate("adminPages.settings.appearanceSettingsPage.deleteTheme", { v0: String(target.name) }),
+            content: translate("adminPages.settings.appearanceSettingsPage.deletionWillBeSavedWithTheOtherChangesOnThis"),
+            okText: translate("adminPages.settings.appearanceSettingsPage.deleteTheme2"),
+            cancelText: translate("common.cancel"),
             okButtonProps: { danger: true },
             onOk: () => {
                 setSkinThemes((current) => current.filter((theme) => theme.id !== targetID));
@@ -449,7 +454,7 @@ export default function AppearanceSettingsPage() {
     };
 
     return (
-        <AdminPageFrame title="站点及外观" description="统一管理品牌身份、登录页、搜索信息、备案展示与全站皮肤主题" scroll>
+        <AdminPageFrame title={translate("adminPages.settings.appearanceSettingsPage.siteAndAppearance")} description={translate("adminPages.settings.appearanceSettingsPage.manageBrandingLoginPageSearchMetadataICPRegistrationDisplayAnd")} scroll>
             {loading ? (
                 <AppearanceSkeleton />
             ) : loadError || !setting ? (
@@ -459,11 +464,11 @@ export default function AppearanceSettingsPage() {
                             <Palette className="size-5" aria-hidden="true" />
                         </span>
                         <div>
-                            <h2>无法读取外观配置</h2>
-                            <p>{loadError || "当前没有可显示的配置，请稍后重试。"}</p>
+                            <h2>{translate("adminPages.settings.appearanceSettingsPage.unableToLoadAppearanceSettings")}</h2>
+                            <p>{loadError || translate("adminPages.settings.appearanceSettingsPage.noSettingsAreAvailableToDisplayPleaseTryAgainLater")}</p>
                         </div>
                         <Button icon={<RefreshCw className="size-4" />} onClick={() => void load(true)}>
-                            重新读取
+                            {translate("auth.register.reload")}
                         </Button>
                     </div>
                 </div>
@@ -473,26 +478,33 @@ export default function AppearanceSettingsPage() {
                         <div className="admin-appearance-command-copy" aria-live="polite">
                             <div>
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <strong>{dirty ? "站点配置有调整待保存" : "站点及外观已与服务端同步"}</strong>
-                                    <AdminStatusBadge label={dirty ? "尚未生效" : "服务端当前值"} tone={dirty ? "warning" : "neutral"} />
+                                    <strong>{dirty ? translate("adminPages.settings.appearanceSettingsPage.siteSettingsHaveUnsavedChanges") : translate("adminPages.settings.appearanceSettingsPage.siteAndAppearanceSettingsAreSyncedWithTheServer")}</strong>
+                                    <AdminStatusBadge
+                                        label={dirty ? translate("adminPages.settings.appearanceSettingsPage.notYetApplied") : translate("adminPages.settings.appearanceSettingsPage.currentServerValue")}
+                                        tone={dirty ? "warning" : "neutral"}
+                                    />
                                 </div>
-                                <p>{dirty ? "切换分类保留草稿；保存修改会一次应用品牌、登录页、更新公告、SEO、备案和皮肤调整。" : "按分类管理站点配置；欢迎页开关独立即时保存，其余修改统一保存。"}</p>
+                                <p>
+                                    {dirty
+                                        ? translate("adminPages.settings.appearanceSettingsPage.draftsAreRetainedWhenSwitchingCategoriesSavingAppliesBrandingLogin")
+                                        : translate("adminPages.settings.appearanceSettingsPage.manageSiteSettingsByCategoryWelcomePageChangesAreSaved")}
+                                </p>
                             </div>
                         </div>
                         <div className="admin-appearance-command-actions">
                             {dirty ? (
                                 <Button icon={<Undo2 className="size-4" />} disabled={saving || restoring || canvasUploading} onClick={discardDraft}>
-                                    撤销调整
+                                    {translate("adminPages.settings.appearanceSettingsPage.discardChanges")}
                                 </Button>
                             ) : null}
                             <Button icon={<RotateCcw className="size-4" />} loading={restoring} disabled={!setting.configured || saving || refreshing || canvasUploading} onClick={restoreBuiltInAppearance}>
-                                恢复影策默认
+                                {translate("adminPages.settings.appearanceSettingsPage.restoreYingceDefaults")}
                             </Button>
                             <Button icon={<RefreshCw className="size-4" />} loading={refreshing} disabled={saving || restoring || canvasUploading} onClick={requestRefresh}>
-                                刷新状态
+                                {translate("library.ark.asset.refresh")}
                             </Button>
                             <Button type="primary" icon={<Save className="size-4" />} loading={saving} disabled={!dirty || refreshing || restoring || canvasUploading} onClick={() => void save()}>
-                                保存修改
+                                {translate("adminPages.settings.appearanceSettingsPage.saveChanges")}
                             </Button>
                         </div>
                     </div>
@@ -504,21 +516,21 @@ export default function AppearanceSettingsPage() {
                         items={[
                             {
                                 key: "brand",
-                                label: "品牌识别",
+                                label: translate("adminPages.settings.appearanceSettingsPage.brandIdentity"),
                                 children: (
                                     <SettingsSectionCard
                                         className="admin-appearance-section admin-appearance-brand-section"
                                         icon={<Palette className="size-4" aria-hidden="true" />}
-                                        title="品牌识别"
-                                        description="中文品牌名用于主要界面，英文品牌标识用于英文角标和可安全品牌化的路径建议；不会改动代码包、数据库或部署标识。"
+                                        title={translate("adminPages.settings.appearanceSettingsPage.brandIdentity")}
+                                        description={translate("adminPages.settings.appearanceSettingsPage.theChineseBrandNameAppearsInTheMainInterfaceThe")}
                                         status={status}
                                     >
                                         <div className="admin-appearance-brand-layout">
                                             <Form className="admin-appearance-form" layout="vertical" requiredMark={false} disabled={saving || refreshing || restoring}>
-                                                <Form.Item label="品牌名称" extra="1–40 个字符。保存后同步到登录页、工作台、管理后台与浏览器标题。">
-                                                    <Input value={brandName} maxLength={40} showCount placeholder="输入品牌名称" onChange={(event) => setBrandName(event.target.value)} />
+                                                <Form.Item label={translate("adminPages.settings.appearanceSettingsPage.brandName")} extra={translate("adminPages.settings.appearanceSettingsPage.item140CharactersSavingUpdatesTheLoginPageWorkspaceAdmin")}>
+                                                    <Input value={brandName} maxLength={40} showCount placeholder={translate("adminPages.settings.appearanceSettingsPage.enterBrandName")} onChange={(event) => setBrandName(event.target.value)} />
                                                 </Form.Item>
-                                                <Form.Item label="英文品牌标识" extra="1–48 位小写字母、数字或连字符，例如 hima-studio。对象存储可一键采用该值作为路径前缀。">
+                                                <Form.Item label={translate("adminPages.settings.appearanceSettingsPage.englishBrandID")} extra={translate("adminPages.settings.appearanceSettingsPage.item148LowercaseLettersNumbersOrHyphensSuchAsHima")}>
                                                     <Input
                                                         value={brandSlug}
                                                         maxLength={48}
@@ -526,58 +538,75 @@ export default function AppearanceSettingsPage() {
                                                         autoCapitalize="none"
                                                         autoCorrect="off"
                                                         spellCheck={false}
-                                                        placeholder="例如：hima-studio"
+                                                        placeholder={translate("adminPages.settings.appearanceSettingsPage.forExampleHimaStudio")}
                                                         onChange={(event) => setBrandSlug(event.target.value.toLocaleLowerCase().replace(/[^a-z0-9-]/g, ""))}
                                                     />
                                                 </Form.Item>
-                                                <Form.Item label="兑换码购买链接" extra="填写 HTTPS 购买页面地址；留空则不显示“获取兑换码”入口。">
-                                                    <Input value={redeemPurchaseUrl} maxLength={500} showCount placeholder="例如：https://wzyp.cn/shop/xxx" onChange={(event) => setRedeemPurchaseUrl(event.target.value)} />
+                                                <Form.Item
+                                                    label={translate("adminPages.settings.appearanceSettingsPage.redemptionCodePurchaseLink")}
+                                                    extra={translate("adminPages.settings.appearanceSettingsPage.enterAnHTTPSPurchasePageURLLeaveBlankToHide")}
+                                                >
+                                                    <Input
+                                                        value={redeemPurchaseUrl}
+                                                        maxLength={500}
+                                                        showCount
+                                                        placeholder={translate("adminPages.settings.appearanceSettingsPage.forExampleHttpsWzypCnShopXxx")}
+                                                        onChange={(event) => setRedeemPurchaseUrl(event.target.value)}
+                                                    />
                                                 </Form.Item>
                                             </Form>
                                             <div className="admin-appearance-brand-logo admin-appearance-logo-stack">
                                                 <AssetPicker
                                                     slot="logo"
-                                                    title="浅色模式 Logo"
-                                                    description="用于浅色界面；建议透明背景 PNG 或 WebP。"
+                                                    title={translate("adminPages.settings.appearanceSettingsPage.lightModeLogo")}
+                                                    description={translate("adminPages.settings.appearanceSettingsPage.usedInLightModeAPNGOrWebPWithA")}
                                                     configured={Boolean(setting.logoResourceId) && !resets.logo}
                                                     file={files.logo}
                                                     inputRef={inputRefs.logo}
                                                     onSelect={selectFile}
                                                     onReset={resetAsset}
                                                     disabled={saving || refreshing || restoring}
-                                                    emptyLabel={darkLogoSelected ? "将自动复用深色模式 Logo" : "未上传时使用项目原始 Logo"}
+                                                    emptyLabel={
+                                                        darkLogoSelected
+                                                            ? translate("adminPages.settings.appearanceSettingsPage.theDarkModeLogoWillBeReusedAutomatically")
+                                                            : translate("adminPages.settings.appearanceSettingsPage.usesTheOriginalProjectLogoWhenNoneIsUploaded")
+                                                    }
                                                 />
                                                 <AssetPicker
                                                     slot="logo-dark"
-                                                    title="深色模式 Logo（可选）"
-                                                    description="用于深色界面；不上传时自动复用浅色模式 Logo。"
+                                                    title={translate("adminPages.settings.appearanceSettingsPage.darkModeLogoOptional")}
+                                                    description={translate("adminPages.settings.appearanceSettingsPage.usedInDarkModeTheLightModeLogoIsReused")}
                                                     configured={Boolean(setting.darkLogoResourceId) && !resets["logo-dark"]}
                                                     file={files["logo-dark"]}
                                                     inputRef={inputRefs["logo-dark"]}
                                                     onSelect={selectFile}
                                                     onReset={resetAsset}
                                                     disabled={saving || refreshing || restoring}
-                                                    emptyLabel={lightLogoSelected ? "将自动复用浅色模式 Logo" : "未上传时使用项目原始 Logo"}
+                                                    emptyLabel={
+                                                        lightLogoSelected
+                                                            ? translate("adminPages.settings.appearanceSettingsPage.theLightModeLogoWillBeReusedAutomatically")
+                                                            : translate("adminPages.settings.appearanceSettingsPage.usesTheOriginalProjectLogoWhenNoneIsUploaded")
+                                                    }
                                                 />
                                                 <div className="admin-appearance-logo-frame-option">
                                                     <div className="admin-appearance-logo-frame-copy">
-                                                        <strong>禁用 Logo 后面的圆角矩形外框</strong>
-                                                        <p id="appearance-logo-frame-help">开启后，工作台和管理后台导航只显示 Logo 本身；Logo 会等比放大到原外框的可用区域，导航占位保持不变。</p>
+                                                        <strong>{translate("adminPages.settings.appearanceSettingsPage.removeTheRoundedFrameBehindTheLogo")}</strong>
+                                                        <p id="appearance-logo-frame-help">{translate("adminPages.settings.appearanceSettingsPage.whenEnabledWorkspaceAndAdminNavigationShowTheLogoAlone")}</p>
                                                     </div>
                                                     <div className="admin-appearance-logo-frame-control">
-                                                        <span>{logoFrameEnabled ? "保留外框" : "已禁用外框"}</span>
+                                                        <span>{logoFrameEnabled ? translate("adminPages.settings.appearanceSettingsPage.keepFrame") : translate("adminPages.settings.appearanceSettingsPage.frameRemoved")}</span>
                                                         <Switch
                                                             checked={!logoFrameEnabled}
                                                             disabled={saving || refreshing || restoring}
-                                                            aria-label="禁用 Logo 后面的圆角矩形外框"
+                                                            aria-label={translate("adminPages.settings.appearanceSettingsPage.removeTheRoundedFrameBehindTheLogo")}
                                                             aria-describedby="appearance-logo-frame-help"
                                                             onChange={(checked) => setLogoFrameEnabled(!checked)}
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="admin-appearance-logo-preview-grid" aria-label="深浅模式 Logo 预览">
-                                                    <LogoThemePreview label="浅色界面" icon={<Sun />} src={previews.logoLight} dark={false} frameEnabled={logoFrameEnabled} />
-                                                    <LogoThemePreview label="深色界面" icon={<Moon />} src={previews.logoDark} dark frameEnabled={logoFrameEnabled} />
+                                                <div className="admin-appearance-logo-preview-grid" aria-label={translate("adminPages.settings.appearanceSettingsPage.lightAndDarkModeLogoPreview")}>
+                                                    <LogoThemePreview label={translate("adminPages.settings.appearanceSettingsPage.lightMode")} icon={<Sun />} src={previews.logoLight} dark={false} frameEnabled={logoFrameEnabled} />
+                                                    <LogoThemePreview label={translate("adminPages.settings.appearanceSettingsPage.darkMode")} icon={<Moon />} src={previews.logoDark} dark frameEnabled={logoFrameEnabled} />
                                                 </div>
                                             </div>
                                         </div>
@@ -586,17 +615,21 @@ export default function AppearanceSettingsPage() {
                             },
                             {
                                 key: "auth",
-                                label: "登录页",
+                                label: translate("adminPages.settings.appearanceSettingsPage.loginPage"),
                                 destroyOnHidden: true,
                                 children: (
                                     <SettingsSectionCard
                                         className="admin-appearance-section admin-appearance-auth-section"
                                         icon={<MonitorPlay className="size-4" aria-hidden="true" />}
-                                        title="登录页内容与媒体"
-                                        description="登录、注册与找回密码共享左侧品牌文案和影片；更换视频会同时取消旧封面，避免品牌串帧。"
+                                        title={translate("adminPages.settings.appearanceSettingsPage.loginPageContentAndMedia")}
+                                        description={translate("adminPages.settings.appearanceSettingsPage.loginSignupAndPasswordRecoveryShareTheBrandTextAnd")}
                                         status={
                                             <AdminStatusBadge
-                                                label={copyCustomized || setting.authVideoResourceId || setting.authVideoPosterResourceId ? "已配置" : "使用原始内容"}
+                                                label={
+                                                    copyCustomized || setting.authVideoResourceId || setting.authVideoPosterResourceId
+                                                        ? translate("adminPages.settings.appearanceSettingsPage.configured")
+                                                        : translate("adminPages.settings.appearanceSettingsPage.usingOriginalContent")
+                                                }
                                                 tone={copyCustomized || setting.authVideoResourceId || setting.authVideoPosterResourceId ? "success" : "neutral"}
                                             />
                                         }
@@ -604,16 +637,29 @@ export default function AppearanceSettingsPage() {
                                         <div className="admin-appearance-auth-layout">
                                             <div className="admin-appearance-auth-controls">
                                                 <Form className="admin-appearance-form" layout="vertical" requiredMark={false} disabled={saving || refreshing || restoring}>
-                                                    <Form.Item label="登录页主标题" extra="1–80 个字符，可换行；登录、注册和找回密码页面共用。">
-                                                        <Input.TextArea value={authHeroTitle} maxLength={80} showCount autoSize={{ minRows: 2, maxRows: 4 }} placeholder="输入登录页主标题" onChange={(event) => setAuthHeroTitle(event.target.value)} />
+                                                    <Form.Item
+                                                        label={translate("adminPages.settings.appearanceSettingsPage.loginPageHeading")}
+                                                        extra={translate("adminPages.settings.appearanceSettingsPage.item180CharactersLineBreaksAllowedSharedByLoginSignup")}
+                                                    >
+                                                        <Input.TextArea
+                                                            value={authHeroTitle}
+                                                            maxLength={80}
+                                                            showCount
+                                                            autoSize={{ minRows: 2, maxRows: 4 }}
+                                                            placeholder={translate("adminPages.settings.appearanceSettingsPage.enterLoginPageHeading")}
+                                                            onChange={(event) => setAuthHeroTitle(event.target.value)}
+                                                        />
                                                     </Form.Item>
-                                                    <Form.Item label="登录页说明文案（可选）" extra="最多 160 个字符，可换行；留空时不显示说明。">
+                                                    <Form.Item
+                                                        label={translate("adminPages.settings.appearanceSettingsPage.loginPageDescriptionOptional")}
+                                                        extra={translate("adminPages.settings.appearanceSettingsPage.upTo160CharactersLineBreaksAllowedLeaveBlankTo")}
+                                                    >
                                                         <Input.TextArea
                                                             value={authHeroDescription}
                                                             maxLength={160}
                                                             showCount
                                                             autoSize={{ minRows: 2, maxRows: 5 }}
-                                                            placeholder="补充一句品牌介绍或产品定位"
+                                                            placeholder={translate("adminPages.settings.appearanceSettingsPage.addABriefBrandIntroductionOrProductDescription")}
                                                             onChange={(event) => setAuthHeroDescription(event.target.value)}
                                                         />
                                                     </Form.Item>
@@ -621,18 +667,23 @@ export default function AppearanceSettingsPage() {
                                                 <div className="admin-appearance-media-list">
                                                     <div className="admin-appearance-video-autoplay-option">
                                                         <span className="admin-appearance-video-autoplay-copy">
-                                                            <strong>登录页视频自动播放</strong>
-                                                            <small>默认开启并静音循环播放；访客启用“减少动态效果”时仍尊重其系统偏好。</small>
+                                                            <strong>{translate("adminPages.settings.appearanceSettingsPage.autoplayLoginPageVideo")}</strong>
+                                                            <small>{translate("adminPages.settings.appearanceSettingsPage.enabledByDefaultWithMutedLoopingPlaybackVisitorsReducedMotion")}</small>
                                                         </span>
                                                         <span className="admin-appearance-video-autoplay-control">
-                                                            <span>{authVideoAutoplay ? "已开启" : "已关闭"}</span>
-                                                            <Switch checked={authVideoAutoplay} disabled={saving || refreshing || restoring} aria-label="登录页视频自动播放" onChange={setAuthVideoAutoplay} />
+                                                            <span>{authVideoAutoplay ? translate("adminPages.settings.appearanceSettingsPage.enabled") : translate("adminPages.settings.appearanceSettingsPage.disabled")}</span>
+                                                            <Switch
+                                                                checked={authVideoAutoplay}
+                                                                disabled={saving || refreshing || restoring}
+                                                                aria-label={translate("adminPages.settings.appearanceSettingsPage.autoplayLoginPageVideo")}
+                                                                onChange={setAuthVideoAutoplay}
+                                                            />
                                                         </span>
                                                     </div>
                                                     <AssetPicker
                                                         slot="video"
-                                                        title="品牌视频"
-                                                        description="支持 MP4 或 WebM，最多 256MB；服务器运行时上传配额仍会同时生效。"
+                                                        title={translate("adminPages.settings.appearanceSettingsPage.brandVideo")}
+                                                        description={translate("adminPages.settings.appearanceSettingsPage.mP4OrWebMUpTo256MBServerRuntimeUpload")}
                                                         configured={Boolean(setting.authVideoResourceId) && !resets.video}
                                                         file={files.video}
                                                         inputRef={inputRefs.video}
@@ -642,8 +693,8 @@ export default function AppearanceSettingsPage() {
                                                     />
                                                     <AssetPicker
                                                         slot="poster"
-                                                        title="视频封面（可选）"
-                                                        description="自定义视频未设置封面时保持中性背景，不显示原品牌封面。"
+                                                        title={translate("adminPages.settings.appearanceSettingsPage.videoPosterOptional")}
+                                                        description={translate("adminPages.settings.appearanceSettingsPage.customVideosWithoutAPosterUseANeutralBackgroundInstead")}
                                                         configured={Boolean(setting.authVideoPosterResourceId) && !resets.poster}
                                                         file={files.poster}
                                                         inputRef={inputRefs.poster}
@@ -653,28 +704,28 @@ export default function AppearanceSettingsPage() {
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="admin-appearance-preview" aria-label="登录页实时预览">
+                                            <div className="admin-appearance-preview" aria-label={translate("adminPages.settings.appearanceSettingsPage.liveLoginPagePreview")}>
                                                 <div className="admin-appearance-preview-heading">
                                                     <div>
-                                                        <span>登录页实时预览</span>
-                                                        <strong>{brandName.trim() || "未命名品牌"}</strong>
+                                                        <span>{translate("adminPages.settings.appearanceSettingsPage.liveLoginPagePreview")}</span>
+                                                        <strong>{brandName.trim() || translate("adminPages.settings.appearanceSettingsPage.unnamedBrand")}</strong>
                                                     </div>
-                                                    <AdminStatusBadge label={dirty ? "未保存" : "线上版本"} tone={dirty ? "warning" : "success"} />
+                                                    <AdminStatusBadge label={dirty ? translate("account.settings.prompts.unsaved") : translate("adminPages.settings.appearanceSettingsPage.liveVersion")} tone={dirty ? "warning" : "success"} />
                                                 </div>
                                                 <div className="admin-appearance-preview-stage">
                                                     <video key={`${previews.video}-${authVideoAutoplay}`} src={previews.video} poster={previews.poster || undefined} muted loop playsInline autoPlay={authVideoAutoplay} preload="metadata" />
                                                     <span className="admin-appearance-preview-shade" />
                                                     <span className="admin-appearance-preview-brand">
                                                         <img src={previews.logoDark} alt="" />
-                                                        <strong>{brandName.trim() || "未命名品牌"}</strong>
+                                                        <strong>{brandName.trim() || translate("adminPages.settings.appearanceSettingsPage.unnamedBrand")}</strong>
                                                     </span>
                                                     <span className="admin-appearance-preview-copy">
                                                         <small>{(brandSlug.trim() || "brand-studio").replace(/-+/g, " ").toLocaleUpperCase()}</small>
-                                                        <strong>{normalizeDraftCopy(authHeroTitle) || "请输入登录页主标题"}</strong>
+                                                        <strong>{normalizeDraftCopy(authHeroTitle) || translate("adminPages.settings.appearanceSettingsPage.pleaseEnterALoginPageHeading")}</strong>
                                                         {normalizeDraftCopy(authHeroDescription) ? <span>{normalizeDraftCopy(authHeroDescription)}</span> : null}
                                                     </span>
                                                 </div>
-                                                <p>预览与正式登录页使用同一文案和媒体。正式页面会先解析公开配置，再渲染品牌内容。</p>
+                                                <p>{translate("adminPages.settings.appearanceSettingsPage.thePreviewUsesTheSameTextAndMediaAsThe")}</p>
                                             </div>
                                         </div>
                                     </SettingsSectionCard>
@@ -682,9 +733,14 @@ export default function AppearanceSettingsPage() {
                             },
                             {
                                 key: "welcome",
-                                label: "欢迎页",
+                                label: translate("adminPages.settings.appearanceSettingsPage.welcomePage"),
                                 children: (
-                                    <SettingsSectionCard className="admin-appearance-section" icon={<Globe2 className="size-4" aria-hidden="true" />} title="欢迎页" description="控制访客是否可以访问欢迎页，开关修改后立即保存。">
+                                    <SettingsSectionCard
+                                        className="admin-appearance-section"
+                                        icon={<Globe2 className="size-4" aria-hidden="true" />}
+                                        title={translate("adminPages.settings.appearanceSettingsPage.welcomePage")}
+                                        description={translate("adminPages.settings.appearanceSettingsPage.controlWhetherVisitorsCanAccessTheWelcomePageChangesAre")}
+                                    >
                                         <div className="admin-appearance-section-form">
                                             <WelcomeSetting />
                                         </div>
@@ -693,31 +749,42 @@ export default function AppearanceSettingsPage() {
                             },
                             {
                                 key: "seo",
-                                label: "SEO 信息",
+                                label: translate("adminPages.settings.appearanceSettingsPage.sEOMetadata"),
                                 children: (
                                     <SettingsSectionCard
                                         className="admin-appearance-section"
                                         icon={<Search className="size-4" aria-hidden="true" />}
-                                        title="SEO 信息"
-                                        description="配置浏览器标题、搜索摘要和关键词；留空时标题与描述会自动跟随当前站点名称。"
-                                        status={<AdminStatusBadge label={seoTitle || seoDescription || seoKeywords ? "已自定义" : "自动跟随品牌"} tone={seoTitle || seoDescription || seoKeywords ? "success" : "neutral"} />}
+                                        title={translate("adminPages.settings.appearanceSettingsPage.sEOMetadata")}
+                                        description={translate("adminPages.settings.appearanceSettingsPage.setTheBrowserTitleSearchDescriptionAndKeywordsWhenLeft")}
+                                        status={
+                                            <AdminStatusBadge
+                                                label={seoTitle || seoDescription || seoKeywords ? translate("adminPages.settings.appearanceSettingsPage.customized") : translate("adminPages.settings.appearanceSettingsPage.followBrandAutomatically")}
+                                                tone={seoTitle || seoDescription || seoKeywords ? "success" : "neutral"}
+                                            />
+                                        }
                                     >
                                         <Form className="admin-appearance-form admin-appearance-section-form" layout="vertical" requiredMark={false} disabled={saving || refreshing || restoring}>
                                             <div className="admin-appearance-form-grid">
-                                                <Form.Item label="SEO 标题" extra="建议简洁描述站点用途；留空时使用站点名称。">
+                                                <Form.Item label={translate("adminPages.settings.appearanceSettingsPage.sEOTitle")} extra={translate("adminPages.settings.appearanceSettingsPage.brieflyDescribeTheSiteSPurposeLeaveBlankToUse")}>
                                                     <Input value={seoTitle} maxLength={70} showCount placeholder={draftBrandName} onChange={(event) => setSeoTitle(event.target.value)} />
                                                 </Form.Item>
-                                                <Form.Item label="SEO 关键词" extra="以逗号分隔；Google 不使用该标签排名，仍可供其他工具读取。">
-                                                    <Input value={seoKeywords} maxLength={300} showCount placeholder="AI 影视, AI 短剧, 创作工作台" onChange={(event) => setSeoKeywords(event.target.value)} />
+                                                <Form.Item label={translate("adminPages.settings.appearanceSettingsPage.sEOKeywords")} extra={translate("adminPages.settings.appearanceSettingsPage.separateWithCommasGoogleDoesNotUseThisTagFor")}>
+                                                    <Input
+                                                        value={seoKeywords}
+                                                        maxLength={300}
+                                                        showCount
+                                                        placeholder={translate("adminPages.settings.appearanceSettingsPage.aIFilmmakingAIShortDramasCreativeWorkspace")}
+                                                        onChange={(event) => setSeoKeywords(event.target.value)}
+                                                    />
                                                 </Form.Item>
                                             </div>
-                                            <Form.Item label="SEO 描述" extra="建议用一到两句话准确概括站点，避免重复堆砌关键词；留空时自动生成品牌描述。">
+                                            <Form.Item label={translate("adminPages.settings.appearanceSettingsPage.sEODescription")} extra={translate("adminPages.settings.appearanceSettingsPage.accuratelySummarizeTheSiteInOneOrTwoSentencesWithout")}>
                                                 <Input.TextArea
                                                     value={seoDescription}
                                                     maxLength={200}
                                                     showCount
                                                     autoSize={{ minRows: 3, maxRows: 5 }}
-                                                    placeholder={`${draftBrandName}，面向 AI 影视与短剧创作的工作台。`}
+                                                    placeholder={translate("adminPages.settings.appearanceSettingsPage.aWorkspaceForAIFilmmakingAndShortDramaCreation", { v0: String(draftBrandName) })}
                                                     onChange={(event) => setSeoDescription(event.target.value)}
                                                 />
                                             </Form.Item>
@@ -727,18 +794,23 @@ export default function AppearanceSettingsPage() {
                             },
                             {
                                 key: "footer",
-                                label: "页尾与备案",
+                                label: translate("adminPages.settings.appearanceSettingsPage.footerAndICPRegistration"),
                                 children: (
                                     <SettingsSectionCard
                                         className="admin-appearance-section"
                                         icon={<Globe2 className="size-4" aria-hidden="true" />}
-                                        title="首页页尾与备案"
-                                        description="配置公开登录首页底部的版权和备案信息；备案号启用后固定链接工信部备案管理系统。"
-                                        status={<AdminStatusBadge label={icpFilingEnabled ? "展示备案号" : "未展示备案号"} tone={icpFilingEnabled ? "success" : "neutral"} />}
+                                        title={translate("adminPages.settings.appearanceSettingsPage.homepageFooterAndICPRegistration")}
+                                        description={translate("adminPages.settings.appearanceSettingsPage.setCopyrightAndICPRegistrationInformationAtTheBottomOf")}
+                                        status={
+                                            <AdminStatusBadge
+                                                label={icpFilingEnabled ? translate("adminPages.settings.appearanceSettingsPage.showICPRegistrationNumber") : translate("adminPages.settings.appearanceSettingsPage.iCPRegistrationNumberHidden")}
+                                                tone={icpFilingEnabled ? "success" : "neutral"}
+                                            />
+                                        }
                                     >
                                         <div className="admin-appearance-section-form admin-appearance-footer-settings">
                                             <Form className="admin-appearance-form" layout="vertical" requiredMark={false} disabled={saving || refreshing || restoring}>
-                                                <Form.Item label="版权信息" extra="留空时自动使用当前年份和站点名称。">
+                                                <Form.Item label={translate("adminPages.settings.appearanceSettingsPage.copyrightNotice")} extra={translate("adminPages.settings.appearanceSettingsPage.leaveBlankToUseTheCurrentYearAndSiteName")}>
                                                     <Input
                                                         prefix={<Copyright className="size-3.5" aria-hidden="true" />}
                                                         value={footerCopyright}
@@ -748,18 +820,33 @@ export default function AppearanceSettingsPage() {
                                                         onChange={(event) => setFooterCopyright(event.target.value)}
                                                     />
                                                 </Form.Item>
-                                                <Form.Item label="备案号" extra="请填写真实备案号，例如“蜀ICP备XXXXXXXX号”；系统不会替你申请或核验备案。">
-                                                    <Input value={icpFilingNumber} maxLength={64} showCount placeholder="例如：蜀ICP备XXXXXXXX号" onChange={(event) => setIcpFilingNumber(event.target.value)} />
+                                                <Form.Item
+                                                    label={translate("adminPages.settings.appearanceSettingsPage.iCPRegistrationNumber")}
+                                                    extra={translate("adminPages.settings.appearanceSettingsPage.enterARealICPRegistrationNumberSuchAsICPXXXXXXXX")}
+                                                >
+                                                    <Input
+                                                        value={icpFilingNumber}
+                                                        maxLength={64}
+                                                        showCount
+                                                        placeholder={translate("adminPages.settings.appearanceSettingsPage.forExampleICPXXXXXXXX")}
+                                                        onChange={(event) => setIcpFilingNumber(event.target.value)}
+                                                    />
                                                 </Form.Item>
                                             </Form>
                                             <div className="admin-appearance-logo-frame-option">
                                                 <div className="admin-appearance-logo-frame-copy">
-                                                    <strong>在首页底部显示备案号</strong>
-                                                    <p id="appearance-icp-help">启用后，备案号会显示在登录、注册和找回密码页底部，并链接至 https://beian.miit.gov.cn/ 供公众查询。</p>
+                                                    <strong>{translate("adminPages.settings.appearanceSettingsPage.showICPRegistrationNumberInHomepageFooter")}</strong>
+                                                    <p id="appearance-icp-help">{translate("adminPages.settings.appearanceSettingsPage.whenEnabledTheRegistrationNumberAppearsAtTheBottomOf")}</p>
                                                 </div>
                                                 <div className="admin-appearance-logo-frame-control">
-                                                    <span>{icpFilingEnabled ? "已显示" : "未显示"}</span>
-                                                    <Switch checked={icpFilingEnabled} disabled={saving || refreshing || restoring} aria-label="在首页底部显示备案号" aria-describedby="appearance-icp-help" onChange={setIcpFilingEnabled} />
+                                                    <span>{icpFilingEnabled ? translate("adminPages.settings.appearanceSettingsPage.shown") : translate("adminPages.settings.appearanceSettingsPage.hidden")}</span>
+                                                    <Switch
+                                                        checked={icpFilingEnabled}
+                                                        disabled={saving || refreshing || restoring}
+                                                        aria-label={translate("adminPages.settings.appearanceSettingsPage.showICPRegistrationNumberInHomepageFooter")}
+                                                        aria-describedby="appearance-icp-help"
+                                                        onChange={setIcpFilingEnabled}
+                                                    />
                                                 </div>
                                             </div>
                                         </div>
@@ -768,14 +855,14 @@ export default function AppearanceSettingsPage() {
                             },
                             {
                                 key: "skins",
-                                label: "皮肤主题",
+                                label: translate("adminPages.settings.appearanceSettingsPage.themes"),
                                 children: (
                                     <SettingsSectionCard
                                         className="admin-appearance-section"
                                         icon={<Type className="size-4" aria-hidden="true" />}
-                                        title="皮肤主题"
-                                        description="经典黑白采用黑白底色与紫蓝渐变主按钮；复制后可调整浅色、深色、按钮填充及控件参数，所有修改统一保存。"
-                                        status={<AdminStatusBadge label={selectedSkin.name} tone="info" />}
+                                        title={translate("adminPages.settings.appearanceSettingsPage.themes")}
+                                        description={translate("adminPages.settings.appearanceSettingsPage.classicBlackAndWhiteUsesMonochromeBackgroundsAndPurpleBlue")}
+                                        status={<AdminStatusBadge label={skinDisplayName(selectedSkin)} tone="info" />}
                                     >
                                         <SkinThemeEditor
                                             themes={skinThemes}
@@ -790,8 +877,16 @@ export default function AppearanceSettingsPage() {
                                     </SettingsSectionCard>
                                 ),
                             },
-                            { key: "canvas", label: "画布配置", children: <CanvasAppearanceEditor value={canvas} onChange={setCanvas} disabled={saving || refreshing || restoring || canvasUploading} onUploading={setCanvasUploading} /> },
-                            { key: "updates", label: "更新公告", children: <UpdateAnnouncementEditor value={updates} onChange={setUpdates} disabled={saving || refreshing || restoring || canvasUploading} onUploading={setCanvasUploading} /> },
+                            {
+                                key: "canvas",
+                                label: translate("adminPages.settings.appearanceSettingsPage.canvasSettings"),
+                                children: <CanvasAppearanceEditor value={canvas} onChange={setCanvas} disabled={saving || refreshing || restoring || canvasUploading} onUploading={setCanvasUploading} />,
+                            },
+                            {
+                                key: "updates",
+                                label: translate("account.layout.changelog.announcements"),
+                                children: <UpdateAnnouncementEditor value={updates} onChange={setUpdates} disabled={saving || refreshing || restoring || canvasUploading} onUploading={setCanvasUploading} />,
+                            },
                         ]}
                     />
                 </div>

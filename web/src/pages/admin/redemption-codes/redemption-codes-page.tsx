@@ -3,6 +3,7 @@ import { TicketCheck } from "lucide-react";
 import { lazy, Suspense, useState } from "react";
 
 import { AdminPageFrame } from "../components/admin-shell";
+import { translate } from "@/i18n";
 
 const RedemptionCodesPanel = lazy(() => import("../components/redemption-codes-panel"));
 
@@ -12,15 +13,21 @@ export default function RedemptionCodesPage() {
 
     return (
         <AdminPageFrame
-            title="兑换码"
-            description="批次发放、核销状态与明细追踪"
+            title={translate("account.wallet.redeemTitle")}
+            description={translate("adminPages.redemptionCodes.redemptionCodesPage.issueBatchesAndTrackRedemptionStatusAndDetails")}
             actions={
-                <Button type="primary" disabled={createBlocked} title={createBlocked ? "请先核对上一次结果不确定的生成请求" : undefined} icon={<TicketCheck className="size-4" />} onClick={() => setCreateOpen(true)}>
-                    生成批次
+                <Button
+                    type="primary"
+                    disabled={createBlocked}
+                    title={createBlocked ? translate("adminPages.redemptionCodes.redemptionCodesPage.pleaseCheckThePreviousGenerationRequestWithAnUncertainResult") : undefined}
+                    icon={<TicketCheck className="size-4" />}
+                    onClick={() => setCreateOpen(true)}
+                >
+                    {translate("adminPages.redemptionCodes.redemptionCodesPage.generateBatch")}
                 </Button>
             }
         >
-            <Suspense fallback={<div className="py-16 text-center text-sm text-foreground/50">正在读取兑换码批次...</div>}>
+            <Suspense fallback={<div className="py-16 text-center text-sm text-foreground/50">{translate("adminPages.redemptionCodes.redemptionCodesPage.loadingRedemptionCodeBatches")}</div>}>
                 <RedemptionCodesPanel createOpen={createOpen} onCreateOpenChange={setCreateOpen} onCreateBlockedChange={setCreateBlocked} />
             </Suspense>
         </AdminPageFrame>

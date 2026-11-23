@@ -12,7 +12,7 @@ describe("media fallback", () => {
 
         expect(preview).toContain("failedSrc === src");
         expect(preview).toContain("onError={handleUnavailable}");
-        expect(preview).toContain("预览不可用，素材可能已删除");
+        expect(preview).toContain('translate("library.tasks.row.previewMissing")');
         expect(preview).toContain("<ImageOff");
     });
 

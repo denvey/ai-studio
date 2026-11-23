@@ -10,6 +10,7 @@ import { aspectRatioValue, formatClock, mediaBusy, MediaThumb, useResourceMediaU
 import { promptReady, secondsLabel, SegmentInputs, SegmentStatus, segmentState } from "./segment-parts";
 import { isTypingTarget } from "./use-studio";
 import { progressFillStyle } from "@/lib/progress-fill";
+import { translate } from "@/i18n";
 
 type Props = {
     shots: DramaShot[];
@@ -97,7 +98,7 @@ const SegmentCard = memo(function SegmentCard({ segment, segmentShots, aspectRat
             role="option"
             aria-selected={isSelected}
             aria-current={focused}
-            aria-label={`第 ${segment.index + 1} 段 ${segment.title}，${state.label}`}
+            aria-label={translate("drama.studio.storyboard.segment", { v0: String(segment.index + 1), v1: String(segment.title), v2: String(state.label) })}
             className={`drama-sg is-${state.tone} ${isSelected ? "is-selected" : ""} ${focused ? "is-focused" : ""}`}
             onClick={(event) => act().handleCardClick(event, segment.index)}
             onDoubleClick={(event) => {
@@ -115,7 +116,7 @@ const SegmentCard = memo(function SegmentCard({ segment, segmentShots, aspectRat
                             act().selectRange(anchor, segment.index, true);
                         }
                     }}
-                    aria-label={`选择第 ${segment.index + 1} 段`}
+                    aria-label={translate("drama.studio.storyboard.selectSegment", { v0: String(segment.index + 1) })}
                 />
                 <span className="drama-seg-num">{segment.index + 1}</span>
                 <button type="button" className="drama-sg-title" title={segment.title} onClick={() => act().onOpen(segment.index)}>
@@ -123,16 +124,22 @@ const SegmentCard = memo(function SegmentCard({ segment, segmentShots, aspectRat
                 </button>
                 {error ? (
                     <Tooltip title={error}>
-                        <AlertCircle className="size-3.5 flex-none text-[var(--drama-err)]" aria-label="失败原因" />
+                        <AlertCircle className="size-3.5 flex-none text-[var(--drama-err)]" aria-label={translate("drama.studio.storyboard.failureReason")} />
                     </Tooltip>
                 ) : segment.request.warning ? (
                     <Tooltip title={segment.request.warning}>
-                        <TriangleAlert className="size-3.5 flex-none text-[var(--drama-warn)]" aria-label="提示" />
+                        <TriangleAlert className="size-3.5 flex-none text-[var(--drama-warn)]" aria-label={translate("drama.studio.storyboard.tip")} />
                     </Tooltip>
                 ) : null}
             </header>
             <div className="drama-sg-body">
-                <button type="button" className="drama-sg-cover" style={{ aspectRatio: aspectRatioValue(aspectRatio) }} onClick={() => act().onOpen(segment.index)} aria-label={`打开第 ${segment.index + 1} 段`}>
+                <button
+                    type="button"
+                    className="drama-sg-cover"
+                    style={{ aspectRatio: aspectRatioValue(aspectRatio) }}
+                    onClick={() => act().onOpen(segment.index)}
+                    aria-label={translate("drama.studio.storyboard.openSegment", { v0: String(segment.index + 1) })}
+                >
                     {segment.tailFrameResourceId && segment.videoResourceId ? (
                         <MediaThumb resourceId={segment.tailFrameResourceId} alt="" />
                     ) : segment.videoResourceId && hasVideo(segment) ? (
@@ -153,16 +160,17 @@ const SegmentCard = memo(function SegmentCard({ segment, segmentShots, aspectRat
                     <div className="drama-sg-meta">
                         <SegmentStatus segment={segment} />
                         <span>
-                            {segmentShots.length} 镜{segment.request.maxVideoSeconds ? ` · 上限 ${segment.request.maxVideoSeconds}s` : ""}
+                            {segmentShots.length} {translate("drama.studio.storyboard.shots")}
+                            {segment.request.maxVideoSeconds ? translate("drama.studio.storyboard.limitS", { v0: String(segment.request.maxVideoSeconds) }) : ""}
                         </span>
                     </div>
                     <SegmentInputs segment={segment} castById={castById} compact />
                     {segmentShots.length === 1 ? (
                         <button type="button" className="drama-sg-single" onClick={() => act().onOpen(segment.index, segmentShots[0].id)}>
-                            <span className="drama-sg-single-action">{segmentShots[0].action || segmentShots[0].imagePrompt || "未描述画面"}</span>
+                            <span className="drama-sg-single-action">{segmentShots[0].action || segmentShots[0].imagePrompt || translate("drama.studio.storyboard.noVisualDescription")}</span>
                             {segmentShots[0].dialogue ? (
                                 <span className="drama-sg-single-line">
-                                    <em>{segmentShots[0].speaker || "旁白"}</em>
+                                    <em>{segmentShots[0].speaker || translate("drama.studio.storyboard.narration")}</em>
                                     {segmentShots[0].dialogue}
                                 </span>
                             ) : null}
@@ -171,34 +179,46 @@ const SegmentCard = memo(function SegmentCard({ segment, segmentShots, aspectRat
                         <ol className="drama-sg-shots">
                             {segmentShots.slice(0, SHOT_PREVIEW).map((shot) => (
                                 <li key={shot.id}>
-                                    <button type="button" onClick={() => act().onOpen(segment.index, shot.id)} title={shot.dialogue ? `${shot.speaker || "旁白"}：${shot.dialogue}` : shot.action}>
+                                    <button type="button" onClick={() => act().onOpen(segment.index, shot.id)} title={shot.dialogue ? `${shot.speaker || translate("drama.studio.storyboard.narration")}：${shot.dialogue}` : shot.action}>
                                         <b>{shot.position + 1}</b>
                                         <span>
                                             {shot.dialogue ? (
                                                 <>
-                                                    <em>{shot.speaker || "旁白"}</em>
+                                                    <em>{shot.speaker || translate("drama.studio.storyboard.narration")}</em>
                                                     {shot.dialogue}
                                                 </>
                                             ) : (
-                                                shot.action || shot.imagePrompt || "未描述画面"
+                                                shot.action || shot.imagePrompt || translate("drama.studio.storyboard.noVisualDescription")
                                             )}
                                         </span>
                                     </button>
                                 </li>
                             ))}
-                            {segmentShots.length > SHOT_PREVIEW ? <li className="drama-sg-more">还有 {segmentShots.length - SHOT_PREVIEW} 镜</li> : null}
+                            {segmentShots.length > SHOT_PREVIEW ? (
+                                <li className="drama-sg-more">
+                                    {translate("drama.studio.storyboard.and")} {segmentShots.length - SHOT_PREVIEW} {translate("drama.studio.storyboard.shots")}
+                                </li>
+                            ) : null}
                         </ol>
                     )}
                 </div>
             </div>
             <footer className="drama-sg-foot">
                 <span className="drama-sg-model" title={segment.videoModel?.label}>
-                    {segment.videoModel?.label || defaultModelLabel || "默认视频模型"}
+                    {segment.videoModel?.label || defaultModelLabel || translate("account.settings.models.video.title")}
                 </span>
                 <span className="drama-sg-actions">
                     {segment.videoReprocessable ? (
-                        <Button size="small" type="primary" icon={<RotateCcw className="size-3" />} disabled={busy} loading={reprocessing} title="只重新处理已生成的视频，不重新生成、不扣费" onClick={() => act().onReprocess(segment.index)}>
-                            重新处理
+                        <Button
+                            size="small"
+                            type="primary"
+                            icon={<RotateCcw className="size-3" />}
+                            disabled={busy}
+                            loading={reprocessing}
+                            title={translate("drama.studio.storyboard.reprocessesTheExistingVideoWithoutRegeneratingOrChargingCredits")}
+                            onClick={() => act().onReprocess(segment.index)}
+                        >
+                            {translate("drama.studio.storyboard.reprocess")}
                         </Button>
                     ) : null}
                     <Button
@@ -206,10 +226,20 @@ const SegmentCard = memo(function SegmentCard({ segment, segmentShots, aspectRat
                         type={generatable(segment) && !hasVideo(segment) ? "primary" : "default"}
                         icon={<Play className="size-3" />}
                         disabled={busy || !generatable(segment)}
-                        title={!promptReady(segment) ? "先撰写或确认本段视频提示词" : hasVideo(segment) ? "重新调用视频模型生成本段，会产生新的费用" : undefined}
+                        title={
+                            !promptReady(segment) ? translate("drama.studio.storyboard.writeOrConfirmThisSegmentSVideoPromptFirst") : hasVideo(segment) ? translate("drama.studio.storyboard.callsTheVideoModelAgainToRegenerateThisSegmentAnd") : undefined
+                        }
                         onClick={() => act().onGenerate([segment.index])}
                     >
-                        {mediaBusy(segment.videoStatus) ? (segment.videoStatus === "queued" && segment.videoWait ? "等待中" : segment.request.firstFramePending ? "等上一段" : "生成中") : hasVideo(segment) ? "重新生成" : "生成"}
+                        {mediaBusy(segment.videoStatus)
+                            ? segment.videoStatus === "queued" && segment.videoWait
+                                ? translate("drama.studio.storyboard.waiting")
+                                : segment.request.firstFramePending
+                                  ? translate("drama.studio.storyboard.waitingForPrevious")
+                                  : translate("canvasB.mediaVersion.generating")
+                            : hasVideo(segment)
+                              ? translate("drama.studio.storyboard.regenerate")
+                              : translate("account.welcome.chapters.motion.label")}
                     </Button>
                 </span>
             </footer>
@@ -360,11 +390,21 @@ export function Storyboard({ shots, segments, aspectRatio, castById, defaultVide
             <div className={`drama-board-toolbar ${selected.size ? "is-selecting" : ""}`}>
                 {selected.size ? (
                     <>
-                        <b className="text-[var(--fs-label)]">已选 {selected.size} 段</b>
+                        <b className="text-[var(--fs-label)]">
+                            {translate("drama.studio.storyboard.selected")} {selected.size} {translate("drama.studio.storyboard.segments")}
+                        </b>
                         <div className="drama-board-model">
-                            <DramaModelPicker capability="video" size="sm" value={batchModel || defaultVideoModel} onChange={setBatchModel} placeholder="视频模型" aspectRatio={aspectRatio} videoResolution={videoResolution} />
+                            <DramaModelPicker
+                                capability="video"
+                                size="sm"
+                                value={batchModel || defaultVideoModel}
+                                onChange={setBatchModel}
+                                placeholder={translate("drama.studio.storyboard.videoModel")}
+                                aspectRatio={aspectRatio}
+                                videoResolution={videoResolution}
+                            />
                         </div>
-                        <Tooltip title={toGenerate.length < selected.size ? `${selected.size - toGenerate.length} 段提示词未就绪或正在生成，会跳过` : undefined}>
+                        <Tooltip title={toGenerate.length < selected.size ? translate("drama.studio.storyboard.segmentsWillBeSkippedBecauseTheirPromptsAreNotReady", { v0: String(selected.size - toGenerate.length) }) : undefined}>
                             <Button
                                 size="small"
                                 type="primary"
@@ -375,7 +415,7 @@ export function Storyboard({ shots, segments, aspectRatio, castById, defaultVide
                                     setSelected(new Set());
                                 }}
                             >
-                                生成视频 · {toGenerate.length} 段
+                                {translate("drama.studio.storyboard.generateVideos")} {toGenerate.length} {translate("drama.studio.storyboard.segments")}
                             </Button>
                         </Tooltip>
                         <Button
@@ -387,28 +427,31 @@ export function Storyboard({ shots, segments, aspectRatio, castById, defaultVide
                                 setSelected(new Set());
                             }}
                         >
-                            重新撰写提示词 · {toWrite.length} 段
+                            {translate("drama.studio.storyboard.rewritePrompts")} {toWrite.length} {translate("drama.studio.storyboard.segments")}
                         </Button>
                         <Button size="small" type="text" onClick={() => setSelected(new Set(order))}>
-                            全选
+                            {translate("drama.studio.storyboard.selectAll")}
                         </Button>
                         <Button size="small" type="text" icon={<X className="size-3.5" />} className="!ml-auto" onClick={() => setSelected(new Set())}>
-                            取消选择
+                            {translate("drama.studio.storyboard.clearSelection")}
                         </Button>
                     </>
                 ) : (
                     <>
                         <span className="drama-board-stat">
-                            <b>{segments.length}</b>段
+                            <b>{segments.length}</b>
+                            {translate("drama.studio.storyboard.segments")}
                         </span>
                         <span className="drama-board-stat">
-                            <b>{shots.length}</b>镜
+                            <b>{shots.length}</b>
+                            {translate("drama.studio.storyboard.shots")}
                         </span>
                         <span className="drama-board-stat">
-                            <b>{formatClock(totals.durationMs)}</b>时长
+                            <b>{formatClock(totals.durationMs)}</b>
+                            {translate("canvasA.assetView.duration")}
                         </span>
-                        <span className="drama-board-meter" aria-label={`提示词 ${totals.prompts}/${segments.length}`}>
-                            提示词
+                        <span className="drama-board-meter" aria-label={translate("drama.studio.storyboard.prompts", { v0: String(totals.prompts), v1: String(segments.length) })}>
+                            {translate("canvasA.assetView.prompt")}
                             <i>
                                 <em style={progressFillStyle((totals.prompts / Math.max(segments.length, 1)) * 100)} />
                             </i>
@@ -416,8 +459,8 @@ export function Storyboard({ shots, segments, aspectRatio, castById, defaultVide
                                 {totals.prompts}/{segments.length}
                             </b>
                         </span>
-                        <span className="drama-board-meter is-video" aria-label={`视频 ${totals.videos}/${segments.length}`}>
-                            视频
+                        <span className="drama-board-meter is-video" aria-label={translate("drama.studio.storyboard.videos", { v0: String(totals.videos), v1: String(segments.length) })}>
+                            {translate("account.feedback.video")}
                             <i>
                                 <em style={progressFillStyle((totals.videos / Math.max(segments.length, 1)) * 100)} />
                             </i>
@@ -425,11 +468,11 @@ export function Storyboard({ shots, segments, aspectRatio, castById, defaultVide
                                 {totals.videos}/{segments.length}
                             </b>
                         </span>
-                        <span className="ml-auto drama-board-hint">段按顺序生成，第 2 段起以上一段最后一帧为首帧</span>
+                        <span className="ml-auto drama-board-hint">{translate("drama.studio.storyboard.segmentsGeneratedInOrderFromSegment2OnwardThePrevious")}</span>
                     </>
                 )}
             </div>
-            <div ref={gridRef} className={`drama-sg-grid ${aspectRatio === "16:9" || aspectRatio === "4:3" ? "is-landscape" : ""}`} role="listbox" aria-multiselectable aria-label="剧情段">
+            <div ref={gridRef} className={`drama-sg-grid ${aspectRatio === "16:9" || aspectRatio === "4:3" ? "is-landscape" : ""}`} role="listbox" aria-multiselectable aria-label={translate("drama.studio.storyboard.storySegment")}>
                 {segments.map((segment) => (
                     <SegmentCard
                         key={segment.id || segment.index}
@@ -446,31 +489,38 @@ export function Storyboard({ shots, segments, aspectRatio, castById, defaultVide
                     />
                 ))}
             </div>
-            <div className="drama-kbd-hint" aria-label="键盘快捷键">
+            <div className="drama-kbd-hint" aria-label={translate("drama.studio.storyboard.keyboardShortcuts")}>
                 <span>
                     <kbd>⌘</kbd>
-                    <kbd>A</kbd>全选
+                    <kbd>A</kbd>
+                    {translate("drama.studio.storyboard.selectAll")}
                 </span>
                 <span>
-                    <kbd>⌘</kbd>单击 多选
+                    <kbd>⌘</kbd>
+                    {translate("drama.studio.storyboard.clickToMultiSelect")}
                 </span>
                 <span>
-                    <kbd>⇧</kbd>单击 / <kbd>⇧</kbd>
+                    <kbd>⇧</kbd>
+                    {translate("drama.studio.storyboard.click")} <kbd>⇧</kbd>
                     <kbd>←</kbd>
-                    <kbd>→</kbd> 连选
+                    <kbd>→</kbd> {translate("drama.studio.storyboard.selectRange")}
                 </span>
                 <span>
-                    <kbd>X</kbd>/<kbd>空格</kbd>选中当前
+                    <kbd>X</kbd>/<kbd>{translate("drama.studio.storyboard.space")}</kbd>
+                    {translate("drama.studio.storyboard.selectCurrent")}
                 </span>
                 <span>
                     <kbd>J</kbd>
-                    <kbd>K</kbd>/方向键 切换
+                    <kbd>K</kbd>
+                    {translate("drama.studio.storyboard.arrowKeysToNavigate")}
                 </span>
                 <span>
-                    <kbd>Enter</kbd>打开
+                    <kbd>Enter</kbd>
+                    {translate("canvasB.common.open")}
                 </span>
                 <span>
-                    <kbd>Esc</kbd>取消选择
+                    <kbd>Esc</kbd>
+                    {translate("drama.studio.storyboard.clearSelection")}
                 </span>
             </div>
         </div>

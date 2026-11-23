@@ -18,6 +18,8 @@ import { UserCreditAdjustModal } from "./user-credit-adjust-modal";
 import "./users-page.css";
 import { Select } from "@/components/ui/base/select";
 import { AdminSearchInput } from "../components/admin-search-input";
+import { translate } from "@/i18n";
+
 
 // v2：新增累计充值、累计消耗、最近登录列，旧的显示列偏好不再适用。
 const columnStorageKey = "admin-users-visible-columns-v2";
@@ -63,7 +65,7 @@ export default function UsersPanel({ onUserChanged }: { onUserChanged?: (user: L
     useEffect(() => {
         void listAdminUserGroups()
             .then((result) => setGroups(result.groups))
-            .catch((error) => message.error(error instanceof Error ? error.message : "读取用户分组失败"));
+            .catch((error) => message.error(error instanceof Error ? error.message : translate("adminPages.users.usersPanel.failedToLoadUserGroups")));
     }, [message]);
 
     useEffect(() => {
@@ -89,7 +91,7 @@ export default function UsersPanel({ onUserChanged }: { onUserChanged?: (user: L
             })
             .catch((error) => {
                 if (sequence !== requestSequence.current) return;
-                const text = error instanceof Error ? error.message : "读取用户失败";
+                const text = error instanceof Error ? error.message : translate("adminPages.users.usersPanel.failedToLoadUsers");
                 setLoadError(text);
                 message.error(text);
             })
@@ -115,14 +117,14 @@ export default function UsersPanel({ onUserChanged }: { onUserChanged?: (user: L
             if (user.status === "active") {
                 await deleteAdminUser(user.id);
                 replaceUser({ ...user, status: "disabled" });
-                message.success("用户已停用并清除登录状态");
+                message.success(translate("adminPages.users.usersPanel.userDeactivatedAndSignedOut"));
                 return;
             }
             const result = await updateAdminUser(user.id, { status: "active" });
             replaceUser(result.user);
-            message.success("用户已重新启用");
+            message.success(translate("adminPages.users.usersPanel.userReEnabled"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "更新用户状态失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.users.usersPanel.failedToUpdateUserStatus"));
         }
     }, [message, replaceUser]);
 
@@ -140,10 +142,10 @@ export default function UsersPanel({ onUserChanged }: { onUserChanged?: (user: L
 
     const bulkDisable = () => {
         modal.confirm({
-            title: `停用选中的 ${selectedUserIds.length} 个用户？`,
-            content: "这些用户的全部登录态会被清除，身份、任务和积分流水继续保留。操作会整体成功或整体回滚。",
-            okText: "确认批量停用",
-            cancelText: "取消",
+            title: translate("adminPages.users.usersPanel.deactivateTheSelectedUsers", { v0: String(selectedUserIds.length) }),
+            content: translate("adminPages.users.usersPanel.allSessionsForTheseUsersAreClearedWhileIdentitiesTasks"),
+            okText: translate("adminPages.users.usersPanel.confirmBulkDeactivation"),
+            cancelText: translate("common.cancel"),
             okButtonProps: { danger: true },
             onOk: async () => {
                 setBulkDisabling(true);
@@ -151,9 +153,9 @@ export default function UsersPanel({ onUserChanged }: { onUserChanged?: (user: L
                     const result = await bulkDisableAdminUsers(selectedUserIds);
                     result.users.forEach(replaceUser);
                     setSelectedUserIds([]);
-                    message.success(`已停用 ${result.disabledCount} 个用户`);
+                    message.success(translate("adminPages.users.usersPanel.deactivatedUsers", { v0: String(result.disabledCount) }));
                 } catch (error) {
-                    message.error(error instanceof Error ? error.message : "批量停用用户失败");
+                    message.error(error instanceof Error ? error.message : translate("adminPages.users.usersPanel.bulkUserDeactivationFailed"));
                 } finally {
                     setBulkDisabling(false);
                 }
@@ -171,8 +173,8 @@ export default function UsersPanel({ onUserChanged }: { onUserChanged?: (user: L
                             className="app-list-search"
                             prefix={<Search className="size-4 text-foreground/40" />}
                             value={state.filter}
-                            aria-label="搜索用户"
-                            placeholder="搜索用户名、名称或邮箱"
+                            aria-label={translate("adminPages.users.usersPanel.searchUsers")}
+                            placeholder={translate("adminPages.users.usersPanel.searchUsernameNameOrEmail")}
                             onValueChange={(value) => update({ filter: value, page: 1 }, true)}
                         />
                     </>
@@ -182,37 +184,37 @@ export default function UsersPanel({ onUserChanged }: { onUserChanged?: (user: L
                 toolbarFilters={
                     <>
                         <Select
-                            aria-label="筛选用户角色"
+                            aria-label={translate("adminPages.users.usersPanel.filterUserRole")}
                             className="w-32"
                             value={state.role}
-                            options={[{ value: "all", label: "全部角色" }, { value: "admin", label: "管理员" }, { value: "user", label: "普通用户" }]}
+                            options={[{ value: "all", label: translate("adminPages.users.usersPanel.allRoles") }, { value: "admin", label: translate("shell.account.admin") }, { value: "user", label: translate("adminPages.users.usersPanel.regularUser") }]}
                             onChange={(role) => update({ role, page: 1 })}
                         />
                         <Select
-                            aria-label="筛选用户状态"
+                            aria-label={translate("adminPages.users.usersPanel.filterUserStatus")}
                             className="w-32"
                             value={state.status}
-                            options={[{ value: "all", label: "全部状态" }, { value: "active", label: "已启用" }, { value: "disabled", label: "已停用" }]}
+                            options={[{ value: "all", label: translate("library.ark.expiry.all") }, { value: "active", label: translate("account.layout.oss.enabled") }, { value: "disabled", label: translate("adminPages.users.usersPanel.disabled") }]}
                             onChange={(status) => update({ status, page: 1 })}
                         />
                         <Select
-                            aria-label="筛选用户分组"
+                            aria-label={translate("adminPages.users.usersPanel.filterUserGroup")}
                             className="w-36"
                             value={state.group}
-                            options={[{ value: "all", label: "全部分组" }, ...groups.map((group) => ({ value: group.code, label: group.name }))]}
+                            options={[{ value: "all", label: translate("adminPages.users.usersPanel.allGroups") }, ...groups.map((group) => ({ value: group.code, label: group.name }))]}
                             onChange={(group) => update({ group, page: 1 })}
                         />
                     </>
                 }
                 trailing={
                     <div className="flex items-center gap-2">
-                        <Link to="/admin/user-groups"><Button icon={<Crown className="size-4" />}>分组管理</Button></Link>
-                        <Button icon={<UserPlus className="size-4" />} onClick={() => { setEditingUser(null); setCreateUserOpen(true); }}>{"\u6dfb\u52a0\u7528\u6237"}</Button>
+                        <Link to="/admin/user-groups"><Button icon={<Crown className="size-4" />}>{translate("adminPages.users.usersPanel.groupManagement")}</Button></Link>
+                        <Button icon={<UserPlus className="size-4" />} onClick={() => { setEditingUser(null); setCreateUserOpen(true); }}>{translate("adminPages.users.usersPanel.addUser")}</Button>
                         <Dropdown
                             trigger={["click"]}
                             popupRender={() => (
                                 <div className="w-48 rounded-md border border-border bg-popover p-2 shadow-lg">
-                                    <div className="px-2 pb-2 text-xs font-medium text-foreground/55">显示列</div>
+                                    <div className="px-2 pb-2 text-xs font-medium text-foreground/55">{translate("adminPages.users.usersPanel.visibleColumns")}</div>
                                     <div className="space-y-0.5">
                                         {userColumnOptions.map((option) => (
                                             <label key={option.key} className="flex cursor-pointer items-center gap-2 rounded px-2 py-2 text-sm hover:bg-muted/60">
@@ -234,11 +236,11 @@ export default function UsersPanel({ onUserChanged }: { onUserChanged?: (user: L
                                 </div>
                             )}
                         >
-                            <Button icon={<Settings2 className="size-4" />}>列设置</Button>
+                            <Button icon={<Settings2 className="size-4" />}>{translate("adminPages.users.usersPanel.columnSettings")}</Button>
                         </Dropdown>
                     </div>
                 }
-                batchActions={<AdminBatchBar count={selectedUserIds.length} onClear={() => setSelectedUserIds([])}><Button danger size="small" icon={<Ban className="size-3.5" />} loading={bulkDisabling} onClick={bulkDisable}>批量停用</Button></AdminBatchBar>}
+                batchActions={<AdminBatchBar count={selectedUserIds.length} onClear={() => setSelectedUserIds([])}><Button danger size="small" icon={<Ban className="size-3.5" />} loading={bulkDisabling} onClick={bulkDisable}>{translate("adminPages.users.usersPanel.bulkDeactivate")}</Button></AdminBatchBar>}
                 skeletonColumns={Math.max(4, columns.length)}
                 table={{
                     className: "app-data-table admin-users-table",
@@ -256,7 +258,7 @@ export default function UsersPanel({ onUserChanged }: { onUserChanged?: (user: L
                     pagination: false,
                     scroll: { x: 1320 },
                 }}
-                empty={loadError ? <div className="admin-inline-load-error" role="status"><span>用户数据暂不可用：{loadError}</span><Button size="small" onClick={() => setRetry((value) => value + 1)}>重试</Button></div> : <AdminTableEmpty filtered={hasFilters} />}
+                empty={loadError ? <div className="admin-inline-load-error" role="status"><span>{translate("adminPages.users.usersPanel.userDataIsTemporarilyUnavailable")}{loadError}</span><Button size="small" onClick={() => setRetry((value) => value + 1)}>{translate("common.retry")}</Button></div> : <AdminTableEmpty filtered={hasFilters} />}
                 footer={<PaginationBar alwaysShow current={state.page} pageSize={state.pageSize} total={total} onChange={(page, pageSize) => update({ page: pageSize !== state.pageSize ? 1 : page, pageSize })} />}
             />
 

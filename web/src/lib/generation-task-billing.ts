@@ -1,5 +1,6 @@
 import { formatCredits } from "@/constant/credits";
 import type { GenerationTask } from "@/services/api/task-center";
+import { translate } from "@/i18n";
 
 type TaskBilling = NonNullable<GenerationTask["billing"]>;
 
@@ -19,22 +20,22 @@ export function taskBillingDisplay(billing: TaskBilling): TaskBillingDisplay {
         case "settled":
             return {
                 amount: formatCredits(billing.chargedMicrocredits ?? 0),
-                note: "已结算",
-                refundNote: billing.refundedMicrocredits > 0 ? `退回 ${formatCredits(billing.refundedMicrocredits)}` : "",
+                note: translate("shared.generationTaskBilling.settled"),
+                refundNote: billing.refundedMicrocredits > 0 ? translate("shared.generationTaskBilling.refund", { v0: String(formatCredits(billing.refundedMicrocredits)) }) : "",
                 tone: "settled",
             };
         case "refunded":
-            return { amount: formatCredits(billing.refundedMicrocredits || billing.reservedMicrocredits), note: "已退回", refundNote: "", tone: "refunded" };
+            return { amount: formatCredits(billing.refundedMicrocredits || billing.reservedMicrocredits), note: translate("shared.generationTaskBilling.refunded"), refundNote: "", tone: "refunded" };
         case "uncertain":
-            return { amount: formatCredits(billing.reservedMicrocredits), note: "待核对", refundNote: "", tone: "uncertain" };
+            return { amount: formatCredits(billing.reservedMicrocredits), note: translate("shared.generationTaskBilling.pendingReview"), refundNote: "", tone: "uncertain" };
         default:
-            return { amount: formatCredits(billing.reservedMicrocredits), note: "冻结", refundNote: "", tone: "held" };
+            return { amount: formatCredits(billing.reservedMicrocredits), note: translate("shared.generationTaskBilling.reserved"), refundNote: "", tone: "held" };
     }
 }
 
 /** 单行计费文案，例如“已结算 0.6 积分 · 退回 0.4”“冻结 1 积分”。 */
 export function taskBillingLabel(billing: TaskBilling) {
     const display = taskBillingDisplay(billing);
-    const label = `${display.note} ${display.amount} 积分`;
+    const label = translate("shared.generationTaskBilling.credits", { v0: String(display.note), v1: String(display.amount) });
     return display.refundNote ? `${label} · ${display.refundNote}` : label;
 }

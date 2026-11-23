@@ -1,4 +1,5 @@
 import type { CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 export const ART_CRITIQUE_SCHEMA_VERSION = 1 as const;
 export const ART_CRITIQUE_RUBRIC_VERSION = "2026-08-v1" as const;
@@ -172,28 +173,28 @@ function compactSource(value: string) {
 }
 
 export function artCritiqueCategoryLabel(category: ArtCritiqueCategory) {
-    if (category === "composition") return "构图";
-    if (category === "color") return "色彩";
-    if (category === "lighting") return "光线";
-    if (category === "proportion") return "比例";
-    return "其他";
+    if (category === "composition") return translate("shared.artCritique.contracts.composition");
+    if (category === "color") return translate("shared.artCritique.contracts.color");
+    if (category === "lighting") return translate("shared.artCritique.contracts.lighting");
+    if (category === "proportion") return translate("shared.artCritique.contracts.proportion");
+    return translate("canvasA.skillLibrary.other");
 }
 
 export function artCritiqueSeverityLabel(severity: ArtCritiqueSeverity) {
-    if (severity === "high") return "优先处理";
-    if (severity === "medium") return "建议处理";
-    return "可选优化";
+    if (severity === "high") return translate("shared.artCritique.contracts.highPriority");
+    if (severity === "medium") return translate("shared.artCritique.contracts.recommended");
+    return translate("shared.artCritique.contracts.optionalImprovement");
 }
 
 export function artCritiqueStageLabel(stage?: ArtCritiquePipelineStage) {
-    if (stage === "preparing") return "准备图片";
-    if (stage === "scene") return "理解场景";
-    if (stage === "reviewing") return "检查视觉维度";
-    if (stage === "aggregating") return "整理重点问题";
-    if (stage === "grounding") return "定位问题区域";
-    if (stage === "verifying") return "复核批改结果";
-    if (stage === "annotating") return "生成标注";
-    if (stage === "completed") return "分析完成";
-    if (stage === "failed") return "分析失败";
-    return "尚未分析";
+    if (stage === "preparing") return translate("shared.artCritique.contracts.preparingImage");
+    if (stage === "scene") return translate("shared.artCritique.contracts.understandingTheScene");
+    if (stage === "reviewing") return translate("shared.artCritique.contracts.reviewingVisualAspects");
+    if (stage === "aggregating") return translate("shared.artCritique.contracts.prioritizingIssues");
+    if (stage === "grounding") return translate("shared.artCritique.contracts.locatingIssueAreas");
+    if (stage === "verifying") return translate("shared.artCritique.contracts.verifyingTheCritique");
+    if (stage === "annotating") return translate("shared.artCritique.contracts.generatingAnnotations");
+    if (stage === "completed") return translate("canvasA.artCritique.statusCompleted");
+    if (stage === "failed") return translate("canvasA.artCritique.statusFailed");
+    return translate("shared.artCritique.contracts.notAnalyzed");
 }

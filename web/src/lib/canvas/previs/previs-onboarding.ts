@@ -1,5 +1,6 @@
 import { localForageStorageForScope } from "@/lib/localforage-storage";
 import type { PrevisMode } from "@/lib/canvas/previs/previs-modes";
+import { translate } from "@/i18n";
 
 /**
  * 预演台首次上手引导。
@@ -46,12 +47,12 @@ export type PrevisOnboardingStep = {
 
 /** 引导步骤按首次使用的最短操作路径排列：添加演员 → 移动 → 调姿 → 走位 → 取景 → 回写。 */
 export const PREVIS_ONBOARDING_STEPS: PrevisOnboardingStep[] = [
-    { id: "actor", title: "添加演员", detail: "点左侧「添加」，在弹窗里预览并选择演员；已有演员时直接在视口点选它。", mode: "layout" },
-    { id: "move", title: "把演员移动到表演位置", detail: "直接拖动演员，或在底部工具条选移动工具（W）拖动手柄；右侧属性面板可输入精确坐标。", mode: "layout" },
-    { id: "pose", title: "调整演员姿态", detail: "选中演员后，在右侧「姿态」里点选姿势；需要微调时点视口里的关节旋转。", mode: "layout" },
-    { id: "path", title: "让演员动起来", detail: "切到「动画」，选中演员点「画走位」，在地面拖出路线；或从「动作」里添加招手、坐下等动作，然后播放预览。", mode: "animate" },
-    { id: "camera", title: "检查镜头构图", detail: "点底部工具条的 CAM 进入机位视图，在右侧「镜头」里调焦距和机位，安全框内就是成片画面。", mode: "layout" },
-    { id: "apply", title: "回写到画布", detail: "构图满意后点顶栏「回写构图」，生成静帧并回写到画布镜头节点。", mode: "layout" },
+    { id: "actor", title: translate("shared.canvas.previs.previsOnboarding.addActor"), detail: translate("shared.canvas.previs.previsOnboarding.clickAddOnTheLeftToPreviewAndChooseAn"), mode: "layout" },
+    { id: "move", title: translate("shared.canvas.previs.previsOnboarding.moveTheActorIntoPosition"), detail: translate("shared.canvas.previs.previsOnboarding.dragTheActorDirectlyOrSelectTheMoveToolW"), mode: "layout" },
+    { id: "pose", title: translate("shared.canvas.previs.previsOnboarding.adjustTheActorSPose"), detail: translate("shared.canvas.previs.previsOnboarding.selectAnActorThenChooseAPoseUnderPoseOn"), mode: "layout" },
+    { id: "path", title: translate("shared.canvas.previs.previsOnboarding.animateTheActor"), detail: translate("shared.canvas.previs.previsOnboarding.switchToAnimationSelectAnActorAndClickDrawPath"), mode: "animate" },
+    { id: "camera", title: translate("shared.canvas.previs.previsOnboarding.checkTheShotComposition"), detail: translate("shared.canvas.previs.previsOnboarding.clickCAMInTheBottomToolbarToEnterCameraView"), mode: "layout" },
+    { id: "apply", title: translate("shared.canvas.previs.previsOnboarding.writeBackToCanvas"), detail: translate("shared.canvas.previs.previsOnboarding.whenTheCompositionIsReadyClickWriteBackCompositionIn"), mode: "layout" },
 ];
 
 export type PrevisOnboardingProgress = {
@@ -169,7 +170,7 @@ export type PrevisOnboardingStorage = {
  */
 function requireScope(scope: string) {
     const normalized = scope.trim();
-    if (!normalized) throw new Error("缺少预演台引导的用户 scope");
+    if (!normalized) throw new Error(translate("shared.canvas.previs.previsOnboarding.missingUserScopeForPrevisOnboarding"));
     return normalized;
 }
 

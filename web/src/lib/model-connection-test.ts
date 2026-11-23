@@ -3,10 +3,11 @@ import { requestGeneration, requestImageQuestion } from "@/services/api/image";
 import { createVideoGenerationTask } from "@/services/api/video";
 import { defaultConfig, encodeChannelModel, type ModelCapability, type ModelChannel } from "@/stores/use-config-store";
 import type { ModelProtocol } from "@/lib/model-protocols";
+import { translate } from "@/i18n";
 
 export async function testChannelModelConnection(channel: ModelChannel, model: string, capability: ModelCapability, protocol: ModelProtocol) {
-    if (!channel.baseUrl.trim()) throw new Error("请先填写 Base URL");
-    if (!channel.apiKey.trim()) throw new Error("请先填写 API Key");
+    if (!channel.baseUrl.trim()) throw new Error(translate("shared.modelConnectionTest.enterABaseURLFirst"));
+    if (!channel.apiKey.trim()) throw new Error(translate("shared.modelConnectionTest.enterAnAPIKeyFirst"));
     const selectedModel = encodeChannelModel(channel.id, model);
     const modelCost = channel.modelCosts?.find((item) => item.model === model);
     const testProtocol = channel.apiFormat === "gemini" && !modelCost?.protocol ? undefined : protocol;
@@ -53,16 +54,16 @@ export async function testChannelModelConnection(channel: ModelChannel, model: s
     switch (capability) {
         case "text":
             await requestImageQuestion(config, [{ role: "user", content: "Reply with OK." }], () => undefined);
-            return "文本响应正常";
+            return translate("shared.modelConnectionTest.textResponsesAreHealthy");
         case "image":
             await requestGeneration(config, "A simple gray circle on a white background.");
-            return "图片生成正常";
+            return translate("shared.modelConnectionTest.imageGenerationIsHealthy");
         case "audio":
             await requestAudioGeneration(config, "Model test.");
-            return "音频生成正常";
+            return translate("shared.modelConnectionTest.audioGenerationIsHealthy");
         case "video": {
             const task = await createVideoGenerationTask(config, "A static gray circle on a white background.");
-            return `视频任务已创建（${task.id}）`;
+            return translate("shared.modelConnectionTest.videoTaskCreated", { v0: String(task.id) });
         }
     }
 }

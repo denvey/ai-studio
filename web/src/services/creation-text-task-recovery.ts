@@ -1,5 +1,6 @@
 import { parseBackendGenerationResult } from "@/services/api/generation-task";
 import type { GenerationTask } from "@/services/api/task-center";
+import { translate } from "@/i18n";
 
 export type RecoverableCreationTextMessage = {
     mode?: string;
@@ -29,15 +30,15 @@ export function recoverCreationTextTask(message: RecoverableCreationTextMessage,
     if (succeeded) {
         try {
             const text = parseBackendGenerationResult(succeeded).text;
-            if (!text?.trim()) throw new Error("后端任务没有返回文本");
+            if (!text?.trim()) throw new Error(translate("create.page.noTextResult"));
             return { status: "done", content: text, error: undefined, taskIds: nextTaskIds };
         } catch (error) {
-            return { status: "error", content: "生成失败", error: error instanceof Error ? error.message : "文本任务结果格式错误", taskIds: nextTaskIds };
+            return { status: "error", content: "生成失败", error: error instanceof Error ? error.message : translate("shared.creationTextTaskRecovery.theTextTaskResultHasAnInvalidFormat"), taskIds: nextTaskIds };
         }
     }
     if (matches.every((task) => task.status === "cancelled")) {
         return { status: "cancelled", content: "已停止", error: undefined, taskIds: nextTaskIds };
     }
     const failed = matches.find((task) => task.status === "failed");
-    return { status: "error", content: "生成失败", error: failed?.error || "文本任务已失败", taskIds: nextTaskIds };
+    return { status: "error", content: "生成失败", error: failed?.error || translate("shared.creationTextTaskRecovery.theTextTaskFailed"), taskIds: nextTaskIds };
 }

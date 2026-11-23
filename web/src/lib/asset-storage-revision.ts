@@ -1,5 +1,7 @@
 import type { Asset } from "@/stores/use-asset-store";
 import { parseAssetRecord, parseAssetRecordList } from "@/lib/asset-record";
+import { translate } from "@/i18n";
+
 
 export type AssetStorageDocument = {
     state: { assets: Asset[] };
@@ -23,7 +25,7 @@ export function parseAssetStorageDocument(value: string | null, fallback: Asset[
         storageRevision?: unknown;
         tombstones?: { assets?: unknown };
     };
-    if (!Array.isArray(parsed.state?.assets)) throw new Error("素材持久状态无效");
+    if (!Array.isArray(parsed.state?.assets)) throw new Error(translate("shared.assetStorageRevision.invalidAssetPersistenceState"));
     const rawTombstones = parsed.tombstones?.assets;
     const tombstones =
         rawTombstones && typeof rawTombstones === "object" && !Array.isArray(rawTombstones) ? Object.fromEntries(Object.entries(rawTombstones).filter((entry): entry is [string, number] => typeof entry[1] === "number" && Number.isFinite(entry[1]))) : {};
@@ -67,7 +69,7 @@ export function parseAssetStorageDocumentRecovering(value: string | null, fallba
         storageRevision?: unknown;
         tombstones?: { assets?: unknown };
     };
-    if (!Array.isArray(parsed.state?.assets)) throw new Error("素材持久状态无效");
+    if (!Array.isArray(parsed.state?.assets)) throw new Error(translate("shared.assetStorageRevision.invalidAssetPersistenceState"));
 
     const invalid: InvalidAssetRecord[] = [];
     const assets: Asset[] = [];

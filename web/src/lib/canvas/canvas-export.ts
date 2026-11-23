@@ -3,6 +3,8 @@ import { MediaPackage, downloadName, packageSegment, referencedStorageKeys } fro
 import { loadCanvasDrawing, loadCanvasDrawingPreview, loadCanvasDrawingRender } from "@/lib/canvas/canvas-drawing-storage";
 import type { CanvasDrawingExport, CanvasExportFile, CanvasProjectExportItem } from "@/types/canvas-export";
 import type { CanvasProject } from "@/stores/canvas/use-canvas-store";
+import { translate } from "@/i18n";
+
 
 async function addDrawing(archive: MediaPackage, project: CanvasProject, drawingId: string, directory: string): Promise<CanvasDrawingExport | null> {
     const document = await loadCanvasDrawing(project.id, drawingId);
@@ -27,7 +29,7 @@ export async function exportCanvasProjects(projects: CanvasProject[], fileName =
     const snapshot = structuredClone(projects);
     const projectIds = new Set<string>();
     for (const project of snapshot) {
-        if (projectIds.has(project.id)) throw new Error("不能重复导出同一个画布项目");
+        if (projectIds.has(project.id)) throw new Error(translate("shared.canvas.canvasExport.theSameCanvasProjectCannotBeExportedMoreThanOnce"));
         projectIds.add(project.id);
         const directory = `projects/${packageSegment(project.id)}`;
         const files = await archive.collect(referencedStorageKeys(project), `${directory}/files`);

@@ -4,6 +4,7 @@ import { AppModal } from "@/components/ui/product/app-modal";
 import { resolveCropPixels, type ImageCropRect } from "@/lib/canvas/image-operation-plan";
 import { centeredAspectSelection, resizeSelection, selectAspect, translateSelection, type CropGrip } from "@/lib/canvas/image-crop-selection";
 import { useImageToolSource } from "@/hooks/use-image-tool-source";
+import { translate } from "@/i18n";
 
 export type { ImageCropRect } from "@/lib/canvas/image-operation-plan";
 export type ImageCropDialogProps = { dataUrl: string; open: boolean; onClose: () => void; onConfirm: (crop: ImageCropRect) => void; fixedAspect?: number; title?: string; confirmLoading?: boolean };
@@ -24,7 +25,7 @@ export function ImageCropDialog(props: ImageCropDialogProps) {
     return props.open && props.dataUrl ? <CropEditor key={`${props.dataUrl}:${props.fixedAspect ?? "free"}`} {...props} /> : null;
 }
 
-function CropEditor({ dataUrl, onClose, onConfirm, fixedAspect, title = "裁剪图片", confirmLoading = false }: ImageCropDialogProps) {
+function CropEditor({ dataUrl, onClose, onConfirm, fixedAspect, title = translate("shared.imageCropDialog.cropImage"), confirmLoading = false }: ImageCropDialogProps) {
     const { size, error } = useImageToolSource(dataUrl);
     const [selected, setSelection] = useState<ImageCropRect | null>(null);
     const selection = selected ?? (size && fixedAspect !== undefined ? centeredAspectSelection(size, fixedAspect) : initialSelection);
@@ -34,7 +35,12 @@ function CropEditor({ dataUrl, onClose, onConfirm, fixedAspect, title = "裁剪�
     const stage = useRef<HTMLDivElement>(null);
     const gesture = useRef<Gesture | null>(null);
     const output = size ? resolveCropPixels(size, selection) : null;
-    const outputLabel = output && fixedAspect === 1 ? `输出 ${Math.min(output.width, output.height)} × ${Math.min(output.width, output.height)} px` : output ? `输出 ${output.width} × ${output.height} px` : error || "正在读取图片…";
+    const outputLabel =
+        output && fixedAspect === 1
+            ? translate("shared.imageCropDialog.outputPx", { v0: String(Math.min(output.width, output.height)), v1: String(Math.min(output.width, output.height)) })
+            : output
+              ? translate("shared.imageCropDialog.outputPx", { v0: String(output.width), v1: String(output.height) })
+              : error || translate("shared.imageCropDialog.loadingImage");
     const begin = (event: PointerEvent<HTMLElement>, grip: CropGrip | null) => {
         if (confirmLoading || event.button !== 0 || gesture.current || !stage.current || !size) return;
         const bounds = stage.current.getBoundingClientRect();
@@ -52,7 +58,7 @@ function CropEditor({ dataUrl, onClose, onConfirm, fixedAspect, title = "裁剪�
     const choose = (value: string) => {
         if (!size) return;
         const ratio =
-            value === "原图"
+            value === "original"
                 ? 1
                 : (() => {
                       const [w, h] = value.split(":").map(Number);
@@ -74,7 +80,7 @@ function CropEditor({ dataUrl, onClose, onConfirm, fixedAspect, title = "裁剪�
             onOk={() => {
                 if (size && !confirmLoading) onConfirm(selection);
             }}
-            okText="确认裁剪"
+            okText={translate("shared.imageCropDialog.confirmCrop")}
             confirmLoading={confirmLoading}
             okButtonProps={{ disabled: !size || !!error || confirmLoading }}
             cancelButtonProps={{ disabled: confirmLoading }}
@@ -98,11 +104,11 @@ function CropEditor({ dataUrl, onClose, onConfirm, fixedAspect, title = "裁剪�
                         onPointerCancel={finish}
                         onLostPointerCapture={finish}
                     >
-                        <img src={dataUrl} alt="待裁剪图片" draggable={false} className="block max-h-[60vh] max-w-full" />
+                        <img src={dataUrl} alt={translate("shared.imageCropDialog.imageToCrop")} draggable={false} className="block max-h-[60vh] max-w-full" />
                         {size ? (
                             <div
                                 role="group"
-                                aria-label="裁剪区域"
+                                aria-label={translate("shared.imageCropDialog.cropArea")}
                                 tabIndex={0}
                                 className="absolute cursor-move border border-white outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                 style={{ left: `${selection.x * 100}%`, top: `${selection.y * 100}%`, width: `${selection.width * 100}%`, height: `${selection.height * 100}%`, boxShadow: "0 0 0 100vmax rgb(0 0 0 / 55%)" }}
@@ -124,7 +130,7 @@ function CropEditor({ dataUrl, onClose, onConfirm, fixedAspect, title = "裁剪�
                                     <button
                                         type="button"
                                         key={name}
-                                        aria-label={`调整裁剪框 ${name}`}
+                                        aria-label={translate("shared.imageCropDialog.adjustCropHandle", { v0: String(name) })}
                                         className="absolute size-3 rounded-full border border-black bg-white"
                                         style={{ left: `${(vector[0] + 1) * 50}%`, top: `${(vector[1] + 1) * 50}%`, transform: "translate(-50%, -50%)", cursor: `${name}-resize` }}
                                         onPointerDown={(event) => begin(event, vector)}
@@ -144,10 +150,10 @@ function CropEditor({ dataUrl, onClose, onConfirm, fixedAspect, title = "裁剪�
                     </div>
                 </div>
                 {fixedAspect === undefined ? (
-                    <div className="flex flex-wrap gap-2" role="group" aria-label="常用裁剪比例">
-                        {["原图", "1:1", "3:2", "2:3", "4:3", "3:4", "16:9", "9:16"].map((value) => (
+                    <div className="flex flex-wrap gap-2" role="group" aria-label={translate("shared.imageCropDialog.commonCropRatios")}>
+                        {["original", "1:1", "3:2", "2:3", "4:3", "3:4", "16:9", "9:16"].map((value) => (
                             <Button key={value} size="small" disabled={!size || confirmLoading} aria-pressed={preset === value} onClick={() => choose(value)}>
-                                {value}
+                                {value === "original" ? translate("canvasPage.batchReferences.original") : value}
                             </Button>
                         ))}
                     </div>
@@ -164,7 +170,7 @@ function CropEditor({ dataUrl, onClose, onConfirm, fixedAspect, title = "裁剪�
                                     setPreset("");
                                 }}
                             >
-                                {locked ? "解除比例锁定" : "锁定当前比例"}
+                                {locked ? translate("shared.imageCropDialog.unlockTheRatio") : translate("shared.imageCropDialog.lockTheCurrentRatio")}
                             </Button>
                         ) : null}
                         <Button
@@ -175,7 +181,7 @@ function CropEditor({ dataUrl, onClose, onConfirm, fixedAspect, title = "裁剪�
                                 setPreset("");
                             }}
                         >
-                            重置
+                            {translate("account.layout.list.reset")}
                         </Button>
                     </div>
                 </div>

@@ -9,6 +9,7 @@ import { AdminPageFrame } from "./components/admin-shell";
 import { AdminStatusBadge, SettingsSectionCard } from "./components/admin-ui";
 import { EcommerceStageModels } from "./ecommerce-stage-models";
 import "./ecommerce-agent-config.css";
+import { translate } from "@/i18n";
 
 type ReadinessRow = { key: string; title: string; description: string; icon: ReactNode; ready: boolean; required: boolean; action: { label: string; run: () => void } };
 
@@ -33,7 +34,7 @@ export default function EcommerceAgentConfigPage() {
             setAgentSetting(setting);
             setLoadError("");
         } catch (cause) {
-            setLoadError(cause instanceof Error ? cause.message : "读取上线状态失败");
+            setLoadError(cause instanceof Error ? cause.message : translate("adminPages.ecommerceAgentConfigPage.failedToLoadLaunchStatus"));
         } finally {
             setLoading(false);
         }
@@ -50,60 +51,76 @@ export default function EcommerceAgentConfigPage() {
         ? [
               {
                   key: "ecommerce",
-                  title: "电商 Agent 已开放",
-                  description: "前台侧栏显示电商 Agent，用户可以新建商品创作。关闭后入口隐藏，已有项目和作品保留。",
+                  title: translate("adminPages.ecommerceAgentConfigPage.eCommerceAgentIsAvailable"),
+                  description: translate("adminPages.ecommerceAgentConfigPage.showECommerceAgentInTheSidebarSoUsersCan"),
                   icon: <ShoppingBag className="size-4" aria-hidden="true" />,
                   ready: features.ecommerceEnabled,
                   required: true,
-                  action: { label: "去功能开放", run: openFeatures },
+                  action: { label: translate("adminPages.ecommerceAgentConfigPage.openFeatureAvailability"), run: openFeatures },
               },
               {
                   key: "image",
-                  title: "图片生成已开放",
-                  description: "商品图按方案逐张出图，走图片生成能力；未开放时用户只能做到确认方案。",
+                  title: translate("adminPages.ecommerceAgentConfigPage.imageGenerationIsAvailable"),
+                  description: translate("adminPages.ecommerceAgentConfigPage.productImagesAreGeneratedIndividuallyFromThePlanUsingImage"),
                   icon: <ImageIcon className="size-4" aria-hidden="true" />,
                   ready: features.imageWorkbenchEnabled,
                   required: true,
-                  action: { label: "去功能开放", run: openFeatures },
+                  action: { label: translate("adminPages.ecommerceAgentConfigPage.openFeatureAvailability"), run: openFeatures },
               },
               {
                   key: "models",
-                  title: "阶段模型已配置",
-                  description: visionReady && planningReady ? "商品识别与整套策划都有可用的识图模型。" : "商品识别或整套策划还没有可用模型，用户点击创作会被拒绝。",
+                  title: translate("adminPages.ecommerceAgentConfigPage.stageModelsConfigured"),
+                  description:
+                      visionReady && planningReady
+                          ? translate("adminPages.ecommerceAgentConfigPage.imageCapableModelsAreAvailableForBothProductRecognitionAnd")
+                          : translate("adminPages.ecommerceAgentConfigPage.productRecognitionOrFullPlanningHasNoAvailableModelUsers"),
                   icon: <Layers3 className="size-4" aria-hidden="true" />,
                   ready: visionReady && planningReady,
                   required: true,
-                  action: { label: "去配置", run: openStageModels },
+                  action: { label: translate("adminPages.ecommerceAgentConfigPage.configure"), run: openStageModels },
               },
               {
                   key: "video",
-                  title: "商品视频（可选）",
-                  description: "开启后作品可以一键带入视频生成做成商品视频；需要同时开放视频生成。",
+                  title: translate("adminPages.ecommerceAgentConfigPage.productVideoOptional"),
+                  description: translate("adminPages.ecommerceAgentConfigPage.allowUsersToSendWorkToVideoGenerationToCreate"),
                   icon: <Clapperboard className="size-4" aria-hidden="true" />,
                   ready: features.ecommerceVideoEnabled && features.videoWorkbenchEnabled,
                   required: false,
-                  action: { label: "去功能开放", run: openFeatures },
+                  action: { label: translate("adminPages.ecommerceAgentConfigPage.openFeatureAvailability"), run: openFeatures },
               },
           ]
         : [];
     const missing = rows.filter((row) => row.required && !row.ready).length;
 
     return (
-        <AdminPageFrame title="电商 Agent 配置" description="按清单补齐开放状态和阶段模型，用户就能从上传商品图一路做到导出整套商品图。" scroll>
+        <AdminPageFrame title={translate("adminPages.ecommerceAgentConfigPage.eCommerceAgentSettings")} description={translate("adminPages.ecommerceAgentConfigPage.completeAvailabilityAndStageModelSettingsSoUsersCanGo")} scroll>
             <div className="admin-settings-stack eac-page">
                 <SettingsSectionCard
                     className="eac-section"
                     layout="stacked"
                     icon={<ListChecks className="size-4" aria-hidden="true" />}
-                    title="上线检查"
-                    description="必需项全部就绪后，用户才能完整走完「上传商品 → 选方向 → 确认方案 → 出图 → 导出」。"
-                    status={features ? <AdminStatusBadge label={missing ? `还差 ${missing} 项` : "可以使用"} tone={missing ? "warning" : "success"} /> : undefined}
+                    title={translate("adminPages.ecommerceAgentConfigPage.launchChecklist")}
+                    description={translate("adminPages.ecommerceAgentConfigPage.allRequiredItemsMustBeReadyForUsersToComplete")}
+                    status={
+                        features ? (
+                            <AdminStatusBadge
+                                label={missing ? translate("adminPages.ecommerceAgentConfigPage.itemsRemaining", { v0: String(missing) }) : translate("adminPages.ecommerceAgentConfigPage.readyToUse")}
+                                tone={missing ? "warning" : "success"}
+                            />
+                        ) : undefined
+                    }
                     footer={
                         <>
-                            <span className="eac-save-state">{loadError ? `读取失败：${loadError}` : features ? "以服务端当前配置为准" : "正在读取…"}</span>
+                            <span className="eac-save-state">
+                                {loadError
+                                    ? translate("adminPages.ecommerceAgentConfigPage.failedToLoad", { v0: String(loadError) })
+                                    : features
+                                      ? translate("adminPages.ecommerceAgentConfigPage.basedOnTheCurrentServerConfiguration")
+                                      : translate("adminPages.ecommerceAgentConfigPage.loading")}
+                            </span>
                             <div className="eac-save-actions">
                                 <Button icon={<RefreshCw className="size-4" />} loading={loading} onClick={() => void load()}>
-                                    刷新
+                                    {translate("common.refresh")}
                                 </Button>
                             </div>
                         </>
@@ -118,7 +135,10 @@ export default function EcommerceAgentConfigPage() {
                                     <span>{row.description}</span>
                                 </div>
                                 <div className="eac-readiness-actions">
-                                    <AdminStatusBadge label={row.ready ? "已就绪" : row.required ? "未完成" : "未开启"} tone={row.ready ? "success" : row.required ? "warning" : "neutral"} />
+                                    <AdminStatusBadge
+                                        label={row.ready ? translate("adminPages.ecommerceAgentConfigPage.ready") : row.required ? translate("adminPages.ecommerceAgentConfigPage.incomplete") : translate("adminPages.ecommerceAgentConfigPage.notEnabled")}
+                                        tone={row.ready ? "success" : row.required ? "warning" : "neutral"}
+                                    />
                                     {row.ready ? null : (
                                         <Button size="small" icon={<ArrowUpRight className="size-3.5" />} iconPlacement="end" onClick={row.action.run}>
                                             {row.action.label}
@@ -131,7 +151,13 @@ export default function EcommerceAgentConfigPage() {
                 </SettingsSectionCard>
 
                 <div id={stageModelsAnchor}>
-                    <SettingsSectionCard className="eac-section" layout="stacked" icon={<Layers3 className="size-4" aria-hidden="true" />} title="阶段模型" description="电商页按下面的顺序调用模型，所有用户共用，前台不展示也不能更改。">
+                    <SettingsSectionCard
+                        className="eac-section"
+                        layout="stacked"
+                        icon={<Layers3 className="size-4" aria-hidden="true" />}
+                        title={translate("adminPages.ecommerceAgentConfigPage.stageModels")}
+                        description={translate("adminPages.ecommerceAgentConfigPage.theECommercePageCallsModelsInThisOrderThese")}
+                    >
                         <EcommerceStageModels embedded onSaved={() => void load()} />
                     </SettingsSectionCard>
                 </div>

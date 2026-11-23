@@ -1,3 +1,4 @@
+import { currentLocale } from "@/i18n";
 import { ApiError, compactApiParams, http } from "@/services/api/request";
 
 export type PaymentProvider = {
@@ -169,7 +170,7 @@ export function updateAdminPaymentSettings(input: PaymentSettings) {
 /** 按货币格式化最小单位金额：CNY → ¥12.00，USD → $12.00。 */
 export function formatPaymentAmount(amountMinor: number, currency?: string) {
     const symbol = currency === "USD" ? "$" : "¥";
-    return `${symbol}${(amountMinor / 100).toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${symbol}${(amountMinor / 100).toLocaleString(currentLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function listAdminTopupProducts() {

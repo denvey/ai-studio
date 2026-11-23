@@ -12,6 +12,8 @@ import { useConfigStore, type AiConfig, type RunningHubCapability, type Workflow
 import type { ReferenceImage } from "@/types/image";
 import type { ReferenceAudio, ReferenceVideo } from "@/types/media";
 import { Select } from "@/components/ui/base/select";
+import { translate } from "@/i18n";
+
 
 type WorkflowProvider = "runninghub";
 type MediaKind = "image" | "video" | "audio";
@@ -48,7 +50,7 @@ export function WorkflowTestWorkbench({ provider, workflowId, workflowKind = "wo
     const [positions, setPositions] = useState<NodePositionMap>(initialPositions);
     const [running, setRunning] = useState(false);
     const [progress, setProgress] = useState(0);
-    const [stage, setStage] = useState("等待运行");
+    const [stage, setStage] = useState(translate("shared.workflowTestWorkbench.waitingToRun"));
     const [result, setResult] = useState<BackendGenerationResult | null>(null);
     const [error, setError] = useState("");
     const canvasRef = useRef<HTMLDivElement>(null);
@@ -70,7 +72,7 @@ export function WorkflowTestWorkbench({ provider, workflowId, workflowKind = "wo
         setResult(null);
         setError("");
         setProgress(0);
-        setStage("等待运行");
+        setStage(translate("shared.workflowTestWorkbench.waitingToRun"));
     }, [workflowId, workflowKind, fields, config.size, config.quality, config.vquality]);
 
     useEffect(() => {
@@ -133,11 +135,11 @@ export function WorkflowTestWorkbench({ provider, workflowId, workflowKind = "wo
         setResult(null);
         setError("");
         setProgress(0);
-        setStage("等待运行");
+        setStage(translate("shared.workflowTestWorkbench.waitingToRun"));
     };
 
     const runTest = async () => {
-        if (disabled) return message.warning(disabledReason || "请先完成工作流配置");
+        if (disabled) return message.warning(disabledReason || translate("shared.workflowTestWorkbench.completeWorkflowConfigurationFirst"));
         const missing = missingRequiredInput(activeFields, prompt, files, fieldValues);
         if (missing) return message.warning(missing);
         const controller = new AbortController();
@@ -146,7 +148,7 @@ export function WorkflowTestWorkbench({ provider, workflowId, workflowKind = "wo
         setResult(null);
         setError("");
         setProgress(0);
-        setStage("正在提交任务");
+        setStage(translate("shared.workflowTestWorkbench.submittingTask"));
         try {
             const testConfig = buildTestConfig(config, provider, workflowId, workflowKind, activeFields, fieldValues);
             const response = await runBackendGenerationTask({
@@ -166,16 +168,16 @@ export function WorkflowTestWorkbench({ provider, workflowId, workflowKind = "wo
             });
             setResult(response);
             setProgress(100);
-            setStage("测试完成");
-            message.success("工作流测试完成");
+            setStage(translate("shared.workflowTestWorkbench.testCompleted"));
+            message.success(translate("shared.workflowTestWorkbench.workflowTestCompleted"));
         } catch (reason) {
             if (controller.signal.aborted) {
-                setStage("已停止等待");
+                setStage(translate("shared.workflowTestWorkbench.stoppedWaiting"));
                 return;
             }
             const detail = generationErrorMessage(reason);
             setError(detail);
-            setStage("测试失败");
+            setStage(translate("account.layout.oss.testFailedShort"));
             message.error(detail);
         } finally {
             if (abortRef.current === controller) abortRef.current = null;
@@ -185,29 +187,29 @@ export function WorkflowTestWorkbench({ provider, workflowId, workflowKind = "wo
 
     const stopTest = () => {
         abortRef.current?.abort();
-        setStage("正在停止等待");
+        setStage(translate("shared.workflowTestWorkbench.stoppingWait"));
     };
 
     return (
         <div className="workflow-test-workbench">
             <div className="workflow-test-toolbar">
                 <div className="min-w-0">
-                    <strong>{title || workflowId || "未选择工作流"}</strong>
+                    <strong>{title || workflowId || translate("shared.workflowTestWorkbench.noWorkflowSelected")}</strong>
                     <span>
-                        RunningHub · {capabilityName(capability)}工作流 · 测试值不会覆盖保存配置
+                        RunningHub · {capabilityName(capability)}{translate("shared.workflowTestWorkbench.workflowTestValuesDoNotOverwriteSavedSettings")}
                     </span>
                 </div>
                 <div className="workflow-test-toolbar-actions">
                     <Button icon={<RotateCcw className="size-4" />} disabled={running} onClick={resetTest}>
-                        重置测试
+                        {translate("shared.workflowTestWorkbench.resetTest")}
                     </Button>
                     {running ? (
                         <Button danger icon={<Square className="size-4" />} onClick={stopTest}>
-                            停止等待
+                            {translate("shared.workflowTestWorkbench.stopWaiting")}
                         </Button>
                     ) : (
                         <Button type="primary" icon={<Play className="size-4" />} disabled={disabled} onClick={() => void runTest()}>
-                            运行测试
+                            {translate("shared.workflowTestWorkbench.runTest")}
                         </Button>
                     )}
                 </div>
@@ -223,15 +225,15 @@ export function WorkflowTestWorkbench({ provider, workflowId, workflowKind = "wo
                         <WorkflowLine from={positions.workflow} to={positions.output} fromWidth={324} fromOffsetY={84} toOffsetY={70} />
                     </svg>
 
-                    <WorkflowNode id="prompt" title="提示词" icon={<PenLine />} position={positions.prompt} onMove={(point) => setPositions((current) => ({ ...current, prompt: point }))}>
-                        <Input.TextArea value={prompt} autoSize={{ minRows: 4, maxRows: 7 }} placeholder="输入本次测试提示词" onChange={(event) => setPrompt(event.target.value)} />
+                    <WorkflowNode id="prompt" title={translate("canvasA.assetView.prompt")} icon={<PenLine />} position={positions.prompt} onMove={(point) => setPositions((current) => ({ ...current, prompt: point }))}>
+                        <Input.TextArea value={prompt} autoSize={{ minRows: 4, maxRows: 7 }} placeholder={translate("shared.workflowTestWorkbench.enterAPromptForThisTest")} onChange={(event) => setPrompt(event.target.value)} />
                     </WorkflowNode>
 
                     {visibleMediaKinds.map((kind) => (
                         <WorkflowNode
                             key={kind}
                             id={kind}
-                            title={`${kind === "image" && maskEnabled ? "图片 / 蒙版" : mediaName(kind)}素材 · ${slots[kind]} 个槽位`}
+                            title={translate("shared.workflowTestWorkbench.assetsSlots", { v0: String(kind === "image" && maskEnabled ? translate("shared.workflowTestWorkbench.imageMask") : mediaName(kind)), v1: String(slots[kind]) })}
                             icon={mediaIcon(kind)}
                             position={positions[kind]}
                             onMove={(point) => setPositions((current) => ({ ...current, [kind]: point }))}
@@ -240,7 +242,7 @@ export function WorkflowTestWorkbench({ provider, workflowId, workflowKind = "wo
                         </WorkflowNode>
                     ))}
 
-                    <WorkflowNode id="workflow" title={title || "工作流动态参数"} icon={<Grip />} position={positions.workflow} wide onMove={(point) => setPositions((current) => ({ ...current, workflow: point }))}>
+                    <WorkflowNode id="workflow" title={title || translate("shared.workflowTestWorkbench.workflowDynamicParameters")} icon={<Grip />} position={positions.workflow} wide onMove={(point) => setPositions((current) => ({ ...current, workflow: point }))}>
                         <div className="workflow-test-parameters">
                             {parameterFields.length ? (
                                 parameterFields.map((field) => {
@@ -248,14 +250,14 @@ export function WorkflowTestWorkbench({ provider, workflowId, workflowKind = "wo
                                     return <WorkflowParameter key={key} field={field} value={fieldValues[key]} onChange={(value) => setFieldValues((current) => ({ ...current, [key]: value }))} />;
                                 })
                             ) : (
-                                <span className="workflow-test-empty-text">此工作流没有额外动态参数</span>
+                                <span className="workflow-test-empty-text">{translate("shared.workflowTestWorkbench.thisWorkflowHasNoAdditionalDynamicParameters")}</span>
                             )}
                         </div>
                     </WorkflowNode>
 
                     <WorkflowNode
                         id="output"
-                        title={`${capabilityName(capability)}输出`}
+                        title={translate("shared.workflowTestWorkbench.output", { v0: String(capabilityName(capability)) })}
                         icon={capability === "image" ? <FileImage /> : capability === "video" ? <Film /> : <FileAudio />}
                         position={positions.output}
                         onMove={(point) => setPositions((current) => ({ ...current, output: point }))}
@@ -334,7 +336,7 @@ function MediaPicker({ kind, limit, files, maskIndex, onChange }: { kind: MediaK
                     {files.map((item, index) => (
                         <span key={item.id} title={item.file.name}>
                             {kind === "image" ? <img src={item.url} alt="" /> : mediaIcon(kind)}
-                            <b>{maskIndex === index ? "蒙版" : index + 1}</b>
+                            <b>{maskIndex === index ? translate("shared.workflowTestWorkbench.mask") : index + 1}</b>
                             <em>{item.file.name}</em>
                         </span>
                     ))}
@@ -342,7 +344,7 @@ function MediaPicker({ kind, limit, files, maskIndex, onChange }: { kind: MediaK
             ) : (
                 <span>
                     <Upload />
-                    选择{mediaName(kind)}（最多 {limit} 个）
+                    {translate("shared.workflowTestWorkbench.selectMedia", { kind: mediaName(kind), limit })}
                 </span>
             )}
         </label>
@@ -361,7 +363,7 @@ function WorkflowParameter({ field, value, onChange }: { field: WorkflowFieldMap
                         {field.nodeId}.{field.fieldName}
                     </small>
                 </span>
-                <Input value="每次运行随机生成" disabled />
+                <Input value={translate("shared.workflowTestWorkbench.generateRandomlyOnEachRun")} disabled />
             </label>
         );
     return (
@@ -391,7 +393,7 @@ function ResultPreview({ capability, urls }: { capability: RunningHubCapability;
     return (
         <div className="workflow-test-image-results">
             {urls.map((url) => (
-                <img key={url} src={url} alt="工作流测试输出" />
+                <img key={url} src={url} alt={translate("shared.workflowTestWorkbench.workflowTestOutput")} />
             ))}
         </div>
     );
@@ -483,16 +485,16 @@ function mediaSlotCounts(fields: WorkflowFieldMapping[]) {
 }
 
 function missingRequiredInput(fields: WorkflowFieldMapping[], prompt: string, files: Record<MediaKind, TestFile[]>, values: Record<string, unknown>) {
-    if (!prompt.trim()) return "请填写测试提示词";
+    if (!prompt.trim()) return translate("shared.workflowTestWorkbench.enterATestPrompt");
     const imageReferences = referenceImageSlotCount(fields);
     for (const field of fields) {
         if (!field.required) continue;
         const source = String(field.source || "");
-        if (source === "prompt" && !prompt.trim()) return "请填写测试提示词";
+        if (source === "prompt" && !prompt.trim()) return translate("shared.workflowTestWorkbench.enterATestPrompt");
         const kind = source === "referenceImage" || source === "mask" ? "image" : source === "referenceVideo" ? "video" : source === "referenceAudio" ? "audio" : null;
         const index = source === "mask" ? imageReferences : source === "referenceImage" ? Math.max(0, (Number(field.imageOrder) || 1) - 1) : Math.max(0, Number(field.sourceIndex) || 0);
-        if (kind && !files[kind][index]) return `请上传第 ${index + 1} 个${mediaName(kind)}素材`;
-        if (!source && !field.randomEnabled && isEmptyTestValue(values[testFieldKey(field)])) return `请填写动态参数：${field.label || field.fieldName}`;
+        if (kind && !files[kind][index]) return translate("shared.workflowTestWorkbench.uploadAsset", { v0: String(index + 1), v1: String(mediaName(kind)) });
+        if (!source && !field.randomEnabled && isEmptyTestValue(values[testFieldKey(field)])) return translate("shared.workflowTestWorkbench.enterDynamicParameter", { v0: String(field.label || field.fieldName) });
     }
     return "";
 }
@@ -555,17 +557,17 @@ function displayValue(value: unknown) {
     return value === undefined || value === null ? "" : typeof value === "string" ? value : JSON.stringify(value);
 }
 function capabilityName(value: RunningHubCapability) {
-    return value === "video" ? "视频" : value === "audio" ? "音频" : "图片";
+    return value === "video" ? translate("account.feedback.video") : value === "audio" ? translate("account.settings.modelConfig.capabilities.audio") : translate("account.feedback.image");
 }
 function mediaName(value: MediaKind) {
-    return value === "video" ? "视频" : value === "audio" ? "音频" : "图片";
+    return value === "video" ? translate("account.feedback.video") : value === "audio" ? translate("account.settings.modelConfig.capabilities.audio") : translate("account.feedback.image");
 }
 function mediaIcon(value: MediaKind) {
     return value === "video" ? <Film /> : value === "audio" ? <FileAudio /> : <FileImage />;
 }
 function taskStageLabel(status: string, stage?: string) {
-    if (status === "queued") return "任务已排队";
-    if (status === "succeeded") return "正在读取结果";
-    if (status === "failed") return "任务失败";
-    return stage ? `运行中 · ${stage}` : "工作流运行中";
+    if (status === "queued") return translate("shared.workflowTestWorkbench.taskQueued");
+    if (status === "succeeded") return translate("shared.workflowTestWorkbench.loadingResult");
+    if (status === "failed") return translate("canvasPage.taskStatus.failed");
+    return stage ? translate("shared.workflowTestWorkbench.running", { v0: String(stage) }) : translate("shared.workflowTestWorkbench.workflowRunning");
 }

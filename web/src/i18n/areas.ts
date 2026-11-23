@@ -9,6 +9,11 @@ import { catalog as canvasB } from "./messages/areas/canvasB";
 import { catalog as canvasC } from "./messages/areas/canvasC";
 import { catalog as drama } from "./messages/areas/drama";
 import { catalog as ecommerce } from "./messages/areas/ecommerce";
+import { catalog as admin } from "./messages/areas/admin";
+import { catalog as adminPages } from "./messages/areas/adminPages";
+import { catalog as canvasTools } from "./messages/areas/canvasTools";
+import { catalog as shared } from "./messages/areas/shared";
+import { catalog as apiErrors } from "./messages/areas/apiErrors";
 
 export const AREA_CATALOGS = {
     create,
@@ -20,4 +25,9 @@ export const AREA_CATALOGS = {
     canvasC,
     drama,
     ecommerce,
+    admin,
+    adminPages,
+    canvasTools,
+    shared,
+    apiErrors,
 };

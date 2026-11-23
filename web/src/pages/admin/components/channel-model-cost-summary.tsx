@@ -3,10 +3,11 @@ import type { ChannelModel, ChannelModelPriceTier } from "@/services/api/wallet"
 import { priceCurrencyUnit } from "@/services/api/user-groups";
 import { AdminStatusBadge } from "./admin-ui";
 import { formatModelMarkup, formatModelPrice, modelPriceFields } from "./channel-model-pricing";
+import { translate } from "@/i18n";
 
 export function ChannelModelCostSummary({ item }: { item: ChannelModel }) {
     const tiers = item.priceTiers?.filter((tier) => tier.enabled) || [];
-    if (!tiers.length) return <AdminStatusBadge label="无已启用规格" tone="warning" />;
+    if (!tiers.length) return <AdminStatusBadge label={translate("admin.channelModelCostSummary.noEnabledSpecificationTiers")} tone="warning" />;
     const renderTier = (tier: ChannelModelPriceTier) => (
         <div className="admin-model-cost-tier" key={tier.id}>
             <div className="admin-model-cost-spec">{specificationLabel(tier)}</div>
@@ -18,7 +19,7 @@ export function ChannelModelCostSummary({ item }: { item: ChannelModel }) {
             {tiers.slice(0, 3).map(renderTier)}
             {tiers.length > 3 ? (
                 <details className="admin-model-cost-more">
-                    <summary>其余 {tiers.length - 3} 个规格价格</summary>
+                    <summary>{translate("admin.channelModelCostSummary.other")} {tiers.length - 3} {translate("admin.channelModelCostSummary.specificationPrices")}</summary>
                     {tiers.slice(3).map(renderTier)}
                 </details>
             ) : null}
@@ -33,9 +34,9 @@ function priceLabel(tier: ChannelModelPriceTier, capability: ChannelModel["capab
         const sale = tier.priceConfigured ? tier[key] : undefined;
         return (
             <div key={key}>
-                <span>{label ? `${label} ` : ""}{tier.costPricing?.configured ? formatModelPrice(cost) : "未配置成本"} / {tier.priceConfigured ? formatModelPrice(sale) : "未配置售价"}</span>
+                <span>{label ? `${label} ` : ""}{tier.costPricing?.configured ? formatModelPrice(cost) : translate("admin.channelModelCostSummary.costNotConfigured")} / {tier.priceConfigured ? formatModelPrice(sale) : translate("admin.channelModelCostSummary.sellingPriceNotConfigured")}</span>
                 {/* 货币计价时售价与积分成本单位不同，加价率依赖分组兑换比例，不在这里推算。 */}
-                <span className="admin-model-cost-unit">{saleUnit === "积分" ? `积分 / ${unit} · 加价 ${formatModelMarkup(cost, sale)}` : `成本积分 / 售价 ${saleUnit} · 每${unit}`}</span>
+                <span className="admin-model-cost-unit">{currency !== "USD" && currency !== "CNY" ? translate("admin.channelModelCostSummary.creditsMarkup", { v0: String(unit), v1: String(formatModelMarkup(cost, sale)) }) : translate("admin.channelModelCostSummary.costInCreditsSellingPricePer", { v0: String(saleUnit), v1: String(unit) })}</span>
             </div>
         );
     });
@@ -47,7 +48,7 @@ export function specificationLabel(tier: ChannelModelPriceTier) {
     const operation = specific(selector.operation);
     const resolution = specific(selector.vquality) || specific(tier.resolution);
     const duration = specific(selector.videoSeconds) || (tier.videoSeconds ? String(tier.videoSeconds) : "");
-    const operations: Record<string, string> = { text_to_image: "文生图", image_to_image: "图生图", text_to_video: "文生视频", image_to_video: "图生视频", video_to_video: "视频生视频", text_generation: "文本生成" };
+    const operations: Record<string, string> = { text_to_image: translate("admin.channelModelCostSummary.textToImage"), image_to_image: translate("admin.channelModelCostSummary.imageToImage"), text_to_video: translate("admin.channelModelCostSummary.textToVideo"), image_to_video: translate("admin.channelModelCostSummary.imageToVideo"), video_to_video: translate("admin.channelModelCostSummary.videoToVideo"), text_generation: translate("admin.channelModelCostSummary.textGeneration") };
     return (
         [
             operation ? operations[operation] || operation : "",
@@ -55,11 +56,11 @@ export function specificationLabel(tier: ChannelModelPriceTier) {
             imageQualityLabel(specific(selector.resolution)),
             specific(selector.size),
             resolution.toUpperCase(),
-            duration ? `${duration} 秒` : "",
-            specific(selector.imageCount) ? `${selector.imageCount} 张参考图` : "",
-            selector.videoGenerateAudio === "true" ? "有声" : selector.videoGenerateAudio === "false" ? "无声" : "",
+            duration ? translate("admin.channelModelCostSummary.s", { v0: String(duration) }) : "",
+            specific(selector.imageCount) ? translate("admin.channelModelCostSummary.referenceImages", { v0: String(selector.imageCount) }) : "",
+            selector.videoGenerateAudio === "true" ? translate("admin.channelModelCostSummary.withAudio") : selector.videoGenerateAudio === "false" ? translate("admin.channelModelCostSummary.withoutAudio") : "",
         ]
             .filter(Boolean)
-            .join(" / ") || "默认规格"
+            .join(" / ") || translate("admin.channelModelCostSummary.defaultSpecification")
     );
 }

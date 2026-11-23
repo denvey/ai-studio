@@ -14,15 +14,16 @@ import { uploadMediaFile } from "@/services/file-storage";
 import { uploadImage } from "@/services/image-storage";
 import { createTool, deleteTool, listTools, setToolFavorite, type ToolScope, type ToolSummary, type ToolType, type ToolVisibility } from "@/services/api/tools";
 import { Select } from "@/components/ui/base/select";
+import { translate } from "@/i18n";
 
 type ToolSubTab = "style" | "effect" | "motion" | "nine_grid";
 
 // 工具类型与后端一致。
 const TOOL_SUB_TABS: Array<{ id: ToolSubTab; type: ToolType; label: string }> = [
-    { id: "style", type: "style", label: "风格" },
-    { id: "nine_grid", type: "nine_grid", label: "九宫格" },
-    { id: "effect", type: "effect", label: "特效" },
-    { id: "motion", type: "motion", label: "运镜" },
+    { id: "style", type: "style", label: translate("canvasA.toolPicker.style.short") },
+    { id: "nine_grid", type: "nine_grid", label: translate("canvasTools.canvasWorkspaceToolPanel.item33Grid") },
+    { id: "effect", type: "effect", label: translate("canvasA.toolPicker.effect.short") },
+    { id: "motion", type: "motion", label: translate("canvasA.toolPicker.motion.short") },
 ];
 
 const TOOL_PAGE_SIZE = 40;
@@ -87,11 +88,11 @@ export function CanvasWorkspaceToolPanel({ onInsert }: CanvasWorkspaceToolPanelP
         setCoverUploading(true);
         try {
             const image = await uploadImage(file);
-            if (image.pendingRemoteUpload) throw new Error(image.remoteUploadError || "图片暂存本机，尚未上传到云端，请稍后重试");
+            if (image.pendingRemoteUpload) throw new Error(image.remoteUploadError || translate("canvasTools.canvasWorkspaceToolPanel.imageIsSavedLocallyButHasNotUploadedToThe"));
             createForm.setFieldValue("cover", toAbsoluteUrl(image.url));
-            message.success("封面已上传");
+            message.success(translate("canvasTools.canvasWorkspaceToolPanel.coverUploaded"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "封面上传失败");
+            message.error(error instanceof Error ? error.message : translate("canvasTools.canvasWorkspaceToolPanel.coverUploadFailed"));
         } finally {
             setCoverUploading(false);
         }
@@ -101,11 +102,11 @@ export function CanvasWorkspaceToolPanel({ onInsert }: CanvasWorkspaceToolPanelP
         setMediaUploading(true);
         try {
             const uploaded = await uploadMediaFile(file, "video");
-            if (uploaded.pendingRemoteUpload) throw new Error(uploaded.remoteUploadError || "视频暂存本机，尚未上传到云端，请稍后重试");
+            if (uploaded.pendingRemoteUpload) throw new Error(uploaded.remoteUploadError || translate("canvasTools.canvasWorkspaceToolPanel.videoIsSavedLocallyButHasNotUploadedToThe"));
             createForm.setFieldValue("mediaUrl", toAbsoluteUrl(uploaded.url));
-            message.success("演示视频已上传");
+            message.success(translate("canvasTools.canvasWorkspaceToolPanel.demoVideoUploaded"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "视频上传失败");
+            message.error(error instanceof Error ? error.message : translate("canvasTools.canvasWorkspaceToolPanel.videoUploadFailed"));
         } finally {
             setMediaUploading(false);
         }
@@ -122,7 +123,7 @@ export function CanvasWorkspaceToolPanel({ onInsert }: CanvasWorkspaceToolPanelP
 
     const tagChips = useMemo(() => {
         const tags = subTab === "style" ? SUB_TAB_TAGS.style : subTab === "motion" ? SUB_TAB_TAGS.motion : [];
-        return [{ id: "", label: "全部" }, ...tags];
+        return [{ id: "", label: translate("canvasA.toolPicker.all") }, ...tags];
     }, [subTab]);
 
     const tagOptions = useMemo(() => {
@@ -157,16 +158,16 @@ export function CanvasWorkspaceToolPanel({ onInsert }: CanvasWorkspaceToolPanelP
     const favoriteMutation = useMutation({
         mutationFn: ({ id, favorite }: { id: number; favorite: boolean }) => setToolFavorite(id, favorite),
         onSuccess: () => void invalidateTools(),
-        onError: (error) => message.error(error instanceof Error ? error.message : "收藏状态更新失败"),
+        onError: (error) => message.error(error instanceof Error ? error.message : translate("canvasTools.canvasWorkspaceToolPanel.couldNotUpdateTheFavorite")),
     });
 
     const deleteMutation = useMutation({
         mutationFn: deleteTool,
         onSuccess: () => {
             void invalidateTools();
-            message.success("工具已删除");
+            message.success(translate("canvasTools.canvasWorkspaceToolPanel.toolDeleted"));
         },
-        onError: (error) => message.error(error instanceof Error ? error.message : "工具删除失败"),
+        onError: (error) => message.error(error instanceof Error ? error.message : translate("canvasTools.canvasWorkspaceToolPanel.failedToDeleteTool")),
     });
 
     const createMutation = useMutation({
@@ -183,20 +184,20 @@ export function CanvasWorkspaceToolPanel({ onInsert }: CanvasWorkspaceToolPanelP
                 visibility: values.visibility,
             }),
         onSuccess: () => {
-            message.success("工具已创建");
+            message.success(translate("canvasTools.canvasWorkspaceToolPanel.toolCreated"));
             setCreateOpen(false);
             setFeedTab("custom");
             void invalidateTools();
         },
-        onError: (error) => message.error(error instanceof Error ? error.message : "工具创建失败"),
+        onError: (error) => message.error(error instanceof Error ? error.message : translate("canvasTools.canvasWorkspaceToolPanel.failedToCreateTool")),
     });
 
     function confirmDelete(tool: ToolSummary) {
         modal.confirm({
-            title: `删除“${tool.label}”？`,
-            content: "删除后不可恢复，该工具的收藏记录也会一同移除。",
-            okText: "删除",
-            cancelText: "取消",
+            title: translate("canvasTools.canvasWorkspaceToolPanel.delete", { v0: String(tool.label) }),
+            content: translate("canvasTools.canvasWorkspaceToolPanel.deletionCannotBeUndoneFavoritesForThisToolWillAlso"),
+            okText: translate("common.delete"),
+            cancelText: translate("common.cancel"),
             okButtonProps: { danger: true },
             onOk: () => deleteMutation.mutateAsync(tool.id),
         });
@@ -208,15 +209,20 @@ export function CanvasWorkspaceToolPanel({ onInsert }: CanvasWorkspaceToolPanelP
         if (toolsQuery.hasNextPage && !toolsQuery.isFetchingNextPage) void toolsQuery.fetchNextPage();
     }
 
-    const emptyTitle = feedTab === "favorites" ? "还没有收藏工具" : feedTab === "custom" ? "还没有自定义工具" : "没有匹配工具";
-    const emptyDescription = feedTab === "custom" ? "点击右上角“+”新建一个工具。" : "换一个分类或关键词继续搜索。";
+    const emptyTitle =
+        feedTab === "favorites"
+            ? translate("canvasTools.canvasWorkspaceToolPanel.noFavoriteToolsYet")
+            : feedTab === "custom"
+              ? translate("canvasTools.canvasWorkspaceToolPanel.noCustomToolsYet")
+              : translate("canvasTools.canvasWorkspaceToolPanel.noMatchingTools");
+    const emptyDescription = feedTab === "custom" ? translate("canvasTools.canvasWorkspaceToolPanel.clickInTheUpperRightToCreateATool") : translate("canvasTools.canvasWorkspaceToolPanel.tryAnotherCategoryOrKeyword");
     const preview = previewTool ? resolveToolPreview(previewTool) : null;
 
     return (
         <>
             <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-2">
                 <Wrench className="size-3.5 shrink-0" />
-                <span className="truncate text-xs font-semibold">工具</span>
+                <span className="truncate text-xs font-semibold">{translate("canvasA.focusBar.tools")}</span>
                 <span className="tabular-nums text-foreground/32">{totalCount.toLocaleString("zh-CN")}</span>
             </header>
 
@@ -245,15 +251,32 @@ export function CanvasWorkspaceToolPanel({ onInsert }: CanvasWorkspaceToolPanelP
                         </button>
                     ))}
                     <span className="asset-head-actions">
-                        <button type="button" className="icon-btn tip-down" data-tip={`新建${subTabLabel}`} aria-label={`新建${subTabLabel}`} onClick={() => setCreateOpen(true)}>
+                        <button
+                            type="button"
+                            className="icon-btn tip-down"
+                            data-tip={translate("canvasTools.canvasWorkspaceToolPanel.create", { v0: String(subTabLabel) })}
+                            aria-label={translate("canvasTools.canvasWorkspaceToolPanel.create", { v0: String(subTabLabel) })}
+                            onClick={() => setCreateOpen(true)}
+                        >
                             <Plus className="size-3.5" />
                         </button>
                     </span>
                 </div>
                 <div className="asset-filter-row mt-2">
-                    <input className="asset-search" placeholder="搜索名称/标签" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} aria-label="搜索工具" />
+                    <input
+                        className="asset-search"
+                        placeholder={translate("canvasA.toolPicker.searchPlaceholder")}
+                        value={searchInput}
+                        onChange={(event) => setSearchInput(event.target.value)}
+                        aria-label={translate("canvasTools.canvasWorkspaceToolPanel.searchTools")}
+                    />
                     {searchInput ? (
-                        <button type="button" className="grid size-5 shrink-0 place-items-center rounded text-foreground/32 hover:bg-surface-hover hover:text-foreground" onClick={() => setSearchInput("")} aria-label="清空搜索">
+                        <button
+                            type="button"
+                            className="grid size-5 shrink-0 place-items-center rounded text-foreground/32 hover:bg-surface-hover hover:text-foreground"
+                            onClick={() => setSearchInput("")}
+                            aria-label={translate("canvasA.toolPicker.clearSearch")}
+                        >
                             <X className="size-3" />
                         </button>
                     ) : null}
@@ -291,7 +314,7 @@ export function CanvasWorkspaceToolPanel({ onInsert }: CanvasWorkspaceToolPanelP
                         {toolsQuery.isFetchingNextPage ? (
                             <div className="flex items-center justify-center gap-2 py-3 text-[var(--fs-label)] text-foreground/45">
                                 <Loader2 className="size-3.5 animate-spin" />
-                                正在加载…
+                                {translate("canvasTools.canvasWorkspaceToolPanel.loading")}
                             </div>
                         ) : null}
                     </>
@@ -303,7 +326,7 @@ export function CanvasWorkspaceToolPanel({ onInsert }: CanvasWorkspaceToolPanelP
             {previewTool && preview ? (
                 preview.kind === "video" ? (
                     <AppModal flush open title={previewTool.label} onCancel={() => setPreviewTool(null)} footer={null} width="min(1200px, calc(100vw - 32px))">
-                        <VideoPlayer src={preview.src} title={previewTool.label || "视频预览"} className="max-h-[84vh] max-w-full bg-black" />
+                        <VideoPlayer src={preview.src} title={previewTool.label || translate("library.tasks.row.videoPreview")} className="max-h-[84vh] max-w-full bg-black" />
                     </AppModal>
                 ) : (
                     <CanvasImagePreview src={preview.src} alt={previewTool.label} onClose={() => setPreviewTool(null)} />
@@ -312,58 +335,62 @@ export function CanvasWorkspaceToolPanel({ onInsert }: CanvasWorkspaceToolPanelP
 
             <AppModal
                 open={createOpen}
-                title={`新建${subTabLabel}`}
-                okText="创建"
-                cancelText="取消"
+                title={translate("canvasTools.canvasWorkspaceToolPanel.create", { v0: String(subTabLabel) })}
+                okText={translate("canvasA.characterLibrary.create")}
+                cancelText={translate("common.cancel")}
                 confirmLoading={createMutation.isPending}
                 onCancel={() => setCreateOpen(false)}
                 onOk={() => createForm.submit()}
                 afterClose={() => createForm.resetFields()}
             >
                 <Form<CreateToolFormValues> form={createForm} layout="vertical" requiredMark={false} initialValues={{ visibility: "private" }} onFinish={(values) => createMutation.mutate(values)} className="max-h-[72vh] overflow-y-auto p-6 px-8">
-                    <Form.Item name="label" label="名称" rules={[{ required: true, whitespace: true, message: "请输入工具名称" }, { max: 120 }]}>
-                        <Input maxLength={120} showCount placeholder="例如：电影感胶片" />
+                    <Form.Item name="label" label={translate("canvasTools.canvasWorkspaceToolPanel.name")} rules={[{ required: true, whitespace: true, message: translate("canvasTools.canvasWorkspaceToolPanel.enterAToolName") }, { max: 120 }]}>
+                        <Input maxLength={120} showCount placeholder={translate("canvasTools.canvasWorkspaceToolPanel.forExampleCinematicFilmLook")} />
                     </Form.Item>
                     <div className="grid grid-cols-2 gap-3">
-                        <Form.Item name="tag" label="标签">
-                            {tagOptions.length ? <Select allowClear showSearch options={tagOptions} placeholder="选择标签" /> : <Input maxLength={64} placeholder="可选" />}
+                        <Form.Item name="tag" label={translate("library.assets.form.tags")}>
+                            {tagOptions.length ? (
+                                <Select allowClear showSearch options={tagOptions} placeholder={translate("canvasTools.canvasWorkspaceToolPanel.selectTags")} />
+                            ) : (
+                                <Input maxLength={64} placeholder={translate("account.settings.diagnostics.optional")} />
+                            )}
                         </Form.Item>
-                        <p className="text-xs text-muted-foreground">预览仅支持本人上传的资源；公开工具请移除私人预览。</p>
-                        <Form.Item name="visibility" label="可见性">
+                        <p className="text-xs text-muted-foreground">{translate("canvasTools.canvasWorkspaceToolPanel.previewsOnlySupportAssetsYouUploadedRemovePrivatePreviewsFrom")}</p>
+                        <Form.Item name="visibility" label={translate("canvasTools.canvasWorkspaceToolPanel.visibility")}>
                             <Radio.Group
                                 optionType="button"
                                 buttonStyle="solid"
                                 options={[
-                                    { label: "私有", value: "private" },
-                                    { label: "公开", value: "public" },
+                                    { label: translate("canvasTools.canvasWorkspaceToolPanel.private"), value: "private" },
+                                    { label: translate("canvasTools.canvasWorkspaceToolPanel.public"), value: "public" },
                                 ]}
                             />
                         </Form.Item>
                     </div>
-                    <Form.Item name="desc" label="描述" rules={[{ max: 500 }]}>
+                    <Form.Item name="desc" label={translate("canvasTools.canvasWorkspaceToolPanel.description")} rules={[{ max: 500 }]}>
                         <Input.TextArea rows={2} maxLength={500} showCount autoSize={{ minRows: 2, maxRows: 4 }} />
                     </Form.Item>
-                    <Form.Item name="prompt" label="提示词" rules={[{ required: true, whitespace: true, message: "请输入提示词" }, { max: 8000 }]}>
-                        <Input.TextArea rows={5} maxLength={8000} showCount placeholder="该工具应用到生成节点时使用的提示词" />
+                    <Form.Item name="prompt" label={translate("canvasA.assetView.prompt")} rules={[{ required: true, whitespace: true, message: translate("canvasTools.canvasWorkspaceToolPanel.enterAPrompt") }, { max: 8000 }]}>
+                        <Input.TextArea rows={5} maxLength={8000} showCount placeholder={translate("canvasTools.canvasWorkspaceToolPanel.thePromptUsedWhenThisToolIsAppliedToA")} />
                     </Form.Item>
-                    <Form.Item label="封面图">
+                    <Form.Item label={translate("canvasTools.canvasWorkspaceToolPanel.coverImage")}>
                         <Space.Compact block>
-                            <Form.Item name="cover" noStyle className="flex-1 min-w-0" rules={[{ type: "url", message: "请输入合法 URL" }]}>
-                                <Input placeholder="上传图片或粘贴 URL" allowClear disabled={coverUploading} />
+                            <Form.Item name="cover" noStyle className="flex-1 min-w-0" rules={[{ type: "url", message: translate("canvasTools.canvasWorkspaceToolPanel.enterAValidURL") }]}>
+                                <Input placeholder={translate("canvasTools.canvasWorkspaceToolPanel.uploadAnImageOrPasteAURL")} allowClear disabled={coverUploading} />
                             </Form.Item>
                             <Button icon={<Upload className="size-3.5" />} loading={coverUploading} onClick={() => coverInputRef.current?.click()}>
-                                上传
+                                {translate("canvasA.assetView.upload")}
                             </Button>
                         </Space.Compact>
                     </Form.Item>
                     {HOVER_VIDEO_TYPES.has(activeType) ? (
-                        <Form.Item label="演示视频">
+                        <Form.Item label={translate("canvasTools.canvasWorkspaceToolPanel.demoVideo")}>
                             <Space.Compact block>
-                                <Form.Item name="mediaUrl" noStyle className="flex-1 min-w-0" rules={[{ type: "url", message: "请输入合法 URL" }]}>
-                                    <Input placeholder="上传视频或粘贴 URL" allowClear disabled={mediaUploading} />
+                                <Form.Item name="mediaUrl" noStyle className="flex-1 min-w-0" rules={[{ type: "url", message: translate("canvasTools.canvasWorkspaceToolPanel.enterAValidURL") }]}>
+                                    <Input placeholder={translate("canvasTools.canvasWorkspaceToolPanel.uploadAVideoOrPasteAURL")} allowClear disabled={mediaUploading} />
                                 </Form.Item>
                                 <Button icon={<Upload className="size-3.5" />} loading={mediaUploading} onClick={() => mediaInputRef.current?.click()}>
-                                    上传
+                                    {translate("canvasA.assetView.upload")}
                                 </Button>
                             </Space.Compact>
                         </Form.Item>
@@ -476,18 +503,18 @@ const ToolPresetCard = memo(function ToolPresetCard({
 
     const menuItems: MenuProps["items"] = useMemo(() => {
         const items: NonNullable<MenuProps["items"]> = [];
-        items.push({ key: "insert", icon: <Plus className="size-3.5" />, label: "插入画布", onClick: () => onInsert?.(tool) });
-        items.push({ key: "view", icon: <Eye className="size-3.5" />, label: "查看", onClick: () => onView?.(tool) });
+        items.push({ key: "insert", icon: <Plus className="size-3.5" />, label: translate("canvasTools.canvasWorkspaceToolPanel.insertIntoCanvas"), onClick: () => onInsert?.(tool) });
+        items.push({ key: "view", icon: <Eye className="size-3.5" />, label: translate("canvasTools.canvasWorkspaceToolPanel.view"), onClick: () => onView?.(tool) });
         items.push({ type: "divider" as const });
         items.push({
             key: "favorite",
             icon: <Star className={tool.favorited ? "size-3.5 fill-current" : "size-3.5"} />,
-            label: tool.favorited ? "取消收藏" : "收藏",
+            label: tool.favorited ? translate("canvasTools.canvasWorkspaceToolPanel.removeFromFavorites") : translate("canvasTools.canvasWorkspaceToolPanel.favorite"),
             onClick: () => onToggleFavorite?.(tool),
         });
         if (tool.source === "user" && tool.ownerId === useUserStore.getState().user?.id) {
             items.push({ type: "divider" as const });
-            items.push({ key: "delete", danger: true, icon: <Trash2 className="size-3.5" />, label: "删除", onClick: () => onDelete?.(tool) });
+            items.push({ key: "delete", danger: true, icon: <Trash2 className="size-3.5" />, label: translate("common.delete"), onClick: () => onDelete?.(tool) });
         }
         return items;
     }, [tool, onInsert, onView, onToggleFavorite, onDelete]);
@@ -537,8 +564,8 @@ const ToolPresetCard = memo(function ToolPresetCard({
                     <button
                         type="button"
                         className="grid size-5 place-items-center rounded-[var(--r-sm)] bg-black/40 text-white backdrop-blur-sm hover:bg-black/55"
-                        aria-label="查看"
-                        title="查看"
+                        aria-label={translate("canvasTools.canvasWorkspaceToolPanel.view")}
+                        title={translate("canvasTools.canvasWorkspaceToolPanel.view")}
                         onClick={(e) => {
                             e.stopPropagation();
                             onView?.(tool);
@@ -550,8 +577,8 @@ const ToolPresetCard = memo(function ToolPresetCard({
                         type="button"
                         disabled={favoritePending}
                         className="grid size-5 place-items-center rounded-[var(--r-sm)] bg-black/40 text-white backdrop-blur-sm hover:bg-black/55 disabled:opacity-60"
-                        aria-label={tool.favorited ? "取消收藏" : "收藏"}
-                        title={tool.favorited ? "取消收藏" : "收藏"}
+                        aria-label={tool.favorited ? translate("canvasTools.canvasWorkspaceToolPanel.removeFromFavorites") : translate("canvasTools.canvasWorkspaceToolPanel.favorite")}
+                        title={tool.favorited ? translate("canvasTools.canvasWorkspaceToolPanel.removeFromFavorites") : translate("canvasTools.canvasWorkspaceToolPanel.favorite")}
                         aria-pressed={tool.favorited}
                         onClick={(e) => {
                             e.stopPropagation();
@@ -564,8 +591,8 @@ const ToolPresetCard = memo(function ToolPresetCard({
                         <button
                             type="button"
                             className="grid size-5 place-items-center rounded-[var(--r-sm)] bg-black/40 text-white backdrop-blur-sm hover:bg-black/55"
-                            aria-label="更多操作"
-                            title="更多"
+                            aria-label={translate("canvasB.common.moreActions")}
+                            title={translate("canvasA.creative.more")}
                             onClick={(e) => {
                                 e.stopPropagation();
                             }}

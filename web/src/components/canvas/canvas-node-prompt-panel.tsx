@@ -51,6 +51,7 @@ import { quoteModel, type LogicalModelQuote } from "@/services/api/logical-model
 import { ConnectedReferenceShelf, ReferenceToolsPopover, referenceShelfHeading } from "./canvas-node-prompt-references";
 import { PromptModalResizeHandle, PromptResizeHandle, clampExpandedModalSize, clampPromptHeight, estimatePromptContentHeight, promptEditorBounds } from "./canvas-node-prompt-resize";
 import { audioConfigPatch, buildNodeConfig, defaultMode, modeDisplayName, promptPlaceholder, videoConfigPatch } from "./canvas-node-prompt-config";
+import { translate } from "@/i18n";
 
 export { buildNodeConfig } from "./canvas-node-prompt-config";
 
@@ -372,7 +373,7 @@ export function CanvasNodePromptPanel({
         <div
             className="canvas-node-composer-header cursor-grab select-none active:cursor-grabbing"
             data-canvas-node-drag-handle
-            title="拖动节点"
+            title={translate("canvasTools.canvasNodePromptPanel.dragNode")}
             onPointerDown={(event) => {
                 const target = event.target instanceof Element ? event.target : null;
                 if (!target?.closest('button, input, textarea, select, a, [contenteditable="true"], [data-canvas-no-drag]')) onNodeMouseDown?.(event, node.id);
@@ -388,7 +389,7 @@ export function CanvasNodePromptPanel({
                     <span className="canvas-node-composer-mode-icon" style={{ color: monochromeAccent }}>
                         <GenerationModeIcon mode={mode} />
                     </span>
-                    <span className="canvas-node-composer-mode-title truncate">{modeDisplayName(mode)}生成</span>
+                    <span className="canvas-node-composer-mode-title truncate">{translate("canvasTools.inline.canvasNodePromptPanel.generate", { v0: String(modeDisplayName(mode)) })}</span>
                     {activeReferenceCount > 0 ? <span className="canvas-node-composer-reference-heading">{referenceShelfHeading(activeReferences)}</span> : null}
                 </div>
             )}
@@ -439,25 +440,25 @@ export function CanvasNodePromptPanel({
                     <CanvasPresetPicker mode={mode} skillReferences={skillReferences} open={expanded ? expandedPresetOpen : presetOpen} onOpenChange={expanded ? setExpandedPresetOpen : setPresetOpen} onSelect={applyPreset} dense appearance="quiet" />
                 ) : null}
                 {canOptimizePrompt ? (
-                    <Tooltip title="用 AI 润色提示词">
-                        <button type="button" className="canvas-node-composer-header-action is-labeled" onClick={() => setPromptOptimizerOpen(true)} aria-label="润色提示词">
+                    <Tooltip title={translate("canvasTools.canvasNodePromptPanel.polishThePromptWithAI")}>
+                        <button type="button" className="canvas-node-composer-header-action is-labeled" onClick={() => setPromptOptimizerOpen(true)} aria-label={translate("canvasTools.canvasNodePromptPanel.polishPrompt")}>
                             <PenLine />
-                            <span>润色</span>
+                            <span>{translate("canvasTools.canvasNodePromptPanel.polish")}</span>
                         </button>
                     </Tooltip>
                 ) : null}
                 {/* 工具类操作与窗口类操作（放大/关闭）分组，避免关闭按钮混在命令里。 */}
                 {!expanded && (canExpandPrompt || onClose) && ((!simpleMode && (mode === "image" || mode === "video")) || showPromptTemplates || canOptimizePrompt) ? <span className="canvas-node-composer-header-divider" aria-hidden /> : null}
                 {!expanded && canExpandPrompt ? (
-                    <Tooltip title="放大编辑">
-                        <button type="button" className="canvas-node-composer-header-action is-icon" onClick={() => setExpandedPromptOpen(true)} aria-label="放大编辑提示词">
+                    <Tooltip title={translate("canvasTools.canvasNodePromptPanel.enlargeToEdit")}>
+                        <button type="button" className="canvas-node-composer-header-action is-icon" onClick={() => setExpandedPromptOpen(true)} aria-label={translate("canvasTools.canvasNodePromptPanel.enlargeThePromptEditor")}>
                             <Maximize2 />
                         </button>
                     </Tooltip>
                 ) : null}
                 {!expanded && onClose ? (
-                    <Tooltip title="关闭">
-                        <button type="button" className="canvas-node-composer-header-action is-icon" onClick={onClose} aria-label="关闭创作面板">
+                    <Tooltip title={translate("common.close")}>
+                        <button type="button" className="canvas-node-composer-header-action is-icon" onClick={onClose} aria-label={translate("canvasTools.canvasNodePromptPanel.closeCreationPanel")}>
                             <X />
                         </button>
                     </Tooltip>
@@ -469,7 +470,14 @@ export function CanvasNodePromptPanel({
     const renderSubmitButton = (expanded: boolean) => {
         const showCost = creditsEnabled && credits !== null;
         const formattedCredits = credits?.toLocaleString("zh-CN", { maximumFractionDigits: 6 });
-        const actionLabel = isRunning ? "生成中" : showCost ? `${routeQuote?.estimated ? "预估" : "消耗"} ${formattedCredits} 积分，生成` : "生成";
+        const actionLabel = isRunning
+            ? translate("canvasB.mediaVersion.generating")
+            : showCost
+              ? translate("canvasTools.canvasNodePromptPanel.creditsGenerate", {
+                    v0: String(routeQuote?.estimated ? translate("canvasTools.canvasNodePromptPanel.estimated2") : translate("canvasTools.canvasNodePromptPanel.cost")),
+                    v1: String(formattedCredits),
+                })
+              : translate("account.welcome.chapters.motion.label");
         return (
             <Button
                 type="text"
@@ -489,7 +497,7 @@ export function CanvasNodePromptPanel({
                 {showCost ? (
                     <span className="canvas-node-composer-submit-cost">
                         <CreditSymbol />
-                        <span>{routeQuote?.estimated ? `预估:${formattedCredits}` : formattedCredits}</span>
+                        <span>{routeQuote?.estimated ? translate("canvasTools.canvasNodePromptPanel.estimated", { v0: String(formattedCredits) }) : formattedCredits}</span>
                     </span>
                 ) : null}
                 <span className="canvas-node-composer-submit-action" aria-hidden>
@@ -503,7 +511,7 @@ export function CanvasNodePromptPanel({
         simpleMode ? (
             <div className="canvas-node-composer-footer">
                 <span className="min-w-0 truncate px-2 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>
-                    {activeReferenceCount ? `已连接 ${activeReferenceCount} 个素材` : "将使用默认模型与参数"}
+                    {activeReferenceCount ? translate("canvasTools.canvasNodePromptPanel.assetsConnected", { v0: String(activeReferenceCount) }) : translate("canvasTools.canvasNodePromptPanel.usesTheDefaultModelAndSettings")}
                 </span>
                 <ReferenceToolsPopover canAutoMention={canAutoMention} autoLinkEnabled={autoLinkEnabled} onAutoMention={() => updatePrompt(autoMentionedPrompt)} onAutoLinkEnabledChange={setAutoLinkEnabled} accent={monochromeAccent} compact />
                 {renderSubmitButton(expanded)}
@@ -546,7 +554,7 @@ export function CanvasNodePromptPanel({
                                     style={!node.metadata?.listMode ? { background: theme.toolbar.activeBg, color: theme.toolbar.activeText } : { color: theme.node.muted }}
                                 >
                                     <FileText className="size-3" />
-                                    文本
+                                    {translate("account.settings.modelConfig.capabilities.text")}
                                 </button>
                                 <button
                                     type="button"
@@ -556,11 +564,11 @@ export function CanvasNodePromptPanel({
                                     style={node.metadata?.listMode ? { background: theme.toolbar.activeBg, color: theme.toolbar.activeText } : { color: theme.node.muted }}
                                 >
                                     <LayoutList className="size-3" />
-                                    列表
+                                    {translate("canvasTools.canvasNodePromptPanel.list")}
                                 </button>
                             </div>
                             {!node.metadata?.listMode ? (
-                                <Tooltip title={`文本生成份数（默认 1，可在生成配置中调整）`}>
+                                <Tooltip title={translate("canvasTools.canvasNodePromptPanel.numberOfTextOutputsDefault1AdjustableInGenerationSettings")}>
                                     <InputNumber
                                         size="small"
                                         min={1}
@@ -571,13 +579,13 @@ export function CanvasNodePromptPanel({
                                                 textCount: Math.max(1, Math.min(15, Math.floor(Math.abs(Number(value) || 1)))),
                                             })
                                         }
-                                        aria-label="文本生成份数"
+                                        aria-label={translate("canvasTools.canvasNodePromptPanel.numberOfTextOutputs")}
                                         className="!w-14 !h-7 [&_.ant-input-number-input]:!text-[var(--fs-tiny)]"
                                     />
                                 </Tooltip>
                             ) : (
                                 <span className="text-[var(--fs-label)]" style={{ color: theme.node.muted }}>
-                                    行数和列结构由模型判断
+                                    {translate("canvasTools.canvasNodePromptPanel.theModelDeterminesTheNumberOfRowsAndColumnStructure")}
                                 </span>
                             )}
                         </>
@@ -641,7 +649,7 @@ export function CanvasNodePromptPanel({
                         }
                         style={{ color: theme.node.text, outline: "none", boxShadow: "none", fontSize, lineHeight: 1.6 }}
                         placeholder={selectedPresetPlaceholder || promptPlaceholder(mode, hasImageContent, hasTextContent)}
-                        aria-label={`${modeDisplayName(mode)}提示词`}
+                        aria-label={translate("canvasTools.canvasNodePromptPanel.prompt", { v0: String(modeDisplayName(mode)) })}
                     />
                 </div>
                 {!expanded && <PromptResizeHandle height={height} min={bounds.min} max={bounds.max} onResize={setManualPromptHeight} />}
@@ -677,10 +685,10 @@ export function CanvasNodePromptPanel({
                             style={{ color: theme.node.muted }}
                             onClick={() => setParamsExpanded(!paramsExpanded)}
                             aria-expanded={paramsExpanded}
-                            aria-label={paramsExpanded ? "收起参数" : "展开参数"}
+                            aria-label={paramsExpanded ? translate("canvasTools.canvasNodePromptPanel.collapseParameters") : translate("canvasTools.canvasNodePromptPanel.expandParameters")}
                         >
                             <SlidersHorizontal className="size-3" strokeWidth={1.8} />
-                            <span className="flex-1 text-left">参数</span>
+                            <span className="flex-1 text-left">{translate("library.tasks.params.title")}</span>
                             <ChevronDown className={`size-3 transition-transform duration-200 ${paramsExpanded ? "rotate-180" : ""}`} strokeWidth={1.8} />
                         </button>
                         {paramsExpanded ? (

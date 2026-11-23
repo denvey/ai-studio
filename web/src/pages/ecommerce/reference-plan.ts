@@ -1,5 +1,6 @@
 import { normalizeEcommerceReferenceGroups, type EcommerceDraft, type EcommercePlan, type EcommercePlanImage, type EcommerceReference } from "@/services/api/ecommerce";
 
+import { translate } from "@/i18n";
 export function commerceLayoutReferences(draft: EcommerceDraft): EcommerceReference[] {
     if (!draft.referenceMode || draft.referenceMode === "product") return [];
     return normalizeEcommerceReferenceGroups(draft).layoutReferences || [];
@@ -13,17 +14,18 @@ export function normalizeReferenceDraft(draft: EcommerceDraft): EcommerceDraft {
     draft = normalizeEcommerceReferenceGroups(draft);
     if (!draft.referenceMode || draft.referenceMode === "product") return draft;
     const sources = commerceLayoutReferences(draft);
-    if (!sources.length || sources.some((source) => !source.resourceId) || new Set(sources.map((source) => source.resourceId)).size !== sources.length) throw new Error("请在下方上传有效的借鉴图片，不能重复添加同一张图片");
-    if (!draft.references.some((source) => source.role === "primary")) throw new Error("请先在上方上传自己的商品主图，借鉴图片不能代替商品图");
+    if (!sources.length || sources.some((source) => !source.resourceId) || new Set(sources.map((source) => source.resourceId)).size !== sources.length)
+        throw new Error(translate("ecommerce.referencePlan.uploadValidInspirationImagesBelowTheSameImageCannotBe"));
+    if (!draft.references.some((source) => source.role === "primary")) throw new Error(translate("ecommerce.referencePlan.uploadYourOwnMainProductImageAboveFirstInspirationImages"));
     return { ...draft, layoutReferenceId: sources[0].resourceId, ...(draft.referenceMode === "detail" ? { imageType: "detail" } : {}) };
 }
 
 // These are reading windows, not page boundaries. The vision model finds semantic screens.
 export function commerceReferenceViewRanges(width: number, height: number) {
-    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) throw new Error("参考图尺寸无效，请重新上传");
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) throw new Error(translate("ecommerce.referencePlan.invalidReferenceImageDimensionsUploadItAgain"));
     if (height / width <= 2.5) return [];
     const count = Math.ceil(height / (width * 2));
-    if (count > 24) throw new Error("参考长图过长，请拆为较短的详情页参考后分别策划");
+    if (count > 24) throw new Error(translate("ecommerce.referencePlan.theReferenceImageIsTooLongSplitItIntoShorter"));
     return Array.from({ length: count }, (_, index) => ({ top: Math.max(0, index / count - 0.008), bottom: Math.min(1, (index + 1) / count + 0.008) }));
 }
 
@@ -38,16 +40,17 @@ export function commerceReferenceInstruction(draft: EcommerceDraft): string {
 export function validateCommerceReferencePlan(plan: EcommercePlan, draft: EcommerceDraft) {
     if (!draft.referenceMode || draft.referenceMode === "product") return;
     const sources = commerceLayoutReferences(draft);
-    if (!sources.length || new Set(sources.map((source) => source.resourceId)).size !== sources.length || typeof plan.referenceSummary !== "string" || !plan.referenceSummary.trim()) throw new Error("参考图分析不完整，请重新策划");
+    if (!sources.length || new Set(sources.map((source) => source.resourceId)).size !== sources.length || typeof plan.referenceSummary !== "string" || !plan.referenceSummary.trim())
+        throw new Error(translate("ecommerce.referencePlan.referenceAnalysisIsIncompleteReplan"));
     if (draft.referenceMode !== "detail") return;
-    if (!plan.images.length || plan.images.length > 30) throw new Error("长图详情页须识别为1到30屏");
+    if (!plan.images.length || plan.images.length > 30) throw new Error(translate("ecommerce.referencePlan.aLongDetailPageMustContain1To30Detected"));
     let bottom = 0;
     let groupIndex = -1;
     for (const [index, image] of plan.images.entries()) {
         const screen = image.referenceScreen;
         const position = sources.findIndex((source) => source.resourceId === screen?.sourceResourceId);
         if (position !== groupIndex) {
-            if (position !== groupIndex + 1 || (groupIndex >= 0 && Math.abs(bottom - 1) > 0.010000001)) throw new Error("详情屏须按借鉴图片顺序完整覆盖，不能遗漏、交错或倒序，请重新策划");
+            if (position !== groupIndex + 1 || (groupIndex >= 0 && Math.abs(bottom - 1) > 0.010000001)) throw new Error(translate("ecommerce.referencePlan.detailScreensMustFullyCoverReferencesInUploadOrderWithout"));
             groupIndex = position;
             bottom = 0;
         }
@@ -65,10 +68,10 @@ export function validateCommerceReferencePlan(plan: EcommercePlan, draft: Ecomme
             [screen.content, screen.layout, screen.visual].some((value) => typeof value !== "string" || !value.trim()) ||
             (screen.sourceCopy != null && typeof screen.sourceCopy !== "string")
         )
-            throw new Error(`第${index + 1}屏的参考范围或内容识别不完整，请重新策划`);
+            throw new Error(translate("ecommerce.referencePlan.theReferenceRegionOrContentAnalysisForScreenIsIncomplete", { v0: String(index + 1) }));
         bottom = screen.bottom;
     }
-    if (groupIndex !== sources.length - 1 || Math.abs(bottom - 1) > 0.010000001) throw new Error("长图分析未完整覆盖每张借鉴图及最后一屏，请重新策划");
+    if (groupIndex !== sources.length - 1 || Math.abs(bottom - 1) > 0.010000001) throw new Error(translate("ecommerce.referencePlan.longImageAnalysisDidNotCoverEveryReferenceAndIts"));
 }
 
 export function commerceReferenceImageInstruction(draft: EcommerceDraft, image: EcommercePlanImage): string {

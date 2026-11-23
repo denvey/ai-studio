@@ -1,4 +1,5 @@
 import type { CanvasTheme } from "@/lib/canvas-theme";
+import { translate } from "@/i18n";
 
 type SandboxedFrameProps = {
     /** 完整的 HTML 文档字符串，作为 iframe 的 srcDoc */
@@ -23,7 +24,7 @@ type SandboxedFrameProps = {
 export function SandboxedFrame({ srcDoc, theme, allowScripts = false }: SandboxedFrameProps) {
     return (
         <iframe
-            title="节点预览"
+            title={translate("canvasTools.nodes.sandboxedFrame.nodePreview")}
             className="h-full w-full border-0"
             sandbox={allowScripts ? "allow-scripts" : ""}
             srcDoc={srcDoc}

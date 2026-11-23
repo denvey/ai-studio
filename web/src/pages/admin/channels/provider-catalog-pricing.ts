@@ -1,4 +1,5 @@
 import type { ProviderCatalogModel, ProviderCatalogPriceTier, ProviderCatalogProvider } from "@/services/api/provider-catalog";
+import { currentLocale, translate } from "@/i18n";
 
 // 与后端 providercatalog.ApplyMarkup 保持一致：售价 = 成本 × (1 + 加价率)，向上取整到 microcredit。
 export function applyMarkup(cost: number, markupPercent: number) {
@@ -14,7 +15,7 @@ export function validMarkup(value: number | null | undefined): value is number {
 }
 
 export function formatCredits(microcredits: number) {
-    return (microcredits / 1_000_000).toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+    return (microcredits / 1_000_000).toLocaleString(currentLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 6 });
 }
 
 export type TierPriceLine = { label: string; cost: number; sale: number };
@@ -22,47 +23,56 @@ export type TierPriceLine = { label: string; cost: number; sale: number };
 // 列出一个规格档需要展示的价格项；视频 token 只有输出价。
 export function tierPriceLines(capability: ProviderCatalogModel["capability"], tier: ProviderCatalogPriceTier, markupPercent: number): TierPriceLine[] {
     if (tier.billingMode !== "token") {
-        const unit = tier.billingMode === "per_second" ? "每秒" : "每次";
+        const unit = tier.billingMode === "per_second" ? translate("admin.channels.providerCatalogPricing.perSecond") : translate("admin.channels.providerCatalogPricing.perRequest");
         return [{ label: unit, cost: tier.costUnitMicrocredits, sale: applyMarkup(tier.costUnitMicrocredits, markupPercent) }];
     }
-    if (capability === "video") return [{ label: "每百万视频 Token", cost: tier.costOutputMicrocredits, sale: applyMarkup(tier.costOutputMicrocredits, markupPercent) }];
+    if (capability === "video") return [{ label: translate("admin.channels.providerCatalogPricing.perMillionVideoTokens"), cost: tier.costOutputMicrocredits, sale: applyMarkup(tier.costOutputMicrocredits, markupPercent) }];
     const lines = [
-        { label: "输入 / 百万 Token", cost: tier.costInputMicrocredits },
-        { label: "输出 / 百万 Token", cost: tier.costOutputMicrocredits },
+        { label: translate("admin.channels.providerCatalogPricing.inputMillionTokens"), cost: tier.costInputMicrocredits },
+        { label: translate("admin.channels.providerCatalogPricing.outputMillionTokens"), cost: tier.costOutputMicrocredits },
     ];
-    if (tier.costCachedMicrocredits > 0) lines.push({ label: "缓存 / 百万 Token", cost: tier.costCachedMicrocredits });
+    if (tier.costCachedMicrocredits > 0) lines.push({ label: translate("admin.channels.providerCatalogPricing.cachedMillionTokens"), cost: tier.costCachedMicrocredits });
     return lines.map((line) => ({ ...line, sale: applyMarkup(line.cost, markupPercent) }));
 }
 
 const selectorLabels: Record<string, (value: string) => string> = {
-    operation: (value) => ({ text_to_video: "文生", image_to_video: "图生", text_to_image: "文生图", image_to_image: "图生图" })[value] || value,
+    operation: (value) =>
+        ({
+            text_to_video: translate("admin.channels.providerCatalogPricing.fromText"),
+            image_to_video: translate("admin.channels.providerCatalogPricing.fromImage"),
+            text_to_image: translate("admin.channels.providerCatalogPricing.textToImage"),
+            image_to_image: translate("admin.channels.providerCatalogPricing.imageToImage"),
+        })[value] || value,
     vquality: (value) => value,
     videoSeconds: (value) => `${value}s`,
     quality: (value) => value.toUpperCase(),
     resolution: (value) => value.toUpperCase(),
     size: (value) => value,
-    videoGenerateAudio: (value) => (value === "true" ? "含音频" : "无音频"),
+    videoGenerateAudio: (value) => (value === "true" ? translate("admin.channels.providerCatalogPricing.withAudio") : translate("admin.channels.providerCatalogPricing.withoutAudio")),
 };
 
 export function tierSpecLabel(tier: ProviderCatalogPriceTier) {
     const parts = Object.entries(tier.selector || {})
         .filter(([, value]) => value && value !== "*")
         .map(([key, value]) => (selectorLabels[key] ? selectorLabels[key](value) : `${key}=${value}`));
-    return parts.length ? parts.join(" · ") : "默认规格";
+    return parts.length ? parts.join(" · ") : translate("admin.channels.providerCatalogPricing.defaultSpecification");
 }
 
 export function formatWindow(provider: Pick<ProviderCatalogProvider, "startsAt" | "endsAt" | "permanent">) {
-    if (provider.permanent) return "长期推广 · 无到期日";
+    if (provider.permanent) return translate("admin.channels.providerCatalogPricing.ongoingPromotionNoExpiration");
     const format = (value: string) => new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
-    return `${format(provider.startsAt)} 至 ${format(provider.endsAt)}`;
+    return translate("admin.channels.providerCatalogPricing.to", { v0: String(format(provider.startsAt)), v1: String(format(provider.endsAt)) });
 }
 
 export function promotionExpiry(provider: Pick<ProviderCatalogProvider, "endsAt" | "permanent">, now = Date.now()) {
-    if (provider.permanent) return "持续展示";
+    if (provider.permanent) return translate("admin.channels.providerCatalogPricing.alwaysDisplayed");
     const end = new Date(provider.endsAt);
     const date = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit" }).format(end);
     const days = Math.ceil((end.getTime() - now) / 86_400_000);
-    return `${date} 到期 · ${days > 0 ? `剩余 ${days} 天` : "已到期"}（北京时间）`;
+    return translate("admin.channels.providerCatalogPricing.expiresBeijingTime", {
+        v0: String(date),
+        v1: String(days > 0 ? translate("admin.channels.providerCatalogPricing.daysRemaining", { v0: String(days) }) : translate("admin.channels.providerCatalogPricing.expired")),
+    });
 }
 
 export function matchesProvider(provider: ProviderCatalogProvider, keyword: string) {

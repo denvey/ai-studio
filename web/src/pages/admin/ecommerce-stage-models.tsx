@@ -9,11 +9,12 @@ import type { AiConfig } from "@/stores/use-config-store";
 import { THINKING_REQUEST_OPTIONS, type ThinkingRequest } from "@/lib/text-thinking";
 import { commerceStageChannelModelId, commerceStageModelConfig, commerceStageModelCounts, commerceStageModelValue, commerceVisionDisabledReason } from "./ecommerce-model-catalog";
 import "./ecommerce-stage-models.css";
+import { translate } from "@/i18n";
 
 // 只列真正执行的两个文本阶段；第三步出图用用户在电商页选的生图模型，这里只做说明。
 const stages = [
-    { key: "vision", label: "商品识别与视觉方向", hint: "读取商品图，识别商品并推荐 4 套视觉方向" },
-    { key: "planning", label: "整套策划", hint: "按选定方向写卖点文案、逐张分镜和生图提示词" },
+    { key: "vision", label: translate("adminPages.ecommerceStageModels.productRecognitionAndVisualDirection"), hint: translate("adminPages.ecommerceStageModels.readProductImagesIdentifyTheProductAndRecommend4Visual") },
+    { key: "planning", label: translate("adminPages.ecommerceStageModels.fullSetPlanning"), hint: translate("adminPages.ecommerceStageModels.writeSellingPointsPerImageStoryboardsAndImagePromptsFor") },
 ] as const;
 type StageKey = (typeof stages)[number]["key"];
 type StageChoice = { model: string; fallback: string; thinkingLevel: ThinkingRequest };
@@ -112,7 +113,7 @@ export function EcommerceStageModels({ embedded = false, onSaved }: { embedded?:
             setMissing(next.missing);
             setDirty(false);
             onSaved?.();
-            message.success("阶段模型已保存，新提交的电商任务立即生效");
+            message.success(translate("adminPages.ecommerceStageModels.stageModelsSavedNewECommerceTasksUseTheseSettings"));
         } catch (cause) {
             message.error(cause instanceof Error ? cause.message : String(cause));
         } finally {
@@ -120,17 +121,17 @@ export function EcommerceStageModels({ embedded = false, onSaved }: { embedded?:
         }
     }
     return (
-        <section className={`ecommerce-stage-models${embedded ? " is-embedded" : ""}`} aria-label="电商 Agent 阶段模型">
+        <section className={`ecommerce-stage-models${embedded ? " is-embedded" : ""}`} aria-label={translate("adminPages.ecommerceStageModels.eCommerceAgentStageModels")}>
             <header>
                 <div>
-                    {embedded ? null : <Typography.Text strong>电商 Agent 阶段模型</Typography.Text>}
+                    {embedded ? null : <Typography.Text strong>{translate("adminPages.ecommerceStageModels.eCommerceAgentStageModels")}</Typography.Text>}
                     <Typography.Paragraph type="secondary">
-                        两个阶段都要读商品图，只有开启了识图的文本模型可选，列表里的「图×N」是该模型最多能读的图片数。主模型不可用时自动改用备用模型。思考等级表示阶段意图，按实际使用模型的能力归一；备用模型沿用同一意图。「模型默认」不强制提高等级。
-                        {config ? ` 当前目录 ${counts.text} 个文本模型，其中 ${counts.vision} 个已开启识图。` : ""}
+                        {translate("adminPages.ecommerceStageModels.bothStagesReadProductImagesSoOnlyVisionEnabledText")}
+                        {config ? translate("adminPages.ecommerceStageModels.theCatalogCurrentlyContainsTextModelsWithVisionEnabled", { v0: String(counts.text), v1: String(counts.vision) }) : ""}
                     </Typography.Paragraph>
                 </div>
                 <Button icon={<RefreshCw size={14} />} loading={loading} onClick={() => void load()}>
-                    刷新模型
+                    {translate("adminPages.ecommerceStageModels.refreshModels")}
                 </Button>
             </header>
             {error ? <Alert type="error" showIcon message={error} /> : null}
@@ -138,11 +139,11 @@ export function EcommerceStageModels({ embedded = false, onSaved }: { embedded?:
                 <Alert
                     type="warning"
                     showIcon
-                    message="还没有能读商品图的文本模型"
-                    description="到「渠道管理」打开一个支持看图的文本模型，在「能力与参数 → 引用与限制」里把「最多识别图片数」设为 1 以上并保存，回到这里点「刷新模型」即可选择。"
+                    message={translate("adminPages.ecommerceStageModels.noTextModelCanReadProductImagesYet")}
+                    description={translate("adminPages.ecommerceStageModels.openAVisionCapableTextModelInChannelManagementUnder")}
                     action={
                         <Button size="small" icon={<ArrowUpRight size={14} />} iconPlacement="end" onClick={() => navigate("/admin/channels")}>
-                            去渠道管理
+                            {translate("adminPages.ecommerceStageModels.openChannelManagement")}
                         </Button>
                     }
                 />
@@ -154,7 +155,7 @@ export function EcommerceStageModels({ embedded = false, onSaved }: { embedded?:
                             <span className="ecommerce-stage-models-index">{index + 1}</span>
                             <div className="ecommerce-stage-models-label">
                                 <strong>{stage.label}</strong>
-                                <small>{missing[stage.key] ? "已保存的模型已下架或不可用，请重新选择" : stage.hint}</small>
+                                <small>{missing[stage.key] ? translate("adminPages.ecommerceStageModels.theSavedModelHasBeenRemovedOrIsUnavailableSelect") : stage.hint}</small>
                             </div>
                             <div className="ecommerce-stage-models-picker">
                                 <ModelPicker
@@ -164,7 +165,7 @@ export function EcommerceStageModels({ embedded = false, onSaved }: { embedded?:
                                     fullWidth
                                     showSelectedPrice={false}
                                     className="creation-model-picker"
-                                    placeholder="选择主模型"
+                                    placeholder={translate("adminPages.ecommerceStageModels.selectPrimaryModel")}
                                     modelDisabledReason={visionReason}
                                     onChange={(model) => update(stage.key, { model })}
                                 />
@@ -177,31 +178,41 @@ export function EcommerceStageModels({ embedded = false, onSaved }: { embedded?:
                                     fullWidth
                                     showSelectedPrice={false}
                                     className="creation-model-picker"
-                                    placeholder="备用模型（可选）"
-                                    modelDisabledReason={(value) => (value === draft[stage.key].model ? "已是主模型" : visionReason(value))}
+                                    placeholder={translate("adminPages.ecommerceStageModels.fallbackModelOptional")}
+                                    modelDisabledReason={(value) => (value === draft[stage.key].model ? translate("adminPages.ecommerceStageModels.alreadyThePrimaryModel") : visionReason(value))}
                                     onChange={(fallback) => update(stage.key, { fallback })}
                                 />
-                                {draft[stage.key].fallback ? <Button size="small" type="text" icon={<X size={14} />} aria-label={`清除${stage.label}备用模型`} onClick={() => update(stage.key, { fallback: "" })} /> : null}
+                                {draft[stage.key].fallback ? (
+                                    <Button size="small" type="text" icon={<X size={14} />} aria-label={translate("adminPages.ecommerceStageModels.clearFallbackModel", { v0: String(stage.label) })} onClick={() => update(stage.key, { fallback: "" })} />
+                                ) : null}
                             </div>
                             <div className="ecommerce-stage-models-picker">
-                                <Select className="w-full" aria-label={`${stage.label}思考等级`} value={draft[stage.key].thinkingLevel} options={THINKING_REQUEST_OPTIONS} onChange={(thinkingLevel) => update(stage.key, { thinkingLevel })} />
+                                <Select
+                                    className="w-full"
+                                    aria-label={translate("adminPages.ecommerceStageModels.thinkingLevel", { v0: String(stage.label) })}
+                                    value={draft[stage.key].thinkingLevel}
+                                    options={THINKING_REQUEST_OPTIONS}
+                                    onChange={(thinkingLevel) => update(stage.key, { thinkingLevel })}
+                                />
                             </div>
                         </li>
                     ))}
                     <li className="is-static">
                         <span className="ecommerce-stage-models-index">{stages.length + 1}</span>
                         <div className="ecommerce-stage-models-label">
-                            <strong>生成图片</strong>
-                            <small>用户在电商页选择生图模型，按方案逐张出图并保存到资产库</small>
+                            <strong>{translate("adminPages.ecommerceStageModels.generateImage")}</strong>
+                            <small>{translate("adminPages.ecommerceStageModels.usersChooseAnImageModelOnTheECommercePage")}</small>
                         </div>
                     </li>
                 </ol>
             ) : null}
             <footer>
                 <Button type="primary" loading={saving} disabled={!dirty || incomplete || Boolean(error)} onClick={() => void save()}>
-                    保存阶段模型
+                    {translate("adminPages.ecommerceStageModels.saveStageModels")}
                 </Button>
-                <Typography.Text type="secondary">{incomplete && draft ? "两个阶段都需要主模型" : dirty ? "有未保存修改" : "已保存"}</Typography.Text>
+                <Typography.Text type="secondary">
+                    {incomplete && draft ? translate("adminPages.ecommerceStageModels.bothStagesRequireAPrimaryModel") : dirty ? translate("adminPages.ecommerceStageModels.unsavedChanges") : translate("adminPages.ecommerceStageModels.saved")}
+                </Typography.Text>
             </footer>
         </section>
     );

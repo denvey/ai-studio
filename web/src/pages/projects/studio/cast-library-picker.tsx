@@ -9,14 +9,15 @@ import { getImageBlob, uploadImage } from "@/services/image-storage";
 import { useAssetStore, type Asset } from "@/stores/use-asset-store";
 
 import { CAST_KIND_LABEL } from "../drama-shared";
+import { translate } from "@/i18n";
 
-const CATEGORY_LABELS: Record<string, string> = { all: "全部素材", ...ASSET_CATEGORY_LABELS };
+const CATEGORY_LABELS: Record<string, string> = { all: translate("canvasA.assetPicker.allAssets"), ...ASSET_CATEGORY_LABELS };
 
 /** 素材里能当设定参考图的：图片；角色设定还可以用角色卡的当前形象。 */
 function pickableReason(asset: Asset, character: boolean) {
     if (asset.kind === "image") return undefined;
-    if (asset.kind === "entity" && character) return asset.data.coverStorageKey ? undefined : "这个角色卡还没有形象图";
-    return character ? "只能使用图片或角色卡" : "只能使用图片";
+    if (asset.kind === "entity" && character) return asset.data.coverStorageKey ? undefined : translate("drama.studio.castLibraryPicker.thisCharacterCardHasNoAppearanceImageYet");
+    return character ? translate("drama.studio.castLibraryPicker.onlyImagesOrCharacterCardsCanBeUsed") : translate("drama.studio.castLibraryPicker.onlyImagesCanBeUsed");
 }
 
 /**
@@ -26,27 +27,27 @@ function pickableReason(asset: Asset, character: boolean) {
 async function pickedImageResourceId(item: AssetLibraryPickerItem) {
     if (item.external) {
         const url = item.external.item.fileUrl;
-        if (item.external.item.kind !== "image" || !url) throw new Error(`“${item.title}”不是可读取的图片`);
+        if (item.external.item.kind !== "image" || !url) throw new Error(translate("drama.studio.castLibraryPicker.isNotAReadableImage", { v0: String(item.title) }));
         return uploadedResourceId(await uploadImage(url));
     }
     const asset = item.asset;
     if (asset?.kind === "entity") {
         const id = resourceIdFromStorageKey(asset.data.coverStorageKey);
-        if (!id) throw new Error(`角色卡“${item.title}”还没有已保存的形象图`);
+        if (!id) throw new Error(translate("drama.studio.castLibraryPicker.characterCardHasNoSavedPortraitYet", { v0: String(item.title) }));
         return id;
     }
-    if (asset?.kind !== "image") throw new Error(`“${item.title}”不是图片`);
+    if (asset?.kind !== "image") throw new Error(translate("drama.studio.castLibraryPicker.isNotAnImage", { v0: String(item.title) }));
     const direct = resourceIdFromStorageKey(asset.data.storageKey);
     if (direct) return direct;
     const blob = asset.data.storageKey ? await getImageBlob(asset.data.storageKey) : null;
     const source = blob || asset.data.dataUrl || asset.coverUrl;
-    if (!source) throw new Error(`“${item.title}”的图片文件已不存在`);
+    if (!source) throw new Error(translate("drama.studio.castLibraryPicker.theImageFileForNoLongerExists", { v0: String(item.title) }));
     return uploadedResourceId(await uploadImage(source));
 }
 
 function uploadedResourceId(uploaded: Awaited<ReturnType<typeof uploadImage>>) {
     const id = resourceIdFromStorageKey(uploaded.storageKey);
-    if (uploaded.pendingRemoteUpload || !id) throw new Error(`图片没能上传到服务器${uploaded.remoteUploadError ? `：${uploaded.remoteUploadError}` : ""}，请稍后重试`);
+    if (uploaded.pendingRemoteUpload || !id) throw new Error(translate("drama.studio.castLibraryPicker.theImageCouldNotBeUploadedToTheServerTry", { v0: String(uploaded.remoteUploadError ? `：${uploaded.remoteUploadError}` : "") }));
     return id;
 }
 
@@ -64,13 +65,13 @@ export function CastLibraryPicker({ open, cast, onClose, onPick, segment = false
                     title: asset.title,
                     category: normalizeAssetCategory(asset.category),
                     archived: asset.status === "archived",
-                    kindLabel: asset.kind === "entity" ? "角色卡" : "图片",
+                    kindLabel: asset.kind === "entity" ? translate("canvasA.characterNode.card") : translate("account.feedback.image"),
                     mediaKind: "image" as const,
                     asset,
                     searchText: (asset.tags || []).join(" "),
                     disabledReason: pickableReason(asset, character),
                 })),
-            ...externalAssetSources.items.map((item) => ({ ...item, disabledReason: item.external?.item.kind === "image" ? item.disabledReason : "只能使用图片" })),
+            ...externalAssetSources.items.map((item) => ({ ...item, disabledReason: item.external?.item.kind === "image" ? item.disabledReason : translate("drama.studio.castLibraryPicker.onlyImagesCanBeUsed") })),
         ],
         [assets, character, externalAssetSources.items],
     );
@@ -87,16 +88,19 @@ export function CastLibraryPicker({ open, cast, onClose, onPick, segment = false
             items={items}
             categoryLabels={{ ...CATEGORY_LABELS, ...externalAssetSources.categoryLabels }}
             folders={externalAssetSources.folders}
-            title={segment ? "添加本段参考图" : `选择「${cast.name}」的${CAST_KIND_LABEL[cast.kind]}参考图`}
-            eyebrow="短剧设定"
-            confirmLabel={() => (segment ? "添加到本段参考" : "用作参考图并锁定")}
-            emptyDescription={character ? "先在素材库中添加图片或角色卡。" : "先在素材库中添加图片。"}
-            footerNote={externalAssetSources.error || (segment ? "添加图片仅影响当前剧情段，移除参考不会删除原素材" : "选中的图片会替换当前参考图并锁定，之后不会被重新生成覆盖")}
+            title={segment ? translate("drama.studio.castLibraryPicker.addSegmentReferenceImage") : translate("drama.studio.castLibraryPicker.chooseAReferenceFor", { v0: String(cast.name), v1: String(CAST_KIND_LABEL[cast.kind]) })}
+            eyebrow={translate("drama.studio.castLibraryPicker.dramaDesigns")}
+            confirmLabel={() => (segment ? translate("drama.studio.castLibraryPicker.addToSegmentReferences") : translate("drama.studio.castLibraryPicker.useAsReferenceAndLock"))}
+            emptyDescription={character ? translate("drama.studio.castLibraryPicker.addImagesOrCharacterCardsToTheAssetLibraryFirst") : translate("drama.studio.castLibraryPicker.addImagesToTheAssetLibraryFirst")}
+            footerNote={
+                externalAssetSources.error ||
+                (segment ? translate("drama.studio.castLibraryPicker.addingAnImageOnlyAffectsThisSegmentRemovingAReference") : translate("drama.studio.castLibraryPicker.theSelectedImageReplacesTheCurrentReferenceAndIsLocked"))
+            }
             onClose={onClose}
             onConfirm={async (ids, pickedItems) => {
                 const pool = new Map([...items, ...(pickedItems || [])].map((item) => [item.id, item]));
                 const item = ids[0] ? pool.get(ids[0]) : undefined;
-                if (!item) throw new Error("请选择一张图片");
+                if (!item) throw new Error(translate("drama.studio.castLibraryPicker.selectAnImage"));
                 await onPick(await pickedImageResourceId(item), item.title);
                 onClose();
             }}

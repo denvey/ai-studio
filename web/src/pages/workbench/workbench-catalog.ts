@@ -1,16 +1,17 @@
 import type { WorkbenchKind, WorkbenchReferenceSlot } from "@/services/api/workbench";
 
+import { translate } from "@/i18n";
 export const workbenchCategories = [
-    { value: "recommended", label: "推荐" },
-    { value: "people", label: "人物" },
-    { value: "ecommerce", label: "电商" },
-    { value: "product", label: "商品" },
-    { value: "drama-character", label: "短剧角色" },
-    { value: "drama-scene", label: "短剧场景" },
-    { value: "storyboard", label: "短剧分镜" },
-    { value: "short-video", label: "短视频" },
-    { value: "scene", label: "场景" },
-    { value: "enhancement", label: "增强" },
+    { value: "recommended", label: translate("ecommerce.workbench.workbenchCatalog.recommended") },
+    { value: "people", label: translate("ecommerce.workbench.workbenchCatalog.people") },
+    { value: "ecommerce", label: translate("ecommerce.workbench.workbenchCatalog.ecommerce") },
+    { value: "product", label: translate("ecommerce.workbench.workbenchCatalog.product") },
+    { value: "drama-character", label: translate("ecommerce.workbench.workbenchCatalog.dramaCharacters") },
+    { value: "drama-scene", label: translate("ecommerce.workbench.workbenchCatalog.dramaScenes") },
+    { value: "storyboard", label: translate("ecommerce.workbench.workbenchCatalog.dramaStoryboards") },
+    { value: "short-video", label: translate("ecommerce.workbench.workbenchCatalog.shortVideos") },
+    { value: "scene", label: translate("ecommerce.workbench.workbenchCatalog.scenes") },
+    { value: "enhancement", label: translate("ecommerce.workbench.workbenchCatalog.enhance") },
 ];
 
 export function workbenchCategoryLabel(id: string) {
@@ -20,17 +21,17 @@ export function workbenchCategoryLabel(id: string) {
 export function workbenchModeOptions(kind: WorkbenchKind) {
     return kind === "image"
         ? [
-              { value: "image", label: "图片生成" },
-              { value: "image_edit", label: "图片编辑" },
+              { value: "image", label: translate("nav.sidebar.toolboxImage") },
+              { value: "image_edit", label: translate("ecommerce.workbench.workbenchCatalog.imageEditing") },
           ]
-        : [{ value: "video", label: "视频生成" }];
+        : [{ value: "video", label: translate("nav.sidebar.toolboxVideo") }];
 }
 
-export const workbenchMediaLabel = (kind: string) => (kind === "image" ? "图片" : kind === "video" ? "视频" : "音频");
+export const workbenchMediaLabel = (kind: string) => (kind === "image" ? translate("account.feedback.image") : kind === "video" ? translate("account.feedback.video") : translate("account.settings.modelConfig.capabilities.audio"));
 
 /** 用户可读的输入约束文案，避免在下拉标签里堆叠过长说明。 */
 export function workbenchSlotRequirement(slot: WorkbenchReferenceSlot) {
     const media = slot.mediaTypes.map(workbenchMediaLabel).join(" / ");
-    if (slot.required || slot.minCount > 0) return `${media} · 必填 ${slot.minCount}-${slot.maxCount} 个`;
-    return `${media} · 可选，最多 ${slot.maxCount} 个`;
+    if (slot.required || slot.minCount > 0) return translate("ecommerce.workbench.workbenchCatalog.required", { v0: String(media), v1: String(slot.minCount), v2: String(slot.maxCount) });
+    return translate("ecommerce.workbench.workbenchCatalog.optionalUpTo", { v0: String(media), v1: String(slot.maxCount) });
 }

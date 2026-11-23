@@ -15,6 +15,8 @@ import type { TimelineProject } from "@/types/timeline";
 import { useSyncProgressStore, type SyncProjectProgress } from "@/stores/use-sync-progress-store";
 import { useThemeStore } from "@/stores/use-theme-store";
 import { recordDiagnosticEvent } from "@/services/diagnostics/client-diagnostics";
+import { translate } from "@/i18n";
+
 
 export type CanvasProject = {
     id: string;
@@ -159,7 +161,7 @@ async function preserveLocalRebaseConflicts(scope: string, projects: CanvasProje
             phase: "pending",
             pendingChanges: 1,
             errorKind: "conflict",
-            message: "其他标签页也修改了此画布，未确认操作会按字段重放",
+            message: translate("shared.canvas.useCanvasStore.thisCanvasWasEditedInAnotherTabUnconfirmedOperationsWill"),
         });
     }
 }
@@ -237,7 +239,7 @@ function runWithBrowserCanvasStorageLock<T>(scope: string, operation: () => Prom
     const lockName = `${CANVAS_STORAGE_LOCK_PREFIX}${scope}`;
     if (locks) return locks.request(lockName, operation);
     if (options.requireCrossRealmLock && typeof window !== "undefined" && typeof document !== "undefined") {
-        throw new Error("当前浏览器不支持跨标签存储锁，已停止画布生成持久化");
+        throw new Error(translate("shared.canvas.useCanvasStore.theBrowserDoesNotSupportStorageLocksAcrossTabsCanvas"));
     }
     return operation();
 }

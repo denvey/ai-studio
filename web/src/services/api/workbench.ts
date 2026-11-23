@@ -2,6 +2,7 @@ import { http } from "@/services/api/request";
 import { getResourceAccess, resolveResourceAccessURL, resourceStorageKey } from "@/services/api/resources";
 import type { GenerationTask } from "@/services/api/task-center";
 import { observeGenerationTaskStatus, observeGenerationTaskStatuses } from "@/services/generation-completion-tracker";
+import { translate } from "@/i18n";
 
 export type WorkbenchKind = "image" | "video";
 
@@ -228,7 +229,7 @@ export type WorkbenchTaskIntent = CreateWorkbenchTaskInput;
 export async function createWorkbenchTask(input: WorkbenchTaskIntent) {
     const result = await http.post<WorkbenchTaskReceipt | GenerationTask>("/workbench/tasks", input);
     const task = result && "task" in result ? result.task : result;
-    if (!task?.id) throw new Error("任务已提交，但没有返回任务编号");
+    if (!task?.id) throw new Error(translate("shared.api.workbench.theTaskWasSubmittedButNoTaskIDWasReturned"));
     observeGenerationTaskStatus(task);
     // 与 createGenerationTask 一致：创建时积分已被预占，钱包余额需要立即刷新。
     window.dispatchEvent(new CustomEvent("wallet:updated"));

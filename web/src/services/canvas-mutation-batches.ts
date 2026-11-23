@@ -1,4 +1,5 @@
 import type { CanvasOperation, CanvasOperationsRequest, RemoteUserDataSummary } from "@/services/api/user-data";
+import { translate } from "@/i18n";
 
 // ApplyUserCanvasOperations accepts at most 500 operations per transaction.
 const batchLimit = 500;
@@ -28,7 +29,7 @@ export async function submitCanvasMutationBatches(
         deps.assertSession();
         const response = await deps.send(state.request);
         deps.assertSession();
-        if (!Number.isSafeInteger(response.project.revision)) throw new Error("服务端未返回有效画布版本");
+        if (!Number.isSafeInteger(response.project.revision)) throw new Error(translate("shared.canvasMutationBatches.theServerReturnedNoValidCanvasVersion"));
         if (!state.remainingOperations?.length) return response;
         // If this checkpoint fails, the persisted previous batch can be replayed
         // with its receipt. No later batch is sent before its journal is durable.

@@ -4,6 +4,8 @@ import type { ReferenceAudio, ReferenceVideo } from "@/types/media";
 import type { ReferenceImage } from "@/types/image";
 
 import type { ResolvedAiConfig } from "./video-contracts";
+import { translate } from "@/i18n";
+
 
 export function assertVideoCapability(
     profile: NonNullable<ReturnType<typeof modelCapabilityConfigFor>["video"]>,
@@ -12,25 +14,25 @@ export function assertVideoCapability(
     audioReferences: ReferenceAudio[],
     seconds: string,
 ) {
-    if (references.length > profile.references.maxImages || videoReferences.length > profile.references.maxVideos || audioReferences.length > profile.references.maxAudios) throw new Error("参考素材数量超过当前模型限制");
-    if (references.length < profile.references.minImages) throw new Error(`当前视频模型至少需要 ${profile.references.minImages} 张参考图`);
-    if (!videoDurationAllowed(profile, Number(seconds))) throw new Error("视频时长不在当前模型支持范围内");
-    if (profile.references.maxImageBytes > 0 && references.some((image) => (image.bytes || 0) > profile.references.maxImageBytes)) throw new Error("参考图片文件超过当前模型大小限制");
+    if (references.length > profile.references.maxImages || videoReferences.length > profile.references.maxVideos || audioReferences.length > profile.references.maxAudios) throw new Error(translate("shared.api.videoValidation.tooManyReferenceAssetsForTheCurrentModel"));
+    if (references.length < profile.references.minImages) throw new Error(translate("shared.api.videoValidation.theCurrentVideoModelRequiresAtLeastReferenceImages", { v0: String(profile.references.minImages) }));
+    if (!videoDurationAllowed(profile, Number(seconds))) throw new Error(translate("shared.api.videoValidation.theVideoDurationIsOutsideTheRangeTheCurrentModel"));
+    if (profile.references.maxImageBytes > 0 && references.some((image) => (image.bytes || 0) > profile.references.maxImageBytes)) throw new Error(translate("shared.api.videoValidation.theReferenceImageExceedsTheCurrentModelSSizeLimit"));
     for (const video of videoReferences) {
-        if (profile.references.maxVideoBytes > 0 && (video.bytes || 0) > profile.references.maxVideoBytes) throw new Error("参考视频文件超过当前模型大小限制");
-        if (profile.references.maxVideoDurationSeconds > 0 && (video.durationMs || 0) > profile.references.maxVideoDurationSeconds * 1000) throw new Error("参考视频时长超过当前模型限制");
+        if (profile.references.maxVideoBytes > 0 && (video.bytes || 0) > profile.references.maxVideoBytes) throw new Error(translate("shared.api.videoValidation.theReferenceVideoExceedsTheCurrentModelSSizeLimit"));
+        if (profile.references.maxVideoDurationSeconds > 0 && (video.durationMs || 0) > profile.references.maxVideoDurationSeconds * 1000) throw new Error(translate("shared.api.videoValidation.theReferenceVideoIsLongerThanTheCurrentModelAllows"));
     }
     for (const audio of audioReferences) {
-        if (profile.references.maxAudioBytes > 0 && (audio.bytes || 0) > profile.references.maxAudioBytes) throw new Error("参考音频文件超过当前模型大小限制");
-        if (profile.references.maxAudioDurationSeconds > 0 && (audio.durationMs || 0) > profile.references.maxAudioDurationSeconds * 1000) throw new Error("参考音频时长超过当前模型限制");
+        if (profile.references.maxAudioBytes > 0 && (audio.bytes || 0) > profile.references.maxAudioBytes) throw new Error(translate("shared.api.videoValidation.theReferenceAudioExceedsTheCurrentModelSSizeLimit"));
+        if (profile.references.maxAudioDurationSeconds > 0 && (audio.durationMs || 0) > profile.references.maxAudioDurationSeconds * 1000) throw new Error(translate("shared.api.videoValidation.theReferenceAudioIsLongerThanTheCurrentModelAllows"));
     }
 }
 
 export function assertVideoConfig(config: ResolvedAiConfig, model: string) {
-    if (!model) throw new Error("请先配置视频模型");
-    if (!config.baseUrl.trim()) throw new Error("请先配置 Base URL");
-    if (!config.apiKey.trim()) throw new Error("请先配置 API Key");
-    if (config.apiFormat === "gemini" && config.interfaceType !== "gemini-veo") throw new Error("当前 Gemini 文本协议不支持视频生成，请为该模型选择 Gemini Veo 协议");
+    if (!model) throw new Error(translate("shared.api.videoValidation.configureAVideoModelFirst"));
+    if (!config.baseUrl.trim()) throw new Error(translate("shared.api.videoValidation.configureABaseURLFirst"));
+    if (!config.apiKey.trim()) throw new Error(translate("shared.api.videoValidation.configureAnAPIKeyFirst"));
+    if (config.apiFormat === "gemini" && config.interfaceType !== "gemini-veo") throw new Error(translate("shared.api.videoValidation.theCurrentGeminiTextProtocolDoesNotSupportVideoGeneration"));
 }
 
 export function normalizeVideoSeconds(value: string) {

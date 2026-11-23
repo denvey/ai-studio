@@ -3,6 +3,7 @@
 // 这里只放纯函数：附件状态签名、发送前补引用、选区合并、文件校验和复制文本。
 import { canvasNodeMentionToken, canvasResourceMentionToken, type CanvasResourceReference } from "@/lib/canvas/canvas-resource-references";
 import type { CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 /** 每条消息最多附带的图片数。 */
 export const AGENT_ATTACHMENT_MAX = 9;
@@ -48,7 +49,7 @@ export function parseAgentAttachmentStatus(key: string): Map<string, AgentAttach
         const status = (colon < 0 ? rest : rest.slice(0, colon)) as AgentAttachmentStatus;
         const extra = colon < 0 ? "" : rest.slice(colon + 1);
         if (status === "uploading") states.set(id, { status, ...(extra ? { progress: Number(extra) } : {}) });
-        else if (status === "error") states.set(id, { status, error: decodeURIComponent(extra) || "上传失败" });
+        else if (status === "error") states.set(id, { status, error: decodeURIComponent(extra) || translate("library.assets.batch.uploadFailed") });
         else states.set(id, { status });
     }
     return states;
@@ -105,23 +106,23 @@ export function checkAgentAttachmentFiles(files: readonly File[], options: { exi
         if (seen.has(key)) continue;
         seen.add(key);
         if (options.existingKeys.has(key)) {
-            problems.push("这张图片已经添加过");
+            problems.push(translate("shared.canvas.agentComposerAttachments.thisImageHasAlreadyBeenAdded"));
             continue;
         }
         if (/^image\/hei[cf]/u.test(file.type) || /\.(heic|heif)$/iu.test(file.name)) {
-            problems.push("暂不支持 HEIC 图片，请导出为 JPG 或 PNG 后再添加");
+            problems.push(translate("shared.canvas.agentComposerAttachments.hEICImagesAreNotSupportedYetExportAsJPGOr"));
             continue;
         }
         if (!AGENT_IMAGE_TYPES.has(file.type)) {
-            problems.push(`「${file.name || "文件"}」不是 PNG、JPG、WebP 或 GIF 图片`);
+            problems.push(translate("shared.canvas.agentComposerAttachments.isNotAPNGJPGWebPOrGIFImage", { v0: String(file.name || translate("shared.canvas.agentComposerAttachments.file")) }));
             continue;
         }
         if (file.size > options.maxBytes) {
-            problems.push(`「${file.name || "图片"}」超过 ${Math.round(options.maxBytes / 1024 / 1024)}MB 上传上限`);
+            problems.push(translate("shared.canvas.agentComposerAttachments.exceedsTheMBUploadLimit", { v0: String(file.name || translate("account.feedback.image")), v1: String(Math.round(options.maxBytes / 1024 / 1024)) }));
             continue;
         }
         if (options.existingCount + accepted.length >= AGENT_ATTACHMENT_MAX) {
-            problems.push(`每条消息最多 ${AGENT_ATTACHMENT_MAX} 张图片`);
+            problems.push(translate("shared.canvas.agentComposerAttachments.upToImagesPerMessage", { v0: String(AGENT_ATTACHMENT_MAX) }));
             break;
         }
         if (file.type === "image/gif") hasGif = true;
@@ -135,7 +136,7 @@ export function agentCopyText(text: string, references: readonly CanvasResourceR
     let value = text;
     for (const reference of references) {
         const token = canvasResourceMentionToken(reference);
-        if (token.startsWith("@[") && value.includes(token)) value = value.split(token).join(`@${reference.label || reference.title || "引用"}`);
+        if (token.startsWith("@[") && value.includes(token)) value = value.split(token).join(`@${reference.label || reference.title || translate("shared.canvas.agentComposerAttachments.references")}`);
     }
-    return value.replace(/@\[[^\]]+\]/gu, "@引用");
+    return value.replace(/@\[[^\]]+\]/gu, translate("shared.canvas.agentComposerAttachments.reference"));
 }

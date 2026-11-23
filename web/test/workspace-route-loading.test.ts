@@ -82,7 +82,7 @@ describe("workspace route loading", () => {
         expect(canvasLibrary).toContain("setOpeningProjectId(id)");
         expect(canvasLibrary).toContain("window.requestAnimationFrame(() => navigate(");
         expect(canvasCard).toContain("onPointerEnter={onPrefetch}");
-        expect(canvasCard).toContain("正在打开");
+        expect(canvasCard).toContain('translate("canvasTools.canvasFolderCard.opening")');
     });
 
     test("keeps the drama studio views in-page and canvas-only state out of the global layout", () => {

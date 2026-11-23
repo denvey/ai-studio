@@ -1,5 +1,7 @@
 import { CanvasNodeType, type CanvasConnection, type CanvasNodeData, type CanvasNodeMetadata } from "@/types/canvas";
 import { resetGenerationTaskMetadata } from "@/lib/canvas/canvas-task-state";
+import { translate } from "@/i18n";
+
 
 export function hasImageBatchResult(node: CanvasNodeData) {
     return Boolean(node.metadata?.content || node.metadata?.storageKey);
@@ -135,7 +137,7 @@ export function restoreUnsubmittedImageBatchChild(current: CanvasNodeData, origi
         metadata: {
             ...current.metadata,
             status: "error",
-            errorDetails: original.metadata?.errorDetails || "重试请求未提交",
+            errorDetails: original.metadata?.errorDetails || translate("shared.canvas.canvasImageBatchRetry.retryRequestWasNotSubmitted"),
             generationErrorCode: original.metadata?.generationErrorCode,
             resourceReloadAvailable: original.metadata?.resourceReloadAvailable,
             failedPromptFingerprint: original.metadata?.failedPromptFingerprint,

@@ -15,6 +15,7 @@ import { resolveAddNodeMenuCommands, type AddNodeMenuContext } from "@/lib/canva
 import { useActiveTheme } from "@/stores/canvas/use-canvas-theme-store";
 import { usePluginStore } from "@/stores/use-plugin-store";
 import { CanvasNodeType, type CanvasNodeData, type CanvasNodeTypeId, type CanvasWorkspaceMode, type ContextMenuState, type Position } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 type CanvasAssetCategory = NonNullable<NonNullable<CanvasNodeData["metadata"]>["assetCategory"]>;
 
@@ -167,18 +168,18 @@ export function CanvasNodeContextMenu({
     const versionCurrent = currentMediaVersion(node);
     const canOpenVersions = Boolean(onOpenVersions && hasMediaVersionHistory(node));
     const versionDetail = canOpenVersions
-        ? versionCurrent ? `当前 V${versionCurrent.number} · ${formatRelativeTime(versionCurrent.createdAt)}` : "当前内容未在历史中，可切回旧版本"
-        : "重新生成或替换后保留旧版本";
+        ? versionCurrent ? translate("canvasTools.canvasContextMenu.currentV", { v0: String(versionCurrent.number), v1: String(formatRelativeTime(versionCurrent.createdAt)) }) : translate("canvasTools.canvasContextMenu.currentContentIsNotInHistoryYouCanSwitchTo")
+        : translate("canvasTools.canvasContextMenu.previousVersionsAreRetainedAfterRegenerationOrReplacement");
     const versionMenuButton = onOpenVersions ? (
-        <MenuButton icon={<History />} label="版本历史" badge={versionCount > 1 ? String(versionCount) : undefined} detail={versionDetail} disabled={!canOpenVersions} onClick={() => runAction(onOpenVersions)} />
+        <MenuButton icon={<History />} label={translate("canvasB.mediaVersion.title")} badge={versionCount > 1 ? String(versionCount) : undefined} detail={versionDetail} disabled={!canOpenVersions} onClick={() => runAction(onOpenVersions)} />
     ) : null;
     const position = getContextMenuPosition(menu, hasMultiSelection);
     const skippedDownloadCount = Math.max(0, selectedCount - downloadableSelectionCount);
     const downloadSelectionButton = hasMultiSelection ? (
         <MenuButton
             icon={<Download />}
-            label={downloadableSelectionCount ? `下载 ${downloadableSelectionCount} 个资源` : "下载资源"}
-            detail={!downloadableSelectionCount ? "选区内没有图片、视频或音频" : skippedDownloadCount ? `逐个下载，跳过 ${skippedDownloadCount} 个非媒体节点` : "逐个下载为独立文件"}
+            label={downloadableSelectionCount ? translate("canvasTools.canvasContextMenu.downloadAssets", { v0: String(downloadableSelectionCount) }) : translate("canvasTools.canvasContextMenu.downloadAssets2")}
+            detail={!downloadableSelectionCount ? translate("canvasTools.canvasContextMenu.noImagesVideosOrAudioInTheSelection") : skippedDownloadCount ? translate("canvasTools.canvasContextMenu.downloadIndividuallySkippingNonMediaNodes", { v0: String(skippedDownloadCount) }) : translate("canvasTools.canvasContextMenu.downloadIndividuallyAsSeparateFiles")}
             disabled={!onDownloadSelection || !downloadableSelectionCount}
             onClick={() => onDownloadSelection && runAction(onDownloadSelection)}
         />
@@ -200,8 +201,8 @@ export function CanvasNodeContextMenu({
                 <div className="thin-scrollbar min-h-0 overflow-y-auto">
                     {menu.type === "node" && isMedia && categoryOpen ? (
                         <>
-                            <MenuHeader title="设置资产分类" description={node?.title || nodeTypeLabel(node)} onBack={() => setCategoryOpen(false)} />
-                            <MenuSection label="项目用途" />
+                            <MenuHeader title={translate("canvasTools.canvasContextMenu.setAssetCategory")} description={node?.title || nodeTypeLabel(node)} onBack={() => setCategoryOpen(false)} />
+                            <MenuSection label={translate("canvasTools.canvasContextMenu.projectPurpose")} />
                             {assetCategoryOptions.map((option) => (
                                 <MenuButton
                                     key={option.value}
@@ -216,88 +217,88 @@ export function CanvasNodeContextMenu({
                         <>
                             {hasMultiSelection ? (
                                 <>
-                                    <MenuButton icon={<LayoutTemplate className="size-4" />} label="自适应整理画布" detail="保持相对布局并加大边距" disabled={!onSpreadSelection} onClick={() => onSpreadSelection && runAction(onSpreadSelection)} />
+                                    <MenuButton icon={<LayoutTemplate className="size-4" />} label={translate("canvasTools.canvasContextMenu.autoArrangeCanvas")} detail={translate("canvasTools.canvasContextMenu.keepRelativeLayoutAndIncreaseSpacing")} disabled={!onSpreadSelection} onClick={() => onSpreadSelection && runAction(onSpreadSelection)} />
                                     {downloadSelectionButton}
                                     <MenuDivider />
                                 </>
                             ) : null}
-                            <MenuButton icon={<Plus className="size-4" />} label="添加节点" chevron active={addOpen} onClick={() => setAddOpen((value) => !value)} />
-                            <MenuButton icon={<Upload className="size-4" />} label="上传到这里" onClick={() => runAction(onUpload)} />
-                            {!isProjectLinked ? <MenuButton icon={<FolderOpen className="size-4" />} label="从素材库插入" onClick={() => runAction(onOpenAssets)} /> : null}
+                            <MenuButton icon={<Plus className="size-4" />} label={translate("canvasA.createMenu.title")} chevron active={addOpen} onClick={() => setAddOpen((value) => !value)} />
+                            <MenuButton icon={<Upload className="size-4" />} label={translate("canvasTools.canvasContextMenu.dropHereToUpload")} onClick={() => runAction(onUpload)} />
+                            {!isProjectLinked ? <MenuButton icon={<FolderOpen className="size-4" />} label={translate("canvasTools.canvasContextMenu.insertFromLibrary")} onClick={() => runAction(onOpenAssets)} /> : null}
                             <MenuDivider />
-                            <MenuButton icon={<Undo2 className="size-4" />} label="撤销" shortcut="⌘Z" disabled={!canUndo} onClick={() => runAction(onUndo)} />
-                            <MenuButton icon={<Redo2 className="size-4" />} label="重做" shortcut="⇧⌘Z" disabled={!canRedo} onClick={() => runAction(onRedo)} />
-                            <MenuButton icon={<Clipboard className="size-4" />} label="粘贴" shortcut="⌘V" disabled={!canPaste} onClick={() => runAction(onPaste)} />
+                            <MenuButton icon={<Undo2 className="size-4" />} label={translate("account.settings.memory.actors.restore")} shortcut="⌘Z" disabled={!canUndo} onClick={() => runAction(onUndo)} />
+                            <MenuButton icon={<Redo2 className="size-4" />} label={translate("canvasTools.canvasContextMenu.redo")} shortcut="⇧⌘Z" disabled={!canRedo} onClick={() => runAction(onRedo)} />
+                            <MenuButton icon={<Clipboard className="size-4" />} label={translate("canvasTools.canvasContextMenu.paste")} shortcut="⌘V" disabled={!canPaste} onClick={() => runAction(onPaste)} />
                         </>
                     ) : menu.type === "node" && hasMultiSelection ? (
                         <>
-                            <MenuHeader title={`已选 ${selectedCount} 个节点`} />
-                            <MenuSection label="选区" />
-                            <MenuButton icon={<LayoutTemplate />} label="自适应整理画布" detail="保持相对布局并加大边距" disabled={!onSpreadSelection} onClick={() => onSpreadSelection && runAction(onSpreadSelection)} />
+                            <MenuHeader title={translate("canvasTools.canvasContextMenu.nodesSelected", { v0: String(selectedCount) })} />
+                            <MenuSection label={translate("canvasTools.canvasContextMenu.selection")} />
+                            <MenuButton icon={<LayoutTemplate />} label={translate("canvasTools.canvasContextMenu.autoArrangeCanvas")} detail={translate("canvasTools.canvasContextMenu.keepRelativeLayoutAndIncreaseSpacing")} disabled={!onSpreadSelection} onClick={() => onSpreadSelection && runAction(onSpreadSelection)} />
                             <MenuDivider />
-                            <MenuButton icon={<Copy />} label={`复制 ${selectedCount} 个节点`} shortcut="⌘C" disabled={!onCopySelection} onClick={() => onCopySelection && runAction(onCopySelection)} />
+                            <MenuButton icon={<Copy />} label={translate("canvasTools.canvasContextMenu.copyNodes", { v0: String(selectedCount) })} shortcut="⌘C" disabled={!onCopySelection} onClick={() => onCopySelection && runAction(onCopySelection)} />
                             {downloadSelectionButton}
-                            <MenuButton icon={<AtSign />} label="发送到 Agent" disabled={!onSendToAgent} onClick={() => onSendToAgent && runAction(onSendToAgent)} />
-                            <MenuButton icon={<Trash2 />} label={`删除 ${selectedCount} 个节点`} danger disabled={!onDeleteSelection} onClick={() => onDeleteSelection && runAction(onDeleteSelection)} />
+                            <MenuButton icon={<AtSign />} label={translate("canvasTools.canvasContextMenu.sendToAgent")} disabled={!onSendToAgent} onClick={() => onSendToAgent && runAction(onSendToAgent)} />
+                            <MenuButton icon={<Trash2 />} label={translate("canvasTools.canvasContextMenu.deleteNodes", { v0: String(selectedCount) })} danger disabled={!onDeleteSelection} onClick={() => onDeleteSelection && runAction(onDeleteSelection)} />
                         </>
                     ) : menu.type === "node" ? (
                         <>
                             {isCharacterReference ? (
                                 <>
-                                    <MenuHeader title="角色卡" description={node?.metadata?.characterName || node?.title} />
-                                    <MenuSection label="角色引用" />
-                                    <MenuButton icon={<UserRound />} label="查看角色详情" onClick={() => runAction(onEditText)} />
+                                    <MenuHeader title={translate("canvasA.characterNode.card")} description={node?.metadata?.characterName || node?.title} />
+                                    <MenuSection label={translate("canvasTools.canvasContextMenu.characterReference")} />
+                                    <MenuButton icon={<UserRound />} label={translate("canvasTools.canvasContextMenu.viewCharacterDetails")} onClick={() => runAction(onEditText)} />
                                     <MenuDivider />
-                                    <MenuSection label="节点" />
-                                    <MenuButton icon={<AtSign />} label="发送到 Agent" disabled={!onSendToAgent} onClick={() => onSendToAgent && runAction(onSendToAgent)} />
-                                    <MenuButton icon={<Copy />} label="复制角色引用" shortcut="⌘C" onClick={() => runAction(onCopyNode)} />
-                                    <MenuButton icon={<Layers3 />} label="创建引用副本" shortcut="⌘D" onClick={() => runAction(onDuplicate)} />
-                                    <MenuButton icon={<Trash2 />} label="删除节点" danger onClick={() => runAction(onDelete)} />
+                                    <MenuSection label={translate("canvasTools.canvasContextMenu.node")} />
+                                    <MenuButton icon={<AtSign />} label={translate("canvasTools.canvasContextMenu.sendToAgent")} disabled={!onSendToAgent} onClick={() => onSendToAgent && runAction(onSendToAgent)} />
+                                    <MenuButton icon={<Copy />} label={translate("canvasTools.canvasContextMenu.copyCharacterReference")} shortcut="⌘C" onClick={() => runAction(onCopyNode)} />
+                                    <MenuButton icon={<Layers3 />} label={translate("canvasTools.canvasContextMenu.createALinkedCopy")} shortcut="⌘D" onClick={() => runAction(onDuplicate)} />
+                                    <MenuButton icon={<Trash2 />} label={translate("canvasTools.canvasContextMenu.deleteNode")} danger onClick={() => runAction(onDelete)} />
                                 </>
                             ) : isMedia ? (
                                 <>
-                                    <MenuHeader title={isImage ? "图片" : "视频"} description={node?.title || nodeTypeLabel(node)} />
-                                    <MenuSection label="查看与归档" />
-                                    <MenuButton icon={<Maximize2 />} label="进入全景预览" disabled={!canOpenPreview} onClick={() => runAction(onViewMedia)} />
-                                    {onAdoptToDrama ? <MenuButton icon={<CircleCheckBig />} label="采用到短剧" detail={isImage ? "设为设定参考图" : "设为剧情段视频"} disabled={!hasNodeContent} onClick={() => runAction(onAdoptToDrama)} /> : null}
+                                    <MenuHeader title={isImage ? translate("account.feedback.image") : translate("account.feedback.video")} description={node?.title || nodeTypeLabel(node)} />
+                                    <MenuSection label={translate("canvasTools.canvasContextMenu.viewAndArchive")} />
+                                    <MenuButton icon={<Maximize2 />} label={translate("canvasTools.canvasContextMenu.enterPanoramaPreview")} disabled={!canOpenPreview} onClick={() => runAction(onViewMedia)} />
+                                    {onAdoptToDrama ? <MenuButton icon={<CircleCheckBig />} label={translate("canvasA.dramaAdopt.title")} detail={isImage ? translate("canvasTools.canvasContextMenu.setAsSettingReferenceImage") : translate("canvasTools.canvasContextMenu.setAsStorySegmentVideo")} disabled={!hasNodeContent} onClick={() => runAction(onAdoptToDrama)} /> : null}
                                     {versionMenuButton}
-                                    <MenuButton icon={<Tags />} label="设置资产分类" chevron onClick={() => setCategoryOpen(true)} />
-                                    {isImage ? <MenuButton icon={<CloudUpload />} label="上传到方舟素材库" onClick={() => runAction(onUploadToArkPrivateAsset)} /> : null}
+                                    <MenuButton icon={<Tags />} label={translate("canvasTools.canvasContextMenu.setAssetCategory")} chevron onClick={() => setCategoryOpen(true)} />
+                                    {isImage ? <MenuButton icon={<CloudUpload />} label={translate("canvasTools.canvasContextMenu.uploadToArkAssetLibrary")} onClick={() => runAction(onUploadToArkPrivateAsset)} /> : null}
                                     <MenuDivider />
-                                    <MenuSection label="节点" />
-                                    <MenuButton icon={<AtSign />} label="发送到 Agent" disabled={!onSendToAgent} onClick={() => onSendToAgent && runAction(onSendToAgent)} />
-                                    <MenuButton icon={<Copy />} label="复制节点" shortcut="⌘C" onClick={() => runAction(onCopyNode)} />
-                                    {isImage ? <MenuButton icon={<Clipboard />} label="复制图片" disabled={!hasNodeContent} onClick={() => runAction(onCopyContent)} /> : null}
-                                    <MenuButton icon={<Link2 />} label={isImage ? "复制图片地址" : "复制视频地址"} disabled={!canCopyMediaUrl} onClick={() => runAction(onCopyMediaUrl)} />
-                                    <MenuButton icon={<Copy />} label="创建生成副本" onClick={() => runAction(onCreateGenerationCopy)} />
-                                    <MenuButton icon={<Layers3 />} label="创建参数变体" shortcut="⌘D" onClick={() => runAction(onDuplicate)} />
-                                    <MenuButton icon={<Trash2 />} label="删除节点" danger onClick={() => runAction(onDelete)} />
+                                    <MenuSection label={translate("canvasTools.canvasContextMenu.node")} />
+                                    <MenuButton icon={<AtSign />} label={translate("canvasTools.canvasContextMenu.sendToAgent")} disabled={!onSendToAgent} onClick={() => onSendToAgent && runAction(onSendToAgent)} />
+                                    <MenuButton icon={<Copy />} label={translate("canvasTools.canvasContextMenu.duplicateNode")} shortcut="⌘C" onClick={() => runAction(onCopyNode)} />
+                                    {isImage ? <MenuButton icon={<Clipboard />} label={translate("canvasTools.canvasContextMenu.copyImage")} disabled={!hasNodeContent} onClick={() => runAction(onCopyContent)} /> : null}
+                                    <MenuButton icon={<Link2 />} label={isImage ? translate("canvasTools.canvasContextMenu.copyImageURL") : translate("canvasTools.canvasContextMenu.copyVideoURL")} disabled={!canCopyMediaUrl} onClick={() => runAction(onCopyMediaUrl)} />
+                                    <MenuButton icon={<Copy />} label={translate("canvasTools.canvasContextMenu.createAGenerationCopy")} onClick={() => runAction(onCreateGenerationCopy)} />
+                                    <MenuButton icon={<Layers3 />} label={translate("canvasTools.canvasContextMenu.createAParameterVariant")} shortcut="⌘D" onClick={() => runAction(onDuplicate)} />
+                                    <MenuButton icon={<Trash2 />} label={translate("canvasTools.canvasContextMenu.deleteNode")} danger onClick={() => runAction(onDelete)} />
                                 </>
                             ) : (
                                 <>
                                     <MenuHeader title={node?.title || nodeTypeLabel(node)} />
-                                    <MenuSection label="节点操作" />
-                                    {isFrame ? <MenuButton icon={isFolder ? <FolderOpen /> : <PanelTop />} label={node?.metadata?.frame?.collapsed ? `展开${isFolder ? "文件夹" : "背板"}` : `折叠${isFolder ? "文件夹" : "背板"}`} onClick={() => runAction(onToggleFrame)} /> : <MenuButton icon={<FolderPlus />} label="保存到我的素材" disabled={!canSaveAsset} onClick={() => runAction(onSaveAsset)} />}
-                                    {isText ? <MenuButton icon={<Maximize2 />} label="放大编辑" onClick={() => runAction(onEditText)} /> : null}
-                                    {isDrawing ? <MenuButton icon={<Pencil />} label="打开绘图" onClick={() => runAction(onOpenDrawing)} /> : null}
+                                    <MenuSection label={translate("canvasTools.canvasContextMenu.nodeActions")} />
+                                    {isFrame ? <MenuButton icon={isFolder ? <FolderOpen /> : <PanelTop />} label={node?.metadata?.frame?.collapsed ? translate("canvasTools.canvasContextMenu.expand", { v0: String(isFolder ? translate("library.picker.folders") : translate("canvasTools.canvasContextMenu.backdrop")) }) : translate("canvasTools.canvasContextMenu.collapse", { v0: String(isFolder ? translate("library.picker.folders") : translate("canvasTools.canvasContextMenu.backdrop")) })} onClick={() => runAction(onToggleFrame)} /> : <MenuButton icon={<FolderPlus />} label={translate("canvasTools.canvasContextMenu.saveToMyAssets")} disabled={!canSaveAsset} onClick={() => runAction(onSaveAsset)} />}
+                                    {isText ? <MenuButton icon={<Maximize2 />} label={translate("canvasTools.canvasContextMenu.enlargeToEdit")} onClick={() => runAction(onEditText)} /> : null}
+                                    {isDrawing ? <MenuButton icon={<Pencil />} label={translate("canvasTools.canvasContextMenu.openDrawing")} onClick={() => runAction(onOpenDrawing)} /> : null}
                                     {isAudio ? versionMenuButton : null}
-                                    {isText ? <MenuButton icon={<ImageIcon />} label="用文本生图" disabled={!canGenerateFromText} onClick={() => runAction(onGenerateImage)} /> : null}
-                                    {onCreateDramaFromStoryboard ? <MenuButton icon={<Clapperboard />} label="交给短剧自动制作" detail="按分镜原样转录，生成参考图与视频" onClick={() => runAction(onCreateDramaFromStoryboard)} /> : null}
+                                    {isText ? <MenuButton icon={<ImageIcon />} label={translate("canvasTools.canvasContextMenu.generateAnImageFromText")} disabled={!canGenerateFromText} onClick={() => runAction(onGenerateImage)} /> : null}
+                                    {onCreateDramaFromStoryboard ? <MenuButton icon={<Clapperboard />} label={translate("canvasTools.canvasContextMenu.sendToAutomaticDramaProduction")} detail={translate("canvasTools.canvasContextMenu.transcribeTheStoryboardAsWrittenToGenerateReferenceImagesAnd")} onClick={() => runAction(onCreateDramaFromStoryboard)} /> : null}
                                     <MenuDivider />
-                                    <MenuSection label="副本与内容" />
-                                    <MenuButton icon={<AtSign />} label="发送到 Agent" disabled={!onSendToAgent} onClick={() => onSendToAgent && runAction(onSendToAgent)} />
-                                    <MenuButton icon={<Copy />} label={isFrame ? `复制${isFolder ? "文件夹" : "背板"}及内容` : "复制节点"} shortcut="⌘C" onClick={() => runAction(onCopyNode)} />
-                                    {isText ? <MenuButton icon={<Clipboard />} label="复制文本" disabled={!hasNodeContent} onClick={() => runAction(onCopyContent)} /> : null}
-                                    <MenuButton icon={<Copy />} label={isFrame ? `创建${isFolder ? "文件夹" : "背板"}副本` : "创建参数变体"} shortcut="⌘D" onClick={() => runAction(onDuplicate)} />
-                                    <MenuButton icon={<Clipboard />} label="粘贴" shortcut="⌘V" disabled={!canPaste} onClick={() => runAction(onPaste)} />
-                                    <MenuButton icon={<Trash2 />} label={isFrame ? `删除${isFolder ? "文件夹" : "背板"}` : "删除节点"} danger onClick={() => runAction(onDelete)} />
+                                    <MenuSection label={translate("canvasTools.canvasContextMenu.copiesAndContent")} />
+                                    <MenuButton icon={<AtSign />} label={translate("canvasTools.canvasContextMenu.sendToAgent")} disabled={!onSendToAgent} onClick={() => onSendToAgent && runAction(onSendToAgent)} />
+                                    <MenuButton icon={<Copy />} label={isFrame ? translate("canvasTools.canvasContextMenu.copyAndContents", { v0: String(isFolder ? translate("library.picker.folders") : translate("canvasTools.canvasContextMenu.backdrop")) }) : translate("canvasTools.canvasContextMenu.duplicateNode")} shortcut="⌘C" onClick={() => runAction(onCopyNode)} />
+                                    {isText ? <MenuButton icon={<Clipboard />} label={translate("canvasTools.canvasContextMenu.copyText")} disabled={!hasNodeContent} onClick={() => runAction(onCopyContent)} /> : null}
+                                    <MenuButton icon={<Copy />} label={isFrame ? translate("canvasTools.canvasContextMenu.createACopyOf", { v0: String(isFolder ? translate("library.picker.folders") : translate("canvasTools.canvasContextMenu.backdrop")) }) : translate("canvasTools.canvasContextMenu.createAParameterVariant")} shortcut="⌘D" onClick={() => runAction(onDuplicate)} />
+                                    <MenuButton icon={<Clipboard />} label={translate("canvasTools.canvasContextMenu.paste")} shortcut="⌘V" disabled={!canPaste} onClick={() => runAction(onPaste)} />
+                                    <MenuButton icon={<Trash2 />} label={isFrame ? translate("canvasTools.canvasContextMenu.delete", { v0: String(isFolder ? translate("library.picker.folders") : translate("canvasTools.canvasContextMenu.backdrop")) }) : translate("canvasTools.canvasContextMenu.deleteNode")} danger onClick={() => runAction(onDelete)} />
                                 </>
                             )}
                         </>
                     ) : (
                         <>
-                            <MenuHeader title="连接" />
-                            <MenuButton icon={<Trash2 className="size-4" />} label="删除连接" danger onClick={() => runAction(onDelete)} />
+                            <MenuHeader title={translate("canvasTools.canvasContextMenu.connect")} />
+                            <MenuButton icon={<Trash2 className="size-4" />} label={translate("canvasTools.canvasContextMenu.deleteConnection")} danger onClick={() => runAction(onDelete)} />
                         </>
                     )}
                 </div>
@@ -382,7 +383,7 @@ function MenuHeader({ title, description, onBack }: { title: string; description
     const theme = canvasThemes[useActiveTheme()];
     return (
         <div className="mb-1 flex items-center gap-1.5 px-2 pb-1.5 pt-1.5">
-            {onBack ? <button type="button" onClick={onBack} className="grid size-6 shrink-0 place-items-center rounded-[var(--r-md)] outline-none transition-colors hover:bg-[var(--menu-hover)] focus-visible:ring-2" aria-label="返回媒体操作"><ArrowLeft className="size-3.5" /></button> : null}
+            {onBack ? <button type="button" onClick={onBack} className="grid size-6 shrink-0 place-items-center rounded-[var(--r-md)] outline-none transition-colors hover:bg-[var(--menu-hover)] focus-visible:ring-2" aria-label={translate("canvasTools.canvasContextMenu.backToMediaActions")}><ArrowLeft className="size-3.5" /></button> : null}
             <span className="min-w-0">
                 <span className="block truncate font-semibold leading-5" style={{ fontSize: "var(--fs-ui)" }}>{title}</span>
                 {description && description !== title ? <span className="block truncate leading-4" style={{ color: theme.node.muted, fontSize: "var(--fs-label)" }}>{description}</span> : null}
@@ -447,14 +448,14 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function nodeTypeLabel(node?: CanvasNodeData | null) {
-    if (!node) return "节点";
-    if (node.type === CanvasNodeType.Image) return "图片节点";
-    if (node.type === CanvasNodeType.Text) return "文本节点";
-    if (node.type === CanvasNodeType.Script) return "分镜脚本节点";
-    if (node.type === CanvasNodeType.Skill) return "技能节点";
-    if (node.type === CanvasNodeType.Video) return "视频节点";
-    if (node.type === CanvasNodeType.Audio) return "音频节点";
-    if (node.type === CanvasNodeType.Drawing) return "绘图节点";
-    if (node.type === CanvasNodeType.Frame) return isCanvasFolderNode(node) ? "文件夹" : "背板";
-    return "生成配置节点";
+    if (!node) return translate("canvasTools.canvasContextMenu.node");
+    if (node.type === CanvasNodeType.Image) return translate("canvasA.assetTray.imageNodeFallback");
+    if (node.type === CanvasNodeType.Text) return translate("canvasTools.canvasContextMenu.textNode");
+    if (node.type === CanvasNodeType.Script) return translate("canvasTools.canvasContextMenu.storyboardNode");
+    if (node.type === CanvasNodeType.Skill) return translate("canvasTools.canvasContextMenu.skillNode");
+    if (node.type === CanvasNodeType.Video) return translate("canvasTools.canvasContextMenu.videoNode");
+    if (node.type === CanvasNodeType.Audio) return translate("canvasTools.canvasContextMenu.audioNode");
+    if (node.type === CanvasNodeType.Drawing) return translate("canvasTools.canvasContextMenu.drawingNode");
+    if (node.type === CanvasNodeType.Frame) return isCanvasFolderNode(node) ? translate("library.picker.folders") : translate("canvasTools.canvasContextMenu.backdrop");
+    return translate("canvasTools.canvasContextMenu.generationConfigNode");
 }

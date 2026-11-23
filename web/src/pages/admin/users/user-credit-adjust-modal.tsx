@@ -5,12 +5,13 @@ import { formatCredits } from "@/constant/credits";
 import type { AdminUser } from "@/services/api/auth";
 import { adjustAdminUserCredits } from "@/services/api/wallet";
 import { AdminModal } from "@/pages/admin/ui/overlays";
+import { translate } from "@/i18n";
 
 type AdjustValues = { amount: number; note: string };
 
 function toMicrocredits(value: number) {
     const result = Math.round(Number(value) * 1_000_000);
-    if (!Number.isSafeInteger(result)) throw new Error("积分变化超出可处理范围");
+    if (!Number.isSafeInteger(result)) throw new Error(translate("adminPages.users.userCreditAdjustModal.creditAdjustmentIsOutsideTheSupportedRange"));
     return result;
 }
 
@@ -35,11 +36,11 @@ export function UserCreditAdjustModal({ user, onClose, onAdjusted }: { user: Adm
         const values = await form.validateFields();
         const amount = Number(values.amount);
         if (!amount) {
-            message.error("积分变化不能为 0");
+            message.error(translate("adminPages.users.userCreditAdjustModal.creditAdjustmentCannotBe0"));
             return;
         }
         if (user.availableMicrocredits + toMicrocredits(amount) < 0) {
-            message.error("扣减后可用积分不能低于 0");
+            message.error(translate("adminPages.users.userCreditAdjustModal.availableCreditsCannotFallBelow0AfterDeduction"));
             return;
         }
         setPending({ amount, note: values.note.trim() });
@@ -52,11 +53,11 @@ export function UserCreditAdjustModal({ user, onClose, onAdjusted }: { user: Adm
             const result = await adjustAdminUserCredits(user.id, { amountMicrocredits: toMicrocredits(pending.amount), note: pending.note });
             onAdjusted({ id: user.id, availableMicrocredits: result.account.availableMicrocredits, reservedMicrocredits: result.account.reservedMicrocredits });
             window.dispatchEvent(new CustomEvent("wallet:updated"));
-            message.success(`已调整，当前可用积分 ${formatCredits(result.account.availableMicrocredits)}`);
+            message.success(translate("adminPages.users.userCreditAdjustModal.adjustedAvailableCredits", { v0: String(formatCredits(result.account.availableMicrocredits)) }));
             onClose();
         } catch (error) {
             // 结果不确定时不自动重试，保留核对内容让管理员先刷新列表确认。
-            message.error(error instanceof Error ? error.message : "调整积分失败，请刷新列表核对余额后再操作");
+            message.error(error instanceof Error ? error.message : translate("adminPages.users.userCreditAdjustModal.creditAdjustmentFailedRefreshTheListAndCheckTheBalance"));
         } finally {
             setSaving(false);
         }
@@ -66,7 +67,7 @@ export function UserCreditAdjustModal({ user, onClose, onAdjusted }: { user: Adm
 
     return (
         <AdminModal
-            title={user ? `调整积分 · ${user.displayName || user.username}` : "调整积分"}
+            title={user ? translate("adminPages.users.userCreditAdjustModal.adjustCredits", { v0: String(user.displayName || user.username) }) : translate("adminPages.users.userCreditAdjustModal.adjustCredits2")}
             open={Boolean(user)}
             width={480}
             onCancel={() => !saving && onClose()}
@@ -77,17 +78,17 @@ export function UserCreditAdjustModal({ user, onClose, onAdjusted }: { user: Adm
                 pending ? (
                     <div className="flex justify-end gap-2">
                         <Button disabled={saving} onClick={() => setPending(null)}>
-                            返回修改
+                            {translate("adminPages.users.userCreditAdjustModal.backToEdit")}
                         </Button>
                         <Button type="primary" danger={negative} loading={saving} onClick={() => void apply()}>
-                            {negative ? "确认扣减" : "确认增加"}
+                            {negative ? translate("adminPages.users.userCreditAdjustModal.confirmDeduction") : translate("adminPages.users.userCreditAdjustModal.confirmIncrease")}
                         </Button>
                     </div>
                 ) : (
                     <div className="flex justify-end gap-2">
-                        <Button onClick={onClose}>取消</Button>
+                        <Button onClick={onClose}>{translate("common.cancel")}</Button>
                         <Button type="primary" onClick={() => void review()}>
-                            下一步：核对
+                            {translate("adminPages.users.userCreditAdjustModal.nextReview")}
                         </Button>
                     </div>
                 )
@@ -97,38 +98,50 @@ export function UserCreditAdjustModal({ user, onClose, onAdjusted }: { user: Adm
                 <div className="admin-user-credit-adjust">
                     <dl className="admin-user-credit-summary">
                         <div>
-                            <dt>可用积分</dt>
+                            <dt>{translate("shell.account.availableCredits")}</dt>
                             <dd>{formatCredits(user.availableMicrocredits)}</dd>
                         </div>
                         <div>
-                            <dt>冻结积分</dt>
+                            <dt>{translate("adminPages.users.userCreditAdjustModal.heldCredits")}</dt>
                             <dd>{formatCredits(user.reservedMicrocredits)}</dd>
                         </div>
                         {pending ? (
                             <>
                                 <div>
-                                    <dt>本次变化</dt>
+                                    <dt>{translate("adminPages.users.userCreditAdjustModal.adjustment")}</dt>
                                     <dd className={negative ? "is-negative" : "is-positive"}>
                                         {pending.amount > 0 ? "+" : ""}
                                         {formatCredits(toMicrocredits(pending.amount))}
                                     </dd>
                                 </div>
                                 <div>
-                                    <dt>调整后可用</dt>
+                                    <dt>{translate("adminPages.users.userCreditAdjustModal.availableAfterAdjustment")}</dt>
                                     <dd>{formatCredits(user.availableMicrocredits + toMicrocredits(pending.amount))}</dd>
                                 </div>
                             </>
                         ) : null}
                     </dl>
                     {pending ? (
-                        <p className="admin-user-credit-note">依据：{pending.note}</p>
+                        <p className="admin-user-credit-note">
+                            {translate("adminPages.users.userCreditAdjustModal.reason")}
+                            {pending.note}
+                        </p>
                     ) : (
                         <Form form={form} layout="vertical" requiredMark={false}>
-                            <Form.Item name="amount" label="积分变化" extra="正数为增加，负数为扣减。" rules={[{ required: true, message: "请填写积分变化" }]}>
-                                <InputNumber className="w-full" precision={6} placeholder="例如 100 或 -20" autoFocus />
+                            <Form.Item
+                                name="amount"
+                                label={translate("adminPages.users.userCreditAdjustModal.change")}
+                                extra={translate("adminPages.users.userCreditAdjustModal.positiveValuesAddCreditsNegativeValuesDeductThem")}
+                                rules={[{ required: true, message: translate("adminPages.users.userCreditAdjustModal.enterTheCreditChange") }]}
+                            >
+                                <InputNumber className="w-full" precision={6} placeholder={translate("adminPages.users.userCreditAdjustModal.forExample100Or20")} autoFocus />
                             </Form.Item>
-                            <Form.Item name="note" label="调整原因" rules={[{ required: true, whitespace: true, message: "请填写工单号或处理依据" }]}>
-                                <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} maxLength={200} showCount placeholder="例如：工单 #1234 补偿失败任务" />
+                            <Form.Item
+                                name="note"
+                                label={translate("adminPages.users.userCreditAdjustModal.reasonForAdjustment")}
+                                rules={[{ required: true, whitespace: true, message: translate("adminPages.users.userCreditAdjustModal.pleaseEnterATicketNumberOrReason") }]}
+                            >
+                                <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} maxLength={200} showCount placeholder={translate("adminPages.users.userCreditAdjustModal.forExampleTicket1234CompensationForAFailedTask")} />
                             </Form.Item>
                         </Form>
                     )}

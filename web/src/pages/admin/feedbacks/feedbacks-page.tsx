@@ -8,6 +8,7 @@ import { getAdminFeedbacks, updateAdminFeedback, archiveAdminFeedback, type Feed
 import { adminResourceFileUrl } from "@/services/api/admin-storage";
 import { AdminPageFrame } from "../components/admin-shell";
 import { cn } from "@/lib/utils";
+import { currentLocale, translate } from "@/i18n";
 
 export default function AdminFeedbacksPage() {
     const { message } = App.useApp();
@@ -48,7 +49,7 @@ export default function AdminFeedbacksPage() {
             setList(res.list);
             setTotal(res.total);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "获取反馈列表失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.feedbacks.feedbacksPage.failedToLoadFeedback"));
         } finally {
             setLoading(false);
         }
@@ -73,12 +74,12 @@ export default function AdminFeedbacksPage() {
                 status: statusChange,
                 adminReply: replyText.trim(),
             });
-            message.success("已更新反馈状态与答复内容");
+            message.success(translate("adminPages.feedbacks.feedbacksPage.feedbackStatusAndReplyUpdated"));
             setSelectedItem(updated);
             // Refresh list in place
             setList((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "更新失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.feedbacks.feedbacksPage.updateFailed"));
         } finally {
             setSaving(false);
         }
@@ -87,13 +88,13 @@ export default function AdminFeedbacksPage() {
     const handleArchive = async (id: string, archive: boolean) => {
         try {
             const updated = await archiveAdminFeedback(id, archive);
-            message.success(archive ? "已将反馈移入历史归档" : "已将反馈移出归档并恢复活跃");
+            message.success(archive ? translate("adminPages.feedbacks.feedbacksPage.feedbackMovedToArchive") : translate("adminPages.feedbacks.feedbacksPage.feedbackRestoredFromArchiveToActive"));
             if (selectedItem?.id === id) {
                 setSelectedItem(updated);
             }
             void loadData();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "操作失败");
+            message.error(error instanceof Error ? error.message : translate("library.tasks.page.actionFailed"));
         }
     };
 
@@ -104,23 +105,23 @@ export default function AdminFeedbacksPage() {
     const archivedCount = list.filter((i) => i.archived).length;
 
     const typeConfig: Record<FeedbackType, { label: string; color: string; icon: typeof Bug }> = {
-        bug: { label: "Bug 缺陷", color: "error", icon: Bug },
-        feature: { label: "功能提议", color: "processing", icon: Lightbulb },
-        improvement: { label: "体验建议", color: "cyan", icon: Lightbulb },
-        other: { label: "其他反馈", color: "default", icon: MessageSquare },
+        bug: { label: translate("adminPages.feedbacks.feedbacksPage.bugReport"), color: "error", icon: Bug },
+        feature: { label: translate("adminPages.feedbacks.feedbacksPage.featureProposal"), color: "processing", icon: Lightbulb },
+        improvement: { label: translate("adminPages.feedbacks.feedbacksPage.usabilitySuggestion"), color: "cyan", icon: Lightbulb },
+        other: { label: translate("account.feedback.types.other"), color: "default", icon: MessageSquare },
     };
 
     const statusConfig: Record<string, { label: string; tagColor: string }> = {
-        pending: { label: "待处理", tagColor: "orange" },
-        processing: { label: "处理中", tagColor: "blue" },
-        resolved: { label: "已解决", tagColor: "green" },
-        closed: { label: "已关闭", tagColor: "default" },
-        archived: { label: "已归档", tagColor: "default" },
+        pending: { label: translate("account.feedback.status.pending"), tagColor: "orange" },
+        processing: { label: translate("account.feedback.status.processing"), tagColor: "blue" },
+        resolved: { label: translate("adminPages.feedbacks.feedbacksPage.resolved"), tagColor: "green" },
+        closed: { label: translate("adminPages.feedbacks.feedbacksPage.disabled"), tagColor: "default" },
+        archived: { label: translate("account.feedback.archived"), tagColor: "default" },
     };
 
     const columns: ColumnsType<FeedbackItem> = [
         {
-            title: "类型",
+            title: translate("account.settings.runninghub.kind"),
             dataIndex: "type",
             key: "type",
             width: 100,
@@ -136,7 +137,7 @@ export default function AdminFeedbacksPage() {
             },
         },
         {
-            title: "标题与反馈说明",
+            title: translate("adminPages.feedbacks.feedbacksPage.titleAndFeedbackDescription"),
             dataIndex: "title",
             key: "title",
             render: (_: unknown, record: FeedbackItem) => {
@@ -153,17 +154,19 @@ export default function AdminFeedbacksPage() {
                             <span className="font-semibold text-foreground hover:text-primary cursor-pointer" onClick={() => handleOpenDetail(record)}>
                                 {record.title}
                             </span>
-                            {record.archived ? <Tag className="text-[var(--fs-label)] px-2 m-0 bg-muted/60 text-muted-foreground border-border/60">已归档</Tag> : null}
+                            {record.archived ? <Tag className="text-[var(--fs-label)] px-2 m-0 bg-muted/60 text-muted-foreground border-border/60">{translate("account.feedback.archived")}</Tag> : null}
                             {attCount > 0 ? (
                                 <Tag className="text-[var(--fs-label)] px-1 m-0 flex items-center gap-0.5 border-dashed">
                                     <Paperclip className="size-2.5" />
-                                    <span>{attCount} 附件</span>
+                                    <span>
+                                        {attCount} {translate("adminPages.feedbacks.feedbacksPage.attachments")}
+                                    </span>
                                 </Tag>
                             ) : null}
                             {record.adminReply ? (
                                 <Tag color="blue" className="text-[var(--fs-label)] px-1 m-0 flex items-center gap-0.5">
                                     <CheckCircle2 className="size-2.5" />
-                                    <span>已答复</span>
+                                    <span>{translate("adminPages.feedbacks.feedbacksPage.replied")}</span>
                                 </Tag>
                             ) : null}
                         </div>
@@ -173,12 +176,12 @@ export default function AdminFeedbacksPage() {
             },
         },
         {
-            title: "提交用户",
+            title: translate("adminPages.feedbacks.feedbacksPage.submittedBy"),
             key: "user",
             width: 150,
             render: (_: unknown, record: FeedbackItem) => (
                 <div className="text-xs space-y-0.5">
-                    <div className="font-medium text-foreground">{record.userName || "匿名"}</div>
+                    <div className="font-medium text-foreground">{record.userName || translate("adminPages.feedbacks.feedbacksPage.anonymous")}</div>
                     {record.contact ? (
                         <div className="text-[var(--fs-label)] text-muted-foreground truncate max-w-[140px]" title={record.contact}>
                             {record.contact}
@@ -188,7 +191,7 @@ export default function AdminFeedbacksPage() {
             ),
         },
         {
-            title: "状态",
+            title: translate("library.tasks.detail.status"),
             dataIndex: "status",
             key: "status",
             width: 110,
@@ -204,13 +207,13 @@ export default function AdminFeedbacksPage() {
             },
         },
         {
-            title: "提交时间",
+            title: translate("adminPages.feedbacks.feedbacksPage.submittedAt"),
             dataIndex: "createdAt",
             key: "createdAt",
             width: 150,
             render: (timeStr: string) => (
                 <span className="text-xs text-muted-foreground">
-                    {new Date(timeStr).toLocaleString("zh-CN", {
+                    {new Date(timeStr).toLocaleString(currentLocale(), {
                         month: "2-digit",
                         day: "2-digit",
                         hour: "2-digit",
@@ -220,23 +223,23 @@ export default function AdminFeedbacksPage() {
             ),
         },
         {
-            title: "操作",
+            title: translate("account.settings.runninghub.actions"),
             key: "action",
             width: 160,
             render: (_: unknown, record: FeedbackItem) => (
                 <Space size="small">
                     <Button size="small" type="link" onClick={() => handleOpenDetail(record)}>
-                        详情回复
+                        {translate("adminPages.feedbacks.feedbacksPage.detailsAndReply")}
                     </Button>
                     <Popconfirm
-                        title={record.archived ? "确定将此反馈移出归档吗？" : "确定归档此反馈吗？"}
-                        description={record.archived ? "移出后将重新回到活跃收件箱中跟进" : "归档后移入历史归档，用户与管理员仍可随时完整查阅"}
+                        title={record.archived ? translate("adminPages.feedbacks.feedbacksPage.moveThisFeedbackOutOfTheArchive") : translate("adminPages.feedbacks.feedbacksPage.archiveThisFeedback")}
+                        description={record.archived ? translate("adminPages.feedbacks.feedbacksPage.itWillReturnToTheActiveInboxForFollowUp") : translate("adminPages.feedbacks.feedbacksPage.archivedFeedbackRemainsAvailableInFullToBothTheUser")}
                         onConfirm={() => handleArchive(record.id, !record.archived)}
-                        okText={record.archived ? "移出归档" : "归档"}
-                        cancelText="取消"
+                        okText={record.archived ? translate("adminPages.feedbacks.feedbacksPage.unarchive") : translate("adminPages.feedbacks.feedbacksPage.archive")}
+                        cancelText={translate("common.cancel")}
                     >
                         <Button size="small" type="text" icon={record.archived ? <ArchiveRestore className="size-3.5" /> : <Archive className="size-3.5" />} className={cn(record.archived ? "text-primary" : "text-muted-foreground hover:text-foreground")}>
-                            {record.archived ? "移出归档" : "归档"}
+                            {record.archived ? translate("adminPages.feedbacks.feedbacksPage.unarchive") : translate("adminPages.feedbacks.feedbacksPage.archive")}
                         </Button>
                     </Popconfirm>
                 </Space>
@@ -255,34 +258,34 @@ export default function AdminFeedbacksPage() {
     } catch {}
 
     return (
-        <AdminPageFrame title="用户反馈收件箱" description="集中查阅全站用户提交的 Bug 缺陷、功能提议与体验建议，支持收件箱式答复与历史归档管理" scroll>
+        <AdminPageFrame title={translate("adminPages.feedbacks.feedbacksPage.userFeedbackInbox")} description={translate("adminPages.feedbacks.feedbacksPage.reviewBugReportsFeatureProposalsAndUsabilitySuggestionsFromAll")} scroll>
             <div className="space-y-4">
                 {/* Metrics Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div className="rounded-xl border border-border/70 bg-card p-4 flex items-center justify-between">
                         <div>
-                            <p className="text-xs text-muted-foreground">当前列表数</p>
+                            <p className="text-xs text-muted-foreground">{translate("adminPages.feedbacks.feedbacksPage.currentListCount")}</p>
                             <p className="text-xl font-semibold text-foreground mt-0.5">{total}</p>
                         </div>
                         <Inbox className="size-5 text-primary opacity-60" />
                     </div>
                     <div className="rounded-xl border border-orange-500/30 bg-orange-500/5 p-4 flex items-center justify-between">
                         <div>
-                            <p className="text-xs text-orange-600 dark:text-orange-400">待处理</p>
+                            <p className="text-xs text-orange-600 dark:text-orange-400">{translate("account.feedback.status.pending")}</p>
                             <p className="text-xl font-semibold text-orange-600 dark:text-orange-400 mt-0.5">{pendingCount}</p>
                         </div>
                         <Clock className="size-5 text-orange-500 opacity-60" />
                     </div>
                     <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-4 flex items-center justify-between">
                         <div>
-                            <p className="text-xs text-blue-600 dark:text-blue-400">处理中</p>
+                            <p className="text-xs text-blue-600 dark:text-blue-400">{translate("account.feedback.status.processing")}</p>
                             <p className="text-xl font-semibold text-blue-600 dark:text-blue-400 mt-0.5">{processingCount}</p>
                         </div>
                         <Clock3 className="size-5 text-blue-500 opacity-60" />
                     </div>
                     <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-4 flex items-center justify-between">
                         <div>
-                            <p className="text-xs text-green-600 dark:text-green-400">已解决 / 采纳</p>
+                            <p className="text-xs text-green-600 dark:text-green-400">{translate("adminPages.feedbacks.feedbacksPage.resolvedAccepted")}</p>
                             <p className="text-xl font-semibold text-green-600 dark:text-green-400 mt-0.5">{resolvedCount}</p>
                         </div>
                         <CheckCircle2 className="size-5 text-green-500 opacity-60" />
@@ -299,14 +302,14 @@ export default function AdminFeedbacksPage() {
                                 setPage(1);
                             }}
                             options={[
-                                { label: "进行中反馈", value: "active" },
-                                { label: "历史归档", value: "archived" },
-                                { label: "全部反馈", value: "all" },
+                                { label: translate("adminPages.feedbacks.feedbacksPage.activeFeedback"), value: "active" },
+                                { label: translate("adminPages.feedbacks.feedbacksPage.archive2"), value: "archived" },
+                                { label: translate("adminPages.feedbacks.feedbacksPage.allFeedback"), value: "all" },
                             ]}
                             className="bg-muted/40"
                         />
                         <Input
-                            placeholder="搜索标题、内容、用户或联系方式"
+                            placeholder={translate("adminPages.feedbacks.feedbacksPage.searchTitleContentUserOrContactInformation")}
                             prefix={<Search className="size-3.5 text-muted-foreground mr-1" />}
                             value={keyword}
                             onChange={(e) => setKeyword(e.target.value)}
@@ -325,11 +328,11 @@ export default function AdminFeedbacksPage() {
                             }}
                             className="w-28 h-8 text-xs"
                             options={[
-                                { label: "全部类型", value: "all" },
-                                { label: "Bug 缺陷", value: "bug" },
-                                { label: "功能提议", value: "feature" },
-                                { label: "体验建议", value: "improvement" },
-                                { label: "其他意见", value: "other" },
+                                { label: translate("library.tasks.page.allKinds"), value: "all" },
+                                { label: translate("adminPages.feedbacks.feedbacksPage.bugReport"), value: "bug" },
+                                { label: translate("adminPages.feedbacks.feedbacksPage.featureProposal"), value: "feature" },
+                                { label: translate("adminPages.feedbacks.feedbacksPage.usabilitySuggestion"), value: "improvement" },
+                                { label: translate("adminPages.feedbacks.feedbacksPage.otherSuggestions"), value: "other" },
                             ]}
                         />
                         <Select
@@ -340,11 +343,11 @@ export default function AdminFeedbacksPage() {
                             }}
                             className="w-28 h-8 text-xs"
                             options={[
-                                { label: "全部状态", value: "all" },
-                                { label: "待处理", value: "pending" },
-                                { label: "处理中", value: "processing" },
-                                { label: "已解决", value: "resolved" },
-                                { label: "已关闭", value: "closed" },
+                                { label: translate("library.ark.expiry.all"), value: "all" },
+                                { label: translate("account.feedback.status.pending"), value: "pending" },
+                                { label: translate("account.feedback.status.processing"), value: "processing" },
+                                { label: translate("adminPages.feedbacks.feedbacksPage.resolved"), value: "resolved" },
+                                { label: translate("adminPages.feedbacks.feedbacksPage.disabled"), value: "closed" },
                             ]}
                         />
                         <Button
@@ -355,12 +358,12 @@ export default function AdminFeedbacksPage() {
                                 void loadData();
                             }}
                         >
-                            查询
+                            {translate("adminPages.feedbacks.feedbacksPage.search")}
                         </Button>
                     </div>
 
                     <Button size="small" icon={<RefreshCw className={cn("size-3.5", loading && "animate-spin")} />} onClick={() => void loadData()}>
-                        刷新
+                        {translate("common.refresh")}
                     </Button>
                 </div>
 
@@ -395,7 +398,7 @@ export default function AdminFeedbacksPage() {
                 title={
                     <div className="flex items-center gap-2">
                         <FileText className="size-4 text-primary" />
-                        <span className="font-semibold text-sm">反馈详情与处理回复</span>
+                        <span className="font-semibold text-sm">{translate("adminPages.feedbacks.feedbacksPage.feedbackDetailsAndResponse")}</span>
                     </div>
                 }
             >
@@ -406,7 +409,7 @@ export default function AdminFeedbacksPage() {
                             <div className="flex items-center justify-between">
                                 <span className="font-semibold text-sm text-foreground">{selectedItem.title}</span>
                                 <div className="flex items-center gap-2">
-                                    {selectedItem.archived ? <Tag className="m-0 text-xs bg-muted/80 text-muted-foreground border-border/80">已归档</Tag> : null}
+                                    {selectedItem.archived ? <Tag className="m-0 text-xs bg-muted/80 text-muted-foreground border-border/80">{translate("account.feedback.archived")}</Tag> : null}
                                     <Tag color={statusConfig[selectedItem.status]?.tagColor || "default"} className="m-0 text-xs">
                                         {statusConfig[selectedItem.status]?.label || selectedItem.status}
                                     </Tag>
@@ -414,30 +417,37 @@ export default function AdminFeedbacksPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-muted-foreground pt-1 border-t border-border/40 text-[var(--fs-label)]">
                                 <div>
-                                    提交用户：<span className="text-foreground">{selectedItem.userName}</span>
+                                    {translate("adminPages.feedbacks.feedbacksPage.submittedBy2")}
+                                    <span className="text-foreground">{selectedItem.userName}</span>
                                 </div>
                                 <div>
-                                    联系方式：<span className="text-foreground">{selectedItem.contact || "未填写"}</span>
+                                    {translate("adminPages.feedbacks.feedbacksPage.contact")}
+                                    <span className="text-foreground">{selectedItem.contact || translate("adminPages.feedbacks.feedbacksPage.notFilledIn")}</span>
                                 </div>
                                 <div>
-                                    反馈类型：<span className="text-foreground">{typeConfig[selectedItem.type]?.label || selectedItem.type}</span>
+                                    {translate("adminPages.feedbacks.feedbacksPage.feedbackType")}
+                                    <span className="text-foreground">{typeConfig[selectedItem.type]?.label || selectedItem.type}</span>
                                 </div>
                                 <div>
-                                    提交时间：<span className="text-foreground">{new Date(selectedItem.createdAt).toLocaleString("zh-CN")}</span>
+                                    {translate("adminPages.feedbacks.feedbacksPage.submittedAt2")}
+                                    <span className="text-foreground">{new Date(selectedItem.createdAt).toLocaleString(currentLocale())}</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Content */}
                         <div>
-                            <label className="block text-xs font-semibold text-foreground mb-2">反馈内容说明</label>
+                            <label className="block text-xs font-semibold text-foreground mb-2">{translate("adminPages.feedbacks.feedbacksPage.feedbackDescription")}</label>
                             <div className="rounded-xl border border-border/70 bg-muted/10 p-3 text-xs leading-relaxed whitespace-pre-wrap text-foreground/90">{selectedItem.content}</div>
                         </div>
 
                         {/* Attachments */}
                         {selectedAttachments.length > 0 ? (
                             <div>
-                                <label className="block text-xs font-semibold text-foreground mb-2">附件清单 ({selectedAttachments.length})</label>
+                                <label className="block text-xs font-semibold text-foreground mb-2">
+                                    {translate("adminPages.feedbacks.feedbacksPage.attachments2")}
+                                    {selectedAttachments.length})
+                                </label>
                                 <div className="grid grid-cols-2 gap-2">
                                     {selectedAttachments.map((att) => {
                                         // att.url 是提交者本人的 /api/resources/:id/file，管理员会被资源归属校验拒绝，后台改走管理员资源接口。
@@ -467,7 +477,7 @@ export default function AdminFeedbacksPage() {
                         {/* Environment Info */}
                         {Object.keys(selectedEnv).length > 0 ? (
                             <details className="rounded-lg border border-border/50 bg-muted/10 p-2 text-[var(--fs-label)] text-muted-foreground">
-                                <summary className="cursor-pointer font-medium hover:text-foreground">客户端诊断环境快照</summary>
+                                <summary className="cursor-pointer font-medium hover:text-foreground">{translate("adminPages.feedbacks.feedbacksPage.clientDiagnosticEnvironmentSnapshot")}</summary>
                                 <div className="mt-2 space-y-1 font-mono text-[var(--fs-label)] bg-black/20 p-2 rounded">
                                     {Object.entries(selectedEnv).map(([k, v]) => (
                                         <div key={k} className="flex gap-2">
@@ -481,36 +491,36 @@ export default function AdminFeedbacksPage() {
 
                         {/* Admin Action & Reply Section */}
                         <div className="border-t border-border/60 pt-4 space-y-3">
-                            <h4 className="font-semibold text-xs text-foreground">处理状态与官方答复</h4>
+                            <h4 className="font-semibold text-xs text-foreground">{translate("adminPages.feedbacks.feedbacksPage.statusAndOfficialResponse")}</h4>
 
                             <div>
-                                <label className="block text-xs text-muted-foreground mb-1">更新处理状态</label>
+                                <label className="block text-xs text-muted-foreground mb-1">{translate("adminPages.feedbacks.feedbacksPage.updateStatus")}</label>
                                 <Select
                                     value={statusChange}
                                     onChange={(v) => setStatusChange(v as FeedbackStatus)}
                                     className="w-full"
                                     options={[
-                                        { label: "待处理 (Pending)", value: "pending" },
-                                        { label: "处理中 / 评估中 (Processing)", value: "processing" },
-                                        { label: "已解决 / 已采纳 (Resolved)", value: "resolved" },
-                                        { label: "已关闭 / 暂不采纳 (Closed)", value: "closed" },
+                                        { label: translate("adminPages.feedbacks.feedbacksPage.pending"), value: "pending" },
+                                        { label: translate("adminPages.feedbacks.feedbacksPage.inProgressUnderReview"), value: "processing" },
+                                        { label: translate("adminPages.feedbacks.feedbacksPage.resolvedAccepted2"), value: "resolved" },
+                                        { label: translate("adminPages.feedbacks.feedbacksPage.closedNotAcceptedAtThisTime"), value: "closed" },
                                     ]}
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs text-muted-foreground mb-1">官方处理答复 (用户可在其收件箱与历史归档中直接查看)</label>
-                                <Input.TextArea rows={4} value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="输入回复内容，例如：已定位问题并将在下一版本发布修复；或者感谢提议，该需求已排入排期计划..." className="rounded-lg" />
+                                <label className="block text-xs text-muted-foreground mb-1">{translate("adminPages.feedbacks.feedbacksPage.officialResponseVisibleToTheUserInTheirInboxAnd")}</label>
+                                <Input.TextArea rows={4} value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder={translate("adminPages.feedbacks.feedbacksPage.enterAReplyForExampleWeIdentifiedTheIssueAnd")} className="rounded-lg" />
                             </div>
 
                             <div className="flex items-center justify-between pt-1">
                                 <Button icon={selectedItem.archived ? <ArchiveRestore className="size-3.5" /> : <Archive className="size-3.5" />} onClick={() => handleArchive(selectedItem.id, !selectedItem.archived)}>
-                                    {selectedItem.archived ? "移出归档" : "归档此反馈"}
+                                    {selectedItem.archived ? translate("adminPages.feedbacks.feedbacksPage.unarchive") : translate("adminPages.feedbacks.feedbacksPage.archiveThisFeedback2")}
                                 </Button>
                                 <div className="flex items-center gap-2">
-                                    <Button onClick={() => setDrawerOpen(false)}>取消</Button>
+                                    <Button onClick={() => setDrawerOpen(false)}>{translate("common.cancel")}</Button>
                                     <Button type="primary" loading={saving} onClick={handleSaveReply} icon={<Send className="size-3.5" />}>
-                                        保存并答复
+                                        {translate("adminPages.feedbacks.feedbacksPage.saveAndReply")}
                                     </Button>
                                 </div>
                             </div>
@@ -521,7 +531,7 @@ export default function AdminFeedbacksPage() {
 
             {/* Video Preview Modal */}
             {previewVideoUrl ? (
-                <AdminModal open={Boolean(previewVideoUrl)} onCancel={() => setPreviewVideoUrl(null)} footer={null} width={720} title="附件视频预览">
+                <AdminModal open={Boolean(previewVideoUrl)} onCancel={() => setPreviewVideoUrl(null)} footer={null} width={720} title={translate("account.feedback.videoPreview")}>
                     <div className="py-2">
                         <video src={previewVideoUrl} controls autoPlay className="w-full max-h-[60vh] rounded-lg bg-black" />
                     </div>

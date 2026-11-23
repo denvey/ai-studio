@@ -1,4 +1,5 @@
 import { http, apiBaseURL, compactApiParams } from "@/services/api/request";
+import { translate } from "@/i18n";
 
 export type AdminStorageResource = {
     id: string;
@@ -102,7 +103,7 @@ export function adminResourceFileUrl(id: string, download = false) {
 export async function downloadAdminResource(resource: AdminStorageResource) {
     const response = await fetch(adminResourceFileUrl(resource.id, true), { credentials: "include" });
     if (!response.ok) {
-        let message = "下载资源失败";
+        let message = translate("shared.api.adminStorage.failedToDownloadTheResource");
         try {
             const body = (await response.json()) as { msg?: string };
             if (body.msg) message = body.msg;

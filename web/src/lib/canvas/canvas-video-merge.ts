@@ -5,6 +5,7 @@ import { fetchFile } from "@ffmpeg/util";
 import { getMediaBlob } from "@/services/file-storage";
 import { buildRecordingTranscodeArgs } from "./canvas-video-merge-args";
 import { concatVideoFiles } from "./canvas-video-concat";
+import { translate } from "@/i18n";
 
 export type MergeVideoInput = { id: string; url?: string; storageKey?: string };
 export type MergeVideoProgress = { phase: "loading" | "reading" | "encoding"; progress: number };
@@ -22,7 +23,7 @@ export async function loadFFmpeg(onProgress?: (progress: MergeVideoProgress) => 
                 await ffmpeg.load({ coreURL: ffmpegCoreURL, wasmURL: ffmpegWasmURL });
             } catch (cause) {
                 ffmpeg.terminate();
-                throw new Error("视频合并工具加载失败，请刷新页面后重试", { cause });
+                throw new Error(translate("shared.canvas.canvasVideoMerge.theVideoMergeToolFailedToLoadRefreshThePage"), { cause });
             }
             return ffmpeg;
         })();
@@ -54,8 +55,8 @@ export async function transcodeVideoToMp4(input: Blob, onProgress?: (progress: M
             ffmpeg.off("log", onLog);
         }
         if (exitCode !== 0) {
-            console.error("白膜视频转码失败", logs.slice(-12));
-            throw new Error("视频转码失败，请重试");
+            console.error(translate("shared.canvas.canvasVideoMerge.failedToTranscodeClayPreviewVideo"), logs.slice(-12));
+            throw new Error(translate("shared.canvas.canvasVideoMerge.videoTranscodingFailedTryAgain"));
         }
         const output = await ffmpeg.readFile(outputName);
         onProgress?.({ phase: "encoding", progress: 100 });
@@ -66,7 +67,7 @@ export async function transcodeVideoToMp4(input: Blob, onProgress?: (progress: M
 }
 
 export async function mergeVideos(inputs: MergeVideoInput[], onProgress?: (progress: MergeVideoProgress) => void) {
-    if (inputs.length < 2) throw new Error("至少选择 2 个视频才能合并");
+    if (inputs.length < 2) throw new Error(translate("shared.canvas.canvasVideoMerge.selectAtLeast2VideosToMerge"));
     const ffmpeg = await loadFFmpeg(onProgress);
     const files: string[] = [];
     try {
@@ -76,12 +77,12 @@ export async function mergeVideos(inputs: MergeVideoInput[], onProgress?: (progr
             const remoteBlob =
                 !storedBlob && input.url
                     ? await fetch(input.url).then((response) => {
-                          if (!response.ok) throw new Error(`视频资源请求失败（${response.status}）`);
+                          if (!response.ok) throw new Error(translate("shared.canvas.canvasVideoMerge.videoResourceRequestFailed", { v0: String(response.status) }));
                           return response.blob();
                       })
                     : null;
             const blob = storedBlob || remoteBlob;
-            if (!blob) throw new Error(`无法读取第 ${index + 1} 个视频`);
+            if (!blob) throw new Error(translate("shared.canvas.canvasVideoMerge.couldNotReadVideo", { v0: String(index + 1) }));
             const name = `input-${index}.mp4`;
             await ffmpeg.writeFile(name, await fetchFile(blob));
             files.push(name);

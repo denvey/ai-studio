@@ -7,15 +7,16 @@ import { ArrowDownToLine, ArrowUpToLine, BookOpenText, Grid3x3, List, MoreHorizo
 import type { DramaEpisodeRow } from "@/services/api/drama";
 
 import { episodeStatusText, episodeTone, StagePips, STAGE_LABEL } from "../drama-shared";
+import { translate } from "@/i18n";
 
 type Filter = "all" | "ready" | "attention" | "active" | "done";
 
 const FILTERS: Array<{ key: Filter; label: string }> = [
-    { key: "all", label: "全部" },
-    { key: "ready", label: "待生成" },
-    { key: "attention", label: "待处理" },
-    { key: "active", label: "制作中" },
-    { key: "done", label: "已完成" },
+    { key: "all", label: translate("canvasA.toolPicker.all") },
+    { key: "ready", label: translate("drama.studio.episodeRail.awaitingGeneration") },
+    { key: "attention", label: translate("account.feedback.status.pending") },
+    { key: "active", label: translate("drama.studio.episodeRail.inProduction") },
+    { key: "done", label: translate("library.tasks.filter.succeeded") },
 ];
 
 function matchesFilter(episode: DramaEpisodeRow, filter: Filter) {
@@ -32,16 +33,16 @@ function EpisodeMenu({ episode, onInsert, onDelete }: { episode: DramaEpisodeRow
     const items = [
         ...(onInsert
             ? [
-                  { key: "before", icon: <ArrowUpToLine className="size-3.5" />, label: "在前面插入一集", onClick: () => onInsert(episode, "before") },
-                  { key: "after", icon: <ArrowDownToLine className="size-3.5" />, label: "在后面插入一集", onClick: () => onInsert(episode, "after") },
+                  { key: "before", icon: <ArrowUpToLine className="size-3.5" />, label: translate("drama.studio.episodeRail.insertEpisodeBefore"), onClick: () => onInsert(episode, "before") },
+                  { key: "after", icon: <ArrowDownToLine className="size-3.5" />, label: translate("drama.studio.episodeRail.insertEpisodeAfter"), onClick: () => onInsert(episode, "after") },
               ]
             : []),
         ...(onInsert && onDelete ? [{ type: "divider" as const }] : []),
-        ...(onDelete ? [{ key: "delete", danger: true, icon: <Trash2 className="size-3.5" />, label: "删除本集", onClick: () => onDelete(episode) }] : []),
+        ...(onDelete ? [{ key: "delete", danger: true, icon: <Trash2 className="size-3.5" />, label: translate("drama.studio.episodeRail.deleteEpisode"), onClick: () => onDelete(episode) }] : []),
     ];
     return (
         <Dropdown trigger={["click"]} placement="bottomRight" menu={{ items }}>
-            <button type="button" className="drama-ep-more" aria-label={`第 ${episode.number} 集更多操作`}>
+            <button type="button" className="drama-ep-more" aria-label={translate("drama.studio.episodeRail.moreActionsForEpisode", { v0: String(episode.number) })}>
                 <MoreHorizontal className="size-4" />
             </button>
         </Dropdown>
@@ -100,7 +101,7 @@ export function EpisodeRail({
     }, [currentId, matrix, virtualizer, visible]);
 
     return (
-        <aside className="drama-rail" aria-label="分集">
+        <aside className="drama-rail" aria-label={translate("drama.studio.episodeRail.episodes")}>
             <div className="drama-rail-head">
                 <div className="flex items-center gap-2">
                     <label className="drama-search flex-1">
@@ -111,34 +112,40 @@ export function EpisodeRail({
                             onKeyDown={(event) => {
                                 if (event.key === "Enter" && visible[0]) onSelect(visible[0].id);
                             }}
-                            placeholder="集号或标题"
-                            aria-label="搜索分集"
+                            placeholder={translate("drama.studio.episodeRail.episodeNumberOrTitle")}
+                            aria-label={translate("drama.studio.episodeRail.searchEpisodes")}
                         />
                         {query ? (
-                            <button type="button" onClick={() => setQuery("")} aria-label="清空搜索">
+                            <button type="button" onClick={() => setQuery("")} aria-label={translate("canvasA.toolPicker.clearSearch")}>
                                 <X className="size-3.5 opacity-40" />
                             </button>
                         ) : null}
                     </label>
-                    <Tooltip title={`添加第 ${nextNumber} 集：粘贴或导入下一集的原文、剧本或分镜`}>
-                        <button type="button" className="drama-title-edit !h-8 !w-8" aria-label={`添加第 ${nextNumber} 集`} onClick={onAdd}>
+                    <Tooltip title={translate("drama.studio.episodeRail.addEpisodePasteOrImportItsSourceTextScriptOr", { v0: String(nextNumber) })}>
+                        <button type="button" className="drama-title-edit !h-8 !w-8" aria-label={translate("drama.studio.episodeRail.addEpisode", { v0: String(nextNumber) })} onClick={onAdd}>
                             <Plus className="size-4" />
                         </button>
                     </Tooltip>
                     {onPickChapters ? (
-                        <Tooltip title={reservedChapters > 0 ? `原著章节：还有 ${reservedChapters} 章未加入制作，勾选后建成新的集` : "原著章节：查看全部章节与所在集"}>
-                            <button type="button" className="drama-title-edit !h-8 !w-8" aria-label="原著章节" onClick={onPickChapters}>
+                        <Tooltip
+                            title={
+                                reservedChapters > 0
+                                    ? translate("drama.studio.episodeRail.originalChaptersChaptersAreNotInProductionSelectThemTo", { v0: String(reservedChapters) })
+                                    : translate("drama.studio.episodeRail.originalChaptersViewAllChaptersAndTheirEpisodes")
+                            }
+                        >
+                            <button type="button" className="drama-title-edit !h-8 !w-8" aria-label={translate("drama.studio.episodeRail.originalChapters")} onClick={onPickChapters}>
                                 <BookOpenText className="size-4" />
                             </button>
                         </Tooltip>
                     ) : null}
-                    <Tooltip title={matrix ? "列表视图" : "矩阵视图：一屏看清全剧进度"}>
-                        <button type="button" className="drama-title-edit !h-8 !w-8" aria-pressed={matrix} aria-label="切换矩阵视图" onClick={() => setMatrix((value) => !value)}>
+                    <Tooltip title={matrix ? translate("library.tasks.page.listView") : translate("drama.studio.episodeRail.gridViewSeeTheWholeProductionAtAGlance")}>
+                        <button type="button" className="drama-title-edit !h-8 !w-8" aria-pressed={matrix} aria-label={translate("drama.studio.episodeRail.switchToGridView")} onClick={() => setMatrix((value) => !value)}>
                             {matrix ? <List className="size-4" /> : <Grid3x3 className="size-4" />}
                         </button>
                     </Tooltip>
                 </div>
-                <div className="drama-filters" role="group" aria-label="筛选分集">
+                <div className="drama-filters" role="group" aria-label={translate("drama.studio.episodeRail.filterEpisodes")}>
                     {FILTERS.filter((item) => item.key !== "ready" || counts.ready || filter === "ready").map((item) => (
                         <button key={item.key} type="button" className={`drama-filter ${item.key === "attention" && counts.attention ? "is-alert" : ""}`} aria-pressed={filter === item.key} onClick={() => setFilter(item.key)}>
                             {item.label}
@@ -153,33 +160,33 @@ export function EpisodeRail({
                         <div className="drama-matrix-legend">
                             <span>
                                 <i style={{ background: "var(--status-success)" }} />
-                                完成
+                                {translate("account.payment.done")}
                             </span>
                             <span>
                                 <i style={{ background: "var(--workspace-accent)" }} />
-                                制作中
+                                {translate("drama.studio.episodeRail.inProduction")}
                             </span>
                             <span>
                                 <i className="is-ready" />
-                                待生成
+                                {translate("drama.studio.episodeRail.awaitingGeneration")}
                             </span>
                             <span>
                                 <i style={{ background: "var(--status-warning)" }} />
-                                待审阅
+                                {translate("drama.studio.episodeRail.awaitingReview")}
                             </span>
                             <span>
                                 <i style={{ background: "var(--status-error)" }} />
-                                失败
+                                {translate("library.assets.batch.failed")}
                             </span>
                         </div>
                         <div className="drama-matrix-grid">
                             {visible.map((episode) => (
-                                <Tooltip key={episode.id} title={`第 ${episode.number} 集 · ${episode.title} · ${episodeStatusText(episode)}`} mouseEnterDelay={0.25}>
+                                <Tooltip key={episode.id} title={translate("drama.studio.episodeRail.episode", { v0: String(episode.number), v1: String(episode.title), v2: String(episodeStatusText(episode)) })} mouseEnterDelay={0.25}>
                                     <button
                                         type="button"
                                         className={`drama-cell is-${episodeTone(episode)}`}
                                         aria-current={episode.id === currentId}
-                                        aria-label={`第 ${episode.number} 集 ${STAGE_LABEL[episode.stage]}`}
+                                        aria-label={translate("drama.studio.episodeRail.episode2", { v0: String(episode.number), v1: String(STAGE_LABEL[episode.stage]) })}
                                         onClick={() => onSelect(episode.id)}
                                     >
                                         {episode.number}
@@ -220,19 +227,19 @@ export function EpisodeRail({
                             })}
                         </div>
                     ) : (
-                        <div className="px-3 py-10 text-center text-[var(--fs-tiny)] text-foreground/40">没有符合条件的分集</div>
+                        <div className="px-3 py-10 text-center text-[var(--fs-tiny)] text-foreground/40">{translate("drama.studio.episodeRail.noMatchingEpisodes")}</div>
                     )}
-                    {planning ? <div className="px-3 py-3 text-center text-[var(--fs-micro)] text-foreground/40">后续章节正在分集…</div> : null}
+                    {planning ? <div className="px-3 py-3 text-center text-[var(--fs-micro)] text-foreground/40">{translate("drama.studio.episodeRail.planningEpisodesForLaterChapters")}</div> : null}
                     {!planning && filter === "all" && !deferredQuery && reservedChapters > 0 && onPickChapters ? (
                         <button type="button" className="drama-rail-add is-accent" onClick={onPickChapters}>
                             <BookOpenText className="size-3.5" />
-                            原著还有 {reservedChapters} 章 · 继续选章
+                            {translate("drama.studio.episodeRail.originalChaptersRemaining")} {reservedChapters} {translate("drama.studio.episodeRail.chaptersSelectMore")}
                         </button>
                     ) : null}
                     {!planning && filter === "all" && !deferredQuery ? (
                         <button type="button" className="drama-rail-add" onClick={onAdd}>
                             <Plus className="size-3.5" />
-                            添加第 {nextNumber} 集
+                            {translate("drama.sentences.addEpisode", { number: nextNumber })}
                         </button>
                     ) : null}
                 </div>

@@ -12,12 +12,13 @@ import { AdminStatusBadge, configuredSecretText, SettingsSectionCard } from "../
 import { ArkAdminGroupsTab } from "./ark-assets/ark-admin-groups-tab";
 import { ArkAdminReviewsTab } from "./ark-assets/ark-admin-reviews-tab";
 import "./ark-assets/ark-admin.css";
+import { translate } from "@/i18n";
 
 type ArkSite = AdminArkPrivateAssetSetting["site"];
 type ArkTab = "groups" | "reviews" | "settings";
 
 const MICRO_PER_CREDIT = 1_000_000;
-const PAGE_DESCRIPTION = "管理平台方舟账号下的真人、虚拟与版权 IP 素材组，审核用户上传，并配置方舟凭据、开放范围与建组收费";
+const PAGE_DESCRIPTION = translate("adminPages.settings.arkPrivateAssetsSettingsPage.manageHumanVirtualAndCopyrightedIPAssetGroupsUnderThe");
 
 type ArkPrivateAssetForm = {
     enabled: boolean;
@@ -63,13 +64,13 @@ type ArkPrivateAssetPayload = Pick<
 // 站点决定控制面域名与推理 Base URL；Region 由管理员按开通情况手动填写。
 const ARK_SITE_META: Record<ArkSite, { label: string; regionPlaceholder: string; controlPlane: (region: string) => string; inference: string }> = {
     volcengine: {
-        label: "火山引擎（中国站）",
+        label: translate("adminPages.settings.arkPrivateAssetsSettingsPage.volcengineChina"),
         regionPlaceholder: "cn-beijing",
         controlPlane: (region) => `https://ark.${region || "<region>"}.volcengineapi.com`,
         inference: "https://ark.cn-beijing.volces.com/api/v3",
     },
     byteplus: {
-        label: "BytePlus（海外站）",
+        label: translate("adminPages.settings.arkPrivateAssetsSettingsPage.bytePlusInternational"),
         regionPlaceholder: "ap-southeast-1",
         controlPlane: (region) => `https://ark.${region || "<region>"}.byteplusapi.com`,
         inference: "https://ark.ap-southeast.bytepluses.com/api/v3",
@@ -77,9 +78,9 @@ const ARK_SITE_META: Record<ArkSite, { label: string; regionPlaceholder: string;
 };
 
 const ARK_TABS: Array<{ value: ArkTab; label: string }> = [
-    { value: "groups", label: "素材组" },
-    { value: "reviews", label: "上传审核" },
-    { value: "settings", label: "配置" },
+    { value: "groups", label: translate("library.ark.certify.groupLabel") },
+    { value: "reviews", label: translate("adminPages.settings.arkPrivateAssetsSettingsPage.uploadReview") },
+    { value: "settings", label: translate("account.settings.channels.configure") },
 ];
 
 /** 方舟素材库：素材组 / 上传审核 / 配置三个视图；配置有未保存草稿时切换视图不丢失，离开页面会确认。 */
@@ -94,7 +95,12 @@ export default function ArkPrivateAssetsSettingsPage() {
         setSearchParams(params, { replace: true });
     };
     return (
-        <AdminPageFrame title="方舟素材库" description={PAGE_DESCRIPTION} actions={<AdminSegmented<ArkTab> ariaLabel="方舟素材库视图" value={tab} onChange={selectTab} options={ARK_TABS} />} scroll>
+        <AdminPageFrame
+            title={translate("settings.sections.ark-assets.label")}
+            description={PAGE_DESCRIPTION}
+            actions={<AdminSegmented<ArkTab> ariaLabel={translate("adminPages.settings.arkPrivateAssetsSettingsPage.arkAssetLibraryView")} value={tab} onChange={selectTab} options={ARK_TABS} />}
+            scroll
+        >
             <div className="admin-ark-tabs-body">
                 {tab === "groups" ? <ArkAdminGroupsTab onOpenReviews={() => selectTab("reviews")} /> : null}
                 {tab === "reviews" ? <ArkAdminReviewsTab /> : null}
@@ -137,14 +143,14 @@ function ArkPrivateAssetsSettingsForm() {
             try {
                 const result = await getAdminArkPrivateAssetSetting();
                 if (requestVersion !== requestVersionRef.current) return;
-                if (!isAdminArkPrivateAssetSetting(result.setting)) throw new Error("服务端返回的方舟素材库配置格式无效");
+                if (!isAdminArkPrivateAssetSetting(result.setting)) throw new Error(translate("adminPages.settings.arkPrivateAssetsSettingsPage.theServerReturnedInvalidArkAssetLibrarySettings"));
                 setSetting(result.setting);
                 setDirty(false);
                 setSaveError("");
-                if (announce) message.success("已重新读取方舟素材库配置");
+                if (announce) message.success(translate("adminPages.settings.arkPrivateAssetsSettingsPage.arkAssetLibrarySettingsReloaded"));
             } catch (error) {
                 if (requestVersion !== requestVersionRef.current) return;
-                const errorMessage = error instanceof Error ? error.message : "读取方舟素材库配置失败";
+                const errorMessage = error instanceof Error ? error.message : translate("adminPages.settings.arkPrivateAssetsSettingsPage.failedToLoadArkAssetLibrarySettings");
                 setLoadError(errorMessage);
                 if (!initial) message.error(errorMessage);
             } finally {
@@ -186,10 +192,10 @@ function ArkPrivateAssetsSettingsForm() {
         navigationConfirmOpenRef.current = true;
         navigationTriggerRef.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
         modal.confirm({
-            title: "放弃方舟素材库调整？",
-            content: "当前页面有尚未保存的同步策略、开放范围、收费或 IAM 凭据草稿，离开后这些内容会丢失。服务端正在使用的配置不会改变。",
-            okText: "放弃并离开",
-            cancelText: "继续编辑",
+            title: translate("adminPages.settings.arkPrivateAssetsSettingsPage.discardArkAssetLibraryChanges"),
+            content: translate("adminPages.settings.arkPrivateAssetsSettingsPage.thisPageHasUnsavedSyncAccessFeeOrIAMCredential"),
+            okText: translate("adminPages.settings.arkPrivateAssetsSettingsPage.discardAndLeave"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
             okButtonProps: { danger: true },
             onOk: () => {
                 navigationConfirmOpenRef.current = false;
@@ -215,7 +221,7 @@ function ArkPrivateAssetsSettingsForm() {
         form.setFields([]);
         setDirty(false);
         setSaveError("");
-        message.info("已撤销方舟素材库的未保存调整");
+        message.info(translate("adminPages.settings.arkPrivateAssetsSettingsPage.unsavedArkAssetLibraryChangesDiscarded"));
     };
 
     const requestRefresh = () => {
@@ -224,10 +230,10 @@ function ArkPrivateAssetsSettingsForm() {
             return;
         }
         modal.confirm({
-            title: "放弃调整并重新读取？",
-            content: "重新读取会丢弃当前配置草稿，并以服务端配置为准。",
-            okText: "放弃并刷新",
-            cancelText: "继续编辑",
+            title: translate("adminPages.settings.arkPrivateAssetsSettingsPage.discardChangesAndReload"),
+            content: translate("adminPages.settings.arkPrivateAssetsSettingsPage.reloadingDiscardsTheCurrentSettingsDraftAndUsesTheServer"),
+            okText: translate("adminPages.settings.arkPrivateAssetsSettingsPage.discardAndRefresh"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
             okButtonProps: { danger: true },
             onOk: () => load(false, true),
         });
@@ -242,15 +248,15 @@ function ArkPrivateAssetsSettingsForm() {
         try {
             const result = await updateAdminArkPrivateAssetSetting(expected);
             if (!isAdminArkPrivateAssetSetting(result.setting) || !arkPrivateAssetResponseMatches(result.setting, expected, expectedHasSecret)) {
-                throw new Error("服务端返回的方舟素材库配置与本次保存内容不一致，请重新读取后核对");
+                throw new Error(translate("adminPages.settings.arkPrivateAssetsSettingsPage.theServerSArkAssetLibrarySettingsDifferFromThe"));
             }
             setSetting(result.setting);
             form.setFieldsValue(toFormValues(result.setting));
             setDirty(false);
-            message.success("方舟素材库配置已保存");
+            message.success(translate("adminPages.settings.arkPrivateAssetsSettingsPage.arkAssetLibrarySettingsSaved"));
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "保存方舟素材库配置失败";
-            setSaveError(`${errorMessage}。未自动重试，请重新读取当前配置后再决定是否保存。`);
+            const errorMessage = error instanceof Error ? error.message : translate("adminPages.settings.arkPrivateAssetsSettingsPage.failedToSaveArkAssetLibrarySettings");
+            setSaveError(translate("adminPages.settings.arkPrivateAssetsSettingsPage.noAutomaticRetryWasMadeReloadTheCurrentSettingsBefore", { v0: String(errorMessage) }));
             message.error(errorMessage);
             throw error;
         } finally {
@@ -280,7 +286,7 @@ function ArkPrivateAssetsSettingsForm() {
 
     if (loading && !setting) {
         return (
-            <div className="admin-settings-stack admin-ark-settings" aria-label="正在读取方舟素材库配置" role="status">
+            <div className="admin-settings-stack admin-ark-settings" aria-label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.loadingArkAssetLibrarySettings")} role="status">
                 <div className="admin-ark-command-bar">
                     <Skeleton active title={{ width: 190 }} paragraph={false} />
                 </div>
@@ -299,11 +305,11 @@ function ArkPrivateAssetsSettingsForm() {
                         <AlertTriangle className="size-5" aria-hidden="true" />
                     </span>
                     <div>
-                        <h2>无法读取方舟素材库配置</h2>
-                        <p>{loadError || "当前没有可显示的配置，请稍后重试。"}</p>
+                        <h2>{translate("adminPages.settings.arkPrivateAssetsSettingsPage.unableToLoadArkAssetLibrarySettings")}</h2>
+                        <p>{loadError || translate("adminPages.settings.arkPrivateAssetsSettingsPage.noSettingsAreAvailableToDisplayPleaseTryAgainLater")}</p>
                     </div>
                     <Button icon={<RefreshCw className="size-4" />} loading={refreshing} onClick={() => void load(false, true)}>
-                        重新读取
+                        {translate("auth.register.reload")}
                     </Button>
                 </div>
             </div>
@@ -323,21 +329,21 @@ function ArkPrivateAssetsSettingsForm() {
             <div className={cn("admin-ark-command-bar", dirty && "is-dirty")}>
                 <div className="admin-ark-command-copy" aria-live="polite">
                     <div className="flex flex-wrap items-center gap-2">
-                        <strong>{dirty ? "方舟素材库有调整待保存" : "方舟素材库配置已同步"}</strong>
-                        <AdminStatusBadge label={dirty ? "尚未生效" : "服务端配置"} tone={dirty ? "warning" : "neutral"} />
+                        <strong>{dirty ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.arkAssetLibraryHasUnsavedChanges") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.arkAssetLibrarySettingsSynced")}</strong>
+                        <AdminStatusBadge label={dirty ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.notYetApplied") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.serverSettings")} tone={dirty ? "warning" : "neutral"} />
                     </div>
                 </div>
                 <div className="admin-ark-command-actions">
                     {dirty ? (
                         <Button icon={<RotateCcw className="size-4" />} disabled={saving} onClick={resetDraft}>
-                            撤销调整
+                            {translate("adminPages.settings.arkPrivateAssetsSettingsPage.discardChanges")}
                         </Button>
                     ) : null}
                     <Button icon={<RefreshCw className="size-4" />} loading={refreshing} disabled={saving} onClick={requestRefresh}>
-                        刷新状态
+                        {translate("library.ark.asset.refresh")}
                     </Button>
                     <Button type="primary" icon={<Save className="size-4" />} loading={saving} disabled={!dirty || loading || refreshing} onClick={() => void submitSave()}>
-                        保存修改
+                        {translate("adminPages.settings.arkPrivateAssetsSettingsPage.saveChanges")}
                     </Button>
                 </div>
             </div>
@@ -345,7 +351,7 @@ function ArkPrivateAssetsSettingsForm() {
             {loadError || saveError ? (
                 <div className="admin-ark-inline-alert" role="alert">
                     <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
-                    <span>{saveError || `${loadError}。页面仍显示上一次成功读取的配置。`}</span>
+                    <span>{saveError || translate("adminPages.settings.arkPrivateAssetsSettingsPage.thePageStillShowsTheLastSettingsLoadedSuccessfully", { v0: String(loadError) })}</span>
                 </div>
             ) : null}
 
@@ -368,25 +374,43 @@ function ArkPrivateAssetsSettingsForm() {
                     <SettingsSectionCard
                         className="admin-ark-section admin-ark-configuration-section"
                         icon={<KeyRound className="size-4" aria-hidden="true" />}
-                        title="1. 配置方舟项目与 IAM 凭据"
-                        description="凭据仅保存在服务端，用于创建素材组、上传图片和查询审核状态。所有素材组都建在这个方舟账号下。"
-                        status={<AdminStatusBadge label={prerequisitesReady ? "已配置" : "待配置"} tone={prerequisitesReady ? "success" : "neutral"} />}
+                        title={translate("adminPages.settings.arkPrivateAssetsSettingsPage.item1ConfigureTheArkProjectAndIAMCredentials")}
+                        description={translate("adminPages.settings.arkPrivateAssetsSettingsPage.credentialsAreStoredOnlyOnTheServerAndUsedTo")}
+                        status={
+                            <AdminStatusBadge
+                                label={prerequisitesReady ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.configured") : translate("account.settings.modelConfig.capabilities.pending")}
+                                tone={prerequisitesReady ? "success" : "neutral"}
+                            />
+                        }
                     >
                         <div className="admin-ark-form-grid">
-                            <Form.Item name="site" label="方舟站点" extra={`推理渠道 Base URL 参考：${siteMeta.inference}`}>
-                                <Select options={(Object.keys(ARK_SITE_META) as ArkSite[]).map((value) => ({ value, label: ARK_SITE_META[value].label }))} aria-label="方舟站点" />
+                            <Form.Item
+                                name="site"
+                                label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.arkSite")}
+                                extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.inferenceChannelBaseURLReference", { v0: String(siteMeta.inference) })}
+                            >
+                                <Select options={(Object.keys(ARK_SITE_META) as ArkSite[]).map((value) => ({ value, label: ARK_SITE_META[value].label }))} aria-label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.arkSite")} />
                             </Form.Item>
-                            <Form.Item name="region" label="Region" extra={`控制面地址：${siteMeta.controlPlane(normalizedDraft.region)}。请填写已开通素材库的区域。`}>
+                            <Form.Item name="region" label="Region" extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.controlPlaneURLEnterARegionWithTheAssetLibrary", { v0: String(siteMeta.controlPlane(normalizedDraft.region)) })}>
                                 <Input autoComplete="off" placeholder={siteMeta.regionPlaceholder} />
                             </Form.Item>
                             <Form.Item name="projectName" label="Ark ProjectName">
-                                <Input autoComplete="off" placeholder="方舟项目名称" />
+                                <Input autoComplete="off" placeholder={translate("adminPages.settings.arkPrivateAssetsSettingsPage.arkProjectName")} />
                             </Form.Item>
                             <Form.Item name="accessKeyId" label="IAM AccessKey">
-                                <Input autoComplete="off" prefix={<KeyRound className="size-4 text-foreground/35" />} placeholder="仅保存在服务端" />
+                                <Input autoComplete="off" prefix={<KeyRound className="size-4 text-foreground/35" />} placeholder={translate("adminPages.settings.arkPrivateAssetsSettingsPage.storedOnlyOnTheServer")} />
                             </Form.Item>
-                            <Form.Item name="accessKeySecret" label={setting.hasAccessKeySecret ? `IAM SecretKey（${configuredSecretText}）` : "IAM SecretKey"} extra={setting.hasAccessKeySecret ? "AccessKey 不变时留空可保留原密钥。" : undefined}>
-                                <Input.Password autoComplete="new-password" placeholder={setting.hasAccessKeySecret ? "留空保留原密钥" : "仅保存在服务端"} />
+                            <Form.Item
+                                name="accessKeySecret"
+                                label={setting.hasAccessKeySecret ? `IAM SecretKey（${configuredSecretText}）` : "IAM SecretKey"}
+                                extra={setting.hasAccessKeySecret ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.leaveBlankToRetainTheExistingSecretIfTheAccessKey") : undefined}
+                            >
+                                <Input.Password
+                                    autoComplete="new-password"
+                                    placeholder={
+                                        setting.hasAccessKeySecret ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.leaveBlankToKeepTheCurrentKey") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.storedOnlyOnTheServer")
+                                    }
+                                />
                             </Form.Item>
                         </div>
                     </SettingsSectionCard>
@@ -397,19 +421,19 @@ function ArkPrivateAssetsSettingsForm() {
                         <SettingsSectionCard
                             className="admin-ark-section admin-ark-policy-section"
                             icon={<CloudUpload className="size-4" aria-hidden="true" />}
-                            title="2. 是否启用可信素材同步"
-                            description="启用后，符合条件的 Seedance 参考图会在生成前导入方舟素材库。"
-                            status={<AdminStatusBadge label={draftEnabled ? "已启用" : "已停用"} tone={draftEnabled ? "success" : "neutral"} />}
+                            title={translate("adminPages.settings.arkPrivateAssetsSettingsPage.item2EnableTrustedAssetSync")}
+                            description={translate("adminPages.settings.arkPrivateAssetsSettingsPage.whenEnabledEligibleSeedanceReferenceImagesAreImportedIntoThe")}
+                            status={<AdminStatusBadge label={draftEnabled ? translate("account.layout.oss.enabled") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.disabled")} tone={draftEnabled ? "success" : "neutral"} />}
                         >
                             <div className="admin-ark-policy-control">
                                 <div className="admin-ark-policy-copy">
-                                    <strong>自动导入可信参考素材</strong>
-                                    <p>关闭只停止新素材同步，不删除已有素材和绑定。</p>
+                                    <strong>{translate("adminPages.settings.arkPrivateAssetsSettingsPage.automaticallyImportTrustedReferenceAssets")}</strong>
+                                    <p>{translate("adminPages.settings.arkPrivateAssetsSettingsPage.disablingStopsNewAssetSyncsWithoutDeletingExistingAssetsOr")}</p>
                                 </div>
                                 <div className="admin-ark-policy-switch">
-                                    <span>{draftEnabled ? "启用" : "停用"}</span>
+                                    <span>{draftEnabled ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.enable") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.disable")}</span>
                                     <Form.Item name="enabled" valuePropName="checked" noStyle>
-                                        <Switch aria-label="启用可信素材同步，保存修改后生效" />
+                                        <Switch aria-label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.enableTrustedAssetSyncTakesEffectAfterSaving")} />
                                     </Form.Item>
                                 </div>
                             </div>
@@ -423,61 +447,85 @@ function ArkPrivateAssetsSettingsForm() {
                             <SettingsSectionCard
                                 className="admin-ark-section admin-ark-policy-section"
                                 icon={<UsersRound className="size-4" aria-hidden="true" />}
-                                title="3. 开放用户素材组"
-                                description="用户在「设置 → 方舟素材库」自助建组：真人素材组需本人完成 H5 活体认证，虚拟素材组直接创建。版权 IP 素材组只能由管理员创建并授权。"
-                                status={<AdminStatusBadge label={userGroupsOpen ? "已开放" : "未开放"} tone={userGroupsOpen ? "success" : "neutral"} />}
+                                title={translate("adminPages.settings.arkPrivateAssetsSettingsPage.item3AllowUserAssetGroups")}
+                                description={translate("adminPages.settings.arkPrivateAssetsSettingsPage.usersCreateGroupsInSettingsArkAssetLibraryHumanGroups")}
+                                status={
+                                    <AdminStatusBadge
+                                        label={userGroupsOpen ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.available") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.unavailable")}
+                                        tone={userGroupsOpen ? "success" : "neutral"}
+                                    />
+                                }
                             >
                                 <div className="admin-ark-policy-control">
                                     <div className="admin-ark-policy-copy">
-                                        <strong>真人素材组</strong>
-                                        <p>认证结果回调到「回调地址」/api/ark-portraits/callback/…，认证成功后建立只属于本人的真人素材组。</p>
+                                        <strong>{translate("adminPages.settings.arkPrivateAssetsSettingsPage.humanAssetGroups")}</strong>
+                                        <p>{translate("adminPages.settings.arkPrivateAssetsSettingsPage.verificationResultsAreSentToTheCallbackURLAtApi")}</p>
                                     </div>
                                     <div className="admin-ark-policy-switch">
-                                        <span>{draftRealEnabled ? "开放" : "关闭"}</span>
+                                        <span>{draftRealEnabled ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.available2") : translate("common.close")}</span>
                                         <Form.Item name="realEnabled" valuePropName="checked" noStyle>
-                                            <Switch aria-label="开放真人素材库，保存修改后生效" />
+                                            <Switch aria-label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.enableHumanAssetLibraryTakesEffectAfterSaving")} />
                                         </Form.Item>
                                     </div>
                                 </div>
                                 <div className="admin-ark-policy-control">
                                     <div className="admin-ark-policy-copy">
-                                        <strong>虚拟素材组</strong>
-                                        <p>用于 AI 生成或绘制的虚拟形象，组内图片不能含真人肖像。</p>
+                                        <strong>{translate("adminPages.settings.arkPrivateAssetsSettingsPage.virtualAssetGroups")}</strong>
+                                        <p>{translate("adminPages.settings.arkPrivateAssetsSettingsPage.forAIGeneratedOrDrawnVirtualCharactersImagesInThe")}</p>
                                     </div>
                                     <div className="admin-ark-policy-switch">
-                                        <span>{draftVirtualEnabled ? "开放" : "关闭"}</span>
+                                        <span>{draftVirtualEnabled ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.available2") : translate("common.close")}</span>
                                         <Form.Item name="virtualEnabled" valuePropName="checked" noStyle>
-                                            <Switch aria-label="开放虚拟素材组，保存修改后生效" />
+                                            <Switch aria-label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.enableVirtualAssetGroupsTakesEffectAfterSaving")} />
                                         </Form.Item>
                                     </div>
                                 </div>
-                                <Form.Item name="callbackBaseUrl" label="真人认证回调地址" extra="站点公网根地址，如 https://canvas.example.com；留空时使用环境变量 CANVAS_PUBLIC_BASE_URL。" className="mt-4">
+                                <Form.Item
+                                    name="callbackBaseUrl"
+                                    label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.identityVerificationCallbackURL")}
+                                    extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.publicSiteRootURLSuchAsHttpsCanvasExampleCom")}
+                                    className="mt-4"
+                                >
                                     <Input autoComplete="off" placeholder="https://canvas.example.com" />
                                 </Form.Item>
                                 <div className="admin-ark-number-grid">
-                                    <Form.Item name="realGroupLimit" label="每人真人素材组上限" extra="包含认证中的会话。" rules={[{ required: true, type: "number", min: 1, max: 200, message: "请填写 1–200" }]}>
+                                    <Form.Item
+                                        name="realGroupLimit"
+                                        label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.humanAssetGroupsPerPerson")}
+                                        extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.includesVerificationSessionsInProgress")}
+                                        rules={[{ required: true, type: "number", min: 1, max: 200, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter1200") }]}
+                                    >
                                         <InputNumber min={1} max={200} precision={0} className="w-full" />
                                     </Form.Item>
-                                    <Form.Item name="virtualGroupLimit" label="每人虚拟素材组上限" rules={[{ required: true, type: "number", min: 1, max: 200, message: "请填写 1–200" }]}>
+                                    <Form.Item
+                                        name="virtualGroupLimit"
+                                        label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.virtualAssetGroupsPerPerson")}
+                                        rules={[{ required: true, type: "number", min: 1, max: 200, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter1200") }]}
+                                    >
                                         <InputNumber min={1} max={200} precision={0} className="w-full" />
                                     </Form.Item>
-                                    <Form.Item name="realAuthorizationDays" label="真人授权有效期（天）" extra="从认证完成起计算，到期后不能上传或用于生成。" rules={[{ required: true, type: "number", min: 1, max: 3650, message: "请填写 1–3650" }]}>
+                                    <Form.Item
+                                        name="realAuthorizationDays"
+                                        label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.humanAuthorizationValidityDays")}
+                                        extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.startsWhenVerificationCompletesUploadsAndGenerationAreDisabledAfter")}
+                                        rules={[{ required: true, type: "number", min: 1, max: 3650, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter13650") }]}
+                                    >
                                         <InputNumber min={1} max={3650} precision={0} className="w-full" />
                                     </Form.Item>
                                 </div>
                                 <div className="admin-ark-policy-control">
                                     <div className="admin-ark-policy-copy">
-                                        <strong>上传审核</strong>
-                                        <p>开启后，用户向自建素材组上传的图片先进入「上传审核」，管理员通过后才提交方舟。管理员向平台素材组上传不需要审核。</p>
+                                        <strong>{translate("adminPages.settings.arkPrivateAssetsSettingsPage.uploadReview")}</strong>
+                                        <p>{translate("adminPages.settings.arkPrivateAssetsSettingsPage.whenEnabledImagesUploadedToUserCreatedGroupsEnterUpload")}</p>
                                     </div>
                                     <div className="admin-ark-policy-switch">
-                                        <span>真人</span>
+                                        <span>{translate("adminPages.settings.arkPrivateAssetsSettingsPage.human")}</span>
                                         <Form.Item name="realReviewRequired" valuePropName="checked" noStyle>
-                                            <Switch aria-label="真人素材组上传需要审核，保存修改后生效" />
+                                            <Switch aria-label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.requireReviewForHumanAssetGroupUploadsTakesEffectAfter")} />
                                         </Form.Item>
-                                        <span>虚拟</span>
+                                        <span>{translate("adminPages.settings.arkPrivateAssetsSettingsPage.virtual")}</span>
                                         <Form.Item name="virtualReviewRequired" valuePropName="checked" noStyle>
-                                            <Switch aria-label="虚拟素材组上传需要审核，保存修改后生效" />
+                                            <Switch aria-label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.requireReviewForVirtualAssetGroupUploadsTakesEffectAfter")} />
                                         </Form.Item>
                                     </div>
                                 </div>
@@ -487,28 +535,41 @@ function ArkPrivateAssetsSettingsForm() {
                             <SettingsSectionCard
                                 className="admin-ark-section admin-ark-policy-section"
                                 icon={<Coins className="size-4" aria-hidden="true" />}
-                                title="4. 素材组收费"
-                                description="按组一次性扣除平台积分：真人在发起认证时冻结、认证成功后扣除，失败、过期或取消自动退回；虚拟在创建成功后扣除。平台积分功能关闭时不收费，删除素材组不退款。"
-                                status={<AdminStatusBadge label={draftBillingEnabled ? "收费" : "免费"} tone={draftBillingEnabled ? "info" : "neutral"} />}
+                                title={translate("adminPages.settings.arkPrivateAssetsSettingsPage.item4AssetGroupFees")}
+                                description={translate("adminPages.settings.arkPrivateAssetsSettingsPage.aOneTimePlatformCreditFeePerGroupForHuman")}
+                                status={
+                                    <AdminStatusBadge
+                                        label={draftBillingEnabled ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.paid") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.free")}
+                                        tone={draftBillingEnabled ? "info" : "neutral"}
+                                    />
+                                }
                             >
                                 <div className="admin-ark-policy-control">
                                     <div className="admin-ark-policy-copy">
-                                        <strong>建组收费</strong>
-                                        <p>只对用户自建素材组生效；管理员创建的平台素材组不收费。</p>
+                                        <strong>{translate("adminPages.settings.arkPrivateAssetsSettingsPage.groupCreationFees")}</strong>
+                                        <p>{translate("adminPages.settings.arkPrivateAssetsSettingsPage.appliesOnlyToUserCreatedGroupsAdminCreatedPlatformGroups")}</p>
                                     </div>
                                     <div className="admin-ark-policy-switch">
-                                        <span>{draftBillingEnabled ? "收费" : "免费"}</span>
+                                        <span>{draftBillingEnabled ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.paid") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.free")}</span>
                                         <Form.Item name="billingEnabled" valuePropName="checked" noStyle>
-                                            <Switch aria-label="开启素材组收费，保存修改后生效" />
+                                            <Switch aria-label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.enableAssetGroupFeesTakesEffectAfterSaving")} />
                                         </Form.Item>
                                     </div>
                                 </div>
                                 {draftBillingEnabled ? (
                                     <div className="admin-ark-form-grid">
-                                        <Form.Item name="realGroupPrice" label="真人素材组（积分 / 组）" rules={[{ required: true, type: "number", min: 0, max: 1_000_000, message: "请填写 0–1000000" }]}>
+                                        <Form.Item
+                                            name="realGroupPrice"
+                                            label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.humanAssetGroupCreditsGroup")}
+                                            rules={[{ required: true, type: "number", min: 0, max: 1_000_000, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter01000000") }]}
+                                        >
                                             <InputNumber min={0} max={1_000_000} precision={2} className="w-full" />
                                         </Form.Item>
-                                        <Form.Item name="virtualGroupPrice" label="虚拟素材组（积分 / 组）" rules={[{ required: true, type: "number", min: 0, max: 1_000_000, message: "请填写 0–1000000" }]}>
+                                        <Form.Item
+                                            name="virtualGroupPrice"
+                                            label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.virtualAssetGroupCreditsGroup")}
+                                            rules={[{ required: true, type: "number", min: 0, max: 1_000_000, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter01000000") }]}
+                                        >
                                             <InputNumber min={0} max={1_000_000} precision={2} className="w-full" />
                                         </Form.Item>
                                     </div>
@@ -599,14 +660,17 @@ function hasArkPrivateAssetChanges(values: Partial<ArkPrivateAssetForm>, setting
 
 function validateArkPrivateAssetDraft(values: ArkPrivateAssetForm, setting: AdminArkPrivateAssetSetting) {
     const draft = normalizeArkPrivateAssetPayload(values);
-    if (draft.callbackBaseUrl && !/^https?:\/\/[^/?#]+$/i.test(draft.callbackBaseUrl)) return "真人认证回调地址必须是 http(s):// 开头的站点根地址";
-    if (draft.realGroupLimit < 1 || draft.realGroupLimit > 200 || draft.virtualGroupLimit < 1 || draft.virtualGroupLimit > 200) return "每人素材组上限需在 1–200 之间";
-    if (draft.realAuthorizationDays < 1 || draft.realAuthorizationDays > 3650) return "真人授权有效期需在 1–3650 天之间";
+    if (draft.callbackBaseUrl && !/^https?:\/\/[^/?#]+$/i.test(draft.callbackBaseUrl)) return translate("adminPages.settings.arkPrivateAssetsSettingsPage.identityVerificationCallbackURLMustBeASiteRootURL");
+    if (draft.realGroupLimit < 1 || draft.realGroupLimit > 200 || draft.virtualGroupLimit < 1 || draft.virtualGroupLimit > 200) return translate("adminPages.settings.arkPrivateAssetsSettingsPage.assetGroupLimitPerPersonMustBeBetween1And");
+    if (draft.realAuthorizationDays < 1 || draft.realAuthorizationDays > 3650) return translate("adminPages.settings.arkPrivateAssetsSettingsPage.humanAuthorizationValidityMustBeBetween1And3650Days");
     if (!draft.enabled && !draft.realEnabled && !draft.virtualEnabled) return "";
-    if (!draft.region) return "请填写方舟 Region";
-    if (!draft.projectName) return "请填写方舟 ProjectName";
-    if (!draft.accessKeyId) return "请填写方舟素材库 IAM AccessKey";
-    if (!hasUsableSecret(draft, setting)) return draft.accessKeyId !== setting.accessKeyId ? "更换 IAM AccessKey 时请同时填写匹配的 SecretKey" : "请填写方舟素材库 IAM SecretKey";
+    if (!draft.region) return translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnterTheArkRegion");
+    if (!draft.projectName) return translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnterTheArkProjectName");
+    if (!draft.accessKeyId) return translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnterTheArkAssetLibraryIAMAccessKey");
+    if (!hasUsableSecret(draft, setting))
+        return draft.accessKeyId !== setting.accessKeyId
+            ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.enterTheMatchingSecretKeyWhenChangingTheIAMAccessKey")
+            : translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnterTheArkAssetLibraryIAMSecretKey");
     return "";
 }
 

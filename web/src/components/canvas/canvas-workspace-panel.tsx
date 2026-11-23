@@ -17,6 +17,7 @@ import { useCanvasWorkspaceTasks } from "@/pages/canvas/use-canvas-workspace-tas
 import { CanvasWorkspaceNodeListPanel } from "./canvas-workspace-node-list-panel";
 import { CanvasWorkspaceTaskPanel } from "./canvas-workspace-task-panel";
 import "./canvas-workspace-panel.css";
+import { translate } from "@/i18n";
 
 export function CanvasWorkspacePanel({
     projectId,
@@ -59,7 +60,7 @@ export function CanvasWorkspacePanel({
     const tasks = useCanvasWorkspaceTasks(projectId, open && (tab === "tasks" || history));
     const content = (
         <div className="canvas-workspace-panel relative flex h-full min-h-0 flex-col text-foreground" style={{ "--canvas-workspace-base": theme.node.panel } as CSSProperties} data-canvas-no-zoom data-canvas-wheel-scroll onWheel={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
-            <button className="canvas-workspace-close" type="button" aria-label="关闭工作区" onClick={onClose}>
+            <button className="canvas-workspace-close" type="button" aria-label={translate("canvasTools.canvasWorkspacePanel.closeWorkspace")} onClick={onClose}>
                 <X className="size-4" />
             </button>
             {tab === "nodes" && (
@@ -70,10 +71,10 @@ export function CanvasWorkspacePanel({
                 <>
                     {tasks.error ? (
                         <div role="alert" className="p-4">
-                            任务加载失败。<Button onClick={() => void tasks.refetch()}>重试</Button>
+                            {translate("canvasTools.canvasWorkspacePanel.failedToLoadTasks")}<Button onClick={() => void tasks.refetch()}>{translate("common.retry")}</Button>
                         </div>
                     ) : tasks.loading ? (
-                        <p className="p-4">正在加载任务…</p>
+                        <p className="p-4">{translate("canvasTools.canvasWorkspacePanel.loadingTasks")}</p>
                     ) : history ? (
                         <CanvasWorkspaceHistoryPanel tasks={tasks.allTasks} refreshing={tasks.refreshing} onRefresh={() => void tasks.refetch()} onCancelTask={onCancelTask} />
                     ) : (
@@ -89,18 +90,18 @@ export function CanvasWorkspacePanel({
         </div>
     );
     const entries = [
-        { id: "nodes", label: "节点", icon: Layers3 },
-        { id: "assets", label: "素材库", icon: Images },
-        { id: "tasks", label: "任务", icon: ListChecks },
-        { id: "history", label: "历史", icon: History },
+        { id: "nodes", label: translate("canvasTools.canvasWorkspacePanel.node"), icon: Layers3 },
+        { id: "assets", label: translate("canvasB.mention.assetLibrary"), icon: Images },
+        { id: "tasks", label: translate("nav.tools.tasks"), icon: ListChecks },
+        { id: "history", label: translate("nav.collapsed.tasks"), icon: History },
     ];
     return (
         <>
             <div className={`canvas-workspace-shell ${open && screens.lg ? "is-expanded" : ""}`} style={{ ...canvasDockStyle(theme), "--canvas-workspace-base": theme.node.panel, background: undefined } as CSSProperties}>
-                <nav className="canvas-workspace-rail" aria-label="画布左侧菜单" data-canvas-no-zoom onWheel={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
-                    <Link to="/" className="canvas-workspace-rail-button" aria-label="主页" title="返回主页">
+                <nav className="canvas-workspace-rail" aria-label={translate("canvasTools.canvasWorkspacePanel.canvasLeftMenu")} data-canvas-no-zoom onWheel={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
+                    <Link to="/" className="canvas-workspace-rail-button" aria-label={translate("canvasTools.canvasWorkspacePanel.home")} title={translate("canvasTools.canvasWorkspacePanel.backToHome")}>
                         <Home />
-                        <span>主页</span>
+                        <span>{translate("canvasTools.canvasWorkspacePanel.home")}</span>
                     </Link>
                     <span className="canvas-workspace-rail-divider" aria-hidden />
                     <div className="canvas-workspace-rail-items">
@@ -109,7 +110,7 @@ export function CanvasWorkspacePanel({
                                 key={id}
                                 type="button"
                                 className="canvas-workspace-rail-button"
-                                title={open && tab === id ? `收起${label}` : `打开${label}`}
+                                title={open && tab === id ? translate("canvasTools.canvasWorkspacePanel.collapse", { v0: String(label) }) : translate("canvasTools.canvasWorkspacePanel.open", { v0: String(label) })}
                                 aria-pressed={open && tab === id}
                                 onPointerDown={markPointer}
                                 onKeyDown={markKeyboard}
@@ -134,15 +135,15 @@ export function CanvasWorkspacePanel({
                         onPointerDown={markPointer}
                         onKeyDown={markKeyboard}
                         aria-expanded={open}
-                        aria-label={open ? "折叠面板" : "展开面板"}
-                        title={open ? "收起面板，扩大画布" : "展开工作区面板"}
+                        aria-label={open ? translate("canvasTools.canvasWorkspacePanel.collapsePanel") : translate("canvasTools.canvasWorkspacePanel.expandPanel")}
+                        title={open ? translate("canvasTools.canvasWorkspacePanel.collapsePanelToEnlargeCanvas") : translate("canvasTools.canvasWorkspacePanel.expandWorkspacePanel")}
                     >
                         {open ? <PanelLeftClose /> : <PanelLeftOpen />}
-                        <span>{open ? "收起" : "展开"}</span>
+                        <span>{open ? translate("account.feedback.collapse") : translate("canvasTools.canvasWorkspacePanel.expand")}</span>
                     </button>
                 </nav>
                 {open && screens.lg ? (
-                    <aside className="w-80 shrink-0 min-h-0" aria-label="画布工作区">
+                    <aside className="w-80 shrink-0 min-h-0" aria-label={translate("canvasTools.canvasWorkspacePanel.canvasWorkspace")}>
                         {content}
                     </aside>
                 ) : null}

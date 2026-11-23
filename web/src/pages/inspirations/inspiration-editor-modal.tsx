@@ -3,6 +3,7 @@ import { Button, Form, Input, Select } from "antd";
 import { AppModal } from "@/components/ui/product/app-modal";
 import type { CreationInspiration } from "@/lib/inspirations/catalog";
 import { normalizeDraft, type InspirationDraft } from "@/stores/use-inspiration-store";
+import { translate } from "@/i18n";
 
 export type InspirationCategoryChoice = { label: string; value: string };
 
@@ -75,7 +76,7 @@ export function InspirationEditorModal({
     return (
         <AppModal
             open={open}
-            title={item ? "编辑灵感" : "新建灵感"}
+            title={item ? translate("shared.inspirations.inspirationEditorModal.editInspiration") : translate("shared.inspirations.inspirationEditorModal.newInspiration")}
             width={720}
             onCancel={() => {
                 form.resetFields();
@@ -92,10 +93,10 @@ export function InspirationEditorModal({
                             onClose();
                         }}
                     >
-                        取消
+                        {translate("common.cancel")}
                     </Button>
                     <Button type="primary" onClick={() => void handleOk()}>
-                        {item ? "保存" : "创建"}
+                        {item ? translate("common.save") : translate("shared.inspirations.inspirationEditorModal.created")}
                     </Button>
                 </div>
             }
@@ -103,40 +104,40 @@ export function InspirationEditorModal({
             <Form form={form} layout="vertical" initialValues={toFormValues(item)} preserve={false}>
                 {/* 字段较多，不限高的话底部按钮会被顶出视口，提交就点不到了。 */}
                 <div className="max-h-[64vh] overflow-y-auto pr-1">
-                    <Form.Item name="title" label="标题" rules={[{ required: true, message: "请填写标题" }]}>
-                        <Input placeholder="例如：护肤品质感广告主视觉" maxLength={80} />
+                    <Form.Item name="title" label={translate("library.assets.form.title")} rules={[{ required: true, message: translate("shared.inspirations.inspirationEditorModal.enterATitle") }]}>
+                        <Input placeholder={translate("shared.inspirations.inspirationEditorModal.forExamplePremiumSkincareCampaignVisual")} maxLength={80} />
                     </Form.Item>
-                    <Form.Item name="description" label="一句话描述">
-                        <Input placeholder="卡片上铺两行，说明这个提示词适合做什么" maxLength={120} />
+                    <Form.Item name="description" label={translate("shared.inspirations.inspirationEditorModal.oneLineDescription")}>
+                        <Input placeholder={translate("shared.inspirations.inspirationEditorModal.explainWhatThisPromptIsUsefulForInTwoLines")} maxLength={120} />
                     </Form.Item>
-                    <Form.Item name="image" label="封面地址" rules={[{ required: true, message: "请填写封面图片地址" }]}>
-                        <Input placeholder="https:// 开头的图片地址，或 /public 下的本地路径" />
+                    <Form.Item name="image" label={translate("shared.inspirations.inspirationEditorModal.coverURL")} rules={[{ required: true, message: translate("shared.inspirations.inspirationEditorModal.enterACoverImageURL") }]}>
+                        <Input placeholder={translate("shared.inspirations.inspirationEditorModal.anImageURLStartingWithHttpsOrALocalPath")} />
                     </Form.Item>
                     <div className="grid gap-x-4 sm:grid-cols-3">
-                        <Form.Item name="mode" label="创作类型" rules={[{ required: true }]}>
+                        <Form.Item name="mode" label={translate("shared.inspirations.inspirationEditorModal.creationType")} rules={[{ required: true }]}>
                             <Select
                                 options={[
-                                    { label: "图片", value: "image" },
-                                    { label: "视频", value: "video" },
-                                    { label: "文本", value: "text" },
+                                    { label: translate("account.feedback.image"), value: "image" },
+                                    { label: translate("account.feedback.video"), value: "video" },
+                                    { label: translate("account.settings.modelConfig.capabilities.text"), value: "text" },
                                 ]}
                             />
                         </Form.Item>
-                        <Form.Item name="category" label="分类">
-                            <Select allowClear showSearch placeholder="选一个或留空" options={categoryOptions} />
+                        <Form.Item name="category" label={translate("library.picker.category")}>
+                            <Select allowClear showSearch placeholder={translate("shared.inspirations.inspirationEditorModal.selectOneOrLeaveBlank")} options={categoryOptions} />
                         </Form.Item>
-                        <Form.Item name="ratio" label="画面比例">
-                            <Input placeholder="例如 16:9" maxLength={12} />
+                        <Form.Item name="ratio" label={translate("shared.inspirations.inspirationEditorModal.aspectRatio")}>
+                            <Input placeholder={translate("shared.inspirations.inspirationEditorModal.forExample169")} maxLength={12} />
                         </Form.Item>
                     </div>
-                    <Form.Item name="tags" label="标签" extra="用逗号分隔，最多六个">
-                        <Input placeholder="电商产品，海报排版" maxLength={120} />
+                    <Form.Item name="tags" label={translate("library.assets.form.tags")} extra={translate("shared.inspirations.inspirationEditorModal.separateWithCommasUpToSix")}>
+                        <Input placeholder={translate("shared.inspirations.inspirationEditorModal.productPhotographyPosterLayout")} maxLength={120} />
                     </Form.Item>
-                    <Form.Item name="prompt" label="提示词正文" rules={[{ required: true, message: "请填写提示词正文" }]}>
-                        <Input.TextArea rows={6} placeholder="粘贴完整提示词；外部英文提示词也可以直接放这里" />
+                    <Form.Item name="prompt" label={translate("shared.inspirations.inspirationEditorModal.promptText")} rules={[{ required: true, message: translate("shared.inspirations.inspirationEditorModal.enterThePromptText") }]}>
+                        <Input.TextArea rows={6} placeholder={translate("shared.inspirations.inspirationEditorModal.pasteTheFullPromptEnglishPromptsFromOtherSourcesCan")} />
                     </Form.Item>
-                    <Form.Item name="promptZh" label="中文正文（可选）" extra="填了以后，卡片和「用这个创意创作」会优先用中文这版">
-                        <Input.TextArea rows={4} placeholder="中文改写版，留空则只用上面的正文" />
+                    <Form.Item name="promptZh" label={translate("shared.inspirations.inspirationEditorModal.chineseTextOptional")} extra={translate("shared.inspirations.inspirationEditorModal.whenProvidedCardsAndCreateWithThisIdeaWillPrefer")}>
+                        <Input.TextArea rows={4} placeholder={translate("shared.inspirations.inspirationEditorModal.chineseRewriteLeaveBlankToUseOnlyTheTextAbove")} />
                     </Form.Item>
                 </div>
             </Form>

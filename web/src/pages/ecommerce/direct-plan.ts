@@ -8,17 +8,18 @@ import { marketingPlanSlots } from "./marketing-materials";
 import { commerceDisplaySlots } from "./display-slots";
 
 /** User-authored execution specification. No text model or invented analysis. */
+import { translate } from "@/i18n";
 export function directCommercePlan(draft: EcommerceDraft): EcommercePlan {
-    if (draft.referenceMode === "style" || draft.referenceMode === "detail") throw new Error("参考风格与长图逐屏创作需要先进行 AI 分析，请切换到 AI 策划");
-    if (draft.imageType === "detail") throw new Error("详情页必须先由 Agent 完成性能、场景与逐张文案策划");
+    if (draft.referenceMode === "style" || draft.referenceMode === "detail") throw new Error(translate("ecommerce.directPlan.referenceStylesAndScreenByScreenLongImagesRequireAI"));
+    if (draft.imageType === "detail") throw new Error(translate("ecommerce.directPlan.detailPagesRequireTheAgentToPlanPerformanceScenesAnd"));
     const invalid = typeValidation(draft);
     if (invalid) throw new Error(invalid);
-    if (!draft.productName.trim() || !draft.references.some((ref) => ref.role === "primary")) throw new Error("请填写商品名称并上传商品主图");
-    if (draft.imageType === "sku" && draft.skus.some((sku) => !sku.name.trim() || !Number.isInteger(sku.count) || sku.count < 0)) throw new Error("请填写真实 SKU 名称及整数数量");
+    if (!draft.productName.trim() || !draft.references.some((ref) => ref.role === "primary")) throw new Error(translate("ecommerce.directPlan.enterTheProductNameAndUploadItsMainImage"));
+    if (draft.imageType === "sku" && draft.skus.some((sku) => !sku.name.trim() || !Number.isInteger(sku.count) || sku.count < 0)) throw new Error(translate("ecommerce.directPlan.enterRealSKUNamesAndWholeNumberQuantities"));
     const slots = draft.imageType === "sku" ? draft.skus.flatMap((sku) => Array.from({ length: sku.count }, () => sku)) : Array.from({ length: draft.count }, () => undefined);
     const materials = draft.imageType === "marketing" ? marketingPlanSlots(draft) : [];
     const displayAssignments = commerceDisplaySlots(draft);
-    if (!slots.length || slots.length > 30 || slots.length !== draft.count) throw new Error("生成数量须为 1–30 张，并与 SKU 数量一致");
+    if (!slots.length || slots.length > 30 || slots.length !== draft.count) throw new Error(translate("ecommerce.directPlan.generate130ImagesMatchingTheSKUQuantities"));
     const facts = {
         name: draft.productName,
         category: draft.category,

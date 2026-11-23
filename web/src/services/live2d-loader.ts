@@ -1,5 +1,6 @@
 import type { Live2DLoader as Loader } from "pixi-live2d-display/cubism4";
 import { apiBaseURL } from "@/services/api/request";
+import { translate } from "@/i18n";
 
 const installed = new WeakSet<typeof Loader>();
 
@@ -12,14 +13,14 @@ export function installLive2DLoader(loader: typeof Loader) {
         const base = new URL(`${apiBaseURL.replace(/\/$/, "")}/`, window.location.href);
         const url = new URL(context.settings ? context.settings.resolveURL(context.url) : context.url, window.location.href);
         const allowed = ["public", "admin/settings"].some((prefix) => url.pathname.startsWith(`${base.pathname}${prefix}/appearance/live2d/`));
-        if (url.origin !== base.origin || !allowed) throw new Error("Live2D 资源必须来自本站模型接口");
+        if (url.origin !== base.origin || !allowed) throw new Error(translate("shared.live2dLoader.live2DResourcesMustComeFromThisSiteSModelAPI"));
         const controller = new AbortController();
         const abort = () => controller.abort();
         const deadline = setTimeout(abort, 20000);
         context.target?.once("destroy", abort);
         try {
             const response = await fetch(url, { credentials: "include", signal: controller.signal });
-            if (!response.ok) throw new Error(`Live2D 资源加载失败（${response.status}）`);
+            if (!response.ok) throw new Error(translate("shared.live2dLoader.failedToLoadLive2DResource", { v0: String(response.status) }));
             context.result = context.type === "json" ? await response.json() : await response.arrayBuffer();
         } finally {
             clearTimeout(deadline);

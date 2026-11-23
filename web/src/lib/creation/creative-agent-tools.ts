@@ -1,5 +1,6 @@
 import type { ResponseFunctionTool } from "@/services/api/image";
 
+import { translate } from "@/i18n";
 const string = { type: "string" };
 const strings = { type: "array", items: string };
 const object = (properties: Record<string, unknown>, required: string[] = []) => ({ type: "object", properties, required, additionalProperties: false });
@@ -44,6 +45,6 @@ generationItems 是方案的声明式生成配置，用于校验和之后的报�
 
 export function parseCreativeToolArguments(value: string): Record<string, unknown> {
     const parsed: unknown = JSON.parse(value);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("助手返回的交互内容格式无效");
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error(translate("ecommerce.creation.creativeAgentTools.theAssistantReturnedAnInvalidInteractionFormat"));
     return parsed as Record<string, unknown>;
 }

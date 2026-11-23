@@ -3,6 +3,7 @@ import { canvasGenerationInputPrompt } from "@/lib/canvas/canvas-generation-inpu
 import { nodeGenerationPrompt } from "@/lib/canvas/generation-contract";
 import type { Asset } from "@/stores/use-asset-store";
 import type { CanvasBatchInputSnapshot, CanvasConnection, CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 /** Snapshot locators and compiled text, never the entire canvas or decoded image bytes. */
 export function createCanvasBatchInputSnapshot(node: CanvasNodeData, nodes: CanvasNodeData[], connections: CanvasConnection[], assets: Asset[]): CanvasBatchInputSnapshot {
@@ -10,7 +11,7 @@ export function createCanvasBatchInputSnapshot(node: CanvasNodeData, nodes: Canv
     const context = buildNodeGenerationContext(node.id, nodes, connections, canvasGenerationInputPrompt(node, "image", prompt), assets);
     const referenceImages = context.referenceImages.map((image) => {
         if (!image.storageKey && /^(data:|blob:)/i.test(image.dataUrl || image.url || "")) {
-            throw new Error(`参考图「${image.name}」尚未保存为资源，请完成保存后重新提交批量任务`);
+            throw new Error(translate("shared.canvas.canvasBatchInputSnapshot.referenceImageHasNotBeenSavedAsAResourceSave", { v0: String(image.name) }));
         }
         const source = nodes.find((candidate) => candidate.id === image.id);
         const dimensions = { width: image.width || source?.metadata?.naturalWidth, height: image.height || source?.metadata?.naturalHeight };

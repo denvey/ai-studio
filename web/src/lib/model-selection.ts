@@ -3,6 +3,8 @@ import { videoResolutionComparisonKey } from "@/lib/video-generation-options";
 import { imageParameterRequest, imageParameterDefaults, imageParameterAccepts } from "./image-parameters";
 import { imageSizePresets } from "@/lib/image-size-presets";
 import { modelOptionName, PUBLIC_MODEL_CATALOG_ID, resolveModelChannel, selectableModelsByCapability, type AiConfig, type ModelCapability } from "@/stores/use-config-store";
+import { translate } from "@/i18n";
+
 
 export type ModelInputSummary = {
     textCount: number;
@@ -71,10 +73,10 @@ export function audioModelForConnectionInput(config: AiConfig, input: ModelInput
 }
 
 export function doubaoAudioInputError(input: ModelInputSummary) {
-    if (input.videoCount > 0) return "音频生成不能连接参考视频";
-    if (input.imageCount > 0 && input.audioCount > 0) return "参考图片和参考音频不能同时连接";
-    if (input.imageCount > 1) return "最多连接 1 张参考图片";
-    if (input.audioCount > 3) return "最多连接 3 段参考音频";
+    if (input.videoCount > 0) return translate("shared.modelSelection.audioGenerationDoesNotSupportReferenceVideos");
+    if (input.imageCount > 0 && input.audioCount > 0) return translate("shared.modelSelection.referenceImagesAndReferenceAudioCannotBeConnectedTogether");
+    if (input.imageCount > 1) return translate("shared.modelSelection.connectAtMost1ReferenceImage");
+    if (input.audioCount > 3) return translate("shared.modelSelection.connectAtMost3ReferenceAudioClips");
     return "";
 }
 
@@ -126,29 +128,29 @@ export function modelCompatibilityError(config: AiConfig, model: string, require
             options: Object.fromEntries(Object.entries(requirements.options || {}).filter(([name]) => Boolean(publicOptionNames[name]))),
         };
         const errors = logicalSpecs.map((spec) => logicalModelCompatibilityError(spec, logicalRequirements, visualInputCount));
-        return errors.some((error) => !error) ? "" : errors[0] || "当前输入不受支持";
+        return errors.some((error) => !error) ? "" : errors[0] || translate("shared.modelSelection.theCurrentInputIsNotSupported");
     }
 
     if (capability === "image") {
         const image = modelCapabilityConfigFor(config, model).image!;
         // 尺寸兼容不依赖输入摘要：无输入时（如画布重试/工具链）也要按尺寸过滤组内模型。
-        if (requirements.imageSize && !image.size.allowCustom && !image.size.values.includes(requirements.imageSize)) return "不支持当前尺寸";
+        if (requirements.imageSize && !image.size.allowCustom && !image.size.values.includes(requirements.imageSize)) return translate("shared.modelSelection.theCurrentDimensionsAreNotSupported");
         if (!input) return "";
-        if (input.videoCount > 0) return "图片模型不支持参考视频";
-        if (input.audioCount > 0) return "图片模型不支持参考音频";
-        if (visualInputCount > image.references.maxImages) return `最多支持 ${image.references.maxImages} 张参考图`;
+        if (input.videoCount > 0) return translate("shared.modelSelection.imageModelsDoNotSupportReferenceVideos");
+        if (input.audioCount > 0) return translate("shared.modelSelection.imageModelsDoNotSupportReferenceAudio");
+        if (visualInputCount > image.references.maxImages) return translate("shared.modelSelection.supportsUpToReferenceImages", { v0: String(image.references.maxImages) });
         return "";
     }
 
     if (capability === "video") {
         const profile = modelCapabilityConfigFor(config, model).video!;
-        if (requirements.videoSeconds && !videoDurationAllowed(profile, Number(requirements.videoSeconds))) return "不支持当前视频时长";
+        if (requirements.videoSeconds && !videoDurationAllowed(profile, Number(requirements.videoSeconds))) return translate("shared.modelSelection.theCurrentVideoDurationIsNotSupported");
         if (!input) return "";
-        if (visualInputCount > profile.references.maxImages) return `最多支持 ${profile.references.maxImages} 张参考图`;
-        if (input.videoCount > profile.references.maxVideos) return `最多支持 ${profile.references.maxVideos} 个参考视频`;
-        if (input.audioCount > profile.references.maxAudios) return `最多支持 ${profile.references.maxAudios} 个参考音频`;
+        if (visualInputCount > profile.references.maxImages) return translate("shared.modelSelection.supportsUpToReferenceImages", { v0: String(profile.references.maxImages) });
+        if (input.videoCount > profile.references.maxVideos) return translate("shared.modelSelection.supportsUpToReferenceVideos", { v0: String(profile.references.maxVideos) });
+        if (input.audioCount > profile.references.maxAudios) return translate("shared.modelSelection.supportsUpToReferenceAudioClips", { v0: String(profile.references.maxAudios) });
         const operation = resolveVideoOperation(input, requirements.videoOperation);
-        if (operation !== "concat" && !profile.operations.includes(operation)) return `不支持${videoOperationLabel(operation)}`;
+        if (operation !== "concat" && !profile.operations.includes(operation)) return translate("shared.modelSelection.doesNotSupport", { v0: String(videoOperationLabel(operation)) });
         return "";
     }
 
@@ -156,18 +158,18 @@ export function modelCompatibilityError(config: AiConfig, model: string, require
 
     if (capability === "text") {
         const text = modelCapabilityConfigFor(config, model).text;
-        if (input.imageCount > (text?.references.maxImages ?? 0)) return `最多支持 ${(text?.references.maxImages ?? 0)} 张参考图`;
-        if (input.videoCount > (text?.references.maxVideos ?? 0)) return `最多支持 ${(text?.references.maxVideos ?? 0)} 个参考视频`;
-        if (input.audioCount > 0) return "文本模型不支持参考音频";
+        if (input.imageCount > (text?.references.maxImages ?? 0)) return translate("shared.modelSelection.supportsUpToReferenceImages", { v0: String(text?.references.maxImages ?? 0) });
+        if (input.videoCount > (text?.references.maxVideos ?? 0)) return translate("shared.modelSelection.supportsUpToReferenceVideos", { v0: String(text?.references.maxVideos ?? 0) });
+        if (input.audioCount > 0) return translate("shared.modelSelection.textModelsDoNotSupportReferenceAudio");
         return "";
     }
 
     if (isDoubaoAudioModel(config, model)) return doubaoAudioInputError(input);
-    if (input.imageCount > 0 || input.videoCount > 0) return "音频模型不能连接参考图片或参考视频";
-    if (input.characterCount > 1) return "角色配音一次只能引用一个角色卡";
+    if (input.imageCount > 0 || input.videoCount > 0) return translate("shared.modelSelection.audioModelsCannotUseReferenceImagesOrVideos");
+    if (input.characterCount > 1) return translate("canvasPage.generation.voiceOneCharacter");
     const maxAudios = audioReferenceCapacity(config, model);
     if (input.audioCount > maxAudios) {
-        return maxAudios > 0 ? `当前音频模型最多支持 ${maxAudios} 个参考音频` : "当前音频模型不支持参考音频";
+        return maxAudios > 0 ? translate("shared.modelSelection.theCurrentAudioModelSupportsUpToReferenceAudioClips", { v0: String(maxAudios) }) : translate("shared.modelSelection.theCurrentAudioModelDoesNotSupportReferenceAudio");
     }
     return "";
 }
@@ -181,8 +183,8 @@ export function modelPromptLengthError(config: AiConfig, model: string, capabili
     if (!maxChars || maxChars <= 0) return "";
     const actualChars = Array.from(prompt).length;
     if (actualChars <= maxChars) return "";
-    const label = capability === "text" ? "文本" : capability === "image" ? "图片" : "视频";
-    return `当前${label}模型提示词最多 ${maxChars} 个字符，完整提示词为 ${actualChars} 个字符。系统不会自动截断，请精简当前输入、连线内容或技能上下文后重试`;
+    const label = capability === "text" ? translate("canvasA.mediaNoun.text") : capability === "image" ? translate("canvasA.mediaNoun.image") : translate("canvasA.mediaNoun.video");
+    return translate("shared.modelSelection.theCurrentModelSupportsPromptsOfUpToCharactersThe", { v0: String(label), v1: String(maxChars), v2: String(actualChars) });
 }
 
 export function modelRequestOptions(config: AiConfig, capability: ModelCapability): Record<string, unknown> {
@@ -207,7 +209,7 @@ export function modelRequestOptions(config: AiConfig, capability: ModelCapabilit
 }
 
 function logicalModelCompatibilityError(spec: NonNullable<NonNullable<AiConfig["channels"][number]["modelCosts"]>[number]["logicalCapabilitySpec"]>, requirements: ModelRequirements, visualInputCount: number) {
-    if (requirements.capability && spec.capability !== requirements.capability) return "不支持当前生成类型";
+    if (requirements.capability && spec.capability !== requirements.capability) return translate("shared.modelSelection.theCurrentGenerationTypeIsNotSupported");
     const input = requirements.input;
     const counts: Record<string, number> = {
         text: 0,
@@ -217,11 +219,11 @@ function logicalModelCompatibilityError(spec: NonNullable<NonNullable<AiConfig["
     };
     for (const [kind, count] of Object.entries(counts)) {
         const constraint = spec.inputs?.[kind];
-        if (!constraint && count > 0) return `不支持${kind}输入`;
-        if (constraint && (count < constraint.min || count > constraint.max)) return `${kind}输入需为 ${constraint.min}-${constraint.max} 个`;
+        if (!constraint && count > 0) return translate("shared.modelSelection.inputIsNotSupported", { v0: String(kind) });
+        if (constraint && (count < constraint.min || count > constraint.max)) return translate("shared.modelSelection.inputCountMustBeBetweenAnd", { v0: String(kind), v1: String(constraint.min), v2: String(constraint.max) });
     }
     const operation = requirements.capability === "video" && input ? resolveVideoOperation(input, requirements.videoOperation) : requirements.videoOperation;
-    if (operation && spec.operations?.length && !spec.operations.includes(operation)) return "不支持当前生成模式";
+    if (operation && spec.operations?.length && !spec.operations.includes(operation)) return translate("shared.modelSelection.theCurrentGenerationModeIsNotSupported");
     // 图片创作状态也会携带全局默认视频时长；这个字段只对视频模型有意义，
     // 不能把它拼进图片逻辑模型的能力匹配，否则图片模型会被误判为“不支持当前时长”。
     const options = {
@@ -232,7 +234,7 @@ function logicalModelCompatibilityError(spec: NonNullable<NonNullable<AiConfig["
     for (const [name, value] of Object.entries(options)) {
         if (value === undefined || value === null || value === "") continue;
         const field = spec.imageParameters?.find((p) => p.name === name);
-        if (field && name !== "size" && !imageParameterAccepts(field, value)) return `不支持当前${field.label}`;
+        if (field && name !== "size" && !imageParameterAccepts(field, value)) return translate("shared.modelSelection.theCurrentIsNotSupported", { v0: String(field.label) });
         if ((name === "quality" || name === "imageResolution") && /^(auto|any)$/i.test(String(value).trim())) continue;
         const constraint = spec.options?.[name];
         if (!constraint || !logicalOptionMatches(name, constraint, value)) return logicalOptionError(name);
@@ -262,19 +264,19 @@ function normalizeLogicalOptionValue(name: string, value: unknown) {
 
 function logicalOptionError(name: string) {
     const label: Record<string, string> = {
-        size: "尺寸",
-        quality: "质量",
-        transparentBackground: "透明背景",
-        count: "输出数量",
-        videoSeconds: "时长",
-        vquality: "分辨率",
-        videoGenerateAudio: "同步音频",
-        videoWatermark: "水印设置",
-        audioVoice: "音色",
-        audioFormat: "音频格式",
-        audioSpeed: "语速",
+        size: translate("shared.modelSelection.dimensions"),
+        quality: translate("shared.modelSelection.quality"),
+        transparentBackground: translate("shared.modelSelection.transparentBackground"),
+        count: translate("shared.modelSelection.outputCount"),
+        videoSeconds: translate("shared.modelSelection.duration"),
+        vquality: translate("shared.modelSelection.resolution"),
+        videoGenerateAudio: translate("shared.modelSelection.syncAudio"),
+        videoWatermark: translate("shared.modelSelection.watermarkSettings"),
+        audioVoice: translate("shared.modelSelection.voice"),
+        audioFormat: translate("shared.modelSelection.audioFormat"),
+        audioSpeed: translate("shared.modelSelection.speed"),
     };
-    return `不支持当前${label[name] || name}`;
+    return translate("shared.modelSelection.theCurrentIsNotSupported", { v0: String(label[name] || name) });
 }
 
 export function compatibleModelInGroup(config: AiConfig, models: string[], requirements?: ModelRequirements, preferred?: string) {
@@ -454,10 +456,10 @@ export function resolveVideoOperation(input: ModelInputSummary, storedOperation?
 }
 
 function videoOperationLabel(operation: string) {
-    if (operation === "text_to_video") return "文生视频";
-    if (operation === "image_to_video") return "图生视频";
-    if (operation === "audio_to_video") return "音频生视频";
-    if (operation === "reference_to_video") return "全模态参考";
-    if (operation === "extend") return "视频续写";
-    return "当前生成模式";
+    if (operation === "text_to_video") return translate("shared.modelPicker.textToVideo");
+    if (operation === "image_to_video") return translate("shared.modelPicker.imageToVideo");
+    if (operation === "audio_to_video") return translate("shared.modelPicker.audioToVideo");
+    if (operation === "reference_to_video") return translate("shared.modelSelection.multimodalReference");
+    if (operation === "extend") return translate("shared.modelPicker.videoContinuation");
+    return translate("shared.modelSelection.currentGenerationMode");
 }

@@ -8,6 +8,7 @@ import { formatReferralCredits, formatReferralRate, formatReferralYuan, getAdmin
 import { AdminPageFrame } from "../components/admin-shell";
 import { AdminDataTable, AdminTableEmpty, SettingsSectionCard } from "../components/admin-ui";
 import { Switch } from "../ui/controls";
+import { currentLocale, translate } from "@/i18n";
 
 const PAGE_SIZE = 20;
 
@@ -32,9 +33,9 @@ export default function AdminReferralPage() {
             const result = await updateAdminReferralSetting(draft);
             queryClient.setQueryData(["admin", "referral", "setting"], result.setting);
             setDraft(result.setting);
-            message.success("推广设置已保存，用户刷新页面后入口随之更新");
+            message.success(translate("adminPages.referral.referralAdminPage.referralSettingsSavedTheEntryWillUpdateWhenUsersRefresh"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "保存推广设置失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.referral.referralAdminPage.failedToSaveReferralSettings"));
         } finally {
             setSaving(false);
         }
@@ -42,71 +43,79 @@ export default function AdminReferralPage() {
 
     return (
         <AdminPageFrame
-            title="推广中心"
-            description="选择全民推广或只开放给指定推广人，并设置被邀请用户积分充值的返佣比例。"
+            title={translate("shell.account.referral")}
+            description={translate("adminPages.referral.referralAdminPage.allowAllUsersOrDesignatedReferrersAndSetTheCommission")}
             scroll
             actions={
                 <Button icon={<RefreshCw className="size-3.5" />} loading={setting.isFetching || commissions.isFetching} onClick={() => void Promise.all([setting.refetch(), commissions.refetch()])}>
-                    刷新
+                    {translate("common.refresh")}
                 </Button>
             }
         >
             <div className="admin-settings-stack">
                 <SettingsSectionCard
                     icon={<Gift className="size-4" />}
-                    title="推广设置"
-                    description="指定推广人模式下，在「用户管理」编辑用户并打开「推广人」开关。"
-                    status={setting.data ? { label: setting.data.enabled ? "已开启" : "已关闭", color: setting.data.enabled ? "success" : undefined } : undefined}
+                    title={translate("adminPages.referral.referralAdminPage.referralSettings")}
+                    description={translate("adminPages.referral.referralAdminPage.inDesignatedReferrerModeEditUsersInUserManagementAnd")}
+                    status={
+                        setting.data
+                            ? { label: setting.data.enabled ? translate("adminPages.referral.referralAdminPage.enabled") : translate("adminPages.referral.referralAdminPage.disabled"), color: setting.data.enabled ? "success" : undefined }
+                            : undefined
+                    }
                     footer={
                         <>
-                            <span className="text-xs text-foreground/55">返佣按被邀请用户每笔积分充值到账数量计算，以积分发放给推广人；存储空间订单不返佣。</span>
+                            <span className="text-xs text-foreground/55">{translate("adminPages.referral.referralAdminPage.commissionIsCalculatedOnCreditsReceivedForEachPurchaseBy")}</span>
                             <Button type="primary" icon={<Save className="size-3.5" />} loading={saving} disabled={!dirty} onClick={() => void save()}>
-                                保存
+                                {translate("common.save")}
                             </Button>
                         </>
                     }
                 >
                     {setting.error ? (
                         <div className="px-3 py-3 text-sm" role="alert">
-                            {setting.error instanceof Error ? setting.error.message : "读取推广设置失败"}
+                            {setting.error instanceof Error ? setting.error.message : translate("adminPages.referral.referralAdminPage.failedToLoadReferralSettings")}
                             <Button type="link" onClick={() => void setting.refetch()}>
-                                重试
+                                {translate("common.retry")}
                             </Button>
                         </div>
                     ) : !draft ? (
-                        <div className="px-3 py-3 text-sm text-foreground/55">读取中…</div>
+                        <div className="px-3 py-3 text-sm text-foreground/55">{translate("adminPages.referral.referralAdminPage.loading")}</div>
                     ) : (
                         <div className="grid gap-4 px-3 py-3">
                             <label className="flex items-center justify-between gap-3">
                                 <span>
-                                    <strong className="block text-sm">开启推广中心</strong>
-                                    <span className="text-xs text-foreground/55">关闭后所有人都看不到入口，新注册不再绑定、新充值不再返佣，已发放返佣保留。</span>
+                                    <strong className="block text-sm">{translate("adminPages.referral.referralAdminPage.enableReferralCenter")}</strong>
+                                    <span className="text-xs text-foreground/55">{translate("adminPages.referral.referralAdminPage.whenDisabledTheEntryIsHiddenForEveryoneNewSignups")}</span>
                                 </span>
-                                <Switch aria-label="开启推广中心" checked={draft.enabled} onChange={(enabled) => setDraft({ ...draft, enabled })} />
+                                <Switch aria-label={translate("adminPages.referral.referralAdminPage.enableReferralCenter")} checked={draft.enabled} onChange={(enabled) => setDraft({ ...draft, enabled })} />
                             </label>
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <span>
-                                    <strong className="block text-sm">开放方式</strong>
-                                    <span className="text-xs text-foreground/55">{draft.mode === "all" ? "所有正常账号都能看到推广中心、推广链接和推广收益。" : "只有被设为推广人的账号能看到推广中心入口并获得返佣。"}</span>
+                                    <strong className="block text-sm">{translate("adminPages.referral.referralAdminPage.accessMode")}</strong>
+                                    <span className="text-xs text-foreground/55">
+                                        {draft.mode === "all"
+                                            ? translate("adminPages.referral.referralAdminPage.allActiveAccountsCanViewTheReferralCenterReferralLinks")
+                                            : translate("adminPages.referral.referralAdminPage.onlyDesignatedReferrersCanAccessTheReferralCenterAndEarn")}
+                                    </span>
                                 </span>
                                 <SegmentedControl<ReferralMode>
-                                    ariaLabel="推广开放方式"
+                                    ariaLabel={translate("adminPages.referral.referralAdminPage.referralAccessMode")}
                                     size="sm"
                                     value={draft.mode}
                                     options={[
-                                        { value: "all", label: "全民推广" },
-                                        { value: "assigned", label: "指定推广人" },
+                                        { value: "all", label: translate("adminPages.referral.referralAdminPage.allUsers") },
+                                        { value: "assigned", label: translate("adminPages.referral.referralAdminPage.designatedReferrers") },
                                     ]}
                                     onChange={(mode) => setDraft({ ...draft, mode })}
                                 />
                             </div>
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <span>
-                                    <strong className="block text-sm">返佣比例</strong>
-                                    <span className="text-xs text-foreground/55">0%-50%，修改只影响之后入账的订单。</span>
+                                    <strong className="block text-sm">{translate("adminPages.referral.referralAdminPage.commissionRate")}</strong>
+                                    <span className="text-xs text-foreground/55">{translate("adminPages.referral.referralAdminPage.item050ChangesApplyOnlyToOrdersCreditedAfterward")}</span>
                                 </span>
                                 <InputNumber
-                                    aria-label="返佣比例"
+                                    aria-label={translate("adminPages.referral.referralAdminPage.commissionRate")}
                                     min={0}
                                     max={50}
                                     step={0.5}
@@ -119,9 +128,9 @@ export default function AdminReferralPage() {
                         </div>
                     )}
                 </SettingsSectionCard>
-                <SettingsSectionCard title="返佣记录" description="全站推广返佣明细，按入账时间倒序。" layout="stacked">
+                <SettingsSectionCard title={translate("adminPages.referral.referralAdminPage.commissionHistory")} description={translate("adminPages.referral.referralAdminPage.siteWideReferralCommissionsNewestFirstByCreditingTime")} layout="stacked">
                     <AdminDataTable<ReferralCommission>
-                        empty={<AdminTableEmpty title="暂无返佣记录" description="被邀请用户完成积分充值后会出现在这里。" />}
+                        empty={<AdminTableEmpty title={translate("adminPages.referral.referralAdminPage.noCommissionsYet")} description={translate("adminPages.referral.referralAdminPage.entriesAppearHereWhenReferredUsersCompleteCreditPurchases")} />}
                         footer={commissions.data && commissions.data.total > PAGE_SIZE ? <PaginationBar current={page} pageSize={PAGE_SIZE} total={commissions.data.total} pageSizeOptions={[PAGE_SIZE]} onChange={(next) => setPage(next)} /> : undefined}
                         table={{
                             rowKey: "id",
@@ -129,13 +138,37 @@ export default function AdminReferralPage() {
                             dataSource: commissions.data?.commissions ?? [],
                             pagination: false,
                             columns: [
-                                { key: "inviter", title: "推广人", dataIndex: "inviterName" },
-                                { key: "invitee", title: "被邀请用户", dataIndex: "inviteeName" },
-                                { key: "amount", title: "充值金额", dataIndex: "orderAmountFen", align: "right", render: (value: number) => <span className="tabular-nums">{formatReferralYuan(value)}</span> },
-                                { key: "credits", title: "到账积分", dataIndex: "orderCreditsMicrocredits", align: "right", render: (value: number) => <span className="tabular-nums">{formatReferralCredits(value)}</span> },
-                                { key: "rate", title: "比例", dataIndex: "rateBasisPoints", align: "center", render: (value: number) => formatReferralRate(value) },
-                                { key: "commission", title: "返佣积分", dataIndex: "commissionMicrocredits", align: "right", render: (value: number) => <span className="tabular-nums">+{formatReferralCredits(value)}</span> },
-                                { key: "createdAt", title: "入账时间", dataIndex: "createdAt", align: "center", render: (value: string) => <span className="tabular-nums">{new Date(value).toLocaleString("zh-CN", { hour12: false })}</span> },
+                                { key: "inviter", title: translate("adminPages.referral.referralAdminPage.referrer"), dataIndex: "inviterName" },
+                                { key: "invitee", title: translate("adminPages.referral.referralAdminPage.referredUser"), dataIndex: "inviteeName" },
+                                {
+                                    key: "amount",
+                                    title: translate("adminPages.referral.referralAdminPage.purchaseAmount"),
+                                    dataIndex: "orderAmountFen",
+                                    align: "right",
+                                    render: (value: number) => <span className="tabular-nums">{formatReferralYuan(value)}</span>,
+                                },
+                                {
+                                    key: "credits",
+                                    title: translate("adminPages.referral.referralAdminPage.creditsDelivered"),
+                                    dataIndex: "orderCreditsMicrocredits",
+                                    align: "right",
+                                    render: (value: number) => <span className="tabular-nums">{formatReferralCredits(value)}</span>,
+                                },
+                                { key: "rate", title: translate("canvasB.sizePicker.placeholder"), dataIndex: "rateBasisPoints", align: "center", render: (value: number) => formatReferralRate(value) },
+                                {
+                                    key: "commission",
+                                    title: translate("adminPages.referral.referralAdminPage.commissionCredits"),
+                                    dataIndex: "commissionMicrocredits",
+                                    align: "right",
+                                    render: (value: number) => <span className="tabular-nums">+{formatReferralCredits(value)}</span>,
+                                },
+                                {
+                                    key: "createdAt",
+                                    title: translate("adminPages.referral.referralAdminPage.creditedTime"),
+                                    dataIndex: "createdAt",
+                                    align: "center",
+                                    render: (value: string) => <span className="tabular-nums">{new Date(value).toLocaleString(currentLocale(), { hour12: false })}</span>,
+                                },
                             ],
                         }}
                     />

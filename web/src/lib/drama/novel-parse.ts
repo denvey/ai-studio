@@ -1,4 +1,5 @@
 import { splitTextIntoChapters } from "@/lib/canvas/canvas-document";
+import { translate } from "@/i18n";
 
 // 小说导入只在浏览器内做结构化预览：拆章、清理网文平台噪音、标出需要人工确认的异常。
 // 改编、拆集和建档全部交给服务端流水线。
@@ -90,13 +91,13 @@ export function analyzeNovel(raw: string, options: { perEpisode?: boolean } = {}
         .trim();
     const issues: NovelIssue[] = [];
     const cleaned = stripNoise(normalized);
-    if (cleaned.removed > 0) issues.push({ kind: "noise", message: `已移除 ${cleaned.removed} 行网址、求票等平台插入语` });
+    if (cleaned.removed > 0) issues.push({ kind: "noise", message: translate("shared.drama.novelParse.removedLinesOfPlatformAddedURLsVotingRequestsAndOther", { v0: String(cleaned.removed) }) });
 
     let sections = splitTextIntoChapters(cleaned.text).map((section) => ({ title: section.title, text: section.plainText }));
     const detectedHeading = sections.length > 1 || (sections[0] && sections[0].title !== "第 1 章");
     if (!options.perEpisode && !detectedHeading && wordCount(cleaned.text) > FALLBACK_CHUNK_WORDS * 1.5) {
         sections = chunkByParagraph(cleaned.text, FALLBACK_CHUNK_WORDS).map((text, index) => ({ title: `第 ${index + 1} 段`, text }));
-        issues.push({ kind: "no_heading", message: `没有识别到章节标题，已按段落切成 ${sections.length} 段，改编时会自动合并成集` });
+        issues.push({ kind: "no_heading", message: translate("shared.drama.novelParse.noChapterHeadingsDetectedSplitIntoSectionsAtParagraphBoundaries", { v0: String(sections.length) }) });
     }
 
     const chapters: ParsedChapter[] = [];
@@ -113,25 +114,25 @@ export function analyzeNovel(raw: string, options: { perEpisode?: boolean } = {}
         }
         chapters.push({ title: section.title, text: section.text, words });
     }
-    if (splitCount) issues.push({ kind: "split_long", message: `${splitCount} 个超长章节已在段落处拆开` });
+    if (splitCount) issues.push({ kind: "split_long", message: translate("shared.drama.novelParse.splitLongChaptersAtParagraphBoundaries", { v0: String(splitCount) }) });
 
     const empty = chapters.filter((chapter) => chapter.words === 0).length;
-    if (empty) issues.push({ kind: "empty", message: `${empty} 个章节没有正文，已跳过` });
+    if (empty) issues.push({ kind: "empty", message: translate("shared.drama.novelParse.skippedChaptersWithNoBodyText", { v0: String(empty) }) });
     const nonEmpty = chapters.filter((chapter) => chapter.words > 0);
 
     const seen = new Map<string, number>();
     for (const chapter of nonEmpty) seen.set(chapter.title, (seen.get(chapter.title) || 0) + 1);
     const duplicated = [...seen.values()].filter((count) => count > 1).length;
-    if (duplicated) issues.push({ kind: "duplicate", message: `${duplicated} 个章节标题重复，可能是重复粘贴，请确认` });
+    if (duplicated) issues.push({ kind: "duplicate", message: translate("shared.drama.novelParse.duplicateChapterTitlesFoundCheckForContentPastedTwice", { v0: String(duplicated) }) });
 
     if (options.perEpisode) {
         const tooLong = nonEmpty.filter((chapter) => sourceChars(chapter.text) > EPISODE_SOURCE_CHARS).length;
-        if (tooLong) issues.push({ kind: "too_long", message: `${tooLong} 集原文超过 ${EPISODE_SOURCE_CHARS / 10_000} 万字，请用“第 N 集”标题拆成多集，或只先放第 1 集` });
+        if (tooLong) issues.push({ kind: "too_long", message: translate("shared.drama.novelParse.episodesExceed10000SourceCharactersSplitThemUsingN", { v0: String(tooLong), v1: String(EPISODE_SOURCE_CHARS / 10_000) }) });
         return { chapters: nonEmpty, issues, words: nonEmpty.reduce((sum, chapter) => sum + chapter.words, 0), removedNoiseLines: cleaned.removed };
     }
 
     const merged = mergeShortChapters(nonEmpty);
-    if (merged.count) issues.push({ kind: "short", message: `${merged.count} 个不足 ${SHORT_CHAPTER_WORDS} 字的短章（如序章、楔子）已并入相邻章节` });
+    if (merged.count) issues.push({ kind: "short", message: translate("shared.drama.novelParse.mergedShortChaptersUnderCharactersSuchAsProloguesIntoAdjacent", { v0: String(merged.count), v1: String(SHORT_CHAPTER_WORDS) }) });
 
     return { chapters: merged.chapters, issues, words: merged.chapters.reduce((sum, chapter) => sum + chapter.words, 0), removedNoiseLines: cleaned.removed };
 }

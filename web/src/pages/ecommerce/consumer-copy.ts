@@ -1,4 +1,5 @@
 /** Reject production directions before they can become printed advertising copy. */
+import { translate } from "@/i18n";
 export function commerceCopyHasDirections(copy: string) {
     const directions =
         /(?:手持|正面|侧面|局部)?画面(?:呈现|展示|安排|采用|使用|保持)|(?:构图|镜头|机位|景别|排版|提示词|安全边距|字号|字重|文案位置|主体占比|相对关系|装饰仍清晰可见)|(?:主标题|副标题|说明文案|正文|标题)\s*[:：]|(?:放在|置于|位于).{0,12}(?:左侧|右侧|上方|下方|画幅)|(?:render|place|layout|composition|camera|prompt)\s*[:：]/i;
@@ -6,7 +7,7 @@ export function commerceCopyHasDirections(copy: string) {
 }
 
 export function assertCommerceConsumerCopy(copy: string) {
-    if (commerceCopyHasDirections(copy)) throw new Error("文案中含有画面说明，请重新策划后再生成");
+    if (commerceCopyHasDirections(copy)) throw new Error(translate("ecommerce.consumerCopy.theCopyContainsSceneInstructionsReplanBeforeGenerating"));
 }
 
 export const commerceTypographyInstruction =

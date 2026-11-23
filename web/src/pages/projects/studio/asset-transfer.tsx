@@ -8,6 +8,7 @@ import { dramaKeys } from "@/lib/drama/drama-query-keys";
 import type { DramaEpisodeRow } from "@/services/api/drama";
 import { applyDramaAssetImport, openDramaAssetPackage, planDramaAssetImport, type DramaAssetImportOptions, type DramaAssetImportPlan, type DramaAssetImportResult, type DramaAssetPackage } from "@/services/drama-asset-import";
 import { defaultJianyingDraftRoot, exportDramaAssetPackage, exportDramaJianyingDraft, jianyingDraftRootProblem, savedJianyingDraftRoot, saveJianyingDraftRoot } from "@/services/drama-export";
+import { translate } from "@/i18n";
 
 /** 一键打包资产：全剧设定总会打包；剧集只能选已拆出分镜的。导出不消耗积分。 */
 export function AssetPackageModal({ open, projectId, episodes, onClose }: { open: boolean; projectId: string; episodes: DramaEpisodeRow[]; onClose: () => void }) {
@@ -27,28 +28,28 @@ export function AssetPackageModal({ open, projectId, episodes, onClose }: { open
     };
     const submit = () => {
         exportDramaAssetPackage(projectId, { episodeIds: chosen.map((episode) => episode.id), media, prompts }, (text) => message.error(text));
-        message.info(media ? "正在打包，浏览器会开始下载；包含视频时文件较大，请留意下载进度" : "正在打包提示词，浏览器会开始下载");
+        message.info(media ? translate("drama.studio.assetTransfer.packagingForBrowserDownloadPackagesWithVideosCanBeLarge") : translate("drama.studio.assetTransfer.packagingPromptsForBrowserDownload"));
         onClose();
     };
     return (
-        <AppModal open={open} onCancel={onClose} footer={null} title={null} closable={false} flush centered width="min(640px, calc(100vw - 32px))" rootClassName="drama-root" aria-label="一键打包全部资产">
+        <AppModal open={open} onCancel={onClose} footer={null} title={null} closable={false} flush centered width="min(640px, calc(100vw - 32px))" rootClassName="drama-root" aria-label={translate("drama.studio.assetTransfer.exportAllAssetsInOnePackage")}>
             <div className="drama-composer drama-transfer">
                 <header className="drama-composer-head">
                     <div className="min-w-0">
-                        <strong>一键打包全部资产</strong>
-                        <span>全剧角色、场景、道具设定总会打包；剧集仅已拆解分镜的可选。导出不消耗积分。</span>
+                        <strong>{translate("drama.studio.assetTransfer.exportAllAssetsInOnePackage")}</strong>
+                        <span>{translate("drama.studio.assetTransfer.characterSceneAndPropDesignsAreAlwaysIncludedOnlyEpisodes")}</span>
                     </div>
-                    <Button type="text" icon={<X className="size-4" />} aria-label="关闭" onClick={onClose} />
+                    <Button type="text" icon={<X className="size-4" />} aria-label={translate("common.close")} onClick={onClose} />
                 </header>
                 <div className="drama-transfer-body thin-scrollbar">
                     <div className="drama-transfer-row">
-                        <span className="drama-composer-label">剧集</span>
+                        <span className="drama-composer-label">{translate("drama.studio.assetTransfer.episodes")}</span>
                         <Button size="small" disabled={!selectable.length} onClick={() => setPicked(chosen.length === selectable.length ? new Set() : new Set(selectable.map((episode) => episode.id)))}>
-                            {chosen.length === selectable.length && selectable.length ? "取消全选" : "全选"}
+                            {chosen.length === selectable.length && selectable.length ? translate("drama.studio.assetTransfer.deselectAll") : translate("drama.studio.assetTransfer.selectAll")}
                         </Button>
                     </div>
                     {episodes.length ? (
-                        <div className="drama-transfer-episodes" role="group" aria-label="选择剧集">
+                        <div className="drama-transfer-episodes" role="group" aria-label={translate("drama.studio.assetTransfer.selectEpisodes")}>
                             {episodes.map((episode) => {
                                 const disabled = episode.shotCount <= 0;
                                 return (
@@ -58,35 +59,36 @@ export function AssetPackageModal({ open, projectId, episodes, onClose }: { open
                                         className="drama-transfer-episode"
                                         aria-pressed={selected.has(episode.id) && !disabled}
                                         disabled={disabled}
-                                        title={disabled ? "还没有拆解分镜" : episode.title}
+                                        title={disabled ? translate("drama.studio.assetTransfer.noStoryboardBreakdownYet") : episode.title}
                                         onClick={() => toggle(episode.id)}
                                     >
-                                        第{String(episode.number).padStart(2, "0")}集
+                                        {translate("drama.sentences.episodeHeading", { number: String(episode.number).padStart(2, "0") })}
                                     </button>
                                 );
                             })}
                         </div>
                     ) : (
-                        <p className="drama-transfer-note">作品还没有剧集，只会打包设定。</p>
+                        <p className="drama-transfer-note">{translate("drama.studio.assetTransfer.thisProductionHasNoEpisodesYetOnlyDesignsWillBe")}</p>
                     )}
                     <div className="drama-transfer-options">
                         <Checkbox checked={media} onChange={(event) => setMedia(event.target.checked)}>
-                            媒体文件：设定参考图、角色声音样本、剧情段视频与成片
+                            {translate("drama.studio.assetTransfer.mediaDesignReferenceImagesCharacterVoiceSamplesSegmentVideosAnd")}
                         </Checkbox>
                         <Checkbox checked={prompts} onChange={(event) => setPrompts(event.target.checked)}>
-                            提示词：段视频提示词、镜头画面与运动描述、设定参考图提示词（Markdown）
+                            {translate("drama.studio.assetTransfer.promptsSegmentVideoPromptsShotVisualsAndMotionDescriptionsAnd")}
                         </Checkbox>
                     </div>
-                    <p className="drama-transfer-note">压缩包内的「资产清单.json」记录全部设定与分镜结构，可在其他作品里用「导入资产包」套用设定图和提示词。</p>
+                    <p className="drama-transfer-note">{translate("drama.studio.assetTransfer.theArchiveSJsonRecordsAllDesignsAndStoryboardStructure")}</p>
                 </div>
                 <footer className="drama-composer-foot">
                     <span className="drama-composer-count">
-                        已选 {chosen.length} 集{media && segments ? ` · 约 ${segments} 个剧情段` : ""}
+                        {translate("drama.studio.assetTransfer.selected")} {chosen.length} {translate("drama.studio.assetTransfer.episodes2")}
+                        {media && segments ? translate("drama.studio.assetTransfer.aboutStorySegments", { v0: String(segments) }) : ""}
                     </span>
                     <span className="flex-1" />
-                    <Button onClick={onClose}>取消</Button>
+                    <Button onClick={onClose}>{translate("common.cancel")}</Button>
                     <Button type="primary" disabled={!media && !prompts} onClick={submit}>
-                        确认打包
+                        {translate("drama.studio.assetTransfer.confirmExport")}
                     </Button>
                 </footer>
             </div>
@@ -116,7 +118,7 @@ export function AssetImportModal({ open, projectId, onClose }: { open: boolean; 
         let active = true;
         planDramaAssetImport(projectId, pkg, options)
             .then((value) => active && setPlan({ source: pkg, options, value }))
-            .catch((error) => active && setPlan({ source: pkg, options, error: error instanceof Error ? error.message : "读取当前作品失败" }));
+            .catch((error) => active && setPlan({ source: pkg, options, error: error instanceof Error ? error.message : translate("drama.studio.assetTransfer.failedToLoadTheCurrentProduction") }));
         return () => {
             active = false;
         };
@@ -149,7 +151,7 @@ export function AssetImportModal({ open, projectId, onClose }: { open: boolean; 
             const hasPrompts = opened.manifest.includes?.prompts === true;
             setOptions({ ...IMPORT_DEFAULTS, segmentPrompts: hasPrompts, shotPrompts: false });
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "无法读取资产包");
+            message.error(error instanceof Error ? error.message : translate("drama.studio.assetTransfer.unableToReadAssetPackage"));
         } finally {
             setOpening(false);
         }
@@ -160,8 +162,8 @@ export function AssetImportModal({ open, projectId, onClose }: { open: boolean; 
         const outcome = await applyDramaAssetImport(projectId, pkg, currentPlan.value, (done, total) => setProgress({ done, total }));
         setResult(outcome);
         void queryClient.invalidateQueries({ queryKey: dramaKeys.summary(projectId) });
-        if (outcome.failed.length) message.warning(`已导入 ${outcome.succeeded} 项，${outcome.failed.length} 项失败`);
-        else message.success(`已导入 ${outcome.succeeded} 项`);
+        if (outcome.failed.length) message.warning(translate("drama.studio.assetTransfer.importedItemsFailed", { v0: String(outcome.succeeded), v1: String(outcome.failed.length) }));
+        else message.success(translate("drama.studio.assetTransfer.importedItems", { v0: String(outcome.succeeded) }));
     };
     const counts = useMemo(() => {
         const operations = currentPlan?.value?.operations || [];
@@ -175,14 +177,14 @@ export function AssetImportModal({ open, projectId, onClose }: { open: boolean; 
     const option = (key: keyof DramaAssetImportOptions) => ({ checked: options[key], disabled: importing || Boolean(result), onChange: (event: { target: { checked: boolean } }) => setOptions({ ...options, [key]: event.target.checked }) });
 
     return (
-        <AppModal open={open} onCancel={close} footer={null} title={null} closable={false} flush centered width="min(680px, calc(100vw - 32px))" rootClassName="drama-root" aria-label="导入资产包">
+        <AppModal open={open} onCancel={close} footer={null} title={null} closable={false} flush centered width="min(680px, calc(100vw - 32px))" rootClassName="drama-root" aria-label={translate("drama.studio.assetTransfer.importAssetPackage")}>
             <div className="drama-composer drama-transfer">
                 <header className="drama-composer-head">
                     <div className="min-w-0">
-                        <strong>导入资产包</strong>
-                        <span>把影策导出的资产包套用到当前作品：按类型与名称匹配设定，按集号与段号匹配提示词。</span>
+                        <strong>{translate("drama.studio.assetTransfer.importAssetPackage")}</strong>
+                        <span>{translate("drama.studio.assetTransfer.applyAYingceAssetPackageToThisProductionDesignsAre")}</span>
                     </div>
-                    <Button type="text" icon={<X className="size-4" />} aria-label="关闭" disabled={importing} onClick={close} />
+                    <Button type="text" icon={<X className="size-4" />} aria-label={translate("common.close")} disabled={importing} onClick={close} />
                 </header>
                 <div className="drama-transfer-body thin-scrollbar">
                     <input
@@ -203,33 +205,34 @@ export function AssetImportModal({ open, projectId, onClose }: { open: boolean; 
                                 <>
                                     <strong title={fileName}>{fileName}</strong>
                                     <span>
-                                        来自「{pkg.manifest.drama.name}」 · {pkg.manifest.cast.length} 个设定 · {pkg.manifest.episodes.length} 集{prompts ? " · 含提示词" : " · 不含提示词"}
+                                        {translate("drama.sentences.importPackage", { name: pkg.manifest.drama.name, cast: pkg.manifest.cast.length, episodes: pkg.manifest.episodes.length })}
+                                        {prompts ? " " + translate("drama.studio.assetTransfer.includesPrompts") : " " + translate("drama.studio.assetTransfer.noPrompts")}
                                     </span>
                                 </>
                             ) : (
                                 <>
-                                    <strong>选择资产包（.zip）</strong>
-                                    <span>只读取资产清单和需要的图片，大文件也不会整包载入。</span>
+                                    <strong>{translate("drama.studio.assetTransfer.chooseAssetPackageZip")}</strong>
+                                    <span>{translate("drama.studio.assetTransfer.onlyTheAssetManifestAndRequiredImagesAreReadLarge")}</span>
                                 </>
                             )}
                         </div>
                         <Button loading={opening} disabled={importing} onClick={() => inputRef.current?.click()}>
-                            {pkg ? "重新选择" : "选择文件"}
+                            {pkg ? translate("account.settings.profile.reselect") : translate("drama.studio.assetTransfer.chooseFile")}
                         </Button>
                     </div>
                     {pkg ? (
                         <>
                             <div className="drama-transfer-options">
-                                <Checkbox {...option("castImages")}>设定参考图：替换同名设定的当前参考图（旧图保留在版本记录里）</Checkbox>
-                                <Checkbox {...option("castText")}>设定外观与简介：覆盖同名设定的文字</Checkbox>
+                                <Checkbox {...option("castImages")}>{translate("drama.studio.assetTransfer.designReferencesReplaceTheCurrentReferenceImageForMatchingNames")}</Checkbox>
+                                <Checkbox {...option("castText")}>{translate("drama.studio.assetTransfer.designAppearanceAndDescriptionsReplaceTextForMatchingNames")}</Checkbox>
                                 <Checkbox {...option("segmentPrompts")} disabled={!prompts || importing || Boolean(result)}>
-                                    剧情段视频提示词：写入为同集同段的自定义提示词
+                                    {translate("drama.studio.assetTransfer.segmentVideoPromptsSaveAsCustomPromptsForTheMatching")}
                                 </Checkbox>
                                 <Checkbox {...option("shotPrompts")} disabled={!prompts || importing || Boolean(result)}>
-                                    镜头画面与运动描述：仅分镜数量一致的集
+                                    {translate("drama.studio.assetTransfer.shotVisualsAndMotionDescriptionsOnlyForEpisodesWithMatching")}
                                 </Checkbox>
                             </div>
-                            <p className="drama-transfer-note">已生成的剧情段视频不会自动重做；提示词里的「参考图N」编号沿用原作品，导入后请核对。视频与声音样本不导入。</p>
+                            <p className="drama-transfer-note">{translate("drama.studio.assetTransfer.existingSegmentVideosAreNotRegeneratedAutomaticallyReferenceNumbersSuch")}</p>
                             <div className="drama-transfer-plan" role="status">
                                 {currentPlan?.error ? (
                                     <span className="drama-transfer-problem">
@@ -237,16 +240,19 @@ export function AssetImportModal({ open, projectId, onClose }: { open: boolean; 
                                         {currentPlan.error}
                                     </span>
                                 ) : !currentPlan ? (
-                                    <span>正在对照当前作品…</span>
+                                    <span>{translate("drama.studio.assetTransfer.matchingAgainstThisProduction")}</span>
                                 ) : (
                                     <span>
-                                        将写入 {currentPlan.value!.operations.length} 项：参考图 {counts.images} · 设定文字 {counts.texts} · 段提示词 {counts.segments} · 镜头提示词 {counts.shots}
+                                        {translate("drama.studio.assetTransfer.willWrite")} {currentPlan.value!.operations.length} {translate("drama.studio.assetTransfer.itemsReferenceImages")} {counts.images}{" "}
+                                        {translate("drama.studio.assetTransfer.designText")} {counts.texts} {translate("drama.studio.assetTransfer.segmentPrompts")} {counts.segments} {translate("drama.studio.assetTransfer.shotPrompts")} {counts.shots}
                                     </span>
                                 )}
                                 {progress ? <Progress percent={Math.round((progress.done / Math.max(progress.total, 1)) * 100)} size="small" /> : null}
                                 {currentPlan?.value?.skipped.length ? (
                                     <details>
-                                        <summary>跳过 {currentPlan.value.skipped.length} 项</summary>
+                                        <summary>
+                                            {translate("drama.studio.assetTransfer.skip")} {currentPlan.value.skipped.length} {translate("library.picker.itemUnit")}
+                                        </summary>
                                         <ul>
                                             {currentPlan.value.skipped.map((item) => (
                                                 <li key={item}>{item}</li>
@@ -256,7 +262,9 @@ export function AssetImportModal({ open, projectId, onClose }: { open: boolean; 
                                 ) : null}
                                 {result?.failed.length ? (
                                     <details open>
-                                        <summary>失败 {result.failed.length} 项</summary>
+                                        <summary>
+                                            {translate("library.assets.batch.failed")} {result.failed.length} {translate("library.picker.itemUnit")}
+                                        </summary>
                                         <ul>
                                             {result.failed.map((item) => (
                                                 <li key={item.label}>
@@ -271,19 +279,25 @@ export function AssetImportModal({ open, projectId, onClose }: { open: boolean; 
                     ) : null}
                 </div>
                 <footer className="drama-composer-foot">
-                    <span className="drama-composer-count">{result ? `完成：成功 ${result.succeeded} 项${result.failed.length ? `，失败 ${result.failed.length} 项` : ""}` : progress ? `正在导入 ${progress.done}/${progress.total}` : ""}</span>
+                    <span className="drama-composer-count">
+                        {result
+                            ? translate("drama.studio.assetTransfer.completeItemsSucceeded", { v0: String(result.succeeded), v1: String(result.failed.length ? translate("drama.studio.assetTransfer.failed", { v0: String(result.failed.length) }) : "") })
+                            : progress
+                              ? translate("drama.studio.assetTransfer.importing", { v0: String(progress.done), v1: String(progress.total) })
+                              : ""}
+                    </span>
                     <span className="flex-1" />
                     {result ? (
                         <Button type="primary" onClick={close}>
-                            完成
+                            {translate("account.payment.done")}
                         </Button>
                     ) : (
                         <>
                             <Button disabled={importing} onClick={close}>
-                                取消
+                                {translate("common.cancel")}
                             </Button>
                             <Button type="primary" loading={importing} disabled={!currentPlan?.value?.operations.length} onClick={() => void run()}>
-                                开始导入
+                                {translate("drama.studio.assetTransfer.startImport")}
                             </Button>
                         </>
                     )}
@@ -303,41 +317,45 @@ export function JianyingDraftModal({ open, projectId, episodeId, episodeLabel, r
         if (problem) return;
         saveJianyingDraftRoot(root);
         exportDramaJianyingDraft(projectId, episodeId, { draftRoot: root, captions }, (text) => message.error(text));
-        message.info("正在生成剪映草稿，浏览器会开始下载");
+        message.info(translate("drama.studio.assetTransfer.preparingTheJianyingDraftYourBrowserWillStartTheDownload"));
         onClose();
     };
     return (
-        <AppModal open={open} onCancel={onClose} footer={null} title={null} closable={false} flush centered width="min(640px, calc(100vw - 32px))" rootClassName="drama-root" aria-label="导出剪映草稿">
+        <AppModal open={open} onCancel={onClose} footer={null} title={null} closable={false} flush centered width="min(640px, calc(100vw - 32px))" rootClassName="drama-root" aria-label={translate("drama.studio.assetTransfer.exportJianyingDraft")}>
             <div className="drama-composer drama-transfer">
                 <header className="drama-composer-head">
                     <div className="min-w-0">
-                        <strong>导出剪映草稿 · {episodeLabel}</strong>
-                        <span>{readySegments} 个剧情段视频按成片顺序排在主轨上，下载后解压到剪映草稿目录即可直接打开。</span>
+                        <strong>
+                            {translate("drama.studio.assetTransfer.exportJianyingDraft2")} {episodeLabel}
+                        </strong>
+                        <span>
+                            {readySegments} {translate("drama.studio.assetTransfer.segmentVideosArePlacedOnTheMainTrackInFinal")}
+                        </span>
                     </div>
-                    <Button type="text" icon={<X className="size-4" />} aria-label="关闭" onClick={onClose} />
+                    <Button type="text" icon={<X className="size-4" />} aria-label={translate("common.close")} onClick={onClose} />
                 </header>
                 <div className="drama-transfer-body thin-scrollbar">
                     <label className="drama-composer-field">
-                        <span className="drama-composer-label">剪映草稿目录</span>
+                        <span className="drama-composer-label">{translate("drama.studio.assetTransfer.jianyingDraftsFolder")}</span>
                         <Input value={root} onChange={(event) => setRoot(event.target.value)} status={problem ? "warning" : undefined} spellCheck={false} />
-                        <span className={problem ? "drama-transfer-problem" : "drama-transfer-note"}>{problem || "在剪映专业版「全局设置 → 草稿位置」查看。素材路径按这个目录写入草稿，只保存在本机浏览器。"}</span>
+                        <span className={problem ? "drama-transfer-problem" : "drama-transfer-note"}>{problem || translate("drama.studio.assetTransfer.findThisInJianyingProUnderGlobalSettingsDraftLocation")}</span>
                     </label>
                     <div className="drama-transfer-options">
                         <Checkbox checked={captions} onChange={(event) => setCaptions(event.target.checked)}>
-                            附带台词字幕轨（按分镜时长估算，同时附 SRT 文件）
+                            {translate("drama.studio.assetTransfer.includeADialogueSubtitleTrackTimedFromShotDurationsWith")}
                         </Checkbox>
                     </div>
                     <ol className="drama-transfer-steps">
-                        <li>关闭剪映，把下载的压缩包解压到上面的目录，草稿文件夹要直接位于该目录下，不要改名。</li>
-                        <li>重新打开剪映，在首页草稿列表里打开同名草稿。</li>
-                        <li>素材显示丢失时，说明解压位置与目录不一致，可在剪映里重新链接草稿内 materials 目录的视频。</li>
+                        <li>{translate("drama.studio.assetTransfer.closeJianyingAndExtractTheDownloadedArchiveIntoTheFolder")}</li>
+                        <li>{translate("drama.studio.assetTransfer.reopenJianyingAndOpenTheMatchingDraftFromTheHome")}</li>
+                        <li>{translate("drama.studio.assetTransfer.ifMediaIsMissingTheExtractionLocationDoesNotMatch")}</li>
                     </ol>
                 </div>
                 <footer className="drama-composer-foot">
                     <span className="flex-1" />
-                    <Button onClick={onClose}>取消</Button>
+                    <Button onClick={onClose}>{translate("common.cancel")}</Button>
                     <Button type="primary" disabled={Boolean(problem) || !readySegments} onClick={submit}>
-                        导出草稿
+                        {translate("drama.studio.assetTransfer.exportDraft")}
                     </Button>
                 </footer>
             </div>

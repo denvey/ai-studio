@@ -80,6 +80,7 @@ import { resolvePrevisActiveShot } from "@/lib/canvas/previs/previs-view-modes";
 import { buildPrevisMannequin, isPrevisStandardActor, loadPrevisMannequinTemplate, previsMannequinProfileKey, resolvePrevisMannequinProfile } from "@/lib/canvas/previs/previs-mannequin";
 import { isPrevisUprightObject } from "@/lib/canvas/previs/previs-grounding";
 import { evaluatePrevisActorPose, PREVIS_MANNEQUIN_BONES } from "@/lib/canvas/previs/previs-motion";
+import { translate } from "@/i18n";
 
 export type PrevisOrbitControls = ComponentRef<typeof OrbitControls>;
 
@@ -306,13 +307,20 @@ export const PrevisViewport = forwardRef<PrevisViewportHandle, PrevisViewportPro
             {onViewModeChange ? <PrevisViewToolbar viewMode={props.viewMode ?? PREVIS_DEFAULT_VIEW_MODE} onViewModeChange={onViewModeChange} /> : null}
             {props.viewMode === "camera" ? <PrevisSafeFrameOverlay aspectRatio={resolvePrevisActiveShot(props.scene)?.aspectRatio} /> : null}
             {showNavigation ? <PrevisNavigationToolbar navigation={navigation} /> : null}
-            {capture.contextLost ? <PrevisViewportNotice title="3D 显示上下文已丢失" description="浏览器回收了 WebGL 上下文。等待自动恢复，或立即重建视口。" actionLabel="重建 3D 视口" onAction={retry} /> : null}
+            {capture.contextLost ? (
+                <PrevisViewportNotice
+                    title={translate("canvasTools.previs.previsViewport.item3DDisplayContextLost")}
+                    description={translate("canvasTools.previs.previsViewport.theBrowserReclaimedTheWebGLContextWaitForAutomaticRecovery")}
+                    actionLabel={translate("canvasTools.previs.previsViewport.rebuild3DViewport")}
+                    onAction={retry}
+                />
+            ) : null}
             {!capture.contextLost && showModelLoadNotice && failedIds.length ? (
                 <PrevisViewportNotice
                     variant="corner"
-                    title={`${failedIds.length} 个 3D 模型加载失败`}
-                    description="已用占位人偶继续显示场景。可能是网络或模型地址不可用，重试将重新加载。"
-                    actionLabel="重试加载"
+                    title={translate("canvasTools.previs.previsViewport.item3DModelsFailedToLoad", { v0: String(failedIds.length) })}
+                    description={translate("canvasTools.previs.previsViewport.theSceneIsDisplayedWithPlaceholderMannequinsTheNetworkOr")}
+                    actionLabel={translate("canvasTools.previs.previsViewport.retryLoading")}
                     onAction={() => {
                         // 重试触发新的 load generation，旧的晚到回调会被忽略并释放资源。
                         Object.values(failedLoads).forEach((retryLoad) => retryLoad());
@@ -409,9 +417,9 @@ class PrevisViewportErrorBoundary extends Component<{ children: ReactNode; onRel
         if (!this.state.failed) return this.props.children;
         return (
             <PrevisViewportNotice
-                title="3D 视口渲染失败"
-                description="预演台其余面板仍可使用。可重试重建视口；若持续失败请检查显卡驱动或浏览器 WebGL 支持。"
-                actionLabel="重试 3D 视口"
+                title={translate("canvasTools.previs.previsViewport.item3DViewportRenderingFailed")}
+                description={translate("canvasTools.previs.previsViewport.otherPrevisPanelsRemainAvailableRetryToRebuildTheViewport")}
+                actionLabel={translate("canvasTools.previs.previsViewport.retry3DViewport")}
                 onAction={() => {
                     this.setState({ failed: false });
                     this.props.onRetry();
@@ -426,21 +434,33 @@ function PrevisNavigationToolbar({ navigation }: { navigation: Pick<PrevisViewpo
         run();
     };
     return (
-        <div className="previs-viewport-navigation" aria-label="视口导航工具">
-            <button type="button" aria-label="聚焦选中对象" title="聚焦选中对象" disabled={!navigation} onClick={() => navigation && action(navigation.focusSelected)}>
-                聚焦
+        <div className="previs-viewport-navigation" aria-label={translate("canvasTools.previs.previsViewport.viewportNavigationTools")}>
+            <button
+                type="button"
+                aria-label={translate("canvasTools.previs.previsViewport.focusSelectedObject")}
+                title={translate("canvasTools.previs.previsViewport.focusSelectedObject")}
+                disabled={!navigation}
+                onClick={() => navigation && action(navigation.focusSelected)}
+            >
+                {translate("canvasTools.previs.previsViewport.focus")}
             </button>
-            <button type="button" aria-label="适配全部对象" title="适配全部对象" disabled={!navigation} onClick={() => navigation && action(navigation.frameScene)}>
-                全景
+            <button
+                type="button"
+                aria-label={translate("canvasTools.previs.previsViewport.fitAllObjects")}
+                title={translate("canvasTools.previs.previsViewport.fitAllObjects")}
+                disabled={!navigation}
+                onClick={() => navigation && action(navigation.frameScene)}
+            >
+                {translate("canvasTools.previs.previsViewport.wideShot")}
             </button>
-            <button type="button" aria-label="重置视角" title="重置视角" disabled={!navigation} onClick={() => navigation && action(navigation.resetCamera)}>
-                重置
+            <button type="button" aria-label={translate("canvasTools.previs.previsViewport.resetView")} title={translate("canvasTools.previs.previsViewport.resetView")} disabled={!navigation} onClick={() => navigation && action(navigation.resetCamera)}>
+                {translate("account.layout.list.reset")}
             </button>
             <span className="previs-viewport-navigation-divider" />
-            <button type="button" aria-label="拉近视角" title="拉近视角" disabled={!navigation} onClick={() => navigation && action(() => navigation.zoom(0.72))}>
+            <button type="button" aria-label={translate("canvasTools.previs.previsViewport.zoomIn")} title={translate("canvasTools.previs.previsViewport.zoomIn")} disabled={!navigation} onClick={() => navigation && action(() => navigation.zoom(0.72))}>
                 ＋
             </button>
-            <button type="button" aria-label="拉远视角" title="拉远视角" disabled={!navigation} onClick={() => navigation && action(() => navigation.zoom(1.38))}>
+            <button type="button" aria-label={translate("canvasTools.previs.previsViewport.zoomOut")} title={translate("canvasTools.previs.previsViewport.zoomOut")} disabled={!navigation} onClick={() => navigation && action(() => navigation.zoom(1.38))}>
                 −
             </button>
         </div>
@@ -1369,7 +1389,7 @@ function PrevisCameraView({
     }, [camera.fov]);
 
     const palette = useMemo(() => resolvePrevisCameraPalette(camera), [camera.id, camera.name]);
-    const label = camera.name.trim() || "摄影机";
+    const label = camera.name.trim() || translate("canvasTools.previs.previsViewport.camera");
     const lineColor = selected ? palette.bright : palette.accent;
     const bodyColor = selected ? "#1f3343" : "#182534";
     const bodyEdgeColor = selected ? palette.bright : "#3d5064";

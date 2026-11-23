@@ -12,6 +12,7 @@ import { adminResourceFileUrl, deleteAdminResources, downloadAdminResource, getA
 import { AdminBatchBar, AdminDataTable, AdminFilterChip, AdminStatTile, AdminStatusBadge, AdminTableEmpty } from "./admin-ui";
 import { Select } from "@/components/ui/base/select";
 import { AdminSearchInput } from "./admin-search-input";
+import { currentLocale, translate } from "@/i18n";
 
 const pageSizes = [20, 50, 100];
 
@@ -55,7 +56,7 @@ export default function StorageResourcesPanel() {
             .then(setStats)
             .catch((error) => {
                 if (error instanceof DOMException && error.name === "AbortError") return;
-                message.error(error instanceof Error ? error.message : "读取存储统计失败");
+                message.error(error instanceof Error ? error.message : translate("admin.storageResourcesPanel.failedToLoadStorageStatistics"));
             });
         return () => controller.abort();
     }, [refreshKey]);
@@ -85,7 +86,7 @@ export default function StorageResourcesPanel() {
             })
             .catch((error) => {
                 if (error instanceof DOMException && error.name === "AbortError") return;
-                if (sequence === requestSequence.current) message.error(error instanceof Error ? error.message : "读取资源列表失败");
+                if (sequence === requestSequence.current) message.error(error instanceof Error ? error.message : translate("admin.storageResourcesPanel.failedToLoadResources"));
             })
             .finally(() => sequence === requestSequence.current && setLoading(false));
         return () => controller.abort();
@@ -94,7 +95,7 @@ export default function StorageResourcesPanel() {
     const columns = useMemo<ColumnsType<AdminStorageResource>>(
         () => [
             {
-                title: "资源",
+                title: translate("admin.storageResourcesPanel.resources"),
                 width: 260,
                 render: (_, resource) => (
                     <div className="min-w-0">
@@ -108,7 +109,7 @@ export default function StorageResourcesPanel() {
                 ),
             },
             {
-                title: "用户",
+                title: translate("admin.storageResourcesPanel.users"),
                 width: 170,
                 render: (_, resource) => (
                     <div className="min-w-0">
@@ -119,27 +120,27 @@ export default function StorageResourcesPanel() {
                     </div>
                 ),
             },
-            { title: "类型", dataIndex: "kind", width: 92, render: (value) => kindLabel(value) },
-            { title: "状态", dataIndex: "status", width: 104, render: (value) => <AdminStatusBadge label={statusLabel(value)} tone={statusTone(value)} /> },
-            { title: "存储", dataIndex: "provider", width: 110, render: (value) => providerLabel(value) },
-            { title: "大小", dataIndex: "size", width: 110, render: (value) => <span className="tabular-nums">{formatBytes(value)}</span> },
-            { title: "规格", width: 135, render: (_, resource) => resourceDimensions(resource) },
-            { title: "创建时间", dataIndex: "createdAt", width: 170, render: formatTime },
+            { title: translate("account.settings.runninghub.kind"), dataIndex: "kind", width: 92, render: (value) => kindLabel(value) },
+            { title: translate("library.tasks.detail.status"), dataIndex: "status", width: 104, render: (value) => <AdminStatusBadge label={statusLabel(value)} tone={statusTone(value)} /> },
+            { title: translate("admin.storageResourcesPanel.storage"), dataIndex: "provider", width: 110, render: (value) => providerLabel(value) },
+            { title: translate("canvasA.assetView.fileSize"), dataIndex: "size", width: 110, render: (value) => <span className="tabular-nums">{formatBytes(value)}</span> },
+            { title: translate("admin.storageResourcesPanel.specifications"), width: 135, render: (_, resource) => resourceDimensions(resource) },
+            { title: translate("library.tasks.detail.createdAt"), dataIndex: "createdAt", width: 170, render: formatTime },
             {
-                title: "操作",
+                title: translate("account.settings.runninghub.actions"),
                 width: 220,
                 align: "right",
                 fixed: "right",
                 render: (_, resource) => (
                     <div className="flex justify-end gap-1">
                         <Button type="text" size="small" icon={<Eye className="size-3.5" />} disabled={resource.status !== "ready"} onClick={() => setPreviewing(resource)}>
-                            预览
+                            {translate("account.feedback.preview")}
                         </Button>
                         <Button type="text" size="small" icon={<Download className="size-3.5" />} loading={downloadingId === resource.id} disabled={resource.status !== "ready"} onClick={() => void download(resource)}>
-                            下载
+                            {translate("canvasA.assetView.download")}
                         </Button>
                         <Button type="text" danger size="small" icon={<Trash2 className="size-3.5" />} disabled={deleting} onClick={() => confirmDelete([resource.id])}>
-                            删除
+                            {translate("common.delete")}
                         </Button>
                     </div>
                 ),
@@ -154,7 +155,7 @@ export default function StorageResourcesPanel() {
             const blob = await downloadAdminResource(resource);
             saveAs(blob, fileName(resource.objectKey) || resource.id);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "下载资源失败");
+            message.error(error instanceof Error ? error.message : translate("admin.storageResourcesPanel.failedToDownloadTheResource"));
         } finally {
             setDownloadingId("");
         }
@@ -163,10 +164,10 @@ export default function StorageResourcesPanel() {
     const confirmDelete = (resourceIds: string[]) => {
         const uniqueIds = Array.from(new Set(resourceIds));
         modal.confirm({
-            title: uniqueIds.length > 1 ? `删除选中的 ${uniqueIds.length} 个资源？` : "删除这个资源？",
-            content: "系统会先批量检查公告、素材、画布、项目、工作流和镜头产物引用。仍被引用的资源会保留；无引用资源的记录、清理任务和审计事件会在同一事务提交。",
-            okText: uniqueIds.length > 1 ? "检查并删除" : "确认删除",
-            cancelText: "取消",
+            title: uniqueIds.length > 1 ? translate("admin.storageResourcesPanel.deleteTheSelectedResources", { v0: String(uniqueIds.length) }) : translate("admin.storageResourcesPanel.deleteThisResource"),
+            content: translate("admin.storageResourcesPanel.theSystemFirstChecksReferencesFromAnnouncementsAssetsCanvasesProjects"),
+            okText: uniqueIds.length > 1 ? translate("admin.storageResourcesPanel.checkAndDelete") : translate("account.ui.delete.confirm"),
+            cancelText: translate("common.cancel"),
             okButtonProps: { danger: true },
             onOk: async () => {
                 setDeleting(true);
@@ -174,16 +175,16 @@ export default function StorageResourcesPanel() {
                     const result = await deleteAdminResources(uniqueIds);
                     setSelectedIds([]);
                     setRefreshKey((value) => value + 1);
-                    if (result.deleted.length > 0) message.success(`已删除 ${result.deleted.length} 个资源`);
+                    if (result.deleted.length > 0) message.success(translate("admin.storageResourcesPanel.deletedResources", { v0: String(result.deleted.length) }));
                     if (result.blocked.length > 0) {
                         modal.warning({
-                            title: result.deleted.length > 0 ? "部分资源未删除" : "资源未删除",
+                            title: result.deleted.length > 0 ? translate("admin.storageResourcesPanel.someResourcesWereNotDeleted") : translate("admin.storageResourcesPanel.resourcesWereNotDeleted"),
                             content: <DeleteBlockedSummary blocked={result.blocked} />,
-                            okText: "知道了",
+                            okText: translate("admin.storageResourcesPanel.gotIt"),
                         });
                     }
                 } catch (error) {
-                    message.error(error instanceof Error ? error.message : "删除资源失败");
+                    message.error(error instanceof Error ? error.message : translate("admin.storageResourcesPanel.failedToDeleteResources"));
                     throw error;
                 } finally {
                     setDeleting(false);
@@ -195,38 +196,38 @@ export default function StorageResourcesPanel() {
     return (
         <div className="space-y-4 pt-4">
             <div className="grid overflow-hidden rounded-md border border-border sm:grid-cols-2 xl:grid-cols-4">
-                <AdminStatTile label="资源记录" value={stats ? stats.resourceCount.toLocaleString() : "--"} detail={stats ? `可用 ${stats.readyCount.toLocaleString()} 项` : undefined} />
-                <AdminStatTile label="逻辑体积" value={stats ? formatBytes(stats.logicalBytes) : "--"} detail="包含失败与待处理记录" />
-                <AdminStatTile label="实际可用体积" value={stats ? formatBytes(stats.physicalBytes) : "--"} detail="仅统计已就绪资源" />
-                <AdminStatTile label="存储分布" value={stats ? formatBytes(stats.remoteBytes) : "--"} detail={stats ? `本地 ${formatBytes(stats.localBytes)} · 远端` : undefined} />
+                <AdminStatTile label={translate("admin.storageResourcesPanel.resourceRecords")} value={stats ? stats.resourceCount.toLocaleString() : "--"} detail={stats ? translate("admin.storageResourcesPanel.available", { v0: String(stats.readyCount.toLocaleString()) }) : undefined} />
+                <AdminStatTile label={translate("admin.storageResourcesPanel.logicalSize")} value={stats ? formatBytes(stats.logicalBytes) : "--"} detail={translate("admin.storageResourcesPanel.includesFailedAndPendingRecords")} />
+                <AdminStatTile label={translate("admin.storageResourcesPanel.availablePhysicalSize")} value={stats ? formatBytes(stats.physicalBytes) : "--"} detail={translate("admin.storageResourcesPanel.readyResourcesOnly")} />
+                <AdminStatTile label={translate("admin.storageResourcesPanel.storageBreakdown")} value={stats ? formatBytes(stats.remoteBytes) : "--"} detail={stats ? translate("admin.storageResourcesPanel.localRemote", { v0: String(formatBytes(stats.localBytes)) }) : undefined} />
             </div>
             {stats?.offload && (stats.offload.pending > 0 || stats.offload.failed > 0) ? <OffloadAlert offload={stats.offload} /> : null}
             <AdminDataTable
                 toolbar={
                     <div className="admin-storage-resource-filters">
                         <AdminSearchInput
-                            aria-label="搜索资源"
+                            aria-label={translate("admin.storageResourcesPanel.searchResources")}
                             autoComplete="off"
                             allowClear
                             className="app-list-search"
                             prefix={<Search className="size-4 text-foreground/40" />}
                             value={keyword}
-                            placeholder="资源 ID 或对象路径"
+                            placeholder={translate("admin.storageResourcesPanel.resourceIDOrObjectPath")}
                             onValueChange={(value) => updateUrl({ filter: value, page: 1 }, true)}
                         />
-                        <AdminSearchInput aria-label="按用户名、昵称、邮箱或用户 ID 筛选" autoComplete="off" allowClear className="w-64" value={userQuery} placeholder="用户名 / 昵称 / 邮箱 / 用户 ID" onValueChange={(value) => updateUrl({ user: value, userId: "", page: 1 }, true)} />
-                        <Select aria-label="筛选资源类型" className="w-32" value={kind} onChange={(value) => updateUrl({ kind: value, page: 1 })} options={kindOptions} />
-                        <Select aria-label="筛选资源状态" className="w-32" value={status} onChange={(value) => updateUrl({ status: value, page: 1 })} options={statusOptions} />
-                        <Select aria-label="筛选存储类型" className="w-36" value={provider} onChange={(value) => updateUrl({ provider: value, page: 1 })} options={providerOptions} />
+                        <AdminSearchInput aria-label={translate("admin.storageResourcesPanel.filterByUsernameNicknameEmailOrUserID")} autoComplete="off" allowClear className="w-64" value={userQuery} placeholder={translate("admin.storageResourcesPanel.usernameNicknameEmailUserID")} onValueChange={(value) => updateUrl({ user: value, userId: "", page: 1 }, true)} />
+                        <Select aria-label={translate("admin.storageResourcesPanel.filterResourceType")} className="w-32" value={kind} onChange={(value) => updateUrl({ kind: value, page: 1 })} options={kindOptions} />
+                        <Select aria-label={translate("admin.storageResourcesPanel.filterResourceStatus")} className="w-32" value={status} onChange={(value) => updateUrl({ status: value, page: 1 })} options={statusOptions} />
+                        <Select aria-label={translate("admin.storageResourcesPanel.filterStorageType")} className="w-36" value={provider} onChange={(value) => updateUrl({ provider: value, page: 1 })} options={providerOptions} />
                     </div>
                 }
                 toolbarActiveFilters={
                     <>
-                        {keyword ? <AdminFilterChip label={`搜索：${keyword}`} onRemove={() => updateUrl({ filter: "", page: 1 })} /> : null}
-                        {userQuery ? <AdminFilterChip label={`用户：${userQuery}`} onRemove={() => updateUrl({ user: "", userId: "", page: 1 })} /> : null}
-                        {kind !== "all" ? <AdminFilterChip label={`类型：${kindLabel(kind)}`} onRemove={() => updateUrl({ kind: "all", page: 1 })} /> : null}
-                        {status !== "all" ? <AdminFilterChip label={`状态：${statusLabel(status)}`} onRemove={() => updateUrl({ status: "all", page: 1 })} /> : null}
-                        {provider !== "all" ? <AdminFilterChip label={`存储：${providerLabel(provider)}`} onRemove={() => updateUrl({ provider: "all", page: 1 })} /> : null}
+                        {keyword ? <AdminFilterChip label={translate("admin.storageResourcesPanel.search", { v0: String(keyword) })} onRemove={() => updateUrl({ filter: "", page: 1 })} /> : null}
+                        {userQuery ? <AdminFilterChip label={translate("admin.storageResourcesPanel.user", { v0: String(userQuery) })} onRemove={() => updateUrl({ user: "", userId: "", page: 1 })} /> : null}
+                        {kind !== "all" ? <AdminFilterChip label={translate("admin.storageResourcesPanel.type", { v0: String(kindLabel(kind)) })} onRemove={() => updateUrl({ kind: "all", page: 1 })} /> : null}
+                        {status !== "all" ? <AdminFilterChip label={translate("admin.storageResourcesPanel.status", { v0: String(statusLabel(status)) })} onRemove={() => updateUrl({ status: "all", page: 1 })} /> : null}
+                        {provider !== "all" ? <AdminFilterChip label={translate("admin.storageResourcesPanel.storage2", { v0: String(providerLabel(provider)) })} onRemove={() => updateUrl({ provider: "all", page: 1 })} /> : null}
                     </>
                 }
                 toolbarActive={hasFilters}
@@ -234,7 +235,7 @@ export default function StorageResourcesPanel() {
                 batchActions={
                     <AdminBatchBar count={selectedIds.length} onClear={() => setSelectedIds([])}>
                         <Button danger size="small" icon={<Trash2 className="size-3.5" />} loading={deleting} onClick={() => confirmDelete(selectedIds)}>
-                            批量删除
+                            {translate("admin.storageResourcesPanel.bulkDelete")}
                         </Button>
                     </AdminBatchBar>
                 }
@@ -251,25 +252,25 @@ export default function StorageResourcesPanel() {
                         preserveSelectedRowKeys: true,
                         onChange: (keys) => {
                             const next = keys.map(String);
-                            if (next.length > 100) message.warning("单次最多选择 100 个资源");
+                            if (next.length > 100) message.warning(translate("admin.storageResourcesPanel.selectUpTo100ResourcesAtATime"));
                             setSelectedIds(next.slice(0, 100));
                         },
                     },
                     pagination: false,
                     scroll: { x: 1390 },
                 }}
-                empty={<AdminTableEmpty filtered={hasFilters} title={hasFilters ? undefined : "暂无资源记录"} description={hasFilters ? undefined : "资源上传或生成后会显示在这里。"} />}
+                empty={<AdminTableEmpty filtered={hasFilters} title={hasFilters ? undefined : translate("admin.storageResourcesPanel.noResourceRecords")} description={hasFilters ? undefined : translate("admin.storageResourcesPanel.uploadedOrGeneratedResourcesAppearHere")} />}
                 footer={<PaginationBar alwaysShow current={page} pageSize={pageSize} total={total} onChange={(nextPage, nextSize) => updateUrl({ page: nextSize !== pageSize ? 1 : nextPage, pageSize: nextSize })} />}
             />
             <AdminModal
-                title={previewing ? fileName(previewing.objectKey) || "资源预览" : "资源预览"}
+                title={previewing ? fileName(previewing.objectKey) || translate("admin.storageResourcesPanel.resourcePreview") : translate("admin.storageResourcesPanel.resourcePreview")}
                 open={Boolean(previewing)}
                 width={880}
                 onCancel={() => setPreviewing(null)}
                 footer={
                     previewing ? (
                         <Button icon={<Download className="size-4" />} loading={downloadingId === previewing.id} onClick={() => void download(previewing)}>
-                            下载原文件
+                            {translate("admin.storageResourcesPanel.downloadOriginalFile")}
                         </Button>
                     ) : null
                 }
@@ -294,7 +295,7 @@ function DeleteBlockedSummary({ blocked }: { blocked: Array<{ id: string; reason
                                 .slice(0, 4)
                                 .map((reference) => `${reference.kind}「${reference.title || reference.id}」`)
                                 .join("、")}
-                            {item.references.length > 4 ? ` 等 ${item.references.length} 处` : ""}
+                            {item.references.length > 4 ? translate("admin.storageResourcesPanel.andOtherLocations", { v0: String(item.references.length) }) : ""}
                         </div>
                     ) : null}
                 </div>
@@ -305,7 +306,7 @@ function DeleteBlockedSummary({ blocked }: { blocked: Array<{ id: string; reason
 
 function ResourcePreview({ resource }: { resource: AdminStorageResource }) {
     const url = adminResourceFileUrl(resource.id);
-    if (resource.kind === "image" || resource.mimeType.startsWith("image/")) return <img className="mx-auto max-h-[65vh] max-w-full object-contain" src={url} alt={fileName(resource.objectKey) || "资源预览"} />;
+    if (resource.kind === "image" || resource.mimeType.startsWith("image/")) return <img className="mx-auto max-h-[65vh] max-w-full object-contain" src={url} alt={fileName(resource.objectKey) || translate("admin.storageResourcesPanel.resourcePreview")} />;
     if (resource.kind === "video" || resource.mimeType.startsWith("video/")) return <video className="mx-auto max-h-[65vh] max-w-full bg-black" src={url} controls playsInline />;
     if (resource.kind === "audio" || resource.mimeType.startsWith("audio/"))
         return (
@@ -313,31 +314,31 @@ function ResourcePreview({ resource }: { resource: AdminStorageResource }) {
                 <audio className="w-full" src={url} controls />
             </div>
         );
-    return <div className="rounded-md border border-border bg-muted/20 px-5 py-10 text-center text-sm text-foreground/55">该文件类型不支持内嵌预览，请下载后查看。</div>;
+    return <div className="rounded-md border border-border bg-muted/20 px-5 py-10 text-center text-sm text-foreground/55">{translate("admin.storageResourcesPanel.thisFileTypeCannotBePreviewedInlineDownloadItTo")}</div>;
 }
 
 const kindOptions = [
-    { label: "全部类型", value: "all" },
-    { label: "图片", value: "image" },
-    { label: "视频", value: "video" },
-    { label: "音频", value: "audio" },
-    { label: "文件", value: "file" },
-    { label: "Live2D 模型", value: "live2d" },
+    { label: translate("library.tasks.page.allKinds"), value: "all" },
+    { label: translate("account.feedback.image"), value: "image" },
+    { label: translate("account.feedback.video"), value: "video" },
+    { label: translate("account.settings.modelConfig.capabilities.audio"), value: "audio" },
+    { label: translate("admin.storageResourcesPanel.file"), value: "file" },
+    { label: translate("admin.storageResourcesPanel.live2DModel"), value: "live2d" },
 ];
 const statusOptions = [
-    { label: "全部状态", value: "all" },
-    { label: "待处理", value: "pending" },
-    { label: "已就绪", value: "ready" },
-    { label: "失败", value: "failed" },
-    { label: "已删除", value: "deleted" },
+    { label: translate("library.ark.expiry.all"), value: "all" },
+    { label: translate("account.feedback.status.pending"), value: "pending" },
+    { label: translate("admin.storageResourcesPanel.ready"), value: "ready" },
+    { label: translate("library.assets.batch.failed"), value: "failed" },
+    { label: translate("canvasB.historyDrawer.deleted"), value: "deleted" },
 ];
 const providerOptions = [
-    { label: "全部存储", value: "all" },
-    { label: "本地", value: "local" },
-    { label: "阿里云 OSS", value: "aliyun" },
-    { label: "腾讯云 COS", value: "tencent" },
-    { label: "七牛云 Kodo", value: "qiniu" },
-    { label: "火山引擎 TOS", value: "volcengine" },
+    { label: translate("admin.storageResourcesPanel.allStorage"), value: "all" },
+    { label: translate("admin.storageResourcesPanel.local"), value: "local" },
+    { label: translate("account.layout.oss.providers.aliyun"), value: "aliyun" },
+    { label: translate("account.layout.oss.providers.tencent"), value: "tencent" },
+    { label: translate("account.layout.oss.providers.qiniu"), value: "qiniu" },
+    { label: translate("account.layout.oss.providers.volcengine"), value: "volcengine" },
     { label: "S3", value: "s3" },
 ];
 
@@ -356,16 +357,16 @@ function fileName(objectKey: string) {
     return objectKey.split("/").filter(Boolean).at(-1) || "";
 }
 function kindLabel(kind: string) {
-    return ({ image: "图片", video: "视频", audio: "音频", file: "文件", live2d: "Live2D" } as Record<string, string>)[kind] || kind || "未知";
+    return ({ image: translate("account.feedback.image"), video: translate("account.feedback.video"), audio: translate("account.settings.modelConfig.capabilities.audio"), file: translate("admin.storageResourcesPanel.file"), live2d: "Live2D" } as Record<string, string>)[kind] || kind || translate("admin.storageResourcesPanel.unknown");
 }
 function statusLabel(status: string) {
-    return ({ pending: "待处理", ready: "已就绪", failed: "失败", deleted: "已删除" } as Record<string, string>)[status] || status || "未知";
+    return ({ pending: translate("account.feedback.status.pending"), ready: translate("admin.storageResourcesPanel.ready"), failed: translate("library.assets.batch.failed"), deleted: translate("canvasB.historyDrawer.deleted") } as Record<string, string>)[status] || status || translate("admin.storageResourcesPanel.unknown");
 }
 function statusTone(status: string): "neutral" | "success" | "warning" | "error" {
     return status === "ready" ? "success" : status === "pending" ? "warning" : status === "failed" ? "error" : "neutral";
 }
 function providerLabel(provider: string) {
-    return ({ local: "本地", aliyun: "阿里云 OSS", tencent: "腾讯云 COS", qiniu: "七牛云 Kodo", volcengine: "火山引擎 TOS", s3: "S3" } as Record<string, string>)[provider] || provider || "本地";
+    return ({ local: translate("admin.storageResourcesPanel.local"), aliyun: translate("account.layout.oss.providers.aliyun"), tencent: translate("account.layout.oss.providers.tencent"), qiniu: translate("account.layout.oss.providers.qiniu"), volcengine: translate("account.layout.oss.providers.volcengine"), s3: "S3" } as Record<string, string>)[provider] || provider || translate("admin.storageResourcesPanel.local");
 }
 function formatBytes(bytes: number) {
     if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
@@ -376,7 +377,7 @@ function formatBytes(bytes: number) {
 }
 function formatTime(value: string) {
     const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? "--" : date.toLocaleString("zh-CN", { hour12: false });
+    return Number.isNaN(date.getTime()) ? "--" : date.toLocaleString(currentLocale(), { hour12: false });
 }
 function resourceDimensions(resource: AdminStorageResource) {
     if (resource.width > 0 && resource.height > 0)
@@ -391,13 +392,13 @@ function resourceDimensions(resource: AdminStorageResource) {
 function formatDuration(durationMs: number) {
     const seconds = Math.round(durationMs / 1000);
     const minutes = Math.floor(seconds / 60);
-    return minutes > 0 ? `${minutes}:${String(seconds % 60).padStart(2, "0")}` : `${seconds} 秒`;
+    return minutes > 0 ? `${minutes}:${String(seconds % 60).padStart(2, "0")}` : translate("admin.storageResourcesPanel.s", { v0: String(seconds) });
 }
 
 function OffloadAlert({ offload }: { offload: AdminStorageStats["offload"] }) {
-    const parts = [`${offload.pending.toLocaleString()} 个作品（${formatBytes(offload.pendingBytes)}）等待同步到对象存储`];
-    if (offload.oldestPending) parts.push(`最早一条保存于 ${new Date(offload.oldestPending).toLocaleString("zh-CN", { hour12: false })}`);
-    if (offload.lastErrorCode) parts.push(`最近错误 ${offload.lastErrorCode}`);
-    const failed = offload.failed > 0 ? `另有 ${offload.failed.toLocaleString()} 个作品的本地文件丢失，无法自动同步，请在请求日志中按任务排查。` : undefined;
-    return <Alert type={offload.failed > 0 ? "error" : "warning"} showIcon message="对象存储写入失败，部分作品暂存在服务器" description={[parts.join("；") + "。用户访问不受影响，存储恢复后会自动同步。", failed].filter(Boolean).join(" ")} />;
+    const parts = [translate("admin.storageResourcesPanel.creationsAwaitingSyncToObjectStorage", { v0: String(offload.pending.toLocaleString()), v1: String(formatBytes(offload.pendingBytes)) })];
+    if (offload.oldestPending) parts.push(translate("admin.storageResourcesPanel.oldestSavedAt", { v0: String(new Date(offload.oldestPending).toLocaleString(currentLocale(), { hour12: false })) }));
+    if (offload.lastErrorCode) parts.push(translate("admin.storageResourcesPanel.latestError", { v0: String(offload.lastErrorCode) }));
+    const failed = offload.failed > 0 ? translate("admin.storageResourcesPanel.localFilesForAnotherCreationsAreMissingAndCannotSync", { v0: String(offload.failed.toLocaleString()) }) : undefined;
+    return <Alert type={offload.failed > 0 ? "error" : "warning"} showIcon message={translate("admin.storageResourcesPanel.objectStorageWritesFailedSomeCreationsAreTemporarilyStoredOn")} description={[parts.join("；") + translate("admin.storageResourcesPanel.userAccessIsUnaffectedFilesWillSyncAutomaticallyWhenStorage"), failed].filter(Boolean).join(" ")} />;
 }

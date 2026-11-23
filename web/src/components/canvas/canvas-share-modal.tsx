@@ -6,6 +6,7 @@ import { canvasThemes } from "@/lib/canvas-theme";
 import { createCanvasShare, deleteCanvasShare, getCanvasShare, type CanvasShareStatus } from "@/services/api/canvas-share";
 import { useActiveTheme } from "@/stores/canvas/use-canvas-theme-store";
 import { Select } from "@/components/ui/base/select";
+import { translate } from "@/i18n";
 
 export function CanvasShareModal({ projectId, open, onClose, beforeCreate }: { projectId: string; open: boolean; onClose: () => void; beforeCreate: () => Promise<boolean | void> }) {
     const { message, modal } = App.useApp();
@@ -22,7 +23,7 @@ export function CanvasShareModal({ projectId, open, onClose, beforeCreate }: { p
             const result = await getCanvasShare(projectId);
             setShare(result.share);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "读取分享状态失败");
+            message.error(error instanceof Error ? error.message : translate("canvasTools.canvasShareModal.couldNotReadTheSharingStatus"));
         } finally {
             setLoading(false);
         }
@@ -35,7 +36,7 @@ export function CanvasShareModal({ projectId, open, onClose, beforeCreate }: { p
     const copy = async (value = shareUrl) => {
         if (!value) return;
         await navigator.clipboard.writeText(value);
-        message.success("分享链接已复制");
+        message.success(translate("canvasTools.canvasShareModal.shareLinkCopied"));
     };
 
     const create = async (rotate = false) => {
@@ -48,47 +49,47 @@ export function CanvasShareModal({ projectId, open, onClose, beforeCreate }: { p
             const url = result.share.token ? `${window.location.origin}/share/canvas/${result.share.token}` : "";
             await copy(url);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "创建分享链接失败");
+            message.error(error instanceof Error ? error.message : translate("canvasTools.canvasShareModal.couldNotCreateTheShareLink"));
         } finally {
             setSubmitting(false);
         }
     };
 
     const revoke = () => modal.confirm({
-        title: "停止公开分享？",
-        content: "现有分享链接会立即失效，原画布内容不会被删除。",
-        okText: "停止分享",
+        title: translate("canvasTools.canvasShareModal.stopSharingPublicly"),
+        content: translate("canvasTools.canvasShareModal.theExistingShareLinkStopsWorkingImmediatelyTheCanvasItself"),
+        okText: translate("canvasTools.canvasShareModal.stopSharing"),
         okButtonProps: { danger: true },
-        cancelText: "取消",
+        cancelText: translate("common.cancel"),
         onOk: async () => {
             await deleteCanvasShare(projectId);
             setShare({ enabled: false });
-            message.success("已停止分享");
+            message.success(translate("canvasTools.canvasShareModal.sharingStopped"));
         },
     });
 
     return (
-        <Modal title={<span className="inline-flex items-center gap-2"><Share2 className="size-4" />分享画布</span>} open={open} onCancel={onClose} footer={null} centered width={520} destroyOnHidden>
+        <Modal title={<span className="inline-flex items-center gap-2"><Share2 className="size-4" />{translate("canvasTools.canvasShareModal.shareCanvas")}</span>} open={open} onCancel={onClose} footer={null} centered width={520} destroyOnHidden>
             <Spin spinning={loading}>
                 <div className="border-t pt-5" style={{ borderColor: theme.node.stroke }}>
                     <p className="mb-4 text-sm leading-6" style={{ color: theme.node.muted }}>
-                        获得链接的人无需登录即可查看。访客可拖动画布节点并临时添加节点，但刷新后会恢复，不能修改原画布或执行生成。
+                        {translate("canvasTools.canvasShareModal.anyoneWithTheLinkCanViewWithoutSigningInVisitors")}
                     </p>
                     {share.enabled && shareUrl ? (
                         <div className="space-y-4">
-                            <Input value={shareUrl} readOnly suffix={<Button type="text" className="!h-7 !w-7 !min-w-7 !p-0" icon={<Copy className="size-3.5" />} onClick={() => void copy()} aria-label="复制分享链接" />} />
+                            <Input value={shareUrl} readOnly suffix={<Button type="text" className="!h-7 !w-7 !min-w-7 !p-0" icon={<Copy className="size-3.5" />} onClick={() => void copy()} aria-label={translate("canvasTools.canvasShareModal.copyShareLink")} />} />
                             <div className="flex flex-wrap items-center justify-between gap-3">
-                                <span className="text-xs" style={{ color: theme.node.muted }}>{share.expiresAt ? `有效至 ${new Date(share.expiresAt).toLocaleString("zh-CN")}` : "长期有效，直至手动停止分享"}</span>
+                                <span className="text-xs" style={{ color: theme.node.muted }}>{share.expiresAt ? translate("canvasTools.canvasShareModal.validUntil", { v0: String(new Date(share.expiresAt).toLocaleString("zh-CN")) }) : translate("canvasTools.canvasShareModal.noExpiryUntilYouStopSharing")}</span>
                                 <div className="flex gap-2">
-                                    <Button icon={<RefreshCw className="size-3.5" />} loading={submitting} onClick={() => void create(true)}>重新生成链接</Button>
-                                    <Button danger icon={<Unlink className="size-3.5" />} onClick={revoke}>停止分享</Button>
+                                    <Button icon={<RefreshCw className="size-3.5" />} loading={submitting} onClick={() => void create(true)}>{translate("canvasTools.canvasShareModal.regenerateTheLink")}</Button>
+                                    <Button danger icon={<Unlink className="size-3.5" />} onClick={revoke}>{translate("canvasTools.canvasShareModal.stopSharing")}</Button>
                                 </div>
                             </div>
                         </div>
                     ) : (
                         <div className="flex items-center gap-2">
-                            <Select value={expiresDays} onChange={setExpiresDays} className="min-w-40" options={[{ value: 0, label: "长期有效" }, { value: 7, label: "7 天有效" }, { value: 30, label: "30 天有效" }]} />
-                            <Button type="primary" icon={<Link2 className="size-4" />} loading={submitting} onClick={() => void create(false)}>创建并复制链接</Button>
+                            <Select value={expiresDays} onChange={setExpiresDays} className="min-w-40" options={[{ value: 0, label: translate("library.ark.expiry.none") }, { value: 7, label: translate("canvasTools.canvasShareModal.validFor7Days") }, { value: 30, label: translate("canvasTools.canvasShareModal.validFor30Days") }]} />
+                            <Button type="primary" icon={<Link2 className="size-4" />} loading={submitting} onClick={() => void create(false)}>{translate("canvasTools.canvasShareModal.createAndCopyTheLink")}</Button>
                         </div>
                     )}
                 </div>

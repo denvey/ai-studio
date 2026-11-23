@@ -1,6 +1,7 @@
 import { http, apiBaseURL } from "@/services/api/request";
 import { consumeTaskTextStream, createTaskTextStreamParser } from "@/services/api/task-text-stream";
 import { getActiveUserScope } from "@/lib/user-scope";
+import { translate } from "@/i18n";
 
 export type AgentPermissionMode = "read_only" | "auto" | "request_approval";
 export type AgentReasoningMode = import("@/lib/text-thinking").ThinkingRequest;
@@ -123,7 +124,7 @@ export class AgentStreamError extends Error {
     readonly status: number;
 
     constructor(status: number) {
-        super(`Agent 事件流不可用 (${status})`);
+        super(translate("shared.api.agent.agentEventStreamUnavailable", { v0: String(status) }));
         this.name = "AgentStreamError";
         this.status = status;
     }
@@ -342,7 +343,7 @@ export function subscribeAgentEvents(
                                         emit("run_status", statusPayload);
                                     }
                                     terminal = !run.cleanupPending && ["completed", "failed", "cancelled", "rejected"].includes(run.status);
-                                } else if (item.event === "error") throw new Error("Agent 状态读取失败");
+                                } else if (item.event === "error") throw new Error(translate("shared.api.agent.failedToLoadAgentStatus"));
                             },
                             done,
                         );
@@ -357,7 +358,7 @@ export function subscribeAgentEvents(
                     reader.releaseLock();
                 }
                 if (terminal) return;
-                throw new Error("Agent 连接已中断，运行仍保留，可重新连接");
+                throw new Error(translate("shared.api.agent.agentConnectionInterruptedTheRunIsPreservedAndCanBe"));
             } catch (error) {
                 if (controller.signal.aborted) return;
                 if (++failures >= 5) {

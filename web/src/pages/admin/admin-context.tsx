@@ -2,6 +2,8 @@ import { App } from "antd";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { getAdminReferences, type AdminReferenceData, type LocalUser } from "@/services/api/auth";
+import { translate } from "@/i18n";
+
 
 type AdminContextValue = {
     references: AdminReferenceData;
@@ -23,7 +25,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         try {
             setReferences(await getAdminReferences());
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "读取后台基础数据失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.adminContext.failedToLoadAdminBaseData"));
         } finally {
             setReferencesLoading(false);
         }

@@ -43,8 +43,8 @@ test("plugin upload owns native drops and price availability text remains readab
     expect(pluginSource).toContain("event.preventDefault()");
     expect(pluginSource).toContain("onDragOver={(event)");
     expect(pluginSource).toContain("onDrop={handlePluginDrop}");
-    expect(pluginSource).toContain("点击选择插件文件，也可拖拽到此处");
-    expect(pluginSource).toContain("释放文件以上传插件");
+    expect(pluginSource).toContain('translate("shared.plugins.pluginDocumentationModals.clickToSelectAPluginFileOrDragItHere")');
+    expect(pluginSource).toContain('translate("shared.plugins.pluginDocumentationModals.dropTheFileToUploadThePlugin")');
     expect(pluginSource).toContain("isDraggingPlugin");
     expect(compactSource(adminCss)).toContain(".admin-price-tier-controls { margin-left: auto;");
     expect(toggleCss).toContain("overflow-wrap: anywhere;");
@@ -83,16 +83,16 @@ test("channel model fetch requires explicit selection before import", async () =
 
     expect(apiSource).toContain("http.post<{ models: string[] }>(`/admin/channels/${encodeURIComponent(channelId)}/models/fetch`)");
     expect(apiSource).toContain("http.post<{ models: string[]; added: number }>(`/admin/channels/${encodeURIComponent(channelId)}/models/import`, { models })");
-    expect(component).toContain('title="选择要导入的模型"');
-    expect(component).toContain("默认勾选已存在的模型，新模型默认不勾选");
+    expect(component).toContain('title={translate("admin.channelModelManager.selectModelsToImport")}');
+    expect(component).toContain('translate("admin.channelModelManager.modelsExistingModelsAreSelectedByDefaultNewModelsAre")');
     expect(component).toContain("setFetchPreviewOpen(true)");
     expect(component).toMatch(/setSelectedFetchModels\(\s*selectExistingImportModels\(\s*result\.models,/);
-    expect(component).toContain("已选择 {selectedFetchModels.length} / {fetchPreviewModels.length} 个模型");
+    expect(component).toContain('{translate("admin.channelModelManager.selected")} {selectedFetchModels.length} / {fetchPreviewModels.length} {translate("admin.channelModelManager.models")}');
     expect(component).toContain("disabled={importing || !visibleFetchModels.length || allVisibleFetchModelsSelected}");
     expect(component).toContain("onClick={() => setSelectedFetchModels((current) => selectVisibleModels(current, visibleFetchModels))}");
     expect(component).toContain("disabled={importing || selectedVisibleFetchCount === 0}");
     expect(component).toContain("onClick={() => setSelectedFetchModels((current) => deselectVisibleModels(current, visibleFetchModels))}");
-    expect(component).toContain("取消全选");
+    expect(component).toContain('translate("admin.channelModelManager.clearAll")');
     expect(component).toContain("disabled={importing}");
     expect(component).toContain("importAdminChannelModels(channel.id, selectedFetchModels)");
     expect(component).toContain("disabled={!selectedFetchModels.length}");
@@ -114,15 +114,15 @@ test("channel model manager supports bounded atomic batch deletion", async () =>
     expect(component).toContain("setSelectedModelIds(next.slice(0, 100))");
     expect(component).toContain("deleteAdminChannelModels(channel.id, selectedModelIds)");
     expect(component).toContain("okButtonProps: { danger: true }");
-    expect(component).toContain("本次就不会删除任何模型");
-    expect(component).toContain("批量删除");
+    expect(component).toContain('translate("admin.channelModelManager.deletedModelsDisappearFromTheListAndCannotBeRestored")');
+    expect(component).toContain('translate("admin.channelModelManager.bulkDelete")');
 });
 
 test("analytics keeps range presets and uses order finances without a separate pricing editor", async () => {
     const source = compactSource(await Bun.file(new URL("../src/pages/admin/components/analytics-panel.tsx", import.meta.url)).text());
 
     expect(source).toContain('type RangePreset = "7d" | "30d" | "60d"');
-    expect(source).toContain('["60d", "60 天"]');
+    expect(source).toContain('["60d", translate("admin.analyticsPanel.item60Days")]');
     expect(source).toContain('next.set("rangePreset", rangePreset)');
     expect(source).toContain("setRangePreset(undefined)");
     expect(source).not.toContain("模型价格配置");
@@ -131,14 +131,14 @@ test("analytics keeps range presets and uses order finances without a separate p
     expect(source).toContain("finance.profitMicrocredits");
     expect(source).toContain("finance.costedOrders < finance.settledOrders");
     expect(source).toContain("...analyticsFinanceColumns");
-    expect(source).toContain("后端未返回完整财务统计");
+    expect(source).toContain('translate("admin.analyticsPanel.theBackendDidNotReturnCompleteFinancialStatisticsMissingAmounts")');
 });
 
 test("storage settings keep generic S3 controls and connection validation", async () => {
     const source = await Promise.resolve(moduleGroupSource("pages/admin/settings/storage-settings-page.tsx"));
     const compacted = compactSource(source);
 
-    expect(compacted).toContain('{ mode: "s3", label: "S3 兼容存储"');
+    expect(compacted).toContain('{ mode: "s3", label: translate("account.layout.oss.providers.s3")');
     expect(compacted).toContain("testAdminOSSConnection(connectionInput(values))");
     for (const field of ["s3Preset", "sessionToken", "pathStyle", "allowUserS3"]) {
         expect(compacted).toContain(`name="${field}"`);
@@ -176,8 +176,8 @@ test("admin navigation keeps one sidebar entry per page inside collapsible group
 
 test("high impact feature shutdowns require confirmation", async () => {
     const source = await Bun.file(new URL("../src/pages/admin/components/feature-availability-panel.tsx", import.meta.url)).text();
-    expect(source).toContain('title: "关闭用户积分功能？"');
-    expect(source).toContain('title: "关闭前台模型功能？"');
+    expect(source).toContain('title: translate("admin.featureAvailabilityPanel.turnOffUserCredits")');
+    expect(source).toContain('title: translate("admin.featureAvailabilityPanel.disableThePublicModelCatalog")');
     expect(source).toContain("onChange={requestFeatureChange}");
 });
 
@@ -210,52 +210,52 @@ test("task-first settings reveal dependent configuration only after the primary 
         Bun.file(new URL("../src/styles/admin-ui.css", import.meta.url)).text(),
     ]);
 
-    expect(storageSource).toContain('title="1. 选择新资源存储位置"');
-    expect(storageSource).toContain("选择后继续完成第 2 步并保存");
+    expect(storageSource).toContain('title={translate("adminPages.settings.storageSettingsPage.item1ChooseWhereToStoreNewResources")}');
+    expect(storageSource).toContain('translate("adminPages.settings.storageSettingsPage.continueToStep2AndSaveSavingAffectsOnlyNew")');
     expect(sourceSection(storageSource, "const requestModeChange", "const save")).not.toContain("save(values)");
 
     expect(emailSource).toContain("{draftEnabled ? (");
     expect(emailSource).toContain('id="admin-email-smtp"');
-    expect(emailSource).toContain('title="1. 是否发送账户安全邮件"');
-    expect(emailSource).toContain('title="2. 配置 SMTP 连接与发件身份"');
+    expect(emailSource).toContain('title={translate("admin.emailSettingsPanel.item1SendAccountSecurityEmails")}');
+    expect(emailSource).toContain('title={translate("admin.emailSettingsPanel.item2ConfigureSMTPConnectionAndSenderIdentity")}');
 
     expect(accessSource).toContain("{draftLinuxDOEnabled ? (");
-    expect(accessSource).toContain('title="1. 是否允许创建新账号"');
-    expect(accessSource).toContain('title="2. 是否开放 Linux.do 登录"');
+    expect(accessSource).toContain('title={translate("admin.accessSettingsPanel.item1AllowNewAccounts")}');
+    expect(accessSource).toContain('title={translate("admin.accessSettingsPanel.item2EnableLinuxDoSignIn")}');
 
     // 功能开放按前台位置分组；子开关在上级关闭时不可切换，跨组依赖在行内提示。
-    expect(featureSource).toContain('title: "创作功能"');
-    expect(featureSource).toContain('title: "插件与记录"');
-    expect(featureSource).toContain('title: "模型与计费"');
+    expect(featureSource).toContain('title: translate("admin.featureAvailabilityPanel.creationFeatures")');
+    expect(featureSource).toContain('title: translate("admin.featureAvailabilityPanel.pluginsAndHistory")');
+    expect(featureSource).toContain('title: translate("admin.featureAvailabilityPanel.modelsAndBilling")');
     expect(featureSource).toContain('disabled={savingKey !== null || state === "blocked"}');
     expect(featureSource).toContain('requires: [{ key: "imageWorkbenchEnabled"');
     expect(appearanceSource).toContain("<WelcomeSetting />");
-    expect(welcomeSource).toContain("<strong>启用欢迎页</strong>");
+    expect(welcomeSource).toContain('<strong>{translate("adminPages.settings.welcomeSetting.enableWelcomePage")}</strong>');
     expect(welcomeSource).toContain("updateAdminFeatureAvailability({ welcomeEnabled: value })");
 
-    expect(drawingSource).toContain('title="1. 选择新建绘图默认编辑器"');
-    expect(drawingSource).toContain('title="2. 配置 tldraw 授权（按需）"');
+    expect(drawingSource).toContain('title={translate("adminPages.settings.drawingEngineSettingsPage.item1ChooseTheDefaultEditorForNewDrawings")}');
+    expect(drawingSource).toContain('title={translate("adminPages.settings.drawingEngineSettingsPage.item2ConfigureTldrawLicensingIfNeeded")}');
     expect(sourceSection(drawingSource, "const selectEngine", "async function save")).not.toContain("save(");
 
-    expect(arkSource).toContain('title="1. 配置方舟项目与 IAM 凭据"');
-    expect(arkSource).toContain('title="2. 是否启用可信素材同步"');
+    expect(arkSource).toContain('title={translate("adminPages.settings.arkPrivateAssetsSettingsPage.item1ConfigureTheArkProjectAndIAMCredentials")}');
+    expect(arkSource).toContain('title={translate("adminPages.settings.arkPrivateAssetsSettingsPage.item2EnableTrustedAssetSync")}');
     expect(arkSource).toContain("{prerequisitesReady || draftEnabled ? (");
-    expect(arkSource).toContain('aria-label="启用可信素材同步，保存修改后生效"');
-    expect(arkSource).toContain('title="3. 开放用户素材组"');
-    expect(arkSource).toContain('aria-label="开放真人素材库，保存修改后生效"');
-    expect(arkSource).toContain('aria-label="开放虚拟素材组，保存修改后生效"');
-    expect(arkSource).toContain('title="4. 素材组收费"');
+    expect(arkSource).toContain('aria-label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.enableTrustedAssetSyncTakesEffectAfterSaving")}');
+    expect(arkSource).toContain('title={translate("adminPages.settings.arkPrivateAssetsSettingsPage.item3AllowUserAssetGroups")}');
+    expect(arkSource).toContain('aria-label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.enableHumanAssetLibraryTakesEffectAfterSaving")}');
+    expect(arkSource).toContain('aria-label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.enableVirtualAssetGroupsTakesEffectAfterSaving")}');
+    expect(arkSource).toContain('title={translate("adminPages.settings.arkPrivateAssetsSettingsPage.item4AssetGroupFees")}');
 
-    expect(interceptionSource).toContain('title="1. 是否替换用户可见的上游错误"');
-    expect(interceptionSource).toContain('title="2. 配置替换规则与优先级"');
-    expect(interceptionSource).toContain('title="3. 本地预览用户最终文案"');
+    expect(interceptionSource).toContain('title={translate("adminPages.settings.responseInterceptionSettingsPage.item1ReplaceUserFacingUpstreamErrors")}');
+    expect(interceptionSource).toContain('title={translate("adminPages.settings.responseInterceptionSettingsPage.item2ConfigureReplacementRulesAndPriority")}');
+    expect(interceptionSource).toContain('title={translate("adminPages.settings.responseInterceptionSettingsPage.item3PreviewTheFinalUserFacingMessageLocally")}');
     expect(interceptionSource).toContain("{enabled ? (");
     expect(interceptionSource).not.toContain('className="admin-intercept-overview"');
     expect(sourceSection(interceptionSource, "const changeEnabled", "if (loading")).not.toContain("save(");
 
-    expect(thirdPartySource).toContain('title="1. 配置 LibTV 服务端访问凭据"');
-    expect(thirdPartySource).toContain('title="2. 是否开放用户导入 LibTV 画布"');
-    expect(thirdPartySource).toContain('title="3. 验证已保存的 LibTV 凭据"');
+    expect(thirdPartySource).toContain('title={translate("adminPages.settings.libtvSettingsPage.item1ConfigureLibTVServerCredentials")}');
+    expect(thirdPartySource).toContain('title={translate("adminPages.settings.libtvSettingsPage.item2AllowUsersToImportLibTVCanvases")}');
+    expect(thirdPartySource).toContain('title={translate("adminPages.settings.libtvSettingsPage.item3VerifySavedLibTVCredentials")}');
     expect(thirdPartySource).toContain("{draftHasToken ? (");
     expect(thirdPartySource).toContain("{setting.hasToken && !clearTokenDraft ? (");
     expect(thirdPartySource).not.toContain('className="admin-third-party-overview"');
@@ -272,15 +272,15 @@ test("admin tables keep requested filters and actions in the intended positions"
 
     const storageToolbar = sourceSection(storageSource, "toolbar={", "toolbarActiveFilters=");
     expect(storageToolbar).toContain('className="admin-storage-resource-filters"');
-    expect(storageToolbar).toContain('placeholder="资源 ID 或对象路径"');
-    expect(storageToolbar).toContain('placeholder="用户名 / 昵称 / 邮箱 / 用户 ID"');
+    expect(storageToolbar).toContain('placeholder={translate("admin.storageResourcesPanel.resourceIDOrObjectPath")}');
+    expect(storageToolbar).toContain('placeholder={translate("admin.storageResourcesPanel.usernameNicknameEmailUserID")}');
     expect(storageSource).toContain("user: debouncedUserQuery || undefined");
     expect(storageSource).toContain("userId: debouncedUserQuery || undefined");
-    expect(storageToolbar).toContain('aria-label="筛选资源类型"');
-    expect(storageToolbar).toContain('aria-label="筛选资源状态"');
-    expect(storageToolbar).toContain('aria-label="筛选存储类型"');
+    expect(storageToolbar).toContain('aria-label={translate("admin.storageResourcesPanel.filterResourceType")}');
+    expect(storageToolbar).toContain('aria-label={translate("admin.storageResourcesPanel.filterResourceStatus")}');
+    expect(storageToolbar).toContain('aria-label={translate("admin.storageResourcesPanel.filterStorageType")}');
 
-    const operationColumn = sourceSection(creditSource, 'title: "操作"', "const hasFilters");
+    const operationColumn = sourceSection(creditSource, 'title: translate("account.settings.runninghub.actions")', "const hasFilters");
     expect(operationColumn).toContain('fixed: "right"');
 });
 
@@ -292,19 +292,19 @@ test("request logs display user credit billing independently from upstream cost"
     ]);
 
     const billingSummary = sourceSection(listSource, "function BillingSummary", "function MediaResult");
-    expect(listSource).toContain('title: "积分计算"');
-    expect(listSource).toContain('title: "请求阶段 / 状态"');
-    expect(listSource).toContain('description="模型生成与结果下载记录；仅计费调用扣除积分"');
+    expect(listSource).toContain('title: translate("adminPages.logs.logsPage.creditCalculation")');
+    expect(listSource).toContain('title: translate("adminPages.logs.logsPage.requestStageStatus")');
+    expect(listSource).toContain('description={translate("adminPages.logs.logsPage.modelGenerationAndResultDownloadRecordsOnlyBillableCallsConsume")}');
     expect(billingSummary).toContain("billingReservedMicrocredits");
     expect(billingSummary).toContain("billingSettledMicrocredits");
     expect(billingSummary).toContain("billingAvailable");
     expect(billingSummary).toContain("!log.billable");
-    expect(billingSummary).toContain("未扣积分");
+    expect(billingSummary).toContain('translate("adminPages.logs.logsPage.noCreditsCharged")');
     expect(billingSummary).not.toContain("costAvailable");
-    expect(detailSource).toContain('label="请求阶段" value={requestKindText(log.requestKind)}');
-    expect(detailSource).toContain('label="计费" value={billingText(log)}');
-    expect(detailSource).toContain('label="请求 ID" value={<CopyValue value={log.id} />}');
-    expect(detailSource).toContain('label="供应商任务 ID" value={log.providerRequestId ? <CopyValue value={log.providerRequestId} /> : "未记录"}');
+    expect(detailSource).toContain('label={translate("admin.apiLogDetailDrawer.requestStage")} value={requestKindText(log.requestKind)}');
+    expect(detailSource).toContain('label={translate("canvasC.taskItem.billing")} value={billingText(log)}');
+    expect(detailSource).toContain('label={translate("admin.apiLogDetailDrawer.requestID")} value={<CopyValue value={log.id} />}');
+    expect(detailSource).toContain('label={translate("admin.apiLogDetailDrawer.vendorTaskID")} value={log.providerRequestId ? <CopyValue value={log.providerRequestId} /> : translate("admin.apiLogDetailDrawer.notRecorded")}');
     expect(apiSource).toContain("billingReservedMicrocredits: number");
     expect(apiSource).toContain("billingSettledMicrocredits?: number");
     expect(apiSource).not.toContain("billingAmountMicrocredits");

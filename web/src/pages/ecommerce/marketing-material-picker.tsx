@@ -2,9 +2,11 @@ import { Check, Minus, Plus, RotateCcw, Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { EcommerceDraft } from "@/services/api/ecommerce";
 import { imageSizeLabel } from "./catalog";
+import { commerceUiText } from "./ui-text";
 import { CommerceHint } from "./commerce-hint";
 import { automaticMarketingSelections, marketingCategories, marketingMaterialById, marketingMaterials, parseMarketingSelections, recommendMarketingSelections, type MarketingSelection } from "./marketing-materials";
 
+import { translate } from "@/i18n";
 export function MarketingMaterialPicker({ draft, ratios, onChange, onClose }: { draft: EcommerceDraft; ratios: string[]; onChange: (selections: MarketingSelection[]) => void; onClose: () => void }) {
     const [category, setCategory] = useState<string>(() => marketingMaterialById.get(parseMarketingSelections(draft)[0]?.id)?.category || marketingCategories[0]);
     const available = ratios.length ? ratios : [draft.ratio];
@@ -20,12 +22,20 @@ export function MarketingMaterialPicker({ draft, ratios, onChange, onClose }: { 
         onChange([...selections.filter((item) => item.id !== id), ...(next ? [next] : [])]);
     };
     return (
-        <div className="commerce-material-picker" aria-label="营销物料配置">
-            <nav className="commerce-material-categories" aria-label="物料分类">
+        <div className="commerce-material-picker" aria-label={translate("ecommerce.marketingMaterialPicker.marketingMaterialSettings")}>
+            <nav className="commerce-material-categories" aria-label={translate("ecommerce.marketingMaterialPicker.materialCategory")}>
                 {marketingCategories.map((name) => {
                     const selectedCount = selections.filter((entry) => marketingMaterialById.get(entry.id)?.category === name).reduce((sum, entry) => sum + entry.count, 0);
                     return (
-                        <CommerceHint key={name} text={category === name ? `正在配置${name}，可选最多 15 张。` : `切换至${name}，当前品类的选择将清空。`} placement="right">
+                        <CommerceHint
+                            key={name}
+                            text={
+                                category === name
+                                    ? translate("ecommerce.marketingMaterialPicker.configuringSelectUpTo15Images", { v0: commerceUiText(name) })
+                                    : translate("ecommerce.marketingMaterialPicker.switchToCurrentCategorySelectionsWillBeCleared", { v0: commerceUiText(name) })
+                            }
+                            placement="right"
+                        >
                             <button
                                 type="button"
                                 aria-current={category === name ? "true" : undefined}
@@ -36,7 +46,7 @@ export function MarketingMaterialPicker({ draft, ratios, onChange, onClose }: { 
                                     }
                                 }}
                             >
-                                {name}
+                                {commerceUiText(name)}
                                 {selectedCount ? ` (${selectedCount})` : ""}
                             </button>
                         </CommerceHint>
@@ -46,25 +56,25 @@ export function MarketingMaterialPicker({ draft, ratios, onChange, onClose }: { 
             <div className="commerce-material-main">
                 <header>
                     <div className="commerce-material-actions">
-                        <CommerceHint text="根据商品描述，从当前品类推荐适合的物料。">
+                        <CommerceHint text={translate("ecommerce.marketingMaterialPicker.recommendSuitableMaterialsInTheCurrentCategoryBasedOnThe")}>
                             <button type="button" onClick={() => onChange(recommendMarketingSelections([draft.instruction, draft.productName, draft.scene].join(" "), category, available))}>
                                 <Sparkles size={14} />
-                                智能选择
+                                {translate("ecommerce.marketingMaterialPicker.smartSelection")}
                             </button>
                         </CommerceHint>
-                        <CommerceHint text="清空当前物料，重新挑选创作组合。">
+                        <CommerceHint text={translate("ecommerce.marketingMaterialPicker.clearCurrentMaterialsAndChooseANewCreationMix")}>
                             <button type="button" onClick={() => onChange([])} disabled={!count}>
                                 <RotateCcw size={14} />
-                                重置
+                                {translate("account.layout.list.reset")}
                             </button>
                         </CommerceHint>
                         <span>
-                            已选 {count}
+                            {translate("ecommerce.marketingMaterialPicker.selected")} {count}
                             <i> / 15</i>
                         </span>
                     </div>
-                    <CommerceHint text="收起物料配置，已选内容会保留。">
-                        <button type="button" className="commerce-material-close" aria-label="关闭物料配置" onClick={onClose}>
+                    <CommerceHint text={translate("ecommerce.marketingMaterialPicker.collapseMaterialSettingsSelectionsAreKept")}>
+                        <button type="button" className="commerce-material-close" aria-label={translate("ecommerce.marketingMaterialPicker.closeMaterialSettings")} onClick={onClose}>
                             <X size={15} />
                         </button>
                     </CommerceHint>
@@ -76,45 +86,63 @@ export function MarketingMaterialPicker({ draft, ratios, onChange, onClose }: { 
                             const choice = selected.get(item.id);
                             const active = Boolean(choice);
                             const autoSelection = automaticMarketingSelections([{ id: item.id, count: 1, ratio: item.ratio }], available, draft.ratio)[0];
-                            const visibleRatio = imageSizeLabel(choice?.ratio || autoSelection.ratio);
+                            const visibleRatio = commerceUiText(imageSizeLabel(choice?.ratio || autoSelection.ratio));
                             return (
                                 <div key={item.id} className={`commerce-material-tile${active ? " is-selected" : ""}`}>
-                                    <CommerceHint text={active ? `取消${item.name}，会移除该物料的全部图片。` : count >= 15 ? "已达到 15 张上限，先减少其他物料。" : `选择${item.name}，默认生成 1 张，比例自动匹配当前模型。`}>
+                                    <CommerceHint
+                                        text={
+                                            active
+                                                ? translate("ecommerce.marketingMaterialPicker.deselectToRemoveAllImagesOfThisMaterial", { v0: commerceUiText(item.name) })
+                                                : count >= 15
+                                                  ? translate("ecommerce.marketingMaterialPicker.the15ImageLimitIsReachedReduceOtherMaterialsFirst")
+                                                  : translate("ecommerce.marketingMaterialPicker.selectToGenerateOneImageByDefaultWithAnAspect", { v0: commerceUiText(item.name) })
+                                        }
+                                    >
                                         <button
                                             type="button"
                                             className="commerce-material-select"
                                             aria-pressed={active}
-                                            aria-label={`${active ? "取消" : "选择"}${item.name}`}
+                                            aria-label={`${active ? translate("common.cancel") : translate("ecommerce.marketingMaterialPicker.select")} ${commerceUiText(item.name)}`}
                                             disabled={!active && count >= 15}
                                             onClick={() => update(item.id, (entry) => (entry ? undefined : autoSelection))}
                                         >
                                             <span className="commerce-material-check">{active ? <Check size={13} strokeWidth={2.6} /> : null}</span>
-                                            <span>{item.name}</span>
+                                            <span>{commerceUiText(item.name)}</span>
                                         </button>
                                     </CommerceHint>
                                     {active ? (
                                         <div className="commerce-material-controls">
-                                            <CommerceHint text={`将${item.name}减少到 ${Math.max(1, choice!.count - 1)} 张。`}>
-                                                <button type="button" aria-label={`${item.name}减少一张`} disabled={choice!.count <= 1} onClick={() => update(item.id, (entry) => (entry && entry.count > 1 ? { ...entry, count: entry.count - 1 } : entry))}>
+                                            <CommerceHint text={translate("ecommerce.marketingMaterialPicker.reduceToImages", { v0: commerceUiText(item.name), v1: String(Math.max(1, choice!.count - 1)) })}>
+                                                <button
+                                                    type="button"
+                                                    aria-label={translate("ecommerce.marketingMaterialPicker.removeOne", { v0: commerceUiText(item.name) })}
+                                                    disabled={choice!.count <= 1}
+                                                    onClick={() => update(item.id, (entry) => (entry && entry.count > 1 ? { ...entry, count: entry.count - 1 } : entry))}
+                                                >
                                                     <Minus size={13} />
                                                 </button>
                                             </CommerceHint>
                                             <span>{choice!.count}</span>
-                                            <CommerceHint text={count >= 15 ? "已达到 15 张上限。" : `为${item.name}增加 1 张。`}>
-                                                <button type="button" aria-label={`${item.name}增加一张`} disabled={count >= 15} onClick={() => update(item.id, (entry) => (entry ? { ...entry, count: entry.count + 1 } : undefined))}>
+                                            <CommerceHint text={count >= 15 ? translate("ecommerce.marketingMaterialPicker.the15ImageLimitIsReached") : translate("ecommerce.marketingMaterialPicker.addOneImage", { v0: commerceUiText(item.name) })}>
+                                                <button
+                                                    type="button"
+                                                    aria-label={translate("ecommerce.marketingMaterialPicker.addOne", { v0: commerceUiText(item.name) })}
+                                                    disabled={count >= 15}
+                                                    onClick={() => update(item.id, (entry) => (entry ? { ...entry, count: entry.count + 1 } : undefined))}
+                                                >
                                                     <Plus size={13} />
                                                 </button>
                                             </CommerceHint>
                                         </div>
                                     ) : null}
-                                    <span className="commerce-material-ratio" aria-label={`${item.name}自动比例 ${visibleRatio}`}>
+                                    <span className="commerce-material-ratio" aria-label={translate("ecommerce.marketingMaterialPicker.automaticRatio", { v0: commerceUiText(item.name), v1: String(visibleRatio) })}>
                                         {visibleRatio}
                                     </span>
                                 </div>
                             );
                         })}
                 </div>
-                <p>各类型按当前图片模型自动匹配比例，最多选择 15 张。</p>
+                <p>{translate("ecommerce.marketingMaterialPicker.aspectRatiosAreMatchedAutomaticallyToTheCurrentImageModel")}</p>
             </div>
         </div>
     );

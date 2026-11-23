@@ -1,4 +1,6 @@
 import { AssetRecordType, createShapeId, createTLStore, type TLImageShape } from "tldraw";
+import { translate } from "@/i18n";
+
 
 const INITIAL_DRAWING_SHAPE_MAX_DIMENSION = 1200;
 
@@ -14,7 +16,7 @@ export async function createTldrawDrawingFromImage(source: DrawingImageSource) {
     const sourceBlob = await fetch(source.dataUrl).then((response) => response.blob());
     const store = createTLStore();
     const page = store.allRecords().find((record) => record.typeName === "page");
-    if (!page) throw new Error("无法初始化 tldraw 绘图页面");
+    if (!page) throw new Error(translate("shared.canvas.canvasDrawingTldrawDocument.failedToInitializeTheTldrawDrawingPage"));
 
     const assetId = AssetRecordType.createId();
     const scale = Math.min(1, INITIAL_DRAWING_SHAPE_MAX_DIMENSION / Math.max(source.width, source.height));

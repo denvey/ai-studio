@@ -6,15 +6,16 @@ import { deleteEcommerceProjects, listEcommerceProjectPage, projectDraft, type E
 import { resourceStorageKey } from "@/services/api/resources";
 import { CachedResourceImage } from "@/components/cached-resource-image";
 
+import { translate } from "@/i18n";
 function historyGroup(date: string) {
     const value = new Date(date);
-    if (Number.isNaN(value.getTime())) return "更早";
+    if (Number.isNaN(value.getTime())) return translate("create.history.earlier");
     const today = new Date();
     const day = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
     const updated = new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
-    if (updated === day) return "今天";
-    if (updated === day - 86_400_000) return "昨天";
-    return "更早";
+    if (updated === day) return translate("create.history.today");
+    if (updated === day - 86_400_000) return translate("create.history.yesterday");
+    return translate("create.history.earlier");
 }
 
 export function CompactEcommerceHistory({
@@ -61,7 +62,7 @@ export function CompactEcommerceHistory({
                 }
             })
             .catch((cause) => {
-                if (!cancelled) setError(cause instanceof Error ? cause.message : "历史记录加载失败");
+                if (!cancelled) setError(cause instanceof Error ? cause.message : translate("ecommerce.compactHistory.failedToLoadHistory"));
             })
             .finally(() => {
                 if (!cancelled) setLoading(false);
@@ -95,11 +96,11 @@ export function CompactEcommerceHistory({
             setDeleteTarget(null);
             setMenuId(null);
             setRevision((value) => value + 1);
-            message.success("项目已删除");
+            message.success(translate("ecommerce.compactHistory.projectDeleted"));
         } catch (cause) {
             setDeleteTarget(null);
             setRevision((value) => value + 1);
-            message.error(cause instanceof Error ? cause.message : "删除失败，请重试");
+            message.error(cause instanceof Error ? cause.message : translate("ecommerce.compactHistory.deleteFailedRetry"));
         } finally {
             setDeleting(false);
         }
@@ -107,20 +108,20 @@ export function CompactEcommerceHistory({
     if (!open) return null;
     let previousGroup = "";
     return (
-        <div className="commerce-compact-history" ref={root} role="dialog" aria-label="历史记录">
+        <div className="commerce-compact-history" ref={root} role="dialog" aria-label={translate("ecommerce.compactHistory.history")}>
             <div className="commerce-compact-history-heading">
                 <HistoryIcon size={15} />
-                <strong>历史记录</strong>
-                <span>{total ? `${total} 个项目` : ""}</span>
+                <strong>{translate("ecommerce.compactHistory.history")}</strong>
+                <span>{total ? translate("ecommerce.compactHistory.projects", { v0: String(total) }) : ""}</span>
             </div>
             <div className="commerce-compact-history-list" data-canvas-wheel-scroll>
                 {loading ? (
-                    <p role="status">正在加载历史记录…</p>
+                    <p role="status">{translate("ecommerce.compactHistory.loadingHistory")}</p>
                 ) : error ? (
                     <p role="alert">
                         {error}
                         <button type="button" onClick={() => setRevision((value) => value + 1)}>
-                            重试
+                            {translate("common.retry")}
                         </button>
                     </p>
                 ) : projects.length ? (
@@ -129,13 +130,13 @@ export function CompactEcommerceHistory({
                         const showGroup = group !== previousGroup;
                         previousGroup = group;
                         const draft = projectDraft(project);
-                        const title = project.name?.trim() || draft.productName?.trim() || "未命名商品";
+                        const title = project.name?.trim() || draft.productName?.trim() || translate("ecommerce.compactHistory.untitledProduct");
                         const cover = draft.references.find((ref) => ref.role === "primary" && ref.resourceId);
                         return (
                             <div className="commerce-compact-history-entry" key={project.id}>
                                 {showGroup ? <div className="commerce-compact-history-date">{group}</div> : null}
                                 <div className={`commerce-compact-history-row${project.id === activeId ? " is-current" : ""}`}>
-                                    <button type="button" className="commerce-compact-history-open" disabled={disabled} onClick={() => onOpen(project)} aria-label={`打开项目：${title}`}>
+                                    <button type="button" className="commerce-compact-history-open" disabled={disabled} onClick={() => onOpen(project)} aria-label={translate("ecommerce.compactHistory.openProject", { v0: String(title) })}>
                                         <span className="commerce-compact-history-cover">
                                             {cover ? (
                                                 <CachedResourceImage storageKey={resourceStorageKey(cover.resourceId)} alt="" loading="lazy" decoding="async" fallback={<Images size={18} />} loadingFallback={<Images size={18} />} />
@@ -149,7 +150,7 @@ export function CompactEcommerceHistory({
                                         type="button"
                                         className="commerce-compact-history-more"
                                         disabled={disabled}
-                                        aria-label={`${title}的更多操作`}
+                                        aria-label={translate("ecommerce.compactHistory.moreActionsFor", { v0: String(title) })}
                                         aria-expanded={menuId === project.id}
                                         onClick={() => setMenuId((value) => (value === project.id ? null : project.id))}
                                     >
@@ -165,7 +166,7 @@ export function CompactEcommerceHistory({
                                             }}
                                         >
                                             <Trash2 size={13} />
-                                            删除
+                                            {translate("common.delete")}
                                         </button>
                                     ) : null}
                                 </div>
@@ -173,27 +174,27 @@ export function CompactEcommerceHistory({
                         );
                     })
                 ) : (
-                    <p>暂无历史项目，开始创作后会显示在这里。</p>
+                    <p>{translate("ecommerce.compactHistory.noPreviousProjectsTheyWillAppearHereOnceYouStart")}</p>
                 )}
             </div>
             {total > 20 ? (
                 <button type="button" className="commerce-compact-history-all" onClick={onShowAll}>
-                    查看全部 {total} 个项目
+                    {translate("create.recent.viewAll")} {total} {translate("ecommerce.compactHistory.projects2")}
                 </button>
             ) : null}
             <Modal
-                title="删除这个项目？"
+                title={translate("ecommerce.compactHistory.deleteThisProject")}
                 open={Boolean(deleteTarget)}
                 centered
-                okText="确认删除"
+                okText={translate("account.ui.delete.confirm")}
                 okButtonProps={{ danger: true, loading: deleting }}
-                cancelText="取消"
+                cancelText={translate("common.cancel")}
                 onOk={() => void remove()}
                 onCancel={() => {
                     if (!deleting) setDeleteTarget(null);
                 }}
             >
-                <p>将删除「{deleteTarget?.name?.trim() || "未命名商品"}」。删除后项目无法恢复，已生成的图片仍保留在资产库。</p>
+                <p>{translate("ecommerce.compactHistory.deleteDescription", { name: deleteTarget?.name?.trim() || translate("ecommerce.compactHistory.untitledProduct") })}</p>
             </Modal>
         </div>
     );

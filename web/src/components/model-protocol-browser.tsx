@@ -1,5 +1,6 @@
 import { ChoiceBrowser } from "./choice-browser";
 import type { ModelProtocolDefinition, ProtocolCapability } from "@/lib/model-protocols";
+import { translate } from "@/i18n";
 
 export function ModelProtocolBrowser({
     capability,
@@ -24,13 +25,13 @@ export function ModelProtocolBrowser({
             vendor: protocol.vendor,
             searchText: protocol.value,
             details: [
-                { label: "请求", value: <code>{protocol.create}</code> },
-                { label: "请求体", value: protocol.contentType },
-                { label: "响应", value: protocol.poll ? "异步轮询" : "同步响应" },
-                { label: "来源", value: protocol.media },
-                ...(protocol.imageParameters ? [{ label: "图片参数", value: protocol.imageParameters.map((p) => p.label).join("、") }] : []),
+                { label: translate("shared.modelProtocolBrowser.request"), value: <code>{protocol.create}</code> },
+                { label: translate("shared.modelProtocolBrowser.requestBody"), value: protocol.contentType },
+                { label: translate("shared.modelProtocolBrowser.response"), value: protocol.poll ? translate("shared.plugins.asyncPolling") : translate("shared.modelProtocolPicker.synchronousResponse") },
+                { label: translate("canvasA.assetView.origin"), value: protocol.media },
+                ...(protocol.imageParameters ? [{ label: translate("shared.modelProtocolBrowser.imageParameters"), value: protocol.imageParameters.map((p) => p.label).join("、") }] : []),
             ],
         }));
 
-    return <ChoiceBrowser key={capability || "all"} {...props} label="调用协议" placeholder="搜索协议名称、厂商或请求路径" options={options} />;
+    return <ChoiceBrowser key={capability || "all"} {...props} label={translate("shared.modelProtocolBrowser.aPIProtocol")} placeholder={translate("shared.modelProtocolBrowser.searchProtocolNameProviderOrRequestPath")} options={options} />;
 }

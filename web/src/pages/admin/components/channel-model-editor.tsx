@@ -29,6 +29,7 @@ import {
     type ChannelModelFormValues as FormValues,
     type EditorSection,
 } from "./channel-model-editor-form";
+import { currentLocale, translate } from "@/i18n";
 
 export function ChannelModelEditor({
     channel,
@@ -53,7 +54,7 @@ export function ChannelModelEditor({
 }) {
     const { message, modal } = App.useApp();
     const { references } = useAdminContext();
-    const displayNameOptions = [...new Set(["未分类", ...references.channels.flatMap((item) => item.modelDisplayNames ?? [])])].sort((a, b) => a.localeCompare(b, "zh-CN")).map((value) => ({ value }));
+    const displayNameOptions = [...new Set(["未分类", ...references.channels.flatMap((item) => item.modelDisplayNames ?? [])])].sort((a, b) => a.localeCompare(b, currentLocale())).map((value) => ({ value }));
     const [groupSearch, setGroupSearch] = useState("");
     const [form] = Form.useForm<FormValues>();
     const [initialValues] = useState(() => draftValues ?? initialChannelModelValues(editing, protocols));
@@ -83,7 +84,13 @@ export function ChannelModelEditor({
             onClose();
             return;
         }
-        modal.confirm({ title: "放弃未保存的修改？", content: "当前修改尚未保存，关闭后将丢弃。", okText: "放弃修改", cancelText: "继续编辑", onOk: onClose });
+        modal.confirm({
+            title: translate("admin.channelModelEditor.discardUnsavedChanges"),
+            content: translate("admin.channelModelEditor.yourChangesAreUnsavedAndWillBeDiscardedWhenYou"),
+            okText: translate("admin.channelModelEditor.discardChanges"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
+            onOk: onClose,
+        });
     };
 
     const handleFormValuesChange = (changed: Partial<FormValues>) => {
@@ -119,8 +126,8 @@ export function ChannelModelEditor({
             if (fields?.length) {
                 setActiveSection(editorSectionForField(fields[0].name));
                 requestAnimationFrame(() => form.scrollToField(fields[0].name, { block: "center", focus: true }));
-                message.warning("请检查标记的配置项后重试");
-            } else message.error(error instanceof Error ? error.message : "表单校验失败");
+                message.warning(translate("admin.channelModelEditor.reviewTheHighlightedSettingsAndTryAgain"));
+            } else message.error(error instanceof Error ? error.message : translate("admin.channelModelEditor.formValidationFailed"));
             return undefined;
         } finally {
             busyRef.current = false;
@@ -158,12 +165,12 @@ export function ChannelModelEditor({
             try {
                 await onSaved();
             } catch {
-                message.warning("模型已保存，但列表刷新失败，请手动刷新");
+                message.warning(translate("admin.channelModelEditor.modelSavedButTheListCouldNotBeRefreshedRefresh"));
             }
             onClose();
-            message.success(editing ? "模型配置已更新" : "模型已添加");
+            message.success(editing ? translate("admin.channelModelEditor.modelConfigurationUpdated") : translate("admin.channelModelEditor.modelAdded"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "保存模型失败");
+            message.error(error instanceof Error ? error.message : translate("admin.channelModelEditor.failedToSaveModel"));
         } finally {
             busyRef.current = false;
             setSaving(false);
@@ -187,9 +194,9 @@ export function ChannelModelEditor({
                 protocol: values.protocol,
                 capabilityConfig,
             });
-            message.success(`模型测试通过，耗时 ${(result.durationMs / 1000).toFixed(2)} 秒`);
+            message.success(translate("admin.channelModelEditor.modelTestPassedInS", { v0: String((result.durationMs / 1000).toFixed(2)) }));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "模型测试失败");
+            message.error(error instanceof Error ? error.message : translate("account.settings.modelConfig.testFailed"));
         } finally {
             busyRef.current = false;
             setTesting(false);
@@ -201,9 +208,9 @@ export function ChannelModelEditor({
             open
             title={
                 <div className="admin-model-editor-title">
-                    <span>{draftValues ? "复制模型" : editing ? "编辑模型" : "新增模型"}</span>
+                    <span>{draftValues ? translate("admin.channelModelEditor.duplicateModel") : editing ? translate("admin.channelModelEditor.editModel") : translate("admin.channelModelEditor.addModel")}</span>
                     <p>
-                        {channel.name} · {editing?.displayName || editing?.modelKey || draftValues?.displayName || "配置调用方式与用户积分价格"}
+                        {channel.name} · {editing?.displayName || editing?.modelKey || draftValues?.displayName || translate("admin.channelModelEditor.configureTheRequestProtocolAndUserCreditPricing")}
                     </p>
                 </div>
             }
@@ -220,7 +227,7 @@ export function ChannelModelEditor({
                 <div className="admin-model-editor-footer-actions">
                     <div className="admin-model-editor-footer-status">
                         <Switch
-                            aria-label="启用模型"
+                            aria-label={translate("admin.channelModelEditor.enableModel")}
                             checked={modelEnabled}
                             disabled={busy}
                             onChange={(checked) => {
@@ -229,8 +236,8 @@ export function ChannelModelEditor({
                             }}
                         />
                         <div>
-                            <strong>{modelEnabled ? "模型启用" : "模型停用"}</strong>
-                            <small>保存后生效</small>
+                            <strong>{modelEnabled ? translate("admin.channelModelEditor.modelEnabled") : translate("admin.channelModelEditor.modelDisabled")}</strong>
+                            <small>{translate("admin.channelModelEditor.appliesAfterSaving")}</small>
                         </div>
                     </div>
                     <div className="admin-model-editor-footer-primary">
@@ -238,15 +245,23 @@ export function ChannelModelEditor({
                             icon={<FlaskConical className="size-4" />}
                             loading={testing}
                             disabled={saving || protocolLoading || Boolean(protocolError)}
-                            onClick={() => modal.confirm({ title: "测试模型连接？", content: "测试会向上游发送真实请求，可能产生供应商费用；不会保存当前修改。", okText: "开始测试", cancelText: "取消", onOk: testModel })}
+                            onClick={() =>
+                                modal.confirm({
+                                    title: translate("admin.channelModelEditor.testModelConnection"),
+                                    content: translate("admin.channelModelEditor.testingSendsARealUpstreamRequestAndMayIncurProvider"),
+                                    okText: translate("admin.channelModelEditor.startTest"),
+                                    cancelText: translate("common.cancel"),
+                                    onOk: testModel,
+                                })
+                            }
                         >
-                            测试模型
+                            {translate("account.settings.modelConfig.test")}
                         </Button>
                         <Button disabled={busy} onClick={requestClose}>
-                            取消
+                            {translate("common.cancel")}
                         </Button>
                         <Button type="primary" loading={saving} disabled={testing || protocolLoading || Boolean(protocolError)} onClick={() => void save()}>
-                            {editing ? "保存修改" : "添加模型"}
+                            {editing ? translate("admin.channelModelEditor.saveChanges") : translate("admin.channelModelEditor.addModel2")}
                         </Button>
                     </div>
                 </div>
@@ -266,18 +281,18 @@ export function ChannelModelEditor({
                     items={[
                         {
                             key: "identity",
-                            label: "基本信息",
+                            label: translate("account.settings.modelConfig.tabBasic"),
                             forceRender: true,
                             children: (
                                 <div className="admin-model-editor-tab-content">
                                     <section className="admin-model-editor-section">
-                                        <SectionHeading title="模型身份" description="区分产品侧展示标识与上游实际调用 ID。" />
+                                        <SectionHeading title={translate("admin.channelModelEditor.modelIdentity")} description={translate("admin.channelModelEditor.separateTheProductModelKeyFromTheActualUpstreamRequest")} />
                                         <div className="admin-model-editor-section-content admin-model-identity-grid admin-model-identity-grid-with-icon">
                                             <Form.Item
                                                 name="modelKey"
-                                                label="产品模型标识"
-                                                tooltip="不同渠道使用相同标识时，创作端归为同一个产品模型。不同版本（例如 Fast）应使用不同标识；请勿为分组随意修改已有标识。"
-                                                rules={[{ required: true, whitespace: true, message: "请输入产品模型标识" }]}
+                                                label={translate("admin.channelModelEditor.productModelKey")}
+                                                tooltip={translate("admin.channelModelEditor.theSameKeyAcrossChannelsGroupsModelsAsOneProduct")}
+                                                rules={[{ required: true, whitespace: true, message: translate("admin.channelModelEditor.enterAProductModelKey") }]}
                                             >
                                                 <Input
                                                     prefix={
@@ -285,13 +300,13 @@ export function ChannelModelEditor({
                                                             <ModelIcon model={modelKey} />
                                                         </span>
                                                     }
-                                                    placeholder="例如：seedance-2-5"
+                                                    placeholder={translate("admin.channelModelEditor.forExampleSeedance25")}
                                                 />
                                             </Form.Item>
-                                            <Form.Item name="providerModelKey" label="上游模型 ID" tooltip="实际发送给供应商；留空时使用产品模型标识。价格档可配置独立上游 ID，命中时优先于此处。">
-                                                <Input placeholder="留空则使用产品模型标识" />
+                                            <Form.Item name="providerModelKey" label={translate("admin.channelModelEditor.upstreamModelID")} tooltip={translate("admin.channelModelEditor.theIDSentToTheProviderLeaveBlankToUse")}>
+                                                <Input placeholder={translate("admin.channelModelEditor.leaveBlankToUseTheProductModelKey")} />
                                             </Form.Item>
-                                            <Form.Item name="displayName" label="模型展示名（一级目录）" tooltip="跨所有系统渠道按此名称分组；新模型默认未分类。同名模型归入同一组，不改变调用 ID。">
+                                            <Form.Item name="displayName" label={translate("admin.channelModelEditor.modelDisplayNamePrimaryGroup")} tooltip={translate("admin.channelModelEditor.usedToGroupModelsAcrossAllSystemChannelsNewModels")}>
                                                 <AutoComplete
                                                     options={displayNameOptions}
                                                     filterOption={(_, option) => Boolean(option?.value.toLowerCase().includes(groupSearch.trim().toLowerCase()))}
@@ -300,25 +315,25 @@ export function ChannelModelEditor({
                                                     onOpenChange={(open) => {
                                                         if (open) setGroupSearch("");
                                                     }}
-                                                    placeholder="选择已有分组或输入新名称，默认为未分类"
+                                                    placeholder={translate("admin.channelModelEditor.selectAnExistingGroupOrEnterANewNameDefaults")}
                                                     allowClear
                                                 />
                                             </Form.Item>
                                             <Form.Item
                                                 name="channelLabel"
-                                                label="渠道展示名（二级目录）"
-                                                tooltip="默认跟随上游模型 ID；手动名称最多 80 字。"
+                                                label={translate("admin.channelModelEditor.channelDisplayNameSecondaryEntry")}
+                                                tooltip={translate("admin.channelModelEditor.defaultsToTheUpstreamModelIDCustomNamesMayContain")}
                                                 rules={[
                                                     {
                                                         validator: async (_, value: string | undefined) => {
-                                                            if (value?.trim() !== modelUpstream && Array.from(value?.trim() || "").length > 80) throw new Error("渠道展示名不能超过 80 字");
+                                                            if (value?.trim() !== modelUpstream && Array.from(value?.trim() || "").length > 80) throw new Error(translate("admin.channelModelEditor.theChannelDisplayNameMustNotExceed80Characters"));
                                                         },
                                                     },
                                                 ]}
                                             >
-                                                <Input maxLength={80} placeholder={modelUpstream || "默认使用上游模型 ID"} />
+                                                <Input maxLength={80} placeholder={modelUpstream || translate("admin.channelModelEditor.defaultsToTheUpstreamModelID")} />
                                             </Form.Item>
-                                            <Form.Item name="icon" label="模型 Logo">
+                                            <Form.Item name="icon" label={translate("admin.channelModelEditor.modelLogo")}>
                                                 <ModelIconPicker />
                                             </Form.Item>
                                         </div>
@@ -326,41 +341,51 @@ export function ChannelModelEditor({
                                             <Alert
                                                 type="info"
                                                 showIcon
-                                                title={`${tiersWithOwnUpstream.length} 个价格档配置了独立上游模型 ID`}
-                                                description="命中的请求会优先使用价格档的上游 ID；修改上方上游模型 ID 时，只有与旧值相同的档位会自动跟随更新，其余保持不变。"
+                                                title={translate("admin.channelModelEditor.priceTiersHaveASeparateUpstreamModelID", { v0: String(tiersWithOwnUpstream.length) })}
+                                                description={translate("admin.channelModelEditor.matchingRequestsUseThePriceTierSUpstreamIDFirst")}
                                             />
                                         ) : null}
                                         <ChannelModelTagsEditor />
-                                        <Form.Item name="description" label="模型描述" extra="在创作端二级渠道选项中常驻显示，可说明适用场景、渠道差异和注意事项。" rules={[{ max: 500, message: "模型描述不能超过 500 字" }]}>
-                                            <Input.TextArea rows={3} maxLength={500} showCount placeholder="填写此渠道模型的使用说明" />
+                                        <Form.Item
+                                            name="description"
+                                            label={translate("admin.channelModelEditor.modelDescription")}
+                                            extra={translate("admin.channelModelEditor.alwaysShownInSecondaryChannelOptionsInTheCreationInterface")}
+                                            rules={[{ max: 500, message: translate("admin.channelModelEditor.theModelDescriptionMustNotExceed500Characters") }]}
+                                        >
+                                            <Input.TextArea rows={3} maxLength={500} showCount placeholder={translate("admin.channelModelEditor.describeHowToUseThisChannelModel")} />
                                         </Form.Item>
                                     </section>
                                     <section className="admin-model-editor-section">
-                                        <SectionHeading title="能力与协议" description="先选任务类型，再选择对应的调用协议；更换后请核对参数与价格。" />
+                                        <SectionHeading title={translate("admin.channelModelEditor.capabilitiesAndProtocol")} description={translate("admin.channelModelEditor.chooseATaskTypeThenItsRequestProtocolReviewParameters")} />
                                         <div className="admin-model-editor-section-content admin-model-protocol-grid">
-                                            <Form.Item name="capability" label="模型能力" rules={[{ required: true }]}>
+                                            <Form.Item name="capability" label={translate("account.settings.modelConfig.capability")} rules={[{ required: true }]}>
                                                 <Segmented
                                                     block
                                                     options={[
-                                                        { label: "文本", value: "text" },
-                                                        { label: "图片", value: "image" },
-                                                        { label: "视频", value: "video" },
-                                                        { label: "音频", value: "audio" },
+                                                        { label: translate("account.settings.modelConfig.capabilities.text"), value: "text" },
+                                                        { label: translate("account.feedback.image"), value: "image" },
+                                                        { label: translate("account.feedback.video"), value: "video" },
+                                                        { label: translate("account.settings.modelConfig.capabilities.audio"), value: "audio" },
                                                     ]}
                                                 />
                                             </Form.Item>
-                                            <Form.Item className="admin-model-protocol-field" name="protocol" label="调用协议" rules={[{ validator: async (_, value) => validateChannelModelProtocol(form.getFieldValue("capability"), value, protocols) }]}>
+                                            <Form.Item
+                                                className="admin-model-protocol-field"
+                                                name="protocol"
+                                                label={translate("admin.channelModelEditor.requestProtocol")}
+                                                rules={[{ validator: async (_, value) => validateChannelModelProtocol(form.getFieldValue("capability"), value, protocols) }]}
+                                            >
                                                 <ModelProtocolBrowser disabled={busy} capability={modelCapability} protocols={protocols} loading={protocolLoading} error={protocolError} />
                                             </Form.Item>
                                             {protocolError && (
                                                 <Alert
                                                     type="error"
                                                     showIcon
-                                                    title="协议目录读取失败"
+                                                    title={translate("account.settings.modelConfig.protocolLoadFailed")}
                                                     description={protocolError}
                                                     action={
                                                         <Button size="small" onClick={onRetryProtocols}>
-                                                            重试
+                                                            {translate("common.retry")}
                                                         </Button>
                                                     }
                                                 />
@@ -372,15 +397,21 @@ export function ChannelModelEditor({
                         },
                         {
                             key: "capabilities",
-                            label: "能力与参数",
+                            label: translate("account.settings.modelConfig.tabCapabilities"),
                             forceRender: true,
                             children: (
                                 <div className="admin-model-editor-tab-content">
-                                    {configurationChanged && <Alert type="warning" showIcon title="能力或协议已变更" description="引用与参数已恢复为新协议默认值，旧规格条件已在切换能力时清除。价格与计费方式保留，请在保存前核对。" />}{" "}
+                                    {configurationChanged && (
+                                        <Alert type="warning" showIcon title={translate("admin.channelModelEditor.capabilitiesOrProtocolChanged")} description={translate("admin.channelModelEditor.referencesAndParametersHaveBeenResetToTheNewProtocol")} />
+                                    )}{" "}
                                     {modelCapability === "text" || modelCapability === "image" || modelCapability === "video" ? (
                                         <section className="admin-model-editor-section admin-model-editor-section-stacked admin-model-editor-references">
-                                            <SectionHeading title="引用与限制" description="按媒体类型纵向配置数量、大小、时长及通用约束。" />
-                                            <Form.Item name={["capabilityConfig", "mediaTransport"]} label="参考素材发送方式" extra="优先使用模型设置，其次渠道默认值，最后使用协议默认行为。">
+                                            <SectionHeading title={translate("admin.channelModelEditor.referencesAndLimits")} description={translate("admin.channelModelEditor.configureCountSizeDurationAndGeneralLimitsForEachMedia")} />
+                                            <Form.Item
+                                                name={["capabilityConfig", "mediaTransport"]}
+                                                label={translate("admin.channelModelEditor.referenceMediaDelivery")}
+                                                extra={translate("admin.channelModelEditor.modelSettingsTakePriorityFollowedByChannelDefaultsThenProtocol")}
+                                            >
                                                 <MediaTransportFields channel={channel.mediaTransport || {}} />
                                             </Form.Item>
                                             <div className="admin-model-editor-section-content">
@@ -402,7 +433,7 @@ export function ChannelModelEditor({
                                     ) : null}
                                     {modelCapability === "text" || modelCapability === "image" || modelCapability === "video" ? (
                                         <section className="admin-model-editor-section admin-model-editor-section-stacked admin-model-editor-parameters">
-                                            <SectionHeading title="协议参数" description="配置可发送参数、支持值与默认值；仅影响当前模型。" />
+                                            <SectionHeading title={translate("admin.channelModelEditor.protocolParameters")} description={translate("admin.channelModelEditor.configureAvailableRequestParametersSupportedValuesAndDefaultsForThis")} />
                                             <div className="admin-model-editor-section-content">
                                                 <ModelCapabilityEditor
                                                     capability={modelCapability}
@@ -420,21 +451,34 @@ export function ChannelModelEditor({
                                             </div>
                                         </section>
                                     ) : null}
-                                    {modelCapability === "audio" && <Alert type="info" title="音频模型无需额外配置引用与参数" description="调用协议和积分定价仍需在对应分组中配置。" />}
+                                    {modelCapability === "audio" && (
+                                        <Alert
+                                            type="info"
+                                            title={translate("admin.channelModelEditor.audioModelsNeedNoAdditionalReferenceOrParameterSettings")}
+                                            description={translate("admin.channelModelEditor.configureTheRequestProtocolAndCreditPricingInTheirRespective")}
+                                        />
+                                    )}
                                 </div>
                             ),
                         },
                         {
                             key: "pricing",
-                            label: "积分定价",
+                            label: translate("admin.channelModelEditor.creditPricing"),
                             forceRender: true,
                             children: (
                                 <div className="admin-model-editor-tab-content">
-                                    {configurationChanged && <Alert type="warning" showIcon title="请核对定价" description="能力或协议已变更。请重新检查规格条件、计费方式和金额；不会自动转换价格单位。" />}{" "}
+                                    {configurationChanged && (
+                                        <Alert
+                                            type="warning"
+                                            showIcon
+                                            title={translate("admin.channelModelEditor.reviewPricing")}
+                                            description={translate("admin.channelModelEditor.capabilitiesOrProtocolChangedReviewSpecificationConditionsBillingMethodsAnd")}
+                                        />
+                                    )}{" "}
                                     <section className="admin-model-editor-section">
-                                        <SectionHeading title="用户积分价格" description="默认只需填写一个统一价格；需要区分生成方式、质量或尺寸时，再添加规格价格。" />
+                                        <SectionHeading title={translate("admin.channelModelEditor.userCreditPrices")} description={translate("admin.channelModelEditor.startWithOneFlatPriceAddSpecificationPricesWhenGeneration")} />
                                         <div className="admin-model-editor-section-content">
-                                            <Form.Item name="priceCurrency" label="计价货币" extra="积分：售价即扣除的积分。USD / CNY：售价按货币填写，扣费时按用户分组的「1 USD / 1 CNY = N 积分」换算；成本价仍以积分计。">
+                                            <Form.Item name="priceCurrency" label={translate("admin.channelModelEditor.pricingCurrency")} extra={translate("admin.channelModelEditor.creditsTheSellingPriceIsTheCreditChargeUSDCNY")}>
                                                 <Segmented
                                                     options={priceCurrencyOptions}
                                                     onChange={() => {
@@ -445,16 +489,16 @@ export function ChannelModelEditor({
                                             {modelCapability === "video" ? (
                                                 <Form.Item
                                                     name="referenceVideoBilling"
-                                                    label="参考视频计费"
+                                                    label={translate("admin.channelModelEditor.referenceVideoBilling")}
                                                     valuePropName="checked"
                                                     extra={
                                                         referenceVideoBilling
-                                                            ? "已开启：挂参考视频的请求使用各价格档的「带参考视频」价格。按秒 =（生成秒数 + 参考视频秒数）× 带参考视频每秒价，参考视频时长由后端实测，测不出时拒绝提交；视频 Token 按含参考视频的用量 × 带参考视频 Token 价。不挂参考视频的请求仍用原价。"
-                                                            : "已关闭：参考视频不计费。按秒只计生成秒数，视频 Token 只按生成时长计算用量。用户侧会显示「参考视频不计费」。"
+                                                            ? translate("admin.channelModelEditor.enabledRequestsWithReferenceVideosUseEachTierSReference")
+                                                            : translate("admin.channelModelEditor.disabledReferenceVideosAreNotBilledPerSecondAndVideo")
                                                     }
                                                 >
                                                     <Switch
-                                                        aria-label="参考视频计费"
+                                                        aria-label={translate("admin.channelModelEditor.referenceVideoBilling")}
                                                         onChange={() => {
                                                             dirtyRef.current = true;
                                                         }}
@@ -478,7 +522,7 @@ export function ChannelModelEditor({
                                             >
                                                 {(fields, { add, remove }, { errors }) => (
                                                     <div className="admin-price-tier-list-shell">
-                                                        <div className="admin-price-tier-list" aria-label="积分价格规则列表">
+                                                        <div className="admin-price-tier-list" aria-label={translate("admin.channelModelEditor.creditPricingRules")}>
                                                             {fields.map((field, index) => (
                                                                 <PriceTierFields
                                                                     key={field.key}
@@ -498,7 +542,7 @@ export function ChannelModelEditor({
                                                         </div>
                                                         <div className="admin-price-tier-list-footer">
                                                             <Button className="admin-model-editor-add-tier" type="dashed" block icon={<Plus className="size-4" />} onClick={() => add(defaultPriceTier(hasDefaultPriceTier ? "advanced" : "default"))}>
-                                                                {hasDefaultPriceTier ? "新增规格价格" : "新增统一默认价格"}
+                                                                {hasDefaultPriceTier ? translate("admin.channelModelEditor.addSpecificationPrice") : translate("admin.channelModelEditor.addDefaultFlatPrice")}
                                                             </Button>
                                                             <Form.ErrorList errors={errors} />
                                                         </div>

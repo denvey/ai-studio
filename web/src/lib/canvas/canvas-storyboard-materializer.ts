@@ -5,6 +5,7 @@ import { applyCanvasConnectionPromptSync, buildOrderedCanvasResourceReferences, 
 import { nodeGenerationPrompt } from "@/lib/canvas/generation-contract";
 import { writeCanvasNodePrompt } from "@/lib/canvas/canvas-node-prompt";
 import { CanvasNodeType, type CanvasConnection, type CanvasNodeData, type StoryboardAssetBinding, type StoryboardRow } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 export function storyboardRowReferenceNodeIds(scriptNode: CanvasNodeData, row: StoryboardRow, nodes: CanvasNodeData[], connections: CanvasConnection[], includeFirstFrame: boolean, targetNodeId?: string) {
     const characterAssetIds = new Set((row.characters || []).map((character) => character.characterAssetId).filter((assetId): assetId is string => Boolean(assetId)));
@@ -68,11 +69,11 @@ export function bindingForConnectedNode(node: CanvasNodeData): StoryboardAssetBi
 export function replaceStoryboardRowAssets(nodes: CanvasNodeData[], connections: CanvasConnection[], scriptNodeId: string, rowId: string, bindings: StoryboardAssetBinding[]) {
     const script = nodes.find((node) => node.id === scriptNodeId && node.type === CanvasNodeType.Script);
     const row = script?.metadata?.storyboard?.rows.find((item) => item.id === rowId);
-    if (!script || !row) throw new Error("分镜或镜头已不存在，请重新选择");
-    if (script.metadata?.locked) throw new Error("请先解锁分镜节点");
+    if (!script || !row) throw new Error(translate("shared.canvas.canvasStoryboardMaterializer.theStoryboardOrShotNoLongerExistsSelectItAgain"));
+    if (script.metadata?.locked) throw new Error(translate("shared.canvas.canvasStoryboardMaterializer.unlockTheStoryboardNodeFirst"));
     const normalized = normalizeStoryboardAssetBindings(bindings, nodes);
     if (normalized.length !== bindings.length || normalized.some((binding) => binding.nodeId === scriptNodeId || !isStoryboardPreviewAsset(nodes.find((node) => node.id === binding.nodeId)!))) {
-        throw new Error("所选资产已失效，请重新选择");
+        throw new Error(translate("shared.canvas.canvasStoryboardMaterializer.theSelectedAssetIsNoLongerValidSelectItAgain"));
     }
     const selectedIds = new Set(normalized.map((binding) => binding.nodeId));
     const selectedCharacterIds = new Set(

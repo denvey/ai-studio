@@ -1,5 +1,6 @@
 import { Form, InputNumber, Switch, type FormInstance } from "antd";
 import type { ChannelModelFormValues } from "./channel-model-editor-form";
+import { translate } from "@/i18n";
 
 export function CreditCostFields({
     index,
@@ -20,32 +21,38 @@ export function CreditCostFields({
     const fields =
         billingMode === "token"
             ? isVideo
-                ? [["costOutputTokenPrice", "积分 / 百万视频 Token"], ...(referenceVideoCost ? [["costReferenceVideoOutputTokenPrice", "带参考视频 积分 / 百万视频 Token"]] : [])]
-                : [
-                      ["costInputTokenPrice", "输入 / 百万 Token"],
-                      ["costOutputTokenPrice", "输出 / 百万 Token"],
-                      ["costCachedTokenPrice", "缓存命中 / 百万 Token"],
-                      ["costCacheWriteTokenPrice", "缓存写入 / 百万 Token"],
+                ? [
+                      ["costOutputTokenPrice", translate("admin.creditCostFields.creditsMillionVideoTokens")],
+                      ...(referenceVideoCost ? [["costReferenceVideoOutputTokenPrice", translate("admin.creditCostFields.withReferenceVideoCreditsMillionVideoTokens")]] : []),
                   ]
-            : [["costUnitPrice", billingMode === "per_second" ? "积分 / 秒" : "积分 / 次"], ...(referenceVideoCost ? [["costReferenceVideoUnitPrice", "带参考视频 积分 / 秒"]] : [])];
+                : [
+                      ["costInputTokenPrice", translate("admin.creditCostFields.inputMillionTokens")],
+                      ["costOutputTokenPrice", translate("admin.creditCostFields.outputMillionTokens")],
+                      ["costCachedTokenPrice", translate("admin.creditCostFields.cacheReadMillionTokens")],
+                      ["costCacheWriteTokenPrice", translate("admin.creditCostFields.cacheWriteMillionTokens")],
+                  ]
+            : [
+                  ["costUnitPrice", billingMode === "per_second" ? translate("admin.creditCostFields.creditsSecond") : translate("admin.creditCostFields.creditsRequest")],
+                  ...(referenceVideoCost ? [["costReferenceVideoUnitPrice", translate("admin.creditCostFields.withReferenceVideoCreditsSecond")]] : []),
+              ];
     return (
-        <section className="admin-price-tier-cost-panel" aria-label="积分成本设置">
+        <section className="admin-price-tier-cost-panel" aria-label={translate("admin.creditCostFields.creditCostSettings")}>
             <header className="admin-price-tier-cost-header">
                 <div className="admin-price-tier-cost-heading">
                     <div className="admin-price-tier-cost-title">
-                        <span>积分成本</span>
-                        <span className="admin-price-tier-cost-badge">仅管理员可见</span>
+                        <span>{translate("admin.creditCostFields.creditCost")}</span>
+                        <span className="admin-price-tier-cost-badge">{translate("admin.creditCostFields.visibleToAdministratorsOnly")}</span>
                     </div>
-                    <p>{referenceVideoCost ? "按当前计费方式填写成本；挂参考视频的请求使用带参考视频成本价。不影响用户售价。" : "按当前计费方式填写成本，不影响用户售价。"}</p>
+                    <p>{referenceVideoCost ? translate("admin.creditCostFields.enterCostsUsingTheCurrentBillingMethodRequestsWithReference") : translate("admin.creditCostFields.enterCostsUsingTheCurrentBillingMethodUserSellingPrices")}</p>
                 </div>
                 <Form.Item className="admin-price-tier-cost-switch mb-0" name={[index, "costConfigured"]} valuePropName="checked">
-                    <Switch aria-label="配置积分成本价" />
+                    <Switch aria-label={translate("admin.creditCostFields.configureCreditCostPrice")} />
                 </Form.Item>
             </header>
             {configured ? (
                 <div className={billingMode === "token" && !isVideo ? "admin-price-tier-cost-grid admin-price-tier-cost-token-grid" : "admin-price-tier-cost-grid"}>
                     {fields.map(([field, label]) => (
-                        <Form.Item key={field} className="mb-0" name={[index, field]} label={label} rules={[{ required: true, message: "请输入积分成本价" }]}>
+                        <Form.Item key={field} className="mb-0" name={[index, field]} label={label} rules={[{ required: true, message: translate("admin.creditCostFields.enterTheCreditCostPrice") }]}>
                             <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                         </Form.Item>
                     ))}

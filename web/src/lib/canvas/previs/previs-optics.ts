@@ -1,4 +1,5 @@
 import type { PrevisAspectRatio, PrevisCamera, PrevisShot } from "@/types/previs";
+import { translate } from "@/i18n";
 
 /**
  * 预演台镜头光学的唯一真源。
@@ -16,14 +17,14 @@ export const PREVIS_AUTO_ASPECT_FALLBACK = 16 / 9;
 
 /** 画幅选项按从宽到窄排列；auto 没有固定比例，由调用方传入视口宽高比。 */
 export const PREVIS_ASPECT_RATIOS: Array<{ value: PrevisAspectRatio; label: string; hint: string; ratio?: number }> = [
-    { value: "auto", label: "自适应", hint: "跟随视口" },
-    { value: "2.39:1", label: "2.39:1", hint: "宽银幕", ratio: 2.39 },
-    { value: "21:9", label: "21:9", hint: "超宽屏", ratio: 21 / 9 },
-    { value: "16:9", label: "16:9", hint: "横屏", ratio: 16 / 9 },
-    { value: "4:3", label: "4:3", hint: "经典", ratio: 4 / 3 },
-    { value: "1:1", label: "1:1", hint: "方形", ratio: 1 },
-    { value: "3:4", label: "3:4", hint: "竖版", ratio: 3 / 4 },
-    { value: "9:16", label: "9:16", hint: "竖屏", ratio: 9 / 16 },
+    { value: "auto", label: translate("shared.videoSettingsPanel.adaptive"), hint: translate("shared.canvas.previs.previsOptics.followViewport") },
+    { value: "2.39:1", label: "2.39:1", hint: translate("create.ratio.widescreen"), ratio: 2.39 },
+    { value: "21:9", label: "21:9", hint: translate("shared.canvas.previs.previsOptics.ultrawide"), ratio: 21 / 9 },
+    { value: "16:9", label: "16:9", hint: translate("create.ratio.landscape"), ratio: 16 / 9 },
+    { value: "4:3", label: "4:3", hint: translate("shared.canvas.previs.previsOptics.classic"), ratio: 4 / 3 },
+    { value: "1:1", label: "1:1", hint: translate("create.ratio.square"), ratio: 1 },
+    { value: "3:4", label: "3:4", hint: translate("shared.canvas.previs.previsOptics.portrait"), ratio: 3 / 4 },
+    { value: "9:16", label: "9:16", hint: translate("create.ratio.portrait"), ratio: 9 / 16 },
 ];
 
 export function previsAspectOption(value?: PrevisAspectRatio) {
@@ -76,7 +77,7 @@ export function resolvePrevisSafeFrame(container: { width: number; height: numbe
  * 输出分辨率：长边固定，短边按画幅换算并取偶数（H.264 yuv420p 要求宽高为偶数）。
  */
 export function resolvePrevisOutputSize(aspect: number, longEdge = 1280) {
-    if (!Number.isFinite(longEdge) || longEdge < 2 || longEdge > 8192) throw new Error("输出长边必须在 2–8192 像素之间");
+    if (!Number.isFinite(longEdge) || longEdge < 2 || longEdge > 8192) throw new Error(translate("shared.canvas.previs.previsOptics.theOutputSLongEdgeMustBeBetween2And"));
     const safeAspect = Number.isFinite(aspect) && aspect > 0 ? aspect : 9 / 16;
     const even = (value: number) => Math.max(2, Math.round(value / 2) * 2);
     if (safeAspect >= 1) return { width: even(longEdge), height: even(longEdge / safeAspect) };
@@ -96,7 +97,7 @@ export function resolvePrevisDepthRange(input: { cameraPositions: Array<[number,
         }
     }
     const maxFar = input.maxFar ?? 80;
-    if (!Number.isFinite(maxFar) || maxFar < 2) throw new Error("深度范围上限必须至少为 2 米");
+    if (!Number.isFinite(maxFar) || maxFar < 2) throw new Error(translate("shared.canvas.previs.previsOptics.theMaximumDepthRangeMustBeAtLeast2Meters"));
     if (!distances.length) return { near: 0, far: Math.min(30, maxFar) };
     const nearest = Math.min(...distances);
     const farthest = Math.max(...distances);

@@ -5,6 +5,7 @@
 import { type AdminOSSSetting } from "@/services/api/auth";
 import { DEFAULT_OSS_PATH_PREFIX, normalizeOSSConnectionTestInput, normalizeVolcengineTOSLocation, volcengineTOSLocationError } from "@/lib/oss-settings";
 import { type S3Preset } from "@/lib/oss-settings";
+import { currentLocale, translate } from "@/i18n";
 
 export type StorageMode = "local" | AdminOSSSetting["provider"];
 
@@ -144,37 +145,37 @@ export function hasStorageChanges(values: Partial<OSSFormValues>, setting: Admin
 export function validateStorageDraft(values: OSSFormValues, setting: AdminOSSSetting) {
     const draft = normalizeStoragePayload(values, setting);
     if (!draft.enabled) return validatePublicBaseURL(draft.publicBaseUrl);
-    if (!draft.bucket) return "请填写对象存储 Bucket";
+    if (!draft.bucket) return translate("adminPages.settings.storageSettingsModel.pleaseEnterAnObjectStorageBucket");
     if (!draft.endpoint)
         return draft.provider === "tencent"
-            ? "请填写腾讯云 COS Region 或 Endpoint"
+            ? translate("adminPages.settings.storageSettingsModel.pleaseEnterATencentCloudCOSRegionOrEndpoint")
             : draft.provider === "qiniu"
-              ? "请填写七牛云 Kodo 上传 Endpoint"
+              ? translate("adminPages.settings.storageSettingsModel.pleaseEnterAQiniuKodoUploadEndpoint")
               : draft.provider === "volcengine"
-                ? "请填写火山引擎 TOS Region 或 Endpoint"
+                ? translate("adminPages.settings.storageSettingsModel.pleaseEnterAVolcengineTOSRegionOrEndpoint")
                 : draft.provider === "s3"
-                  ? "请填写 S3 Endpoint 服务根 URL"
-                  : "请填写阿里云 OSS Endpoint";
-    if (draft.provider === "s3" && !draft.region) return "请填写 S3 Region";
-    if (draft.provider === "volcengine" && !draft.region) return "请填写火山引擎 TOS Region";
+                  ? translate("adminPages.settings.storageSettingsModel.pleaseEnterTheS3EndpointServiceRootURL")
+                  : translate("adminPages.settings.storageSettingsModel.pleaseEnterAnAlibabaCloudOSSEndpoint");
+    if (draft.provider === "s3" && !draft.region) return translate("adminPages.settings.storageSettingsModel.pleaseEnterAnS3Region");
+    if (draft.provider === "volcengine" && !draft.region) return translate("adminPages.settings.storageSettingsModel.pleaseEnterAVolcengineTOSRegion");
     if (draft.provider === "volcengine" && volcengineTOSLocationError(draft.region, draft.endpoint)) return volcengineTOSLocationError(draft.region, draft.endpoint);
-    if (!isHTTPURL(draft.endpoint)) return "Endpoint 必须是完整的 http/https 地址";
-    if (draft.cdnBaseUrl && !isValidCDNBaseURL(draft.cdnBaseUrl)) return "CDN 或绑定域名只能填写 http/https 根地址，不能包含认证、路径、查询参数或片段";
-    if (!draft.accessKeyId) return `请填写 ${accessKeyIdLabel(draft.provider)}`;
-    if (!draft.accessKeySecret && !(setting.provider === draft.provider && setting.hasAccessKeySecret)) return `请填写 ${accessKeySecretLabel(draft.provider)}`;
+    if (!isHTTPURL(draft.endpoint)) return translate("adminPages.settings.storageSettingsModel.endpointMustBeACompleteHttpHttpsURL");
+    if (draft.cdnBaseUrl && !isValidCDNBaseURL(draft.cdnBaseUrl)) return translate("adminPages.settings.storageSettingsModel.cDNOrBoundDomainMustBeAnHttpHttpsRoot");
+    if (!draft.accessKeyId) return translate("adminPages.settings.storageSettingsModel.pleaseEnter", { v0: String(accessKeyIdLabel(draft.provider)) });
+    if (!draft.accessKeySecret && !(setting.provider === draft.provider && setting.hasAccessKeySecret)) return translate("adminPages.settings.storageSettingsModel.pleaseEnter", { v0: String(accessKeySecretLabel(draft.provider)) });
     return "";
 }
 
 export function validatePublicBaseURL(value: string) {
-    if (!value) return "服务器本地存储需要填写服务器访问地址";
+    if (!value) return translate("adminPages.settings.storageSettingsModel.localServerStorageRequiresAServerAccessURL");
     try {
         const parsed = new URL(value);
-        if (!parsed.hostname || !["http:", "https:"].includes(parsed.protocol)) return "服务器访问地址必须是完整的 http/https 地址";
-        if (parsed.search || parsed.hash) return "服务器访问地址不能包含查询参数或片段";
-        if (parsed.pathname.replace(/\/+$/, "").endsWith("/api")) return "服务器访问地址请填写站点根地址，不要包含 /api";
+        if (!parsed.hostname || !["http:", "https:"].includes(parsed.protocol)) return translate("adminPages.settings.storageSettingsModel.serverAccessURLMustBeACompleteHttpHttpsURL");
+        if (parsed.search || parsed.hash) return translate("adminPages.settings.storageSettingsModel.serverAccessURLCannotContainQueryParametersOrFragments");
+        if (parsed.pathname.replace(/\/+$/, "").endsWith("/api")) return translate("adminPages.settings.storageSettingsModel.enterTheSiteRootURLForServerAccessWithoutApi");
         return "";
     } catch {
-        return "服务器访问地址必须是完整的 http/https 地址";
+        return translate("adminPages.settings.storageSettingsModel.serverAccessURLMustBeACompleteHttpHttpsURL");
     }
 }
 
@@ -216,15 +217,25 @@ export function storageConfigurationReady(mode: StorageMode, values: StoragePayl
 }
 
 export function storageProviderLabel(provider?: StorageMode) {
-    return provider === "s3" ? "S3 兼容存储" : provider === "tencent" ? "腾讯云 COS" : provider === "qiniu" ? "七牛云 Kodo" : provider === "volcengine" ? "火山引擎 TOS" : provider === "aliyun" ? "阿里云 OSS" : "服务器本地";
+    return provider === "s3"
+        ? translate("account.layout.oss.providers.s3")
+        : provider === "tencent"
+          ? translate("account.layout.oss.providers.tencent")
+          : provider === "qiniu"
+            ? translate("account.layout.oss.providers.qiniu")
+            : provider === "volcengine"
+              ? translate("account.layout.oss.providers.volcengine")
+              : provider === "aliyun"
+                ? translate("account.layout.oss.providers.aliyun")
+                : translate("adminPages.settings.storageSettingsModel.localServer");
 }
 
 export function providerGuidance(mode: Exclude<StorageMode, "local">) {
-    if (mode === "s3") return "使用预设快速填写 Region 与 Endpoint，也可以选择自定义；自托管 S3 仍受服务端私网主机白名单约束。";
-    if (mode === "tencent") return "腾讯云可只填写 Region，由服务端生成标准 COS Endpoint；也可填写完整 Endpoint 覆盖。";
-    if (mode === "qiniu") return "七牛上传必须配置上传 Endpoint；绑定域名可选，留空时资源由当前后端使用 AK/SK 代理读取。";
-    if (mode === "volcengine") return "火山引擎可只填写 Region，由服务端生成 S3 兼容 Endpoint；粘贴控制台的原生域名或 Bucket 域名也会换算为同地域 tos-s3 地址。浏览器直连源站时需在 Bucket 配置跨域访问。";
-    return "阿里云需要完整 OSS Endpoint、Bucket 和访问密钥；CDN 域名可选。";
+    if (mode === "s3") return translate("adminPages.settings.storageSettingsModel.useAPresetToFillRegionAndEndpointQuicklyOr");
+    if (mode === "tencent") return translate("adminPages.settings.storageSettingsModel.forTencentCloudEnterRegionToLetTheServerGenerate");
+    if (mode === "qiniu") return translate("adminPages.settings.storageSettingsModel.qiniuRequiresAnUploadEndpointABoundDomainIsOptional");
+    if (mode === "volcengine") return translate("adminPages.settings.storageSettingsModel.forVolcengineEnterRegionToGenerateAnS3CompatibleEndpoint");
+    return translate("adminPages.settings.storageSettingsModel.alibabaCloudRequiresAFullOSSEndpointBucketAndCredentials");
 }
 
 export function accessKeyIdLabel(mode: Exclude<StorageMode, "local"> | AdminOSSSetting["provider"]) {
@@ -281,5 +292,5 @@ export function hasValidSettingTime(value?: string) {
 
 export function formatSettingTime(value: string | undefined, fallback: string) {
     if (!hasValidSettingTime(value)) return fallback;
-    return `更新于 ${new Date(value as string).toLocaleString("zh-CN", { hour12: false })}`;
+    return translate("adminPages.settings.libtvSettingsPage.updated", { v0: String(new Date(value as string).toLocaleString(currentLocale(), { hour12: false })) });
 }

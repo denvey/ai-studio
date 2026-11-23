@@ -1,6 +1,8 @@
 import { decodeChannelModel, encodeChannelModel, type AiConfig } from "@/stores/use-config-store";
 import type { CanvasNodeData, CanvasNodeMetadata } from "@/types/canvas";
 import { GENERATION_CONTRACT_VERSION, GENERATION_LIMITS, GENERATION_OPTION_FIELDS, type GenerationSpec, type ModelSelection, type Options, type ReferenceBinding } from "./generation-contract.generated";
+import { translate } from "@/i18n";
+
 
 export type { GenerationSpec, ModelSelection, ReferenceBinding } from "./generation-contract.generated";
 
@@ -9,17 +11,17 @@ export function canvasGenerationMode(mode: string): GenerationSpec["mode"] | und
 }
 
 function fieldError(path: string, message: string): never {
-    throw new Error(`生成参数 ${path}：${message}`);
+    throw new Error(translate("shared.canvas.generationContract.generationParameter", { v0: String(path), v1: String(message) }));
 }
 
 function object(value: unknown, path: string): Record<string, unknown> {
-    if (!value || typeof value !== "object" || Array.isArray(value)) return fieldError(path, "必须是对象");
+    if (!value || typeof value !== "object" || Array.isArray(value)) return fieldError(path, translate("shared.canvas.generationContract.mustBeAnObject"));
     return value as Record<string, unknown>;
 }
 
 function allowKeys(value: Record<string, unknown>, keys: string[], path: string) {
     const unexpected = Object.keys(value).find((key) => !keys.includes(key));
-    if (unexpected) fieldError(path, "包含不支持的字段，请更新生成配置");
+    if (unexpected) fieldError(path, translate("shared.canvas.generationContract.containsUnsupportedFieldsUpdateTheGenerationConfiguration"));
 }
 
 function optionValue(value: unknown, kind: string, path: string) {
@@ -30,29 +32,29 @@ function optionValue(value: unknown, kind: string, path: string) {
         const number = typeof value === "number" ? value : typeof value === "string" && /^-?\d+$/.test(value) ? Number(value) : NaN;
         if (Number.isSafeInteger(number)) return number;
     } else if (typeof value === "string") return value;
-    return fieldError(path, `必须是${kind === "boolean" ? "布尔值" : kind === "number" ? "整数" : "文本"}`);
+    return fieldError(path, translate("shared.canvas.generationContract.mustBe", { v0: String(kind === "boolean" ? translate("shared.canvas.generationContract.aBoolean") : kind === "number" ? translate("shared.canvas.generationContract.anInteger") : translate("account.settings.modelConfig.capabilities.text")) }));
 }
 
 export function validateGenerationSpec(value: unknown): GenerationSpec {
     const raw = object(value, "generationSpec");
     allowKeys(raw, ["version", "mode", "prompt", "modelSelection", "options", "referenceBindings", "textInputMode"], "generationSpec");
-    if (raw.version !== GENERATION_CONTRACT_VERSION) fieldError("version", "合同版本不受支持");
+    if (raw.version !== GENERATION_CONTRACT_VERSION) fieldError("version", translate("shared.canvas.generationContract.unsupportedContractVersion"));
     const mode = typeof raw.mode === "string" ? canvasGenerationMode(raw.mode) : undefined;
-    if (!mode) fieldError("mode", "不支持的生成模式");
-    if (typeof raw.prompt !== "string" || Array.from(raw.prompt).length > GENERATION_LIMITS.prompt) fieldError("prompt", "提示词无效或超出长度限制");
-    if (raw.textInputMode !== "prompt-only" && raw.textInputMode !== "append-sources") fieldError("textInputMode", "未知文本输入模式");
+    if (!mode) fieldError("mode", translate("shared.canvas.generationContract.unsupportedGenerationMode"));
+    if (typeof raw.prompt !== "string" || Array.from(raw.prompt).length > GENERATION_LIMITS.prompt) fieldError("prompt", translate("shared.canvas.generationContract.thePromptIsInvalidOrExceedsTheLengthLimit"));
+    if (raw.textInputMode !== "prompt-only" && raw.textInputMode !== "append-sources") fieldError("textInputMode", translate("shared.canvas.generationContract.unknownTextInputMode"));
     let modelSelection: ModelSelection | undefined;
     if (raw.modelSelection !== undefined) {
         const selection = object(raw.modelSelection, "modelSelection");
         if (selection.kind === "logical") {
             allowKeys(selection, ["kind", "logicalModelId"], "modelSelection");
-            if (typeof selection.logicalModelId !== "string" || !selection.logicalModelId.trim()) fieldError("modelSelection.logicalModelId", "不能为空");
+            if (typeof selection.logicalModelId !== "string" || !selection.logicalModelId.trim()) fieldError("modelSelection.logicalModelId", translate("shared.canvas.generationContract.cannotBeEmpty"));
             modelSelection = { kind: "logical", logicalModelId: selection.logicalModelId };
         } else if (selection.kind === "channel") {
             allowKeys(selection, ["kind", "channelId", "modelKey"], "modelSelection");
-            if (typeof selection.channelId !== "string" || !selection.channelId.trim() || typeof selection.modelKey !== "string" || !selection.modelKey.trim()) fieldError("modelSelection", "渠道与模型标识不能为空");
+            if (typeof selection.channelId !== "string" || !selection.channelId.trim() || typeof selection.modelKey !== "string" || !selection.modelKey.trim()) fieldError("modelSelection", translate("shared.canvas.generationContract.channelAndModelIDsCannotBeEmpty"));
             modelSelection = { kind: "channel", channelId: selection.channelId, modelKey: selection.modelKey };
-        } else fieldError("modelSelection.kind", "未知模型选择类型");
+        } else fieldError("modelSelection.kind", translate("shared.canvas.generationContract.unknownModelSelectionType"));
     }
     const rawOptions = object(raw.options, "options");
     allowKeys(rawOptions, GENERATION_OPTION_FIELDS.map((field) => field.name), "options");
@@ -60,28 +62,28 @@ export function validateGenerationSpec(value: unknown): GenerationSpec {
     for (const field of GENERATION_OPTION_FIELDS) {
         const current = rawOptions[field.name];
         if (current === undefined) continue;
-        if (!(field.modes as readonly string[]).includes(mode)) fieldError(`options.${field.name}`, "不适用于当前模式");
-        if (typeof current !== field.kind) fieldError(`options.${field.name}`, "合同类型不正确");
+        if (!(field.modes as readonly string[]).includes(mode)) fieldError(`options.${field.name}`, translate("shared.canvas.generationContract.doesNotApplyToTheCurrentMode"));
+        if (typeof current !== field.kind) fieldError(`options.${field.name}`, translate("shared.canvas.generationContract.incorrectContractType"));
         options[field.name] = optionValue(current, field.kind, `options.${field.name}`);
     }
-    if (typeof options.durationSeconds === "number" && options.durationSeconds < 0) fieldError("options.durationSeconds", "不能为负数");
-    if (typeof options.count === "number" && options.count < 1) fieldError("options.count", "必须为正整数");
-    if (!Array.isArray(raw.referenceBindings)) fieldError("referenceBindings", "必须是数组");
+    if (typeof options.durationSeconds === "number" && options.durationSeconds < 0) fieldError("options.durationSeconds", translate("shared.canvas.generationContract.cannotBeNegative"));
+    if (typeof options.count === "number" && options.count < 1) fieldError("options.count", translate("shared.canvas.generationContract.mustBeAPositiveInteger"));
+    if (!Array.isArray(raw.referenceBindings)) fieldError("referenceBindings", translate("shared.canvas.generationContract.mustBeAnArray"));
     const ids = new Set<string>();
     const orders = new Set<number>();
     const referenceBindings = raw.referenceBindings.map((value, index): ReferenceBinding => {
         const ref = object(value, `referenceBindings[${index}]`);
         allowKeys(ref, ["id", "nodeId", "resourceId", "transientId", "mediaType", "role", "order", "resolution"], "referenceBindings");
-        if (typeof ref.id !== "string" || !ref.id || ids.has(ref.id)) fieldError("referenceBindings.id", "必须有效且唯一");
-        if (typeof ref.order !== "number" || !Number.isSafeInteger(ref.order) || ref.order < 0 || orders.has(ref.order)) fieldError("referenceBindings.order", "必须有效且唯一");
-        for (const key of ["nodeId", "resourceId", "transientId"]) if (ref[key] !== undefined && (typeof ref[key] !== "string" || !ref[key])) fieldError(`referenceBindings.${key}`, "必须是有效标识");
-        if (!ref.nodeId && !ref.resourceId && !ref.transientId) fieldError("referenceBindings", "缺少引用来源");
-        if (ref.transientId && (ref.nodeId || ref.resourceId)) fieldError("referenceBindings", "临时引用不能混用其他来源");
-        if (!["image", "video", "audio", "text"].includes(String(ref.mediaType))) fieldError("referenceBindings.mediaType", "未知参考类型");
-        if (!["reference", "source-text", "first-frame", "last-frame", "mask"].includes(String(ref.role))) fieldError("referenceBindings.role", "未知参考角色");
-        if (ref.role === "source-text" && ref.mediaType !== "text") fieldError("referenceBindings.role", "文本来源必须引用文本");
-        if (["first-frame", "last-frame", "mask"].includes(String(ref.role)) && ref.mediaType !== "image") fieldError("referenceBindings.role", "帧和遮罩必须引用图片");
-        if (ref.resolution !== "latest" && ref.resolution !== "snapshot") fieldError("referenceBindings.resolution", "未知解析策略");
+        if (typeof ref.id !== "string" || !ref.id || ids.has(ref.id)) fieldError("referenceBindings.id", translate("shared.canvas.generationContract.mustBeValidAndUnique"));
+        if (typeof ref.order !== "number" || !Number.isSafeInteger(ref.order) || ref.order < 0 || orders.has(ref.order)) fieldError("referenceBindings.order", translate("shared.canvas.generationContract.mustBeValidAndUnique"));
+        for (const key of ["nodeId", "resourceId", "transientId"]) if (ref[key] !== undefined && (typeof ref[key] !== "string" || !ref[key])) fieldError(`referenceBindings.${key}`, translate("shared.canvas.generationContract.mustBeAValidID"));
+        if (!ref.nodeId && !ref.resourceId && !ref.transientId) fieldError("referenceBindings", translate("shared.canvas.generationContract.missingReferenceSource"));
+        if (ref.transientId && (ref.nodeId || ref.resourceId)) fieldError("referenceBindings", translate("shared.canvas.generationContract.temporaryReferencesCannotBeCombinedWithOtherSources"));
+        if (!["image", "video", "audio", "text"].includes(String(ref.mediaType))) fieldError("referenceBindings.mediaType", translate("shared.canvas.generationContract.unknownReferenceType"));
+        if (!["reference", "source-text", "first-frame", "last-frame", "mask"].includes(String(ref.role))) fieldError("referenceBindings.role", translate("shared.canvas.generationContract.unknownReferenceRole"));
+        if (ref.role === "source-text" && ref.mediaType !== "text") fieldError("referenceBindings.role", translate("shared.canvas.generationContract.textSourcesMustReferenceText"));
+        if (["first-frame", "last-frame", "mask"].includes(String(ref.role)) && ref.mediaType !== "image") fieldError("referenceBindings.role", translate("shared.canvas.generationContract.framesAndMasksMustReferenceImages"));
+        if (ref.resolution !== "latest" && ref.resolution !== "snapshot") fieldError("referenceBindings.resolution", translate("shared.canvas.generationContract.unknownResolutionStrategy"));
         ids.add(ref.id); orders.add(ref.order);
         return ref as unknown as ReferenceBinding;
     });

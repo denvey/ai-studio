@@ -12,6 +12,7 @@ import type { CanvasLibrarySummary } from "@/services/api/user-data";
 import { loadCanvasProjectForEditing, saveRemoteUserDataNow } from "@/services/user-data-sync";
 import { useCanvasUiStore } from "@/stores/canvas/use-canvas-ui-store";
 import { cn } from "@/lib/utils";
+import { translate } from "@/i18n";
 
 type CanvasFolderCardProps = {
     project: CanvasLibrarySummary;
@@ -78,7 +79,7 @@ export function CanvasFolderCard({ project, projectName, onClick, onPrefetch, op
                         <span>{project.nodeCount}</span>
                         <span className="sr-only">{t("canvasB.folderCard.nodesSuffix")}</span>
                     </span>
-                    {opening ? <div className="canvas-collection-opening"><LoaderCircle className="size-5 animate-spin" aria-hidden="true" /><span>正在打开</span></div> : null}
+                    {opening ? <div className="canvas-collection-opening"><LoaderCircle className="size-5 animate-spin" aria-hidden="true" /><span>{translate("canvasTools.canvasFolderCard.opening")}</span></div> : null}
                 </div>
                 <div className="canvas-collection-body">
                     <div className="canvas-collection-heading-row">

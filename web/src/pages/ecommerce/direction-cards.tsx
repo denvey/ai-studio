@@ -4,6 +4,7 @@ import { NavCreateIcon, RefreshIcon, StyleLibraryIcon } from "@/components/ui/ec
 import type { EcommerceCreativeDirection, EcommerceStyleRewrite } from "@/services/api/ecommerce";
 import "./style-picker.css";
 
+import { translate } from "@/i18n";
 type Swatch = { label: string; color?: string };
 
 /** Palette entries arrive as "中文色名 #HEX"; older directions only have names. */
@@ -38,10 +39,10 @@ function directionSpecs(direction: EcommerceCreativeDirection) {
     const visual = direction.visual;
     if (!visual) return [];
     return [
-        ["布景", visual.scene],
-        ["布光", visual.lighting],
-        ["镜头", visual.camera],
-        ["字体", visual.typography],
+        [translate("ecommerce.directionCards.setting"), visual.scene],
+        [translate("ecommerce.directionCards.lighting"), visual.lighting],
+        [translate("ecommerce.directionCards.camera"), visual.camera],
+        [translate("ecommerce.directionCards.fonts"), visual.typography],
     ]
         .filter((entry): entry is [string, string] => Boolean(entry[1]?.trim()))
         .slice(0, 3);
@@ -51,16 +52,28 @@ function directionSpecs(direction: EcommerceCreativeDirection) {
 export function DirectionEditor({ index, value, className, onChange, onCancel, onSave }: { index: number; value: EcommerceStyleRewrite; className: string; onChange: (value: EcommerceStyleRewrite) => void; onCancel: () => void; onSave: () => void }) {
     return (
         <div className={className}>
-            <input aria-label={`第 ${index + 1} 个风格名称`} value={value.name} maxLength={40} placeholder="风格名称，例如：电音派对" onChange={(event) => onChange({ ...value, name: event.target.value })} />
-            <textarea aria-label={`第 ${index + 1} 个风格描述`} value={value.description} maxLength={500} placeholder="描述布景、配色、光线与字体，小夜会按它重做整套视觉" onChange={(event) => onChange({ ...value, description: event.target.value })} />
+            <input
+                aria-label={translate("ecommerce.directionCards.styleName", { v0: String(index + 1) })}
+                value={value.name}
+                maxLength={40}
+                placeholder={translate("ecommerce.directionCards.styleNameEGElectronicParty")}
+                onChange={(event) => onChange({ ...value, name: event.target.value })}
+            />
+            <textarea
+                aria-label={translate("ecommerce.directionCards.styleDescription", { v0: String(index + 1) })}
+                value={value.description}
+                maxLength={500}
+                placeholder={translate("ecommerce.directionCards.describeTheSettingColorsLightingAndTypographyXiaoyeWillRedesign")}
+                onChange={(event) => onChange({ ...value, description: event.target.value })}
+            />
             <div className="commerce-direction-edit-actions">
                 <button type="button" onClick={onCancel}>
                     <X size={14} />
-                    取消
+                    {translate("common.cancel")}
                 </button>
                 <button type="button" disabled={!value.name.trim() && !value.description.trim()} onClick={onSave}>
                     <Check size={14} />
-                    保存
+                    {translate("common.save")}
                 </button>
             </div>
         </div>
@@ -147,7 +160,10 @@ export function CommerceDirectionCards({
         setEditing(undefined);
     };
     return (
-        <section className={`flylep-directions-stage commerce-direction-message${followup ? " is-followup" : ""}`} aria-label={followup ? "为你推荐" : "为你的商品推荐四个设计方向"}>
+        <section
+            className={`flylep-directions-stage commerce-direction-message${followup ? " is-followup" : ""}`}
+            aria-label={followup ? translate("ecommerce.directionCards.recommendedForYou") : translate("ecommerce.directionCards.fourDesignDirectionsForYourProduct")}
+        >
             <header className="commerce-direction-header">
                 <span className="commerce-direction-symbol">
                     <Sparkles size={18} aria-hidden="true" />
@@ -156,28 +172,35 @@ export function CommerceDirectionCards({
                     {followup ? (
                         <>
                             <NavCreateIcon size={16} />
-                            为你推荐
+                            {translate("ecommerce.directionCards.recommendedForYou")}
                         </>
                     ) : (
-                        "选择视觉方向"
+                        translate("ecommerce.directionCards.chooseAVisualDirection")
                     )}
                 </h2>
                 {onOpenLibrary ? (
-                    <button type="button" className="commerce-direction-library" aria-label="打开风格库" title="按分类挑选更多风格，或写下你自己的风格" disabled={disabled || degraded || outdated} onClick={onOpenLibrary}>
+                    <button
+                        type="button"
+                        className="commerce-direction-library"
+                        aria-label={translate("ecommerce.directionCards.openStyleLibrary")}
+                        title={translate("ecommerce.directionCards.browseMoreStylesByCategoryOrDescribeYourOwn")}
+                        disabled={disabled || degraded || outdated}
+                        onClick={onOpenLibrary}
+                    >
                         <StyleLibraryIcon size={15} />
-                        <span>风格库</span>
+                        <span>{translate("ecommerce.directionCards.styleLibrary")}</span>
                         {libraryCount ? <span className="commerce-count-badge is-neutral">{libraryCount + items.length}</span> : null}
                     </button>
                 ) : null}
             </header>
             <p className="commerce-direction-intro">
                 {outdated
-                    ? "这是上一轮的推荐。商品资料已更新，可发送新需求或换一组方向。"
+                    ? translate("ecommerce.directionCards.theseRecommendationsAreFromThePreviousRoundProductDetailsHave")
                     : degraded
-                      ? "知识检索暂不可用，请稍后重新推荐。"
+                      ? translate("ecommerce.directionCards.knowledgeSearchIsTemporarilyUnavailableTryRequestingRecommendationsLater")
                       : followup
-                        ? "这一套已完成。换一种视觉语言，继续探索商品的另一面。"
-                        : "根据商品外观与品类，准备了四套反差鲜明的视觉方案。点右上角铅笔可以改写风格，选定后配色、布景与光线将贯穿整套图片。"}
+                        ? translate("ecommerce.directionCards.thisSetIsCompleteExploreAnotherSideOfTheProduct")
+                        : translate("ecommerce.directionCards.fourDistinctVisualDirectionsAreReadyBasedOnYourProduct")}
             </p>
             <div className="flylep-directions-grid">
                 {items.map((direction, index) =>
@@ -197,8 +220,8 @@ export function CommerceDirectionCards({
                             <button
                                 type="button"
                                 className="commerce-direction-edit"
-                                aria-label={`编辑第 ${index + 1} 个风格`}
-                                title="改写这个风格"
+                                aria-label={translate("ecommerce.directionCards.editStyle", { v0: String(index + 1) })}
+                                title={translate("ecommerce.directionCards.rewriteThisStyle")}
                                 disabled={disabled || degraded || outdated}
                                 onClick={() => setEditing({ id: direction.id, value: { name: direction.name, description: directionDescription(direction) } })}
                             >
@@ -211,7 +234,7 @@ export function CommerceDirectionCards({
             <footer>
                 <button type="button" onClick={onRefresh} disabled={disabled}>
                     <RefreshIcon size={15} />
-                    换一组方向
+                    {translate("ecommerce.directionCards.moreDirections")}
                 </button>
                 <button
                     type="button"
@@ -222,7 +245,7 @@ export function CommerceDirectionCards({
                         if (item) onChoose(item);
                     }}
                 >
-                    {degraded ? "请重新推荐" : !selectedId ? "先选择一个方向" : "按此风格生成"}
+                    {degraded ? translate("ecommerce.directionCards.requestRecommendationsAgain") : !selectedId ? translate("ecommerce.directionCards.chooseADirectionFirst") : translate("ecommerce.directionCards.generateInThisStyle")}
                     <ArrowUpRight size={14} />
                 </button>
             </footer>

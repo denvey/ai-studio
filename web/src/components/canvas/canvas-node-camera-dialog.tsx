@@ -21,6 +21,7 @@ import {
     type CameraProfile,
     type LensProfile,
 } from "@/lib/canvas/camera-prompt-library";
+import { translate } from "@/i18n";
 
 const defaultCameraControl: CameraControlOptions = {
     enabled: false,
@@ -206,7 +207,7 @@ const HoverTip = memo(({ title, description, useCase, children }: HoverTipProps)
                     >
                         <div className="text-[var(--fs-caption)] font-semibold">{title}</div>
                         {description && <div className="mt-1 text-[var(--fs-label)] leading-5" style={{ color: theme.node.muted }}>{description}</div>}
-                        {useCase && <div className="mt-2 rounded px-2 py-1 text-[var(--fs-label)]" style={{ background: theme.toolbar.itemHover, color: theme.node.muted }}>使用场景：{useCase}</div>}
+                        {useCase && <div className="mt-2 rounded px-2 py-1 text-[var(--fs-label)]" style={{ background: theme.toolbar.itemHover, color: theme.node.muted }}>{translate("canvasTools.inline.canvasNodeCameraDialog.useCase", { v0: String(useCase) })}</div>}
                     </div>,
                     document.body,
                 )}
@@ -238,7 +239,7 @@ const CardColumn = memo(({ label, tooltipTitle, tooltipDesc, tooltipUseCase, vis
                 onClick={onPrev}
                 className="flex h-5 w-full items-center justify-center rounded-md transition-colors"
                 style={{ color: theme.node.faint }}
-                title="上一项"
+                title={translate("canvasA.artCritique.previous")}
             >
                 <ChevronUp className="size-3.5" />
             </button>
@@ -261,7 +262,7 @@ const CardColumn = memo(({ label, tooltipTitle, tooltipDesc, tooltipUseCase, vis
                 onClick={onNext}
                 className="flex h-5 w-full items-center justify-center rounded-md transition-colors"
                 style={{ color: theme.node.faint }}
-                title="下一项"
+                title={translate("canvasA.artCritique.next")}
             >
                 <ChevronDown className="size-3.5" />
             </button>
@@ -357,16 +358,16 @@ export function CanvasNodeCameraPanel({
         >
             <div className="flex items-center justify-between gap-3 border-b px-4 py-3" style={{ borderColor: theme.toolbar.border }}>
                 <div className="min-w-0">
-                    <div className="text-sm font-semibold tracking-tight">摄像机控制</div>
-                    <div className="mt-0.5 truncate text-[var(--fs-label)]" style={{ color: theme.node.muted }}>为当前图片生成设置镜头、焦距与光圈</div>
+                    <div className="text-sm font-semibold tracking-tight">{translate("canvasA.camera.label")}</div>
+                    <div className="mt-0.5 truncate text-[var(--fs-label)]" style={{ color: theme.node.muted }}>{translate("canvasTools.canvasNodeCameraDialog.setTheCameraShotFocalLengthAndApertureForThe")}</div>
                 </div>
                 <button
                     type="button"
                     className="grid size-7 shrink-0 place-items-center rounded-md transition-colors hover:bg-white/10"
                     style={{ color: theme.node.muted }}
                     onClick={onClose}
-                    aria-label="关闭摄像机控制"
-                    title="关闭"
+                    aria-label={translate("canvasTools.canvasNodeCameraDialog.closeCameraControls")}
+                    title={translate("common.close")}
                 >
                     <X className="size-4" />
                 </button>
@@ -375,7 +376,7 @@ export function CanvasNodeCameraPanel({
             {/* 相机、镜头、焦距和光圈均来自已注册枚举，确认时由纯函数再次强校验。 */}
             <div className="grid grid-cols-2 gap-2 px-4 py-4 sm:grid-cols-4">
                 <CardColumn
-                    label="相机"
+                    label={translate("canvasTools.canvasNodeCameraDialog.camera")}
                     tooltipTitle={`${currentCamera.zhName} · ${currentCamera.label}`}
                     tooltipDesc={currentCamera.description}
                     tooltipUseCase={currentCamera.useCase}
@@ -386,7 +387,7 @@ export function CanvasNodeCameraPanel({
                     theme={theme}
                 />
                 <CardColumn
-                    label="镜头"
+                    label={translate("canvasTools.canvasNodeCameraDialog.shot")}
                     tooltipTitle={`${currentLens.zhName} · ${currentLens.label}`}
                     tooltipDesc={currentLens.description}
                     tooltipUseCase={currentLens.useCase}
@@ -397,7 +398,7 @@ export function CanvasNodeCameraPanel({
                     theme={theme}
                 />
                 <CardColumn
-                    label="焦距"
+                    label={translate("canvasTools.canvasNodeCameraDialog.focalLength")}
                     tooltipTitle={`${focal}mm · ${focalMeta?.zhName ?? ""}`}
                     tooltipDesc={focalMeta?.description}
                     tooltipUseCase={focalMeta?.useCase}
@@ -414,7 +415,7 @@ export function CanvasNodeCameraPanel({
                     theme={theme}
                 />
                 <CardColumn
-                    label="光圈"
+                    label={translate("canvasTools.canvasNodeCameraDialog.aperture")}
                     tooltipTitle={`f/${aperture} · ${apertureMeta?.zhName ?? ""}`}
                     tooltipDesc={apertureMeta?.description}
                     tooltipUseCase={apertureMeta?.useCase}
@@ -436,23 +437,23 @@ export function CanvasNodeCameraPanel({
 
             {/* 当前有效配置摘要。 */}
             <div className="mx-4 mb-3 rounded-lg border px-4 py-2" style={{ borderColor: theme.toolbar.border, background: theme.toolbar.itemHover }}>
-                <div className="text-[var(--fs-label)] uppercase tracking-wide" style={{ color: theme.node.faint }}>当前配置</div>
+                <div className="text-[var(--fs-label)] uppercase tracking-wide" style={{ color: theme.node.faint }}>{translate("canvasTools.canvasNodeCameraDialog.currentConfiguration")}</div>
                 <div className="mt-0.5 text-xs">{summary}</div>
             </div>
 
             {/* 操作区：重置与复制不产生写入，只有应用会提交生成配置。 */}
             <div className="flex min-h-12 flex-wrap items-center gap-2 border-t px-4 py-2" style={{ borderColor: theme.toolbar.border }}>
                 <button type="button" className={secondaryButtonClass} style={{ color: theme.node.muted }} onClick={handleReset}>
-                    <RotateCcw className="size-3.5" />重置参数
+                    <RotateCcw className="size-3.5" />{translate("canvasTools.canvasNodeCameraDialog.resetParameters")}
                 </button>
                 <span className="flex-1" />
-                <Tooltip title="复制当前生成的摄像机提示词">
-                    <button type="button" className={secondaryButtonClass} onClick={() => copyText(buildPrompt(), "摄像机提示词已复制")}>复制提示词</button>
+                <Tooltip title={translate("canvasTools.canvasNodeCameraDialog.copyTheCurrentCameraPrompt")}>
+                    <button type="button" className={secondaryButtonClass} onClick={() => copyText(buildPrompt(), translate("canvasTools.canvasNodeCameraDialog.cameraPromptCopied"))}>{translate("canvasA.artCritique.copyPrompt")}</button>
                 </Tooltip>
                 {/* 关闭后仍保留参数选择，但提交空提示词，便于用户无损恢复。 */}
-                <div className="flex items-center gap-2" title={enabled ? "当前启用摄像机控制" : "当前关闭摄像机控制"}>
+                <div className="flex items-center gap-2" title={enabled ? translate("canvasTools.canvasNodeCameraDialog.cameraControlsEnabled") : translate("canvasTools.canvasNodeCameraDialog.cameraControlsDisabled")}>
                     <span className="text-xs transition-colors" style={{ color: enabled ? theme.accent.primary : theme.node.muted, fontWeight: enabled ? 600 : 400 }}>
-                        {enabled ? "开启" : "关闭"}
+                        {enabled ? translate("canvasTools.canvasNodeCameraDialog.enable") : translate("common.close")}
                     </span>
                     <button
                         type="button"
@@ -479,7 +480,7 @@ export function CanvasNodeCameraPanel({
                     style={{ borderColor: theme.node.activeStroke, color: theme.node.activeStroke, background: "transparent" }}
                     onClick={handleApply}
                 >
-                    <CameraIcon className="size-3.5" />应用
+                    <CameraIcon className="size-3.5" />{translate("canvasB.common.apply")}
                 </motion.button>
             </div>
         </SpotlightSurface>

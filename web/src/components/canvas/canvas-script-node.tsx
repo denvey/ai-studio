@@ -25,6 +25,7 @@ import type { CanvasGenerationBatch, CanvasNodeData, CanvasWorkspaceMode, Storyb
 import type { TaskStatus } from "@/services/api/task-center";
 import { Select } from "@/components/ui/base/select";
 import { GenerationBatchDetails, StoryboardMiniPipeline, batchItemTone, generationBatchItemLabel, generationBatchSummary } from "./canvas-script-node-parts";
+import { translate } from "@/i18n";
 
 const STORYBOARD_PROMPT_MIN_HEIGHT = 40;
 const STORYBOARD_PROMPT_MAX_HEIGHT = 116;
@@ -44,25 +45,25 @@ function resolveStoryboardVisibleColumns(columns?: StoryboardColumn[]) {
 }
 
 const columnOptions: Array<{ label: string; value: StoryboardColumn }> = [
-    { label: "序号", value: "shotNumber" },
-    { label: "时长", value: "durationSeconds" },
-    { label: "画面描述", value: "plotDescription" },
-    { label: "台词/旁白", value: "dialogue" },
-    { label: "镜头意图", value: "narrativeIntent" },
-    { label: "观众视点", value: "viewerPOV" },
-    { label: "表演调度", value: "performanceBlocking" },
-    { label: "景别", value: "shotSize" },
-    { label: "情绪", value: "emotion" },
-    { label: "光影氛围", value: "lightingAndAtmosphere" },
-    { label: "音效", value: "audioEffects" },
-    { label: "镜头设计", value: "camera" },
-    { label: "运镜", value: "motion" },
-    { label: "时间节拍", value: "timeBeats" },
-    { label: "图片提示词", value: "imageGenerationPrompt" },
-    { label: "视频提示词", value: "videoMotionPrompt" },
-    { label: "关联资产", value: "assets" },
-    { label: "连续性出口", value: "continuityOut" },
-    { label: "负面要求", value: "negativePrompt" },
+    { label: translate("canvasTools.canvasScriptNode.no"), value: "shotNumber" },
+    { label: translate("canvasA.assetView.duration"), value: "durationSeconds" },
+    { label: translate("canvasTools.canvasScriptNode.frameDescription"), value: "plotDescription" },
+    { label: translate("canvasTools.canvasScriptNode.dialogueVoiceOver"), value: "dialogue" },
+    { label: translate("canvasTools.canvasScriptNode.shotIntent"), value: "narrativeIntent" },
+    { label: translate("canvasTools.canvasScriptNode.audienceView"), value: "viewerPOV" },
+    { label: translate("canvasTools.canvasScriptNode.performanceBlocking"), value: "performanceBlocking" },
+    { label: translate("canvasTools.canvasScriptNode.shotSize"), value: "shotSize" },
+    { label: translate("canvasTools.canvasScriptNode.emotion"), value: "emotion" },
+    { label: translate("canvasTools.canvasScriptNode.lightingAndMood"), value: "lightingAndAtmosphere" },
+    { label: translate("canvasTools.canvasScriptNode.soundEffects"), value: "audioEffects" },
+    { label: translate("canvasTools.canvasScriptNode.shotDesign"), value: "camera" },
+    { label: translate("canvasA.toolPicker.motion.short"), value: "motion" },
+    { label: translate("canvasTools.canvasScriptNode.timingBeats"), value: "timeBeats" },
+    { label: translate("canvasTools.canvasScriptNode.imagePrompt"), value: "imageGenerationPrompt" },
+    { label: translate("canvasTools.canvasScriptNode.videoPrompt"), value: "videoMotionPrompt" },
+    { label: translate("canvasTools.canvasScriptNode.relatedAssets"), value: "assets" },
+    { label: translate("canvasTools.canvasScriptNode.continuityOut"), value: "continuityOut" },
+    { label: translate("canvasTools.canvasScriptNode.negativeNotes"), value: "negativePrompt" },
 ];
 
 export function CanvasScriptNodeContent({
@@ -163,7 +164,7 @@ export function CanvasScriptNodeContent({
         node.metadata?.status === "loading"
             ? displayTask
                 ? `${generationTaskStageLabel(displayTask)}${generationTaskShowsProgress(displayTask) && typeof node.metadata.taskProgress === "number" ? ` · ${node.metadata.taskProgress}%` : ""}`
-                : "正在创建任务"
+                : translate("canvasTools.canvasScriptNode.creatingTheTask")
             : node.metadata?.status === "error"
               ? generationErrorMessage(node.metadata.errorDetails)
               : "";
@@ -175,12 +176,28 @@ export function CanvasScriptNodeContent({
     const canMerge = pipeline.successfulVideoNodeIds.length >= 2 && pipeline.final.success === 0;
     const allRowIds = pipeline.rows.map((item) => item.row.id);
     const moreMenuItems: MenuProps["items"] = [
-        { key: "generate-images", icon: <ImageIcon className="size-3.5" />, label: "生成未完成分镜图", disabled: pipelineDisabled || pipeline.images.incomplete === 0, onClick: () => onGenerateImages(allRowIds) },
-        { key: "generate-videos", icon: <Video className="size-3.5" />, label: "生成未完成视频", disabled: pipelineDisabled || pipeline.videos.incomplete === 0, onClick: () => onGenerateVideos(allRowIds) },
+        {
+            key: "generate-images",
+            icon: <ImageIcon className="size-3.5" />,
+            label: translate("canvasTools.canvasScriptNode.generateTheMissingStoryboardFrames"),
+            disabled: pipelineDisabled || pipeline.images.incomplete === 0,
+            onClick: () => onGenerateImages(allRowIds),
+        },
+        {
+            key: "generate-videos",
+            icon: <Video className="size-3.5" />,
+            label: translate("canvasTools.canvasScriptNode.generateTheMissingVideos"),
+            disabled: pipelineDisabled || pipeline.videos.incomplete === 0,
+            onClick: () => onGenerateVideos(allRowIds),
+        },
         {
             key: "merge",
             icon: <Merge className="size-3.5" />,
-            label: pipeline.final.success ? "成片已完成" : pipeline.successfulVideoNodeIds.length >= 2 ? `合并 ${pipeline.successfulVideoNodeIds.length} 段视频` : "合并成片（至少 2 段视频）",
+            label: pipeline.final.success
+                ? translate("canvasTools.canvasScriptNode.theCutIsReady")
+                : pipeline.successfulVideoNodeIds.length >= 2
+                  ? translate("canvasTools.canvasScriptNode.mergeClips", { v0: String(pipeline.successfulVideoNodeIds.length) })
+                  : translate("canvasTools.canvasScriptNode.mergeIntoACutNeedsAtLeast2Clips"),
             disabled: !canMerge,
             onClick: () => onMergeVideos(),
         },
@@ -188,26 +205,48 @@ export function CanvasScriptNodeContent({
         {
             key: "video-input",
             icon: <Film className="size-3.5" />,
-            label: "视频输入模式",
+            label: translate("canvasTools.canvasScriptNode.videoInputMode"),
             children: [
-                { key: "video-input-direct", icon: videoInputMode === "direct" ? <Check className="size-3.5" /> : <span aria-hidden="true" className="inline-block size-3.5" />, label: "直接生成", onClick: () => onVideoInputModeChange("direct") },
-                { key: "video-input-keyframe", icon: videoInputMode === "keyframe" ? <Check className="size-3.5" /> : <span aria-hidden="true" className="inline-block size-3.5" />, label: "先做首帧", onClick: () => onVideoInputModeChange("keyframe") },
+                {
+                    key: "video-input-direct",
+                    icon: videoInputMode === "direct" ? <Check className="size-3.5" /> : <span aria-hidden="true" className="inline-block size-3.5" />,
+                    label: translate("canvasTools.canvasScriptNode.generateDirectly"),
+                    onClick: () => onVideoInputModeChange("direct"),
+                },
+                {
+                    key: "video-input-keyframe",
+                    icon: videoInputMode === "keyframe" ? <Check className="size-3.5" /> : <span aria-hidden="true" className="inline-block size-3.5" />,
+                    label: translate("canvasTools.canvasScriptNode.firstFrameFirst"),
+                    onClick: () => onVideoInputModeChange("keyframe"),
+                },
             ],
         },
         ...(!simpleMode
             ? [
                   { type: "divider" as const },
-                  { key: "create-image-nodes", icon: <Grid3X3 className="size-3.5" />, label: missingImages ? `创建 ${missingImages} 个图片节点` : "图片节点已创建", disabled: pipelineDisabled || missingImages === 0, onClick: () => onCreateImageNodes() },
-                  { key: "create-video-nodes", icon: <Film className="size-3.5" />, label: missingVideos ? `创建 ${missingVideos} 个视频节点` : "视频节点已创建", disabled: pipelineDisabled || missingVideos === 0, onClick: () => onCreateVideoNodes() },
-                  { key: "action-boards", icon: <Grid3X3 className="size-3.5" />, label: "生成动作拆分 12 宫格", disabled: !rows.length || hasActiveBatchItems, onClick: () => onCreateActionBoards() },
+                  {
+                      key: "create-image-nodes",
+                      icon: <Grid3X3 className="size-3.5" />,
+                      label: missingImages ? translate("canvasTools.canvasScriptNode.createImageNodes", { v0: String(missingImages) }) : translate("canvasTools.canvasScriptNode.imageNodeCreated"),
+                      disabled: pipelineDisabled || missingImages === 0,
+                      onClick: () => onCreateImageNodes(),
+                  },
+                  {
+                      key: "create-video-nodes",
+                      icon: <Film className="size-3.5" />,
+                      label: missingVideos ? translate("canvasTools.canvasScriptNode.createVideoNodes", { v0: String(missingVideos) }) : translate("canvasTools.canvasScriptNode.videoNodeCreated"),
+                      disabled: pipelineDisabled || missingVideos === 0,
+                      onClick: () => onCreateVideoNodes(),
+                  },
+                  { key: "action-boards", icon: <Grid3X3 className="size-3.5" />, label: translate("canvasTools.canvasScriptNode.generateA12PanelActionBreakdown"), disabled: !rows.length || hasActiveBatchItems, onClick: () => onCreateActionBoards() },
               ]
             : []),
         ...(batch
             ? [
                   { type: "divider" as const },
-                  { key: "retry", icon: <RefreshCw className="size-3.5" />, label: "重试失败项", disabled: !hasFailedBatchItems, onClick: () => onRetryBatch(batch.id) },
-                  { key: "stop", icon: <Square className="size-3.5" />, label: "停止剩余任务", disabled: !hasWaitingBatchItems, onClick: () => onStopBatch(batch.id) },
-                  { key: "details", icon: <ListTree className="size-3.5" />, label: "查看批次详情", onClick: () => setBatchDetailsOpen(true) },
+                  { key: "retry", icon: <RefreshCw className="size-3.5" />, label: translate("canvasTools.canvasScriptNode.retryFailures"), disabled: !hasFailedBatchItems, onClick: () => onRetryBatch(batch.id) },
+                  { key: "stop", icon: <Square className="size-3.5" />, label: translate("canvasTools.canvasScriptNode.stopRemainingTasks"), disabled: !hasWaitingBatchItems, onClick: () => onStopBatch(batch.id) },
+                  { key: "details", icon: <ListTree className="size-3.5" />, label: translate("canvasTools.canvasScriptNode.viewBatchDetails"), onClick: () => setBatchDetailsOpen(true) },
               ]
             : []),
     ];
@@ -230,8 +269,8 @@ export function CanvasScriptNodeContent({
         <div className="relative flex h-full w-full flex-col overflow-visible" style={{ color: theme.node.text }} onDoubleClick={(event) => event.stopPropagation()}>
             <div className="relative flex h-10 shrink-0 items-center gap-2 rounded-t-[16px] border-b px-4" style={{ borderColor: theme.node.stroke, background: theme.node.panel }}>
                 <Clapperboard className="size-4" />
-                <span className="min-w-0 flex-1 truncate text-sm font-semibold" title={node.title || "分镜脚本"}>
-                    {node.title || "分镜脚本"}
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold" title={node.title || translate("canvasTools.canvasScriptNode.storyboard")}>
+                    {node.title || translate("canvasTools.canvasScriptNode.storyboard")}
                 </span>
                 {taskFeedback ? (
                     <span className="min-w-0 max-w-[38%] truncate text-[var(--fs-label)] font-medium" title={taskFeedback} style={{ color: node.metadata?.status === "error" ? theme.accent.danger : theme.node.muted }}>
@@ -243,9 +282,9 @@ export function CanvasScriptNodeContent({
                     </span>
                 ) : null}
                 <span className="text-[var(--fs-caption)] font-semibold tabular-nums" style={{ color: theme.node.muted }}>
-                    {rows.length} 镜 · {totalDuration}s
+                    {translate("canvasTools.inline.canvasScriptNode.shotsS", { v0: String(rows.length), v1: String(totalDuration) })}
                 </span>
-                <Tooltip title="全屏编辑">
+                <Tooltip title={translate("canvasTools.canvasScriptNode.fullScreenEditing")}>
                     <button
                         type="button"
                         className="grid size-7 place-items-center rounded outline-none transition hover:bg-black/5 focus-visible:ring-2 dark:hover:bg-white/10"
@@ -256,7 +295,7 @@ export function CanvasScriptNodeContent({
                             event.stopPropagation();
                             onOpen();
                         }}
-                        aria-label="全屏编辑"
+                        aria-label={translate("canvasTools.canvasScriptNode.fullScreenEditing")}
                     >
                         <Expand className="size-3.5" />
                     </button>
@@ -272,35 +311,35 @@ export function CanvasScriptNodeContent({
                             event.stopPropagation();
                             setMoreMenuOpen(true);
                         }}
-                        aria-label="更多操作"
+                        aria-label={translate("canvasB.common.moreActions")}
                     >
                         <MoreHorizontal className="size-3.5" />
                     </button>
                 </Dropdown>
             </div>
             {batch ? (
-                <Modal title="批次详情" open={batchDetailsOpen} onCancel={() => setBatchDetailsOpen(false)} footer={null} width={560} centered destroyOnHidden>
+                <Modal title={translate("canvasTools.canvasScriptNode.batchDetails")} open={batchDetailsOpen} onCancel={() => setBatchDetailsOpen(false)} footer={null} width={560} centered destroyOnHidden>
                     <GenerationBatchDetails batch={batch} rows={rows} onRetryItem={(itemId) => onRetryBatchItem(batch.id, itemId)} />
                 </Modal>
             ) : null}
             <StoryboardMiniPipeline pipeline={pipeline} theme={theme} rows={rows} />
             <div className="storyboard-header-gutter grid h-9 shrink-0 items-center border-b text-xs font-semibold" style={{ borderColor: theme.node.stroke, color: theme.node.muted, gridTemplateColumns: SCRIPT_GRID_TEMPLATE }}>
                 <HeaderCell borderColor={theme.node.stroke} align="center">
-                    序号
+                    {translate("canvasTools.canvasScriptNode.no")}
                 </HeaderCell>
                 <HeaderCell borderColor={theme.node.stroke} align="center">
-                    时长
+                    {translate("canvasA.assetView.duration")}
                 </HeaderCell>
-                <HeaderCell borderColor={theme.node.stroke}>视频提示词</HeaderCell>
-                <HeaderCell borderColor={theme.node.stroke}>台词/旁白</HeaderCell>
-                <span className="px-3">关联资产</span>
+                <HeaderCell borderColor={theme.node.stroke}>{translate("canvasTools.canvasScriptNode.videoPrompt")}</HeaderCell>
+                <HeaderCell borderColor={theme.node.stroke}>{translate("canvasTools.canvasScriptNode.dialogueVoiceOver")}</HeaderCell>
+                <span className="px-3">{translate("canvasTools.canvasScriptNode.relatedAssets")}</span>
             </div>
             <div
                 data-canvas-wheel-scroll
                 data-canvas-wheel-intent
                 tabIndex={0}
                 role="region"
-                aria-label="分镜镜头列表"
+                aria-label={translate("canvasTools.canvasScriptNode.shotList")}
                 className="storyboard-scrollbar min-h-0 flex-1 overflow-y-scroll overflow-x-hidden outline-none focus-visible:ring-1 focus-visible:ring-inset"
                 style={{ "--tw-ring-color": theme.node.muted } as CSSProperties}
                 onScroll={(event) => {
@@ -316,11 +355,14 @@ export function CanvasScriptNodeContent({
                             <div className="flex flex-col items-center justify-center gap-0.5 border-r tabular-nums" style={{ color: theme.node.muted, borderColor: theme.node.stroke }}>
                                 <div className="flex items-center gap-0.5">
                                     <span className="text-sm">{row.shotNumber}</span>
-                                    <Dropdown trigger={["click"]} menu={{ items: [{ key: "delete", label: "删除镜头", icon: <Trash2 className="size-3.5" />, danger: true, disabled: rows.length <= 1, onClick: () => onRemoveRow(row.id) }] }}>
+                                    <Dropdown
+                                        trigger={["click"]}
+                                        menu={{ items: [{ key: "delete", label: translate("canvasTools.canvasScriptNode.deleteShot"), icon: <Trash2 className="size-3.5" />, danger: true, disabled: rows.length <= 1, onClick: () => onRemoveRow(row.id) }] }}
+                                    >
                                         <button
                                             type="button"
                                             className="grid size-5 place-items-center rounded outline-none opacity-45 transition hover:bg-black/5 hover:opacity-100 focus-visible:ring-2 dark:hover:bg-white/10"
-                                            aria-label={`镜头 ${row.shotNumber} 操作`}
+                                            aria-label={translate("canvasTools.canvasScriptNode.shotActions", { v0: String(row.shotNumber) })}
                                             onMouseDown={(event) => event.stopPropagation()}
                                             onPointerDown={(event) => event.stopPropagation()}
                                             onClick={(event) => event.stopPropagation()}
@@ -336,8 +378,13 @@ export function CanvasScriptNodeContent({
                                 ) : null}
                             </div>
                             <CompactDurationInput value={row.durationSeconds} borderColor={theme.node.stroke} onChange={(durationSeconds) => onUpdateRow(row.id, { durationSeconds })} />
-                            <CompactInput value={row.videoMotionPrompt} placeholder="描述视频运动、镜头和动作" onChange={(value) => onUpdateRow(row.id, { videoMotionPrompt: value })} borderColor={theme.node.stroke} />
-                            <CompactInput value={row.dialogue} placeholder="台词或旁白" onChange={(value) => onUpdateRow(row.id, { dialogue: value })} borderColor={theme.node.stroke} />
+                            <CompactInput
+                                value={row.videoMotionPrompt}
+                                placeholder={translate("canvasTools.canvasScriptNode.describeVideoMotionCameraMovementAndActions")}
+                                onChange={(value) => onUpdateRow(row.id, { videoMotionPrompt: value })}
+                                borderColor={theme.node.stroke}
+                            />
+                            <CompactInput value={row.dialogue} placeholder={translate("canvasTools.canvasScriptNode.dialogueOrVoiceOver")} onChange={(value) => onUpdateRow(row.id, { dialogue: value })} borderColor={theme.node.stroke} />
                             <div className="flex h-full min-w-0 items-center px-3">
                                 <StoryboardAssetsCell bindings={row.assetBindings || []} nodes={nodes} onEdit={() => onEditAssets(row.id)} disabled={node.metadata?.locked} />
                             </div>
@@ -354,9 +401,9 @@ export function CanvasScriptNodeContent({
                         }}
                     >
                         <span className="flex flex-col items-center gap-2">
-                            <span className="text-sm font-semibold">＋ 添加第一个镜头</span>
+                            <span className="text-sm font-semibold">{translate("canvasTools.canvasScriptNode.addTheFirstShot")}</span>
                             <span className="text-[var(--fs-label)] font-medium" style={{ color: theme.node.faint }}>
-                                可先连接「故事梗概 / 项目画风」节点，或在下方输入提示词一键生成分镜表
+                                {translate("canvasTools.canvasScriptNode.connectASynopsisProjectStyleNodeFirstOrTypeA")}
                             </span>
                         </span>
                     </button>
@@ -374,20 +421,20 @@ export function CanvasScriptNodeContent({
                     }}
                 >
                     <Plus className="size-3.5" />
-                    添加行
+                    {translate("canvasTools.canvasScriptNode.addRow")}
                 </button>
             </div>
             <div className="relative grid shrink-0 grid-rows-[minmax(0,1fr)_28px] gap-2 rounded-b-[16px] p-2" style={{ height: composerHeight, background: theme.node.panel }}>
                 <CanvasResourceMentionTextarea
                     rows={1}
                     references={mentionReferences}
-                    aria-label="分镜剧情与项目设定"
+                    aria-label={translate("canvasTools.canvasScriptNode.shotStoryAndProjectSetup")}
                     containerClassName="h-full min-h-0 overflow-hidden"
                     className="thin-scrollbar h-full min-h-0 w-full touch-pan-y resize-none overflow-y-auto overflow-x-hidden overscroll-contain rounded-md border bg-transparent px-3 py-2 text-sm leading-5 outline-none transition placeholder:opacity-45 focus:ring-1"
                     style={{ borderColor: theme.node.stroke, color: theme.node.text, "--tw-ring-color": theme.node.muted } as CSSProperties}
                     value={prompt}
                     readOnly={Boolean(node.metadata?.locked)}
-                    placeholder="输入剧本或剧情，以及总时长等要求，自动拆分为镜头"
+                    placeholder={translate("canvasTools.canvasScriptNode.enterAScriptOrStoryWithRequirementsSuchAsTotal")}
                     onContentSizeChange={resizePrompt}
                     onChange={(value) => {
                         if (node.metadata?.locked || onPromptChange(value) === false) return false;
@@ -404,7 +451,7 @@ export function CanvasScriptNodeContent({
                     onWheel={(event) => event.stopPropagation()}
                 />
                 <div className="flex min-w-0 items-center justify-end gap-2" onMouseDown={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
-                    <Tooltip title="脚本生成需要文本理解与结构化输出能力，仅展示文本模型；视频/图片模型无法生成分镜表" placement="topLeft">
+                    <Tooltip title={translate("canvasTools.canvasScriptNode.scriptGenerationNeedsTextUnderstandingAndStructuredOutputSoOnly")} placement="topLeft">
                         <div className="mr-auto min-w-36 max-w-56 flex-1">
                             <ModelPicker
                                 className="!h-7 !w-full !min-w-0 !text-[var(--fs-tiny)] !font-normal [&_img]:!size-3 [&_.lucide]:!size-3"
@@ -412,7 +459,7 @@ export function CanvasScriptNodeContent({
                                 config={generationConfig}
                                 value={generationConfig.model}
                                 capability="text"
-                                placeholder="选择文本模型"
+                                placeholder={translate("canvasTools.canvasScriptNode.chooseATextModel")}
                                 showSelectedPrice={false}
                                 onChange={onModelChange}
                                 onMissingConfig={() => navigateToSettings({ continueCreation: true })}
@@ -421,7 +468,7 @@ export function CanvasScriptNodeContent({
                     </Tooltip>
                     {simpleMode ? (
                         <span className="text-[var(--fs-label)]" style={{ color: theme.node.muted }}>
-                            自动拆分 · 时长自动
+                            {translate("canvasTools.canvasScriptNode.autoSplitAutoDuration")}
                         </span>
                     ) : (
                         <Select<StoryboardShotCount>
@@ -429,7 +476,10 @@ export function CanvasScriptNodeContent({
                             size="small"
                             value={shotCount}
                             disabled={node.metadata?.status === "loading"}
-                            options={[{ value: "auto", label: "自动拆分" }, ...Array.from({ length: 10 }, (_, index) => ({ value: String(index + 1) as StoryboardShotCount, label: `${index + 1} 镜` }))]}
+                            options={[
+                                { value: "auto", label: translate("canvasTools.canvasScriptNode.autoSplit") },
+                                ...Array.from({ length: 10 }, (_, index) => ({ value: String(index + 1) as StoryboardShotCount, label: translate("canvasTools.canvasScriptNode.shots2", { v0: String(index + 1) }) })),
+                            ]}
                             popupMatchSelectWidth={false}
                             onChange={onShotCountChange}
                         />
@@ -441,11 +491,11 @@ export function CanvasScriptNodeContent({
                             value={shotDuration}
                             disabled={node.metadata?.status === "loading"}
                             options={[
-                                { value: "auto", label: "单镜时长自动" },
-                                { value: "5", label: "每镜 5 秒" },
-                                { value: "10", label: "每镜 10 秒" },
-                                { value: "15", label: "每镜 15 秒" },
-                                { value: "30", label: "每镜 30 秒" },
+                                { value: "auto", label: translate("canvasTools.canvasScriptNode.automaticShotDuration") },
+                                { value: "5", label: translate("canvasTools.canvasScriptNode.item5SecondsPerShot") },
+                                { value: "10", label: translate("canvasTools.canvasScriptNode.item10SecondsPerShot") },
+                                { value: "15", label: translate("canvasTools.canvasScriptNode.item15SecondsPerShot") },
+                                { value: "30", label: translate("canvasTools.canvasScriptNode.item30SecondsPerShot") },
                             ]}
                             popupMatchSelectWidth={false}
                             onChange={onShotDurationChange}
@@ -461,7 +511,15 @@ export function CanvasScriptNodeContent({
                         onClick={submitPrompt}
                     />
                 </div>
-                <RowHandle side="left" top={composerHeight / 2} scale={scale} tone="idle" theme={theme} title="连接文本节点作为项目设定" onPointerDown={(event) => onConnectStart(event, "context", "target")} />
+                <RowHandle
+                    side="left"
+                    top={composerHeight / 2}
+                    scale={scale}
+                    tone="idle"
+                    theme={theme}
+                    title={translate("canvasTools.canvasScriptNode.connectATextNodeAsTheProjectSetup")}
+                    onPointerDown={(event) => onConnectStart(event, "context", "target")}
+                />
             </div>
             {rows.map((row, index) => {
                 const top = STORYBOARD_HEADER_HEIGHT + index * STORYBOARD_ROW_HEIGHT + STORYBOARD_ROW_HEIGHT / 2 - scrollTop;
@@ -579,37 +637,43 @@ export function CanvasScriptEditor({
                     <Select
                         className="w-full"
                         value={row.shotSize || undefined}
-                        placeholder="选择景别"
-                        options={["特写", "近景", "中景", "全景", "远景"].map((value) => ({ value, label: value }))}
+                        placeholder={translate("canvasTools.canvasScriptNode.chooseAShotSize")}
+                        options={[
+                            { value: "特写", label: translate("canvasTools.canvasScriptNode.shotSizeOptions.closeUp") },
+                            { value: "近景", label: translate("canvasTools.canvasScriptNode.shotSizeOptions.mediumCloseUp") },
+                            { value: "中景", label: translate("canvasTools.canvasScriptNode.shotSizeOptions.medium") },
+                            { value: "全景", label: translate("canvasTools.canvasScriptNode.shotSizeOptions.full") },
+                            { value: "远景", label: translate("canvasTools.canvasScriptNode.shotSizeOptions.long") },
+                        ]}
                         onChange={(shotSize) => updateRow(row.id, { shotSize })}
                     />
                 ) : (
                     <Input.TextArea
                         autoSize={{ minRows: 1, maxRows: 4 }}
                         value={String(row[option.value] || "")}
-                        placeholder={`填写${option.label}`}
+                        placeholder={translate("canvasTools.canvasScriptNode.enter", { v0: String(option.label) })}
                         onChange={(event) => updateRow(row.id, { [option.value]: event.target.value } as Partial<StoryboardRow>)}
                     />
                 ),
         }));
     columns.push({
-        title: "操作",
+        title: translate("account.settings.runninghub.actions"),
         key: "actions",
         dataIndex: "shotNumber",
         width: 150,
         fixed: "right" as const,
         render: (_: unknown, row: StoryboardRow) => (
             <div className="flex gap-1">
-                <SmallButton title="上移" onClick={() => moveRow(row.id, -1)}>
+                <SmallButton title={translate("canvasTools.canvasScriptNode.moveUp")} onClick={() => moveRow(row.id, -1)}>
                     <ChevronUp className="size-3.5" />
                 </SmallButton>
-                <SmallButton title="下移" onClick={() => moveRow(row.id, 1)}>
+                <SmallButton title={translate("canvasTools.canvasScriptNode.moveDown")} onClick={() => moveRow(row.id, 1)}>
                     <ChevronDown className="size-3.5" />
                 </SmallButton>
-                <SmallButton title="复制" onClick={() => duplicateRow(row)}>
+                <SmallButton title={translate("canvasB.common.copy")} onClick={() => duplicateRow(row)}>
                     <Copy className="size-3.5" />
                 </SmallButton>
-                <SmallButton title="删除" onClick={() => removeRow(row.id)}>
+                <SmallButton title={translate("common.delete")} onClick={() => removeRow(row.id)}>
                     <Trash2 className="size-3.5" />
                 </SmallButton>
             </div>
@@ -617,27 +681,27 @@ export function CanvasScriptEditor({
     });
 
     return (
-        <Modal title={node?.title || "分镜脚本"} open={open} onCancel={onClose} footer={null} width="min(1480px, calc(100vw - 40px))" centered destroyOnHidden>
+        <Modal title={node?.title || translate("canvasTools.canvasScriptNode.storyboard")} open={open} onCancel={onClose} footer={null} width="min(1480px, calc(100vw - 40px))" centered destroyOnHidden>
             <div className="mb-3 flex flex-wrap items-center gap-2">
-                <Input.Search className="w-72" allowClear placeholder="筛选画面、台词或提示词" value={query} onChange={(event) => setQuery(event.target.value)} />
+                <Input.Search className="w-72" allowClear placeholder={translate("canvasTools.canvasScriptNode.filterByFrameDialogueOrPrompt")} value={query} onChange={(event) => setQuery(event.target.value)} />
                 <CheckboxGroup className="script-column-picker" options={columnOptions} value={visibleColumns} onChange={(values) => onVisibleColumnsChange(values)} />
                 <span className="min-w-0 flex-1" />
                 <Button icon={<Plus className="size-4" />} onClick={() => onUpdateRows([...rows, editorRow(rows.length + 1)])}>
-                    新增镜头
+                    {translate("canvasTools.canvasScriptNode.addShot")}
                 </Button>
                 <Button icon={<ImageIcon className="size-4" />} disabled={!selectedIds.length} onClick={() => onGenerateImages(selectedIds)}>
-                    生成{videoInputMode === "keyframe" ? "首帧" : "分镜图"}
+                    {translate("canvasTools.inline.canvasScriptNode.generate", { v0: String(videoInputMode === "keyframe" ? translate("canvasC.videoPromptTools.startFrame") : translate("canvasTools.canvasScriptNode.storyboardFrame")) })}
                 </Button>
                 <Segmented<StoryboardVideoInputMode>
                     value={videoInputMode}
                     options={[
-                        { value: "direct", label: "直接生成" },
-                        { value: "keyframe", label: "先做首帧" },
+                        { value: "direct", label: translate("canvasTools.canvasScriptNode.generateDirectly") },
+                        { value: "keyframe", label: translate("canvasTools.canvasScriptNode.firstFrameFirst") },
                     ]}
                     onChange={onVideoInputModeChange}
                 />
                 <Button type="primary" icon={<Film className="size-4" />} disabled={!selectedIds.length} onClick={() => onGenerateVideos(selectedIds)}>
-                    {videoInputMode === "keyframe" ? "确认首帧并生成" : "生成视频"}
+                    {videoInputMode === "keyframe" ? translate("canvasTools.canvasScriptNode.confirmTheFirstFrameAndGenerate") : translate("canvasTools.canvasScriptNode.generateVideo")}
                 </Button>
             </div>
             <Table<StoryboardRow>
@@ -678,12 +742,12 @@ function CompactDurationInput({ value, borderColor, onChange }: { value: number;
                 max={60}
                 value={value}
                 className="w-9 bg-transparent text-right outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
-                aria-label="镜头时长（秒）"
+                aria-label={translate("canvasTools.canvasScriptNode.shotDurationSeconds")}
                 onChange={(event) => onChange(Math.max(1, Math.min(60, Number(event.target.value) || 1)))}
                 onMouseDown={(event) => event.stopPropagation()}
                 onPointerDown={(event) => event.stopPropagation()}
             />
-            秒
+            {translate("canvasTools.canvasScriptNode.second")}
         </label>
     );
 }
@@ -765,8 +829,8 @@ function RowHandle({
     return (
         <button
             type="button"
-            aria-label={title || `${side === "left" ? "输入" : "输出"}连接点`}
-            title={title || `${side === "left" ? "引入参考" : "连接到图片、视频或生成节点"}`}
+            aria-label={title || translate("canvasTools.canvasScriptNode.connector", { v0: String(side === "left" ? translate("canvasTools.canvasScriptNode.input") : translate("canvasTools.canvasScriptNode.output")) })}
+            title={title || `${side === "left" ? translate("canvasTools.canvasScriptNode.bringInAReference") : translate("canvasTools.canvasScriptNode.connectToAnImageVideoOrGenerationNode")}`}
             className={`canvas-connection-handle absolute z-[var(--node-z-handle)] flex -translate-y-1/2 cursor-pointer items-center justify-center rounded-full outline-none focus-visible:ring-2 ${side === "left" ? "left-0 -translate-x-1/2" : "right-0 translate-x-1/2"}`}
             style={{ top, width: 32 * inverseHitScale, height: 32 * inverseHitScale, "--tw-ring-color": theme.accent.primary } as CSSProperties}
             onPointerDown={onPointerDown}

@@ -10,41 +10,42 @@ import type { WorkflowFieldMapping } from "@/stores/use-config-store";
 import { workflowFieldChoiceValues, workflowFieldConfigurationError, workflowFieldNumberBounds, workflowFieldPresetOptions } from "@/lib/model-capabilities";
 import { EmptyState } from "@/components/ui/product/empty-state";
 import { Select } from "@/components/ui/base/select";
+import { translate } from "@/i18n";
 
 const sourceOptions = [
-    { label: "保留工作流默认值", value: "" },
-    { label: "任务提示词", value: "prompt" },
-    { label: "系统提示词", value: "systemPrompt" },
-    { label: "参考图片", value: "referenceImage" },
-    { label: "参考视频", value: "referenceVideo" },
-    { label: "参考音频", value: "referenceAudio" },
-    { label: "蒙版", value: "mask" },
-    { label: "画面尺寸", value: "size" },
-    { label: "画面宽高比", value: "aspectRatio" },
-    { label: "画面宽度", value: "width" },
-    { label: "画面高度", value: "height" },
-    { label: "生成数量", value: "count" },
-    { label: "生成质量", value: "quality" },
-    { label: "透明背景", value: "transparentBackground" },
-    { label: "视频时长", value: "videoSeconds" },
-    { label: "视频质量", value: "vquality" },
-    { label: "视频生成音频", value: "videoGenerateAudio" },
-    { label: "视频水印", value: "videoWatermark" },
-    { label: "音色", value: "audioVoice" },
-    { label: "音频格式", value: "audioFormat" },
-    { label: "音频语速", value: "audioSpeed" },
-    { label: "音频指令", value: "audioInstructions" },
+    { label: translate("shared.workflowFieldMappingEditor.keepWorkflowDefault"), value: "" },
+    { label: translate("shared.workflowFieldMappingEditor.taskPrompt"), value: "prompt" },
+    { label: translate("shared.workflowFieldMappingEditor.systemPrompt"), value: "systemPrompt" },
+    { label: translate("shared.workflowFieldMappingEditor.referenceImage"), value: "referenceImage" },
+    { label: translate("library.tasks.params.referenceVideos"), value: "referenceVideo" },
+    { label: translate("library.tasks.params.referenceAudios"), value: "referenceAudio" },
+    { label: translate("shared.workflowFieldMappingEditor.mask"), value: "mask" },
+    { label: translate("shared.workflowFieldMappingEditor.imageSize"), value: "size" },
+    { label: translate("shared.workflowFieldMappingEditor.aspectRatio"), value: "aspectRatio" },
+    { label: translate("shared.workflowFieldMappingEditor.imageWidth"), value: "width" },
+    { label: translate("shared.workflowFieldMappingEditor.imageHeight"), value: "height" },
+    { label: translate("library.tasks.params.count"), value: "count" },
+    { label: translate("shared.workflowFieldMappingEditor.generationQuality"), value: "quality" },
+    { label: translate("shared.workflowFieldMappingEditor.transparentBackground"), value: "transparentBackground" },
+    { label: translate("shared.workflowFieldMappingEditor.videoDuration"), value: "videoSeconds" },
+    { label: translate("shared.workflowFieldMappingEditor.videoQuality"), value: "vquality" },
+    { label: translate("shared.workflowFieldMappingEditor.generateVideoAudio"), value: "videoGenerateAudio" },
+    { label: translate("shared.workflowFieldMappingEditor.videoWatermark"), value: "videoWatermark" },
+    { label: translate("library.tasks.params.voice"), value: "audioVoice" },
+    { label: translate("library.tasks.params.audioFormat"), value: "audioFormat" },
+    { label: translate("shared.workflowFieldMappingEditor.speechSpeed"), value: "audioSpeed" },
+    { label: translate("shared.workflowFieldMappingEditor.audioInstructions"), value: "audioInstructions" },
 ] as const;
 
 const fieldTypeOptions = [
-    { label: "文本", value: "TEXT" },
-    { label: "数字", value: "NUMBER" },
-    { label: "滑块", value: "SLIDER" },
-    { label: "开关", value: "BOOLEAN" },
-    { label: "下拉", value: "SELECT" },
-    { label: "图片", value: "IMAGE" },
-    { label: "视频", value: "VIDEO" },
-    { label: "音频", value: "AUDIO" },
+    { label: translate("account.settings.modelConfig.capabilities.text"), value: "TEXT" },
+    { label: translate("shared.workflowFieldMappingEditor.number"), value: "NUMBER" },
+    { label: translate("shared.workflowFieldMappingEditor.slider"), value: "SLIDER" },
+    { label: translate("shared.workflowFieldMappingEditor.toggle"), value: "BOOLEAN" },
+    { label: translate("shared.workflowFieldMappingEditor.dropdown"), value: "SELECT" },
+    { label: translate("account.feedback.image"), value: "IMAGE" },
+    { label: translate("account.feedback.video"), value: "VIDEO" },
+    { label: translate("account.settings.modelConfig.capabilities.audio"), value: "AUDIO" },
 ] as const;
 
 type WorkflowFieldMappingEditorProps = {
@@ -67,30 +68,34 @@ export function WorkflowFieldMappingEditor({ fields, onChange, disabled = false 
     };
 
     if (!fields.length) {
-        return <EmptyState size="compact" description="尚未发现可配置字段，请先拉取工作流参数" />;
+        return <EmptyState size="compact" description={translate("shared.workflowFieldMappingEditor.noConfigurableFieldsFoundFetchTheWorkflowParametersFirst")} />;
     }
 
     return (
         <div className="workflow-field-mapping-editor space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs text-foreground/60">
-                    共 {fields.length} 个字段，已开启 {enabledCount} 个。字段调整会立即保存到当前工作流。
-                </p>
+                <p className="text-xs text-foreground/60">{translate("shared.workflowFieldMappingEditor.summary", { total: fields.length, enabled: enabledCount })}</p>
                 <div className="flex flex-wrap items-center gap-1">
                     <Button type="text" size="small" icon={<Power className="size-3.5" />} disabled={disabled || enabledControllableCount === controllableFields.length} onClick={() => updateAllFields(true)}>
-                        开启全部
+                        {translate("shared.workflowFieldMappingEditor.enableAll")}
                     </Button>
                     <Button type="text" size="small" danger icon={<PowerOff className="size-3.5" />} disabled={disabled || enabledControllableCount === 0} onClick={() => updateAllFields(false)}>
-                        关闭全部
+                        {translate("shared.workflowFieldMappingEditor.disableAll")}
                     </Button>
-                    <ToolButton size="sm" icon={<ListFilter />} active={showOnlyEnabled} label={showOnlyEnabled ? "显示全部" : "仅显示已开启"} onClick={() => setShowOnlyEnabled((current) => !current)} />
+                    <ToolButton
+                        size="sm"
+                        icon={<ListFilter />}
+                        active={showOnlyEnabled}
+                        label={showOnlyEnabled ? translate("shared.workflowFieldMappingEditor.showAll") : translate("shared.workflowFieldMappingEditor.showEnabledOnly")}
+                        onClick={() => setShowOnlyEnabled((current) => !current)}
+                    />
                 </div>
             </div>
             <Collapse
                 size="small"
                 items={visibleFields.map(({ field, index }) => {
                     const source = String(field.source || "");
-                    const sourceLabel = sourceOptions.find((item) => item.value === source)?.label || source || "保留工作流默认值";
+                    const sourceLabel = sourceOptions.find((item) => item.value === source)?.label || source || translate("shared.workflowFieldMappingEditor.keepWorkflowDefault");
                     const enabled = field.enabled !== false;
                     const fieldType = workflowEditorFieldType(field);
                     const numeric = fieldType === "NUMBER" || fieldType === "SLIDER";
@@ -99,7 +104,14 @@ export function WorkflowFieldMappingEditor({ fields, onChange, disabled = false 
                     const safeToOverride = field.safeToOverride !== false;
                     const fieldDisabled = disabled || !enabled || !safeToOverride;
                     const configurationError = workflowFieldConfigurationError(field);
-                    const roleLabel = field.role === "prompt" ? "提示词" : field.role === "media" ? "素材" : field.role === "internal" ? "内部参数" : "业务参数";
+                    const roleLabel =
+                        field.role === "prompt"
+                            ? translate("canvasA.assetView.prompt")
+                            : field.role === "media"
+                              ? translate("nav.tools.assets")
+                              : field.role === "internal"
+                                ? translate("shared.workflowFieldMappingEditor.internalParameter")
+                                : translate("shared.workflowFieldMappingEditor.businessParameter");
                     return {
                         key: field.id || `${field.nodeId}::${field.fieldName}::${index}`,
                         label: (
@@ -112,33 +124,39 @@ export function WorkflowFieldMappingEditor({ fields, onChange, disabled = false 
                                 </Tooltip>
                                 <Tag className="ml-auto shrink-0">{sourceLabel}</Tag>
                                 <Tag color={safeToOverride ? undefined : "error"} className="shrink-0">
-                                    {safeToOverride ? roleLabel : "禁止覆盖"}
+                                    {safeToOverride ? roleLabel : translate("shared.workflowFieldMappingEditor.doNotOverride")}
                                 </Tag>
                             </div>
                         ),
                         extra: (
                             <span onClick={(event) => event.stopPropagation()}>
-                                <Switch size="sm" checked={enabled} disabled={disabled || !safeToOverride} aria-label={`启用字段 ${field.label || field.fieldName}`} onChange={(checked) => updateField(index, { enabled: checked })} />
+                                <Switch
+                                    size="sm"
+                                    checked={enabled}
+                                    disabled={disabled || !safeToOverride}
+                                    aria-label={translate("shared.workflowFieldMappingEditor.enableField", { v0: String(field.label || field.fieldName) })}
+                                    onChange={(checked) => updateField(index, { enabled: checked })}
+                                />
                             </span>
                         ),
                         children: (
                             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                                 <label className="grid gap-1 text-xs text-foreground/60">
-                                    显示名称
+                                    {translate("auth.register.displayName")}
                                     <Input value={field.label || ""} disabled={fieldDisabled} placeholder={field.fieldName} onChange={(event) => updateField(index, { label: event.target.value })} />
                                 </label>
                                 <label className="grid gap-1 text-xs text-foreground/60">
-                                    参数类型
+                                    {translate("shared.workflowFieldMappingEditor.parameterType")}
                                     <Select value={fieldType} disabled={fieldDisabled} options={fieldTypeOptions.map((item) => ({ ...item }))} onChange={(value) => updateField(index, { fieldType: value })} />
                                 </label>
                                 <label className="grid gap-1 text-xs text-foreground/60">
-                                    输入来源
+                                    {translate("shared.workflowFieldMappingEditor.inputSource")}
                                     <Select showSearch value={source} disabled={fieldDisabled} options={sourceOptions.map((item) => ({ ...item }))} optionFilterProp="label" onChange={(value) => updateField(index, sourcePatch(field, value))} />
                                 </label>
                                 {fieldType === "SELECT" || choices.length || presetOptions.length ? (
                                     <label className="grid gap-1 text-xs text-foreground/60 md:col-span-2 lg:col-span-3">
                                         <span className="flex items-center justify-between gap-2">
-                                            <span>下拉选项（每行一个）</span>
+                                            <span>{translate("shared.workflowFieldMappingEditor.dropdownOptionsOnePerLine")}</span>
                                             {presetOptions.length ? (
                                                 <Button
                                                     type="text"
@@ -147,7 +165,7 @@ export function WorkflowFieldMappingEditor({ fields, onChange, disabled = false 
                                                     disabled={fieldDisabled}
                                                     onClick={() => updateField(index, { fieldType: "SELECT", options: presetOptions, optionsSource: "preset" })}
                                                 >
-                                                    常用模板
+                                                    {translate("shared.workflowFieldMappingEditor.commonTemplates")}
                                                 </Button>
                                             ) : null}
                                         </span>
@@ -163,15 +181,15 @@ export function WorkflowFieldMappingEditor({ fields, onChange, disabled = false 
                                 {numeric ? (
                                     <>
                                         <label className="grid gap-1 text-xs text-foreground/60">
-                                            最小值
+                                            {translate("shared.workflowFieldMappingEditor.minimum")}
                                             <InputNumber className="w-full" value={numberOrUndefined(field.min)} max={numberOrUndefined(field.max)} disabled={fieldDisabled} onChange={(value) => updateField(index, { min: value ?? undefined })} />
                                         </label>
                                         <label className="grid gap-1 text-xs text-foreground/60">
-                                            最大值
+                                            {translate("shared.workflowFieldMappingEditor.maximum")}
                                             <InputNumber className="w-full" value={numberOrUndefined(field.max)} min={numberOrUndefined(field.min)} disabled={fieldDisabled} onChange={(value) => updateField(index, { max: value ?? undefined })} />
                                         </label>
                                         <label className="grid gap-1 text-xs text-foreground/60">
-                                            步长
+                                            {translate("shared.workflowFieldMappingEditor.steps")}
                                             <InputNumber className="w-full" min={0.000001} value={numberOrUndefined(field.step)} disabled={fieldDisabled} onChange={(value) => updateField(index, { step: value ?? undefined })} />
                                         </label>
                                         {configurationError ? <div className="text-xs text-error md:col-span-2 lg:col-span-3">{configurationError}</div> : null}
@@ -179,7 +197,11 @@ export function WorkflowFieldMappingEditor({ fields, onChange, disabled = false 
                                 ) : null}
                                 {sourceUsesIndex(source) ? (
                                     <label className="grid gap-1 text-xs text-foreground/60">
-                                        {source === "referenceImage" ? "图片槽位" : source === "referenceVideo" ? "视频槽位" : "音频槽位"}
+                                        {source === "referenceImage"
+                                            ? translate("shared.workflowFieldMappingEditor.imageSlot")
+                                            : source === "referenceVideo"
+                                              ? translate("shared.workflowFieldMappingEditor.videoSlot")
+                                              : translate("shared.workflowFieldMappingEditor.audioSlot")}
                                         <InputNumber
                                             className="w-full"
                                             min={1}
@@ -191,18 +213,18 @@ export function WorkflowFieldMappingEditor({ fields, onChange, disabled = false 
                                     </label>
                                 ) : null}
                                 <label className="flex items-center justify-between gap-3 text-xs text-foreground/60">
-                                    缺失时阻止生成
+                                    {translate("shared.workflowFieldMappingEditor.blockGenerationWhenMissing")}
                                     <Switch checked={field.required === true} disabled={fieldDisabled || !source} onChange={(required) => updateField(index, { required })} />
                                 </label>
                                 {fieldType === "NUMBER" ? (
                                     <label className="flex items-center justify-between gap-3 text-xs text-foreground/60">
-                                        每次随机数字
+                                        {translate("shared.workflowFieldMappingEditor.randomNumberEachTime")}
                                         <Switch checked={field.randomEnabled === true} disabled={fieldDisabled || Boolean(source)} onChange={(randomEnabled) => updateField(index, { randomEnabled })} />
                                     </label>
                                 ) : null}
                                 {!source ? (
                                     <label className="grid gap-1 text-xs text-foreground/60 md:col-span-2 lg:col-span-3">
-                                        工作流默认值
+                                        {translate("shared.workflowFieldMappingEditor.workflowDefault")}
                                         <DefaultValueInput field={field} disabled={fieldDisabled || field.randomEnabled === true} onChange={(fieldValue) => updateField(index, { fieldValue })} />
                                     </label>
                                 ) : null}
@@ -211,7 +233,7 @@ export function WorkflowFieldMappingEditor({ fields, onChange, disabled = false 
                     };
                 })}
             />
-            {showOnlyEnabled && !visibleFields.length ? <EmptyState size="compact" description="暂无已开启字段" /> : null}
+            {showOnlyEnabled && !visibleFields.length ? <EmptyState size="compact" description={translate("shared.workflowFieldMappingEditor.noEnabledFields")} /> : null}
         </div>
     );
 }

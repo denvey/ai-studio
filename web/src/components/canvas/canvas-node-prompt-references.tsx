@@ -7,6 +7,7 @@ import { useState } from "react";
 import { usePopoverAnchorAlign } from "@/hooks/use-popover-anchor-align";
 import { CanvasNodeType } from "@/types/canvas";
 import type { CanvasTheme } from "./canvas-node-prompt-panel";
+import { translate } from "@/i18n";
 
 export function ReferenceToolsPopover({
     canAutoMention,
@@ -39,8 +40,8 @@ export function ReferenceToolsPopover({
             content={
                 <div className="space-y-2">
                     <div>
-                        <div className="text-sm font-medium leading-5">智能引用</div>
-                        <div className="mt-0.5 text-xs leading-4 text-black/50 dark:text-white/50">输入素材序号或名称后按 Tab，可快速引用</div>
+                        <div className="text-sm font-medium leading-5">{translate("canvasTools.canvasNodePromptReferences.smartReferences")}</div>
+                        <div className="mt-0.5 text-xs leading-4 text-black/50 dark:text-white/50">{translate("canvasTools.canvasNodePromptReferences.enterAnAssetNumberOrNameAndPressTabTo")}</div>
                     </div>
                     <div className="flex min-h-6 items-center justify-between gap-3">
                         <div className="flex items-center gap-2 text-sm">
@@ -51,7 +52,7 @@ export function ReferenceToolsPopover({
                             type="button"
                             role="switch"
                             aria-checked={autoLinkEnabled}
-                            aria-label={autoLinkEnabled ? "关闭 AutoLink" : "开启 AutoLink"}
+                            aria-label={autoLinkEnabled ? translate("canvasTools.canvasNodePromptReferences.disableAutoLink") : translate("canvasTools.canvasNodePromptReferences.enableAutoLink")}
                             className="canvas-reference-autolink-switch relative inline-flex h-5 w-9 items-center rounded-full border transition-colors"
                             style={{ background: autoLinkEnabled ? `${accent}14` : "transparent", borderColor: autoLinkEnabled ? accent : "color-mix(in srgb, currentColor 22%, transparent)", color: accent }}
                             onClick={() => onAutoLinkEnabledChange(!autoLinkEnabled)}
@@ -67,21 +68,26 @@ export function ReferenceToolsPopover({
                         onClick={onAutoMention}
                     >
                         <AtSign className="size-3.5" />
-                        一键引用全文
+                        {translate("canvasTools.canvasNodePromptReferences.referenceAllText")}
                     </button>
                 </div>
             }
         >
-            <button type="button" className={`canvas-node-composer-settings-trigger canvas-node-composer-reference-tools-trigger inline-flex shrink-0 items-center gap-1 ${compact ? "is-compact" : ""}`} aria-label="打开智能引用" title="智能引用">
+            <button
+                type="button"
+                className={`canvas-node-composer-settings-trigger canvas-node-composer-reference-tools-trigger inline-flex shrink-0 items-center gap-1 ${compact ? "is-compact" : ""}`}
+                aria-label={translate("canvasTools.canvasNodePromptReferences.openSmartReferences")}
+                title={translate("canvasTools.canvasNodePromptReferences.smartReferences")}
+            >
                 <SlidersHorizontal className="size-3.5" />
-                {!compact ? <span>引用</span> : null}
+                {!compact ? <span>{translate("canvasTools.canvasNodePromptReferences.references")}</span> : null}
             </button>
         </Popover>
     );
 }
 
 export function referenceShelfHeading(references: CanvasResourceReference[]) {
-    const label = references.every((reference) => reference.kind === "image" || reference.kind === "character") ? "参考图" : "参考素材";
+    const label = references.every((reference) => reference.kind === "image" || reference.kind === "character") ? translate("canvasPage.connection.referenceImage") : translate("canvasB.mediaVersion.rowReferences");
     return `${label} · ${references.length}`;
 }
 
@@ -130,7 +136,7 @@ export function ConnectedReferenceShelf({
 
     return (
         <>
-            <div className="canvas-node-composer-references" role="group" aria-label="已连接素材">
+            <div className="canvas-node-composer-references" role="group" aria-label={translate("canvasTools.canvasNodePromptReferences.connectedAssets")}>
                 <div className="canvas-node-composer-references-track thin-scrollbar">
                     {activeReferences.map((reference, index) => {
                         const canPreview = Boolean(reference.previewUrl) && (reference.kind === "image" || reference.kind === "character" || reference.kind === "video");
@@ -207,8 +213,8 @@ export function ConnectedReferenceShelf({
                                         type="button"
                                         className="canvas-node-reference-drag-handle"
                                         draggable
-                                        title={`拖动调整 ${reference.label} 的顺序`}
-                                        aria-label={`调整 ${reference.label} 的顺序；使用左右方向键也可移动`}
+                                        title={translate("canvasTools.canvasNodePromptReferences.dragToReorder", { v0: String(reference.label) })}
+                                        aria-label={translate("canvasTools.canvasNodePromptReferences.reorderYouCanAlsoUseTheLeftAndRightArrow", { v0: String(reference.label) })}
                                         onDragStart={(event) => {
                                             setDraggedReferenceId(reference.nodeId);
                                             event.dataTransfer.effectAllowed = "move";
@@ -232,8 +238,8 @@ export function ConnectedReferenceShelf({
                                     type="button"
                                     className="canvas-node-reference-preview"
                                     style={{ background: theme.toolbar.itemHover, color: theme.node.text, outlineColor: theme.node.activeStroke }}
-                                    title={canPreview ? `预览 ${reference.title}` : `插入 @${reference.label}`}
-                                    aria-label={canPreview ? `预览 ${reference.title}` : `插入 @${reference.label}`}
+                                    title={canPreview ? translate("canvasTools.canvasNodePromptReferences.preview", { v0: String(reference.title) }) : translate("canvasTools.canvasNodePromptReferences.insert", { v0: String(reference.label) })}
+                                    aria-label={canPreview ? translate("canvasTools.canvasNodePromptReferences.preview", { v0: String(reference.title) }) : translate("canvasTools.canvasNodePromptReferences.insert", { v0: String(reference.label) })}
                                     onClick={() => (canPreview ? setImagePreview(reference) : onInsert(reference))}
                                 >
                                     <ReferenceThumbnail reference={reference} />
@@ -243,7 +249,7 @@ export function ConnectedReferenceShelf({
                                         </span>
                                     ) : null}
                                 </button>
-                                <button type="button" className="canvas-node-reference-label" title={`插入 @${reference.label}`} onClick={() => onInsert(reference)}>
+                                <button type="button" className="canvas-node-reference-label" title={translate("canvasTools.canvasNodePromptReferences.insert", { v0: String(reference.label) })} onClick={() => onInsert(reference)}>
                                     <span className="opacity-55">@</span>
                                     <span className="truncate">{reference.label}</span>
                                 </button>
@@ -252,8 +258,8 @@ export function ConnectedReferenceShelf({
                                         type="button"
                                         className="canvas-node-reference-remove"
                                         style={{ background: theme.toolbar.panel, borderColor: theme.node.stroke, color: theme.node.text }}
-                                        title="移除参考并删除连接"
-                                        aria-label={`移除参考 ${reference.label}`}
+                                        title={translate("canvasTools.canvasNodePromptReferences.removeReferenceAndConnection")}
+                                        aria-label={translate("canvasTools.canvasNodePromptReferences.removeReference", { v0: String(reference.label) })}
                                         onClick={(event) => {
                                             event.stopPropagation();
                                             onRemove(reference);

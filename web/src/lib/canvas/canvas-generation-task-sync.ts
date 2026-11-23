@@ -23,6 +23,7 @@ import { patchImageLayerBackground } from "@/services/canvas-image-layer-source"
 import { imageLayerTargetName } from "@/lib/canvas/canvas-image-layer-plan";
 import { resetGenerationTaskMetadata } from "@/lib/canvas/canvas-task-state";
 import { CanvasNodeType, type CanvasGenerationMode, type CanvasNodeData, type CanvasNodeMetadata } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 export function generationTaskInput(task: GenerationTask) {
     if (!task.inputJson) return null;
@@ -146,7 +147,7 @@ export function applyGeneratedMediaResultMetadata(node: CanvasNodeData, media: C
 async function uploadDerivedImageResult(input: string | Blob) {
     try {
         const uploaded = await uploadImage(input);
-        if (uploaded.pendingRemoteUpload) throw new Error("加工图片仅缓存在本机，服务端保存未完成；请重试保存结果");
+        if (uploaded.pendingRemoteUpload) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.theProcessedImageIsCachedLocallyOnlySavingToThe"));
         return uploaded;
     } catch (error) {
         throw new CanvasGenerationDurableAckError(error);
@@ -155,11 +156,11 @@ async function uploadDerivedImageResult(input: string | Blob) {
 
 export async function buildSourceImageLayerNodeResult(node: CanvasNodeData, image: { dataUrl: string }, signal: AbortSignal): Promise<CanvasNodeData> {
     const extraction = node.metadata?.layerExtraction;
-    if (!extraction?.strategy || extraction.strategy.method === "generate") throw new Error("本层不是原图提取结果");
-    if ((extraction.index === 0) !== (extraction.strategy.method === "source")) throw new Error("原图提取方式与本层角色不一致");
-    if (signal.aborted) throw new DOMException("拆层已停止", "AbortError");
+    if (!extraction?.strategy || extraction.strategy.method === "generate") throw new Error(translate("shared.canvas.canvasGenerationTaskSync.thisLayerWasNotExtractedFromTheSourceImage"));
+    if ((extraction.index === 0) !== (extraction.strategy.method === "source")) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.theSourceExtractionMethodDoesNotMatchThisLayerS"));
+    if (signal.aborted) throw new DOMException(translate("shared.canvas.canvasGenerationTaskSync.layerSeparationStopped"), "AbortError");
     const uploaded = await uploadDerivedImageResult(image.dataUrl);
-    if (signal.aborted) throw new DOMException("拆层已停止", "AbortError");
+    if (signal.aborted) throw new DOMException(translate("shared.canvas.canvasGenerationTaskSync.layerSeparationStopped"), "AbortError");
     return {
         ...node,
         metadata: applyGeneratedMediaResultMetadata({ ...node, metadata: resetGenerationTaskMetadata(node.metadata) }, imageMetadata(uploaded), {
@@ -181,30 +182,30 @@ export async function buildGenerationTaskNodeResult(node: CanvasNodeData, task: 
         let extraction = node.metadata?.layerExtraction;
         let needsRemoval = false;
         if (node.metadata?.layerExtraction) {
-            if (result.images?.length !== 1) throw new Error("逐层提取必须返回一张独立图片，不能返回拼版或多张候选图");
+            if (result.images?.length !== 1) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.eachLayerExtractionMustReturnOneSeparateImageNotA"));
             const normalized = await normalizeImageLayerCanvas(result.images[0], extraction?.canvas);
             const info = normalized.info;
             result.images[0] = normalized.image;
-            if (!info.nonempty) throw new Error("提取结果是完全透明的空图层");
-            if (extraction?.canvas && (info.width !== extraction.canvas.width || info.height !== extraction.canvas.height)) throw new Error("图层尺寸与底图不一致，已停止后续调用");
+            if (!info.nonempty) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.theExtractedResultIsAnEmptyFullyTransparentLayer"));
+            if (extraction?.canvas && (info.width !== extraction.canvas.width || info.height !== extraction.canvas.height)) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.layerDimensionsDoNotMatchTheBaseImageFurtherRequests"));
             needsRemoval = Boolean(extraction?.index && !hasUsableLayerTransparency(info) && extraction.allowBackgroundRemoval && extraction.phase === "extract");
             if (!needsRemoval) validateImageLayerOutput(info);
             if (extraction?.index === 0 && extraction.backgroundPatch) result.images[0] = await patchImageLayerBackground(normalized.image, extraction.backgroundPatch);
             extraction = { ...extraction!, phase: needsRemoval ? "background-removal-required" : "complete", extractionTaskId: extraction?.phase === "extract" ? task.id : extraction?.extractionTaskId, rejectedTaskId: undefined };
         }
         const listed = result.images?.[outputIndex];
-        if (!listed?.dataUrl && !listed?.storageKey) throw new Error("后端任务没有返回图片");
+        if (!listed?.dataUrl && !listed?.storageKey) throw new Error(translate("canvasPage.mediaTools.noImageReturned"));
         // 已持久化的图片可以只有 storageKey（素材库回传、跨设备同步时 dataUrl 为空），展示地址按资源现取。
         const image = listed.dataUrl ? listed : { ...listed, dataUrl: await resolveImageUrl(listed.storageKey, "") };
-        if (!image.dataUrl) throw new Error("图片结果资源不可用");
+        if (!image.dataUrl) throw new Error(translate("create.page.imageResultUnavailable"));
         let resultDataUrl = image.dataUrl;
         const emotionEdit = node.metadata?.emotionEdit;
         if (emotionEdit) {
-            if (!emotionEdit.editRegion) throw new Error("情绪编辑任务缺少局部合成区域，已拒绝使用整图重绘结果");
+            if (!emotionEdit.editRegion) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.theEmotionEditTaskHasNoLocalCompositeRegionSo"));
             const sourceNode = nodes.find((item) => item.id === emotionEdit.sourceNodeId);
-            if (!sourceNode?.metadata?.content) throw new Error("情绪编辑源图片已删除，无法恢复局部合成结果");
+            if (!sourceNode?.metadata?.content) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.theEmotionEditSourceImageWasDeletedSoTheLocal"));
             const sourceDataUrl = await resolveImageUrl(sourceNode.metadata.storageKey, sourceNode.metadata.content);
-            if (!sourceDataUrl) throw new Error("无法读取情绪编辑源图片，未使用整图重绘结果");
+            if (!sourceDataUrl) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.couldNotReadTheEmotionEditSourceImageSoThe"));
             resultDataUrl = await compositeEmotionImage(sourceDataUrl, image.dataUrl, emotionEdit.editRegion, emotionEdit.faceBox);
         }
         const uploaded =
@@ -236,7 +237,7 @@ export async function buildGenerationTaskNodeResult(node: CanvasNodeData, task: 
     }
 
     if (mode === "video") {
-        if (!result.video?.storageKey && !result.video?.dataUrl) throw new Error("后端任务没有返回视频");
+        if (!result.video?.storageKey && !result.video?.dataUrl) throw new Error(translate("create.page.noVideoResult"));
         const video = result.video.storageKey ? await resolveGeneratedStoredVideo({ ...result.video, storageKey: result.video.storageKey }) : await storeGeneratedVideo({ url: result.video.dataUrl, mimeType: result.video.mimeType || "video/mp4" });
         const videoSize = fitNodeSize(video.width || node.width || VIDEO_NODE_MAX_SIZE.width, video.height || node.height || VIDEO_NODE_MAX_SIZE.height, VIDEO_NODE_MAX_SIZE.width, VIDEO_NODE_MAX_SIZE.height);
         const geometry = node.metadata?.locked
@@ -255,14 +256,14 @@ export async function buildGenerationTaskNodeResult(node: CanvasNodeData, task: 
     }
 
     if (mode === "audio") {
-        if (!result.audio?.dataUrl) throw new Error("后端任务没有返回音频");
+        if (!result.audio?.dataUrl) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.theBackendTaskReturnedNoAudio"));
         const audio = result.audio.storageKey
             ? { url: await resolveMediaUrl(result.audio.storageKey, result.audio.dataUrl), storageKey: result.audio.storageKey, durationMs: result.audio.durationMs, bytes: result.audio.bytes || 0, mimeType: result.audio.mimeType || "audio/mpeg" }
             : await storeGeneratedAudio(await (await fetch(result.audio.dataUrl)).blob(), result.audio.format || "mp3");
         return { ...node, type: CanvasNodeType.Audio, metadata: applyGeneratedMediaResultMetadata(node, audioMetadata(audio), { prompt, ...completedTaskMetadata(task) }, task.model) };
     }
 
-    if (!result.text) throw new Error("后端任务没有返回文本");
+    if (!result.text) throw new Error(translate("create.page.noTextResult"));
     return {
         ...node,
         type: CanvasNodeType.Text,
@@ -297,7 +298,7 @@ type GeneratedVideoResult = {
  */
 async function resolveGeneratedStoredVideo(result: GeneratedVideoResult & { storageKey: string }): Promise<UploadedFile> {
     const url = await resolveVideoMediaUrl(result.storageKey, result.dataUrl || "");
-    if (!url) throw new Error("生成视频资源地址为空，未标记为成功");
+    if (!url) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.theGeneratedVideoURLIsEmptyTheTaskHasNot"));
     return {
         url,
         storageKey: result.storageKey,
@@ -329,14 +330,14 @@ export async function applyMaterializedGenerationTaskResultToNodes(nodes: Canvas
         return { nodes, updated: true, nodeId: node.id, node, additionalNodes: [] };
     }
     const asset = useAssetStore.getState().assets.find((candidate) => candidate.id === output.materializedAssetId);
-    if (!asset) throw new Error("生成任务输出素材不存在");
+    if (!asset) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.theGenerationTaskSOutputAssetDoesNotExist"));
     const result = parseBackendGenerationResult(task);
     if (asset.kind === "image") {
         const images = [...(result.images || [])];
         // materialize 已保存整个任务；画布按真实输出序号接收每张图及其素材绑定。
         for (const item of task.outputs?.length ? task.outputs : [output]) {
             const imageAsset = useAssetStore.getState().assets.find((candidate) => candidate.id === item.materializedAssetId);
-            if (!imageAsset || imageAsset.kind !== "image") throw new Error("生成任务图片输出素材不存在");
+            if (!imageAsset || imageAsset.kind !== "image") throw new Error(translate("shared.canvas.canvasGenerationTaskSync.theGenerationTaskSOutputImageAssetDoesNotExist"));
             images[item.outputIndex] = {
                 dataUrl: imageAsset.data.dataUrl || imageAsset.coverUrl,
                 storageKey: imageAsset.data.storageKey,
@@ -352,7 +353,7 @@ export async function applyMaterializedGenerationTaskResultToNodes(nodes: Canvas
     } else if (asset.kind === "audio") {
         result.audio = { dataUrl: asset.data.url, ...asset.data };
     } else {
-        throw new Error("生成任务输出素材类型不支持画布节点");
+        throw new Error(translate("shared.canvas.canvasGenerationTaskSync.theGenerationTaskSOutputAssetTypeIsNotSupported"));
     }
     const { node: updatedNode, additionalNodes } = await buildGenerationTaskNodeResults(node, { ...task, resultJson: JSON.stringify(result) }, nodes);
     const stamp = (item: CanvasNodeData) => ({ ...item, metadata: applyGenerationConsumerEffect(item.metadata || {}, effectKey, (metadata) => metadata).value });
@@ -576,7 +577,7 @@ export async function buildImageLayerTaskResult(node: CanvasNodeData, task: Gene
 /** 仅合成已验收的层，保留失败项身份；重试新增结果不会覆盖已有排序与可见性。 */
 export async function buildExperimentalImageLayerResult(root: CanvasNodeData, nodes: CanvasNodeData[]) {
     const plan = root.metadata?.experimentalLayerPlan;
-    if (!plan || !plan.requests.length || plan.requests.length > 8) throw new Error("实验拆层计划无效");
+    if (!plan || !plan.requests.length || plan.requests.length > 8) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.invalidExperimentalLayerSeparationPlan"));
     const candidates = plan.requests.flatMap((request, index) => {
         const node = nodes.find((node) => node.id === request.nodeId);
         return node?.metadata?.content && node.metadata.status === "success" && (!node.metadata.layerExtraction?.phase || node.metadata.layerExtraction.phase === "complete") ? [{ node, index: node.metadata.layerExtraction?.index ?? index }] : [];
@@ -593,13 +594,13 @@ export async function buildExperimentalImageLayerResult(root: CanvasNodeData, no
                 metadata: {
                     ...item.node.metadata,
                     status: "error",
-                    errorDetails: error instanceof Error ? error.message : "图层资源验收失败",
+                    errorDetails: error instanceof Error ? error.message : translate("shared.canvas.canvasGenerationTaskSync.layerResourceValidationFailed"),
                     ...(item.node.metadata?.layerExtraction ? { layerExtraction: { ...item.node.metadata.layerExtraction, rejectedTaskId: item.node.metadata.taskId } } : {}),
                 },
             });
         }
     }
-    if (!ready.length) throw new Error("没有已验收的图层可生成合成图");
+    if (!ready.length) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.noApprovedLayersAreAvailableForCompositing"));
     const previous = root.metadata?.imageLayerGroup;
     const order = previous?.layers.flatMap((layer) => ready.filter((item) => item.node.id === layer.nodeId)) || [];
     for (const item of ready) {
@@ -701,7 +702,7 @@ export async function syncGenerationTaskToCanvasStore(task: GenerationTask) {
             const current = nodesRef.current.find((item) => item.id === node.id);
             if (current && !generationTaskOutputsApplied(current, materialized, nodesRef.current)) {
                 const output = materialized.outputs?.find((item) => item.outputIndex === 0);
-                if (!output) throw new Error("生成任务没有可恢复的输出");
+                if (!output) throw new Error(translate("shared.canvas.canvasGenerationTaskSync.theGenerationTaskHasNoRecoverableOutput"));
                 await apply({ task: materialized, output, effectKey: attachNodeEffectKey(task.id, node.id, 0), signal });
             }
             return true;

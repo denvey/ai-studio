@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 export function commerceCopyLayout(copy: string, width: number, height: number, measure: (text: string, size: number, heading: boolean) => number) {
     const paragraphs = copy
         .split(/\n/)
@@ -23,5 +24,5 @@ export function commerceCopyLayout(copy: string, width: number, height: number, 
         const barHeight = lines.length ? lines.reduce((sum, line) => sum + line.height, 0) + padding * 2 : 0;
         if (barHeight <= height * 0.42) return { lines, padding, barHeight };
     }
-    throw new Error("文案超出当前画幅的可读排版空间，请缩短文案或选择更高的画幅；内容未被截断");
+    throw new Error(translate("ecommerce.copyLayout.theCopyExceedsTheReadableLayoutSpaceForThisAspect"));
 }

@@ -4,6 +4,7 @@ import { readAxiosError, validateGeminiPayload } from "@/services/api/image-resp
 import { geminiApiUrl, geminiHeaders } from "@/services/api/image-transport";
 import { http } from "@/services/api/request";
 import { buildApiUrl, type AiConfig, type ModelChannel } from "@/stores/use-config-store";
+import { translate } from "@/i18n";
 
 const defaultGeminiConfig: Pick<AiConfig, "baseUrl" | "apiKey" | "apiFormat" | "model" | "systemPrompt"> = {
     baseUrl: "https://generativelanguage.googleapis.com",
@@ -33,7 +34,7 @@ export async function fetchImageModels(config: Pick<AiConfig, "baseUrl" | "apiKe
             .filter((id): id is string => Boolean(id))
             .sort((a, b) => a.localeCompare(b));
     } catch (error) {
-        throw new Error(readAxiosError(error, "读取模型失败"));
+        throw new Error(readAxiosError(error, translate("account.settings.channels.fetchFailed")));
     }
 }
 
@@ -63,6 +64,6 @@ export async function fetchChannelModels(channel: ModelChannel, viaBackend = fal
         const sortedCatalog = Array.from(catalog.values()).sort((a, b) => a.id.localeCompare(b.id));
         return { models, catalog: sortedCatalog };
     } catch (error) {
-        throw new Error(readAxiosError(error, "读取模型失败"));
+        throw new Error(readAxiosError(error, translate("account.settings.channels.fetchFailed")));
     }
 }

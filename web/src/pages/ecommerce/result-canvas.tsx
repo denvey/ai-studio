@@ -14,6 +14,7 @@ import { commerceCanvasLayout } from "./canvas-layout";
 import { COMMERCE_SNAP_THRESHOLD, measureCommerceSnapScene, paintCommerceSnapGuides, snapCommerceMove, type SnapScene } from "./canvas-snap";
 import { useResultNodeDrag } from "./use-result-node-drag";
 
+import { translate } from "@/i18n";
 type CanvasLayer = { id: string; type: "text" | "image" | "result"; x: number; y: number; text?: string; resourceId?: string };
 type CanvasHistory = { past: CanvasLayer[][]; present: CanvasLayer[]; future: CanvasLayer[][] };
 type CanvasTool = "select" | "hand" | "text";
@@ -346,7 +347,7 @@ export function EcommerceResultCanvas({
         }
         const point = worldPoint(event.clientX, event.clientY);
         const id = createClientUUID();
-        commit([...history.present, { id, type: "text", ...point, text: "电商 Agent" }]);
+        commit([...history.present, { id, type: "text", ...point, text: translate("ecommerce.resultCanvas.ecommerceAgent") }]);
         setSelectedId(id);
         setTool("select");
     };
@@ -361,7 +362,7 @@ export function EcommerceResultCanvas({
             commit([...history.present, ...resources.map((resource, index) => ({ id: createClientUUID(), type: "image" as const, x: point.x + index * 28, y: point.y + index * 28, resourceId: resource.id }))]);
             setTool("select");
         } catch (cause) {
-            setUploadError(cause instanceof Error ? cause.message : "图片上传失败，请重试");
+            setUploadError(cause instanceof Error ? cause.message : translate("ecommerce.resultCanvas.imageUploadFailedRetry"));
         } finally {
             setUploading(false);
         }
@@ -405,7 +406,7 @@ export function EcommerceResultCanvas({
     };
     const finishEdit = () => {
         if (!editingId) return;
-        const next = history.present.map((item) => (item.id === editingId ? { ...item, text: editingText.trim() || "电商 Agent" } : item));
+        const next = history.present.map((item) => (item.id === editingId ? { ...item, text: editingText.trim() || translate("ecommerce.resultCanvas.ecommerceAgent") } : item));
         if (next.some((item, index) => item.text !== history.present[index]?.text)) commit(next);
         setEditingId(null);
     };
@@ -653,14 +654,21 @@ export function EcommerceResultCanvas({
             placement="top"
             mouseEnterDelay={0.12}
         >
-            <button type="button" aria-label={label} aria-pressed={["选择", "抓手", "输入文字"].includes(label) ? active : undefined} className={active ? "is-active" : ""} disabled={disabled} onClick={action}>
+            <button
+                type="button"
+                aria-label={label}
+                aria-pressed={[translate("ecommerce.resultCanvas.select"), translate("ecommerce.resultCanvas.handTool"), translate("ecommerce.resultCanvas.enterText")].includes(label) ? active : undefined}
+                className={active ? "is-active" : ""}
+                disabled={disabled}
+                onClick={action}
+            >
                 {active ? <motion.span className="commerce-canvas-tool-active" layoutId={reducedMotion ? undefined : "commerce-canvas-tool"} transition={{ type: "spring", stiffness: 440, damping: 34 }} aria-hidden="true" /> : null}
                 {icon}
             </button>
         </Tooltip>
     );
     return (
-        <section ref={root} tabIndex={-1} className="commerce-result-canvas" data-layers-open={layersOpen} data-canvas-tool={tool} data-arranging={arranging || undefined} aria-label="商品图片画布">
+        <section ref={root} tabIndex={-1} className="commerce-result-canvas" data-layers-open={layersOpen} data-canvas-tool={tool} data-arranging={arranging || undefined} aria-label={translate("ecommerce.resultCanvas.productImageCanvas")}>
             <CanvasViewport containerRef={container} viewport={viewport} onViewportChange={userNavigate} boxSelectEnabled={tool !== "hand"} panOverNodes={tool === "hand"} onCanvasMouseDown={addText}>
                 <div
                     ref={content}
@@ -693,16 +701,16 @@ export function EcommerceResultCanvas({
                                     event.stopPropagation();
                                     if (layer.type === "text") {
                                         setEditingId(layer.id);
-                                        setEditingText(layer.text || "电商 Agent");
+                                        setEditingText(layer.text || translate("ecommerce.resultCanvas.ecommerceAgent"));
                                     }
                                 }}
                             >
                                 {layer.type === "image" ? (
-                                    <img src={resolveResourceVariantUrl(resourceStorageKey(layer.resourceId!), "thumbnail")} alt="画布上传图片" draggable={false} />
+                                    <img src={resolveResourceVariantUrl(resourceStorageKey(layer.resourceId!), "thumbnail")} alt={translate("ecommerce.resultCanvas.uploadAnImageToTheCanvas")} draggable={false} />
                                 ) : editingId === layer.id ? (
                                     <textarea
                                         autoFocus
-                                        aria-label="编辑画布文字"
+                                        aria-label={translate("ecommerce.resultCanvas.editCanvasText")}
                                         value={editingText}
                                         onChange={(event) => setEditingText(event.target.value)}
                                         onBlur={finishEdit}
@@ -721,11 +729,11 @@ export function EcommerceResultCanvas({
                                         {layer.type === "text" ? (
                                             <button
                                                 type="button"
-                                                aria-label="编辑选中文字"
+                                                aria-label={translate("ecommerce.resultCanvas.editSelectedText")}
                                                 onPointerDown={(event) => event.stopPropagation()}
                                                 onClick={() => {
                                                     setEditingId(layer.id);
-                                                    setEditingText(layer.text || "电商 Agent");
+                                                    setEditingText(layer.text || translate("ecommerce.resultCanvas.ecommerceAgent"));
                                                 }}
                                             >
                                                 <Pencil size={13} />
@@ -733,7 +741,7 @@ export function EcommerceResultCanvas({
                                         ) : null}
                                         <button
                                             type="button"
-                                            aria-label="删除选中元素"
+                                            aria-label={translate("ecommerce.resultCanvas.deleteSelectedElements")}
                                             onPointerDown={(event) => event.stopPropagation()}
                                             onClick={() => {
                                                 commit(history.present.filter((item) => item.id !== layer.id));
@@ -784,19 +792,19 @@ export function EcommerceResultCanvas({
             <div className="commerce-canvas-actions" data-canvas-no-zoom>
                 {actions}
             </div>
-            <aside className="commerce-canvas-layers" aria-label="画布图层" aria-hidden={!layersOpen} inert={!layersOpen} data-canvas-no-zoom data-canvas-wheel-scroll>
+            <aside className="commerce-canvas-layers" aria-label={translate("ecommerce.resultCanvas.canvasLayers")} aria-hidden={!layersOpen} inert={!layersOpen} data-canvas-no-zoom data-canvas-wheel-scroll>
                 <header>
                     <strong>
                         <LayersIcon size={16} />
-                        图层
+                        {translate("ecommerce.resultCanvas.layers")}
                         {resultLayers.length ? (
-                            <span className="commerce-count-badge is-neutral" aria-label={`共 ${resultLayers.length} 张`}>
+                            <span className="commerce-count-badge is-neutral" aria-label={translate("ecommerce.resultCanvas.imagesTotal", { v0: String(resultLayers.length) })}>
                                 {resultLayers.length}
                             </span>
                         ) : null}
                     </strong>
                     <button type="button" onClick={onSelectAll} disabled={!resultLayers.some((item) => item.ready)}>
-                        全选
+                        {translate("ecommerce.resultCanvas.selectAll")}
                     </button>
                 </header>
                 <div className="commerce-canvas-layer-list">
@@ -812,14 +820,14 @@ export function EcommerceResultCanvas({
                             </button>
                         ))
                     ) : (
-                        <p>生成后的图片会显示在这里</p>
+                        <p>{translate("ecommerce.resultCanvas.generatedImagesWillAppearHere")}</p>
                     )}
                     {history.present
                         .filter((item) => item.type !== "result")
                         .map((item) => (
                             <button type="button" key={item.id} onClick={() => setSelectedId(item.id)}>
                                 {item.type === "image" ? <ImagePlusIcon size={17} /> : <TextToolIcon size={17} />}
-                                <span className="commerce-canvas-layer-name">{item.type === "text" ? item.text : "上传图片"}</span>
+                                <span className="commerce-canvas-layer-name">{item.type === "text" ? item.text : translate("account.settings.profile.upload")}</span>
                             </button>
                         ))}
                 </div>
@@ -827,12 +835,12 @@ export function EcommerceResultCanvas({
             <div ref={layerToggleRef} className="commerce-canvas-layer-toggle" data-canvas-no-zoom>
                 <button type="button" aria-expanded={layersOpen} onClick={() => setLayersOpen((open) => !open)}>
                     <LayersIcon size={16} />
-                    图层
+                    {translate("ecommerce.resultCanvas.layers")}
                 </button>
                 <Tooltip
                     title={
                         <span className="commerce-tool-hint">
-                            <span>全选已完成的图片</span>
+                            <span>{translate("ecommerce.resultCanvas.selectAllCompletedImages")}</span>
                             <kbd>Ctrl A</kbd>
                         </span>
                     }
@@ -840,7 +848,7 @@ export function EcommerceResultCanvas({
                     mouseEnterDelay={0.12}
                 >
                     <button type="button" onClick={onSelectAll} disabled={!resultLayers.some((item) => item.ready)}>
-                        全选
+                        {translate("ecommerce.resultCanvas.selectAll")}
                     </button>
                 </Tooltip>
             </div>
@@ -850,20 +858,20 @@ export function EcommerceResultCanvas({
                 accept="image/png,image/jpeg,image/webp"
                 multiple
                 className="commerce-canvas-file-input"
-                aria-label="上传图片到画布"
+                aria-label={translate("ecommerce.resultCanvas.uploadImagesToCanvas")}
                 onChange={(event) => {
                     void uploadImage(event.target.files);
                     event.target.value = "";
                 }}
             />
-            <div ref={toolbarRef} className="commerce-canvas-toolbar" role="toolbar" aria-label="画布操作" data-canvas-no-zoom>
-                {toolButton("选择", "选择与移动，拖动时自动吸附对齐（按住 Ctrl 关闭）", "V", <PointerIcon size={19} />, () => setTool("select"), tool === "select")}
-                {toolButton("抓手", "拖动画布", "H", <HandIcon size={19} />, () => setTool("hand"), tool === "hand")}
-                {toolButton("上传图片", "添加图片", "", <ImagePlusIcon size={19} />, () => uploadInput.current?.click(), false, uploading)}
-                {toolButton("输入文字", "点击画布添加文字", "T", <TextToolIcon size={19} />, () => setTool("text"), tool === "text")}
+            <div ref={toolbarRef} className="commerce-canvas-toolbar" role="toolbar" aria-label={translate("ecommerce.resultCanvas.canvasOperations")} data-canvas-no-zoom>
+                {toolButton(translate("ecommerce.resultCanvas.select"), translate("ecommerce.resultCanvas.selectAndMoveAutomaticallySnapWhileDraggingHoldCtrlTo"), "V", <PointerIcon size={19} />, () => setTool("select"), tool === "select")}
+                {toolButton(translate("ecommerce.resultCanvas.handTool"), translate("ecommerce.resultCanvas.panCanvas"), "H", <HandIcon size={19} />, () => setTool("hand"), tool === "hand")}
+                {toolButton(translate("account.settings.profile.upload"), translate("ecommerce.resultCanvas.addImage"), "", <ImagePlusIcon size={19} />, () => uploadInput.current?.click(), false, uploading)}
+                {toolButton(translate("ecommerce.resultCanvas.enterText"), translate("ecommerce.resultCanvas.clickTheCanvasToAddText"), "T", <TextToolIcon size={19} />, () => setTool("text"), tool === "text")}
                 <i className="commerce-canvas-tool-divider" aria-hidden="true" />
-                {toolButton("撤回画布操作", "撤回", "Ctrl Z", <UndoIcon size={19} />, undo, false, !history.past.length)}
-                {toolButton("前进画布操作", "重做", "Ctrl Shift Z", <RedoIcon size={19} />, redo, false, !history.future.length)}
+                {toolButton(translate("ecommerce.resultCanvas.undoCanvasAction"), translate("ecommerce.resultCanvas.undo"), "Ctrl Z", <UndoIcon size={19} />, undo, false, !history.past.length)}
+                {toolButton(translate("ecommerce.resultCanvas.redoCanvasAction"), translate("ecommerce.resultCanvas.redo"), "Ctrl Shift Z", <RedoIcon size={19} />, redo, false, !history.future.length)}
             </div>
             {uploadError ? (
                 <div className="commerce-canvas-upload-error" role="alert">

@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 export type StyleAssetKind = "lora" | "template" | "reference" | "prompt";
 export type StyleAssetStatus = "draft" | "validated" | "unavailable";
 
@@ -127,7 +128,7 @@ export function serializeStyleProfile(profile: StyleProfileSnapshot): string {
     const validationMessage = styleProfileValidationMessage(normalized);
     if (validationMessage) throw new Error(validationMessage);
     const serialized = JSON.stringify(normalized);
-    if (new TextEncoder().encode(serialized).length > MAX_PROFILE_BYTES) throw new Error("项目画风资产配置过大");
+    if (new TextEncoder().encode(serialized).length > MAX_PROFILE_BYTES) throw new Error(translate("shared.canvas.styleProfile.theProjectArtStyleAssetConfigurationIsTooLarge"));
     return serialized;
 }
 
@@ -198,40 +199,40 @@ export function applyStyleExecutionPlan(prompt: string, plan: StyleExecutionPlan
 }
 
 export function styleAssetValidationMessage(asset: StyleAssetBinding) {
-    if (!asset.id.trim()) return "资产 ID 不能为空";
-    if (!asset.title.trim()) return "请填写资产名称";
-    if (!asset.provider.trim()) return "请填写来源平台或适配器";
-    if (asset.weight !== undefined && (!Number.isFinite(asset.weight) || asset.weight < 0 || asset.weight > 2)) return "LoRA 权重必须在 0 到 2 之间";
-    if ((asset.baseModels?.length || 0) > 20) return "单个资产最多声明 20 个兼容模型";
-    if ((asset.triggerWords?.length || 0) > 50) return "单个资产最多声明 50 个触发词";
-    if ((asset.referenceUrls?.length || 0) > 20 || (asset.referenceResourceIds?.length || 0) > 20) return "单个参考图组最多绑定 20 个 URL 和 20 个资源";
-    if (asset.parameters?.steps !== undefined && (!Number.isInteger(asset.parameters.steps) || asset.parameters.steps < 1 || asset.parameters.steps > 200)) return "Steps 必须在 1 到 200 之间";
-    if (asset.parameters?.cfg !== undefined && (!Number.isFinite(asset.parameters.cfg) || asset.parameters.cfg < 0 || asset.parameters.cfg > 50)) return "CFG 必须在 0 到 50 之间";
+    if (!asset.id.trim()) return translate("shared.canvas.styleProfile.assetIDCannotBeEmpty");
+    if (!asset.title.trim()) return translate("shared.canvas.styleProfile.enterAnAssetName");
+    if (!asset.provider.trim()) return translate("shared.canvas.styleProfile.enterTheSourcePlatformOrAdapter");
+    if (asset.weight !== undefined && (!Number.isFinite(asset.weight) || asset.weight < 0 || asset.weight > 2)) return translate("shared.canvas.styleProfile.loRAWeightMustBeBetween0And2");
+    if ((asset.baseModels?.length || 0) > 20) return translate("shared.canvas.styleProfile.anAssetCanDeclareAtMost20CompatibleModels");
+    if ((asset.triggerWords?.length || 0) > 50) return translate("shared.canvas.styleProfile.anAssetCanDeclareAtMost50TriggerWords");
+    if ((asset.referenceUrls?.length || 0) > 20 || (asset.referenceResourceIds?.length || 0) > 20) return translate("shared.canvas.styleProfile.aReferenceImageGroupCanBindAtMost20URLs");
+    if (asset.parameters?.steps !== undefined && (!Number.isInteger(asset.parameters.steps) || asset.parameters.steps < 1 || asset.parameters.steps > 200)) return translate("shared.canvas.styleProfile.stepsMustBeBetween1And200");
+    if (asset.parameters?.cfg !== undefined && (!Number.isFinite(asset.parameters.cfg) || asset.parameters.cfg < 0 || asset.parameters.cfg > 50)) return translate("shared.canvas.styleProfile.cFGMustBeBetween0And50");
     if (asset.status !== "validated") return "";
-    if (asset.kind === "lora" && !asset.sourceId?.trim() && !asset.sourceUrl?.trim()) return "已验证的 LoRA 必须填写来源资产 ID 或 URL";
-    if ((asset.kind === "prompt" || asset.kind === "template") && !asset.promptFragment?.trim() && !asset.triggerWords?.some((word) => word.trim())) return "已验证的模板或提示词模块必须填写提示词内容";
-    if (asset.kind === "reference" && !asset.referenceUrls?.some((url) => url.trim()) && !asset.referenceResourceIds?.some((id) => id.trim())) return "已验证的参考图组必须绑定参考图";
+    if (asset.kind === "lora" && !asset.sourceId?.trim() && !asset.sourceUrl?.trim()) return translate("shared.canvas.styleProfile.aVerifiedLoRAMustHaveASourceAssetIDOr");
+    if ((asset.kind === "prompt" || asset.kind === "template") && !asset.promptFragment?.trim() && !asset.triggerWords?.some((word) => word.trim())) return translate("shared.canvas.styleProfile.aVerifiedTemplateOrPromptModuleMustHavePromptContent");
+    if (asset.kind === "reference" && !asset.referenceUrls?.some((url) => url.trim()) && !asset.referenceResourceIds?.some((id) => id.trim())) return translate("shared.canvas.styleProfile.aVerifiedReferenceImageGroupMustHaveImagesBoundTo");
     return "";
 }
 
 export function styleProfileValidationMessage(profile: StyleProfileSnapshot) {
-    if (!profile.presetId.trim() || profile.revision < 1) return "项目画风快照缺少必要字段";
-    if (!profile.title.trim()) return "请填写风格名称";
-    if (!profile.prompt.trim()) return "请填写完整风格 Prompt";
-    if (profile.title.length > 80) return "风格名称最多 80 个字";
-    if (profile.description.length > 500) return "风格简介最多 500 个字";
-    if (profile.tags.length > 20) return "风格标签最多 20 个";
-    if (profile.selection && Object.keys(profile.selection).length > 20) return "项目画风辅助标注最多 20 项";
-    if (profile.selection && Object.entries(profile.selection).some(([key, value]) => !key.trim() || key.length > 64 || value.length > 200)) return "项目画风辅助标注格式无效";
-    if ((profile.coverUrl?.length || 0) > 4096) return "风格封面地址过长";
-    if (profile.coverUrl && !isStyleCoverUrl(profile.coverUrl)) return "风格封面只支持 http(s)、站内路径或图片 Data URL";
-    if ((profile.negativePrompt?.length || 0) > 64 * 1024) return "负面 Prompt 过大";
-    if (profile.assets.length > MAX_STYLE_ASSETS) return `项目画风最多绑定 ${MAX_STYLE_ASSETS} 个执行资产`;
+    if (!profile.presetId.trim() || profile.revision < 1) return translate("shared.canvas.styleProfile.theProjectArtStyleSnapshotIsMissingRequiredFields");
+    if (!profile.title.trim()) return translate("shared.canvas.styleProfile.enterAStyleName");
+    if (!profile.prompt.trim()) return translate("shared.canvas.styleProfile.enterTheCompleteStylePrompt");
+    if (profile.title.length > 80) return translate("shared.canvas.styleProfile.styleNamesCanBeAtMost80Characters");
+    if (profile.description.length > 500) return translate("shared.canvas.styleProfile.styleSummariesCanBeAtMost500Characters");
+    if (profile.tags.length > 20) return translate("shared.canvas.styleProfile.atMost20StyleTags");
+    if (profile.selection && Object.keys(profile.selection).length > 20) return translate("shared.canvas.styleProfile.aProjectArtStyleCanHaveAtMost20Auxiliary");
+    if (profile.selection && Object.entries(profile.selection).some(([key, value]) => !key.trim() || key.length > 64 || value.length > 200)) return translate("shared.canvas.styleProfile.invalidFormatForProjectArtStyleAuxiliaryAnnotations");
+    if ((profile.coverUrl?.length || 0) > 4096) return translate("shared.canvas.styleProfile.theStyleCoverURLIsTooLong");
+    if (profile.coverUrl && !isStyleCoverUrl(profile.coverUrl)) return translate("shared.canvas.styleProfile.styleCoversSupportOnlyHttpSURLsInSitePaths");
+    if ((profile.negativePrompt?.length || 0) > 64 * 1024) return translate("shared.canvas.styleProfile.theNegativePromptIsTooLarge");
+    if (profile.assets.length > MAX_STYLE_ASSETS) return translate("shared.canvas.styleProfile.aProjectStyleCanBindUpToExecutionAssets", { v0: String(MAX_STYLE_ASSETS) });
     const ids = new Set<string>();
     for (const asset of profile.assets) {
         const assetMessage = styleAssetValidationMessage(asset);
-        if (assetMessage) return `${asset.title || "未命名资产"}：${assetMessage}`;
-        if (ids.has(asset.id)) return "项目画风执行资产 ID 不能重复";
+        if (assetMessage) return `${asset.title || translate("shared.canvas.styleProfile.untitledAsset")}：${assetMessage}`;
+        if (ids.has(asset.id)) return translate("shared.canvas.styleProfile.projectArtStyleExecutionAssetIDsMustBeUnique");
         ids.add(asset.id);
     }
     return "";
@@ -243,15 +244,30 @@ function isStyleCoverUrl(value: string) {
 }
 
 function resolveAssetExecution(asset: StyleAssetBinding, context: StyleExecutionContext): StyleExecutionAsset {
-    if (asset.status !== "validated") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "skip", reason: asset.status === "unavailable" ? "资产当前不可用" : "资产尚未验证" };
+    if (asset.status !== "validated")
+        return {
+            assetId: asset.id,
+            title: asset.title,
+            kind: asset.kind,
+            action: "skip",
+            reason: asset.status === "unavailable" ? translate("shared.canvas.styleProfile.theAssetIsCurrentlyUnavailable") : translate("shared.canvas.styleProfile.assetNotVerifiedYet"),
+        };
     if (asset.baseModels?.length && !asset.baseModels.some((model) => model.trim().toLowerCase() === context.model.trim().toLowerCase())) {
-        return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: `仅兼容 ${asset.baseModels.join("、")}` };
+        return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: translate("shared.canvas.styleProfile.compatibleWithOnly", { v0: String(asset.baseModels.join("、")) }) };
     }
-    if (asset.kind === "prompt") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "prompt", reason: "追加到项目画风提示词" };
-    if (asset.kind === "template" && (asset.promptFragment?.trim() || asset.triggerWords?.length)) return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "prompt", reason: "当前以模板触发词执行" };
-    if (asset.kind === "reference") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: "项目参考图自动注入适配器尚未启用" };
-    if (asset.kind === "lora") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: `当前 ${context.interfaceType || "图片"} 协议未启用 LoRA 适配器` };
-    return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: "当前协议不支持该执行资产" };
+    if (asset.kind === "prompt") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "prompt", reason: translate("shared.canvas.styleProfile.appendToTheProjectArtStylePrompt") };
+    if (asset.kind === "template" && (asset.promptFragment?.trim() || asset.triggerWords?.length))
+        return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "prompt", reason: translate("shared.canvas.styleProfile.currentlyRunningWithTheTemplateSTriggerWords") };
+    if (asset.kind === "reference") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: translate("shared.canvas.styleProfile.automaticInjectionOfProjectReferenceImagesIntoTheAdapterIs") };
+    if (asset.kind === "lora")
+        return {
+            assetId: asset.id,
+            title: asset.title,
+            kind: asset.kind,
+            action: "block",
+            reason: translate("shared.canvas.styleProfile.theCurrentProtocolDoesNotHaveLoRAAdaptersEnabled", { v0: String(context.interfaceType || translate("account.feedback.image")) }),
+        };
+    return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: translate("shared.canvas.styleProfile.theCurrentProtocolDoesNotSupportThisExecutionAsset") };
 }
 
 function isStyleAssetBinding(value: unknown): value is StyleAssetBinding {

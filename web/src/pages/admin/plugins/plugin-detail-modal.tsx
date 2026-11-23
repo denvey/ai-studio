@@ -10,6 +10,7 @@ import { PluginMarkdown } from "@/pages/plugins/plugin-markdown";
 
 import { AdminStatusBadge } from "../components/admin-ui";
 import { AdminModal } from "../ui/overlays";
+import { translate } from "@/i18n";
 
 export type AdminPluginDetail = {
     manifest: PluginManifest | PluginManifestV2;
@@ -58,12 +59,16 @@ function PluginDetail({ plugin, state, typeLabel, icon }: { plugin: AdminPluginD
                         <h2>{manifest.name}</h2>
                         <span className="admin-plugin-detail-version">v{manifest.version}</span>
                     </div>
-                    <p className="admin-plugin-detail-description">{manifest.description || "未提供插件说明"}</p>
+                    <p className="admin-plugin-detail-description">{manifest.description || translate("adminPages.plugins.pluginDetailModal.noPluginDescriptionProvided")}</p>
                     <div className="admin-plugin-detail-badges">
                         <AdminStatusBadge label={typeLabel} tone={management.origin === "uploaded" ? "warning" : management.kind === "application" ? "info" : "neutral"} />
-                        <AdminStatusBadge label={available ? "平台已开放" : "平台已停用"} tone={available ? "success" : "neutral"} />
-                        {manifest.trusted ? <AdminStatusBadge label="来源已验证" tone="success" /> : <AdminStatusBadge label="来源未验证" tone="warning" />}
-                        {plugin.status === "invalid" ? <AdminStatusBadge label="插件包无效" tone="error" /> : null}
+                        <AdminStatusBadge label={available ? translate("adminPages.plugins.pluginDetailModal.enabledOnPlatform") : translate("adminPages.plugins.pluginDetailModal.disabledOnPlatform")} tone={available ? "success" : "neutral"} />
+                        {manifest.trusted ? (
+                            <AdminStatusBadge label={translate("adminPages.plugins.pluginDetailModal.sourceVerified")} tone="success" />
+                        ) : (
+                            <AdminStatusBadge label={translate("adminPages.plugins.pluginDetailModal.sourceNotVerified")} tone="warning" />
+                        )}
+                        {plugin.status === "invalid" ? <AdminStatusBadge label={translate("adminPages.plugins.pluginDetailModal.invalidPluginPackage")} tone="error" /> : null}
                         <span className="admin-plugin-detail-id" title={manifest.id}>
                             {manifest.id}
                         </span>
@@ -71,15 +76,19 @@ function PluginDetail({ plugin, state, typeLabel, icon }: { plugin: AdminPluginD
                 </div>
             </header>
             <div className="admin-plugin-detail-body">
-                <aside className="admin-plugin-detail-aside" aria-label="插件信息">
-                    {plugin.error ? <Alert type="error" showIcon title="插件加载失败" description={plugin.error} /> : null}
-                    <FactGroup icon={<SlidersHorizontal />} title="管理">
-                        <Fact label="来源">{originLabel(management.origin)}</Fact>
-                        <Fact label="作用范围">{management.activationScope === "user" ? "用户自主启用" : "全局生效，管理员统一控制"}</Fact>
-                        {management.activationScope === "user" ? <Fact label="已启用用户">{`${state?.enabledUserCount || 0} 位`}</Fact> : null}
-                        <Fact label="配置方式">{configurationLabel(management.configurationScope)}</Fact>
+                <aside className="admin-plugin-detail-aside" aria-label={translate("adminPages.plugins.pluginDetailModal.pluginInformation")}>
+                    {plugin.error ? <Alert type="error" showIcon title={translate("adminPages.plugins.pluginDetailModal.failedToLoadPlugin")} description={plugin.error} /> : null}
+                    <FactGroup icon={<SlidersHorizontal />} title={translate("adminPages.plugins.pluginDetailModal.manage")}>
+                        <Fact label={translate("canvasA.assetView.origin")}>{originLabel(management.origin)}</Fact>
+                        <Fact label={translate("adminPages.plugins.pluginDetailModal.scope")}>
+                            {management.activationScope === "user" ? translate("adminPages.plugins.pluginDetailModal.usersEnableIndividually") : translate("adminPages.plugins.pluginDetailModal.appliesGloballyControlledByAdministrators")}
+                        </Fact>
+                        {management.activationScope === "user" ? (
+                            <Fact label={translate("adminPages.plugins.pluginDetailModal.enabledUsers")}>{translate("adminPages.plugins.pluginDetailModal.users", { v0: String(state?.enabledUserCount || 0) })}</Fact>
+                        ) : null}
+                        <Fact label={translate("adminPages.plugins.pluginDetailModal.configurationMethod")}>{configurationLabel(management.configurationScope)}</Fact>
                     </FactGroup>
-                    <FactGroup icon={<KeyRound />} title="权限">
+                    <FactGroup icon={<KeyRound />} title={translate("adminPages.plugins.pluginDetailModal.permissions")}>
                         {manifest.permissions.length ? (
                             <div className="admin-plugin-detail-chips">
                                 {manifest.permissions.map((permission) => (
@@ -89,10 +98,10 @@ function PluginDetail({ plugin, state, typeLabel, icon }: { plugin: AdminPluginD
                                 ))}
                             </div>
                         ) : (
-                            <p className="admin-plugin-detail-empty">未声明权限</p>
+                            <p className="admin-plugin-detail-empty">{translate("adminPages.plugins.pluginDetailModal.noPermissionsDeclared")}</p>
                         )}
                     </FactGroup>
-                    <FactGroup icon={<Boxes />} title="提供能力">
+                    <FactGroup icon={<Boxes />} title={translate("adminPages.plugins.pluginDetailModal.capabilitiesProvided")}>
                         {contributions.length ? (
                             contributions.map(([label, value]) => (
                                 <Fact key={label} label={label}>
@@ -100,29 +109,29 @@ function PluginDetail({ plugin, state, typeLabel, icon }: { plugin: AdminPluginD
                                 </Fact>
                             ))
                         ) : (
-                            <p className="admin-plugin-detail-empty">未声明</p>
+                            <p className="admin-plugin-detail-empty">{translate("adminPages.plugins.pluginDetailModal.notDeclared")}</p>
                         )}
-                        <Fact label="运行方式">{runtimeLabel(manifest)}</Fact>
+                        <Fact label={translate("adminPages.plugins.pluginDetailModal.executionMode")}>{runtimeLabel(manifest)}</Fact>
                     </FactGroup>
-                    <FactGroup icon={hasPackage ? <Package /> : manifest.trusted ? <BadgeCheck /> : <ShieldAlert />} title="版本与安装">
-                        <Fact label="作者">{manifest.author || "未声明"}</Fact>
-                        <Fact label="发布时间">{formatTime(manifest.publishedAt)}</Fact>
-                        <Fact label="清单更新">{formatTime(manifest.updatedAt)}</Fact>
+                    <FactGroup icon={hasPackage ? <Package /> : manifest.trusted ? <BadgeCheck /> : <ShieldAlert />} title={translate("adminPages.plugins.pluginDetailModal.versionAndInstallation")}>
+                        <Fact label={translate("adminPages.plugins.pluginDetailModal.author")}>{manifest.author || translate("adminPages.plugins.pluginDetailModal.notDeclared")}</Fact>
+                        <Fact label={translate("adminPages.plugins.pluginDetailModal.publishedAt")}>{formatTime(manifest.publishedAt)}</Fact>
+                        <Fact label={translate("adminPages.plugins.pluginDetailModal.manifestUpdated")}>{formatTime(manifest.updatedAt)}</Fact>
                         {hasPackage ? (
                             <>
-                                <Fact label="安装包">{plugin.fileName || "未记录"}</Fact>
-                                <Fact label="安装时间">{formatTime(plugin.installedAt)}</Fact>
-                                <Fact label="最近更新">{formatTime(plugin.updatedAt)}</Fact>
+                                <Fact label={translate("adminPages.plugins.pluginDetailModal.installationPackage")}>{plugin.fileName || translate("adminPages.plugins.pluginDetailModal.notRecorded")}</Fact>
+                                <Fact label={translate("adminPages.plugins.pluginDetailModal.installedAt")}>{formatTime(plugin.installedAt)}</Fact>
+                                <Fact label={translate("adminPages.plugins.pluginDetailModal.lastUpdated")}>{formatTime(plugin.updatedAt)}</Fact>
                                 <Fact label="SHA-256">
-                                    <span className="admin-plugin-detail-mono">{plugin.sha256 || "未记录"}</span>
+                                    <span className="admin-plugin-detail-mono">{plugin.sha256 || translate("adminPages.plugins.pluginDetailModal.notRecorded")}</span>
                                 </Fact>
                             </>
                         ) : (
-                            <Fact label="安装包">随平台内置</Fact>
+                            <Fact label={translate("adminPages.plugins.pluginDetailModal.installationPackage")}>{translate("adminPages.plugins.pluginDetailModal.bundledWithThePlatform")}</Fact>
                         )}
                     </FactGroup>
                 </aside>
-                <section className="admin-plugin-detail-doc" aria-label="说明文档">
+                <section className="admin-plugin-detail-doc" aria-label={translate("adminPages.plugins.pluginDetailModal.documentation")}>
                     <div className="admin-plugin-detail-doc-inner">
                         <PluginMarkdown source={getPluginDocumentation(manifest)} />
                     </div>
@@ -154,40 +163,48 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 }
 
 function originLabel(origin: PluginManagement["origin"]) {
-    if (origin === "uploaded") return "管理员上传";
-    return origin === "official" ? "官方内置" : "系统内置";
+    if (origin === "uploaded") return translate("adminPages.plugins.pluginDetailModal.adminUpload");
+    return origin === "official" ? translate("adminPages.plugins.pluginDetailModal.officialBuiltIn") : translate("adminPages.plugins.pluginDetailModal.systemBuiltIn");
 }
 
 function configurationLabel(scope: PluginManagement["configurationScope"]) {
-    if (scope === "system") return "管理员统一配置";
-    if (scope === "user") return "用户各自配置";
-    return "无需配置";
+    if (scope === "system") return translate("adminPages.plugins.pluginDetailModal.configuredByAdministrator");
+    if (scope === "user") return translate("adminPages.plugins.pluginDetailModal.configuredIndividuallyByUsers");
+    return translate("adminPages.plugins.pluginDetailModal.noConfigurationNeeded");
 }
 
 function runtimeLabel(manifest: PluginManifest | PluginManifestV2) {
-    const names: Record<string, string> = { declarative: "声明式", sandbox: "沙箱", worker: "Worker", "trusted-backend": "受信后端" };
-    const parts = [manifest.runtime?.backend ? `后端${names[manifest.runtime.backend] || manifest.runtime.backend}` : "", manifest.runtime?.web ? `前端${names[manifest.runtime.web] || manifest.runtime.web}` : ""].filter(Boolean);
-    return parts.join(" · ") || "未声明";
+    const names: Record<string, string> = {
+        declarative: translate("adminPages.plugins.pluginDetailModal.declarative"),
+        sandbox: translate("adminPages.plugins.pluginDetailModal.sandbox"),
+        worker: "Worker",
+        "trusted-backend": translate("adminPages.plugins.pluginDetailModal.trustedBackend"),
+    };
+    const parts = [
+        manifest.runtime?.backend ? translate("adminPages.plugins.pluginDetailModal.backend", { v0: String(names[manifest.runtime.backend] || manifest.runtime.backend) }) : "",
+        manifest.runtime?.web ? translate("adminPages.plugins.pluginDetailModal.frontend", { v0: String(names[manifest.runtime.web] || manifest.runtime.web) }) : "",
+    ].filter(Boolean);
+    return parts.join(" · ") || translate("adminPages.plugins.pluginDetailModal.notDeclared");
 }
 
 function contributionSummary(manifest: PluginManifest | PluginManifestV2): Array<[string, string]> {
     const contributes = manifest.contributes || {};
     const labels = (items?: Array<{ id: string; label?: string }>) => (items || []).map((item) => item.label || item.id).join("、");
     const rows: Array<[string, string]> = [
-        ["模型接入", labels(contributes.providers)],
-        ["支付", labels(contributes.paymentProviders)],
-        ["工作流", labels(contributes.workflows)],
-        ["画布节点", labels(contributes.canvasNodes)],
-        ["命令", labels(contributes.commands)],
-        ["媒体转换", contributes.transforms?.length ? `${contributes.transforms.length} 项` : ""],
-        ["素材来源", (contributes.assetSources || []).join("、")],
+        [translate("adminPages.plugins.pluginDetailModal.modelIntegration"), labels(contributes.providers)],
+        [translate("adminPages.plugins.pluginDetailModal.payment"), labels(contributes.paymentProviders)],
+        [translate("library.tasks.model.workflow"), labels(contributes.workflows)],
+        [translate("canvasB.mention.canvasNodes"), labels(contributes.canvasNodes)],
+        [translate("adminPages.plugins.pluginDetailModal.commands"), labels(contributes.commands)],
+        [translate("adminPages.plugins.pluginDetailModal.mediaConversion"), contributes.transforms?.length ? translate("adminPages.plugins.pluginDetailModal.items", { v0: String(contributes.transforms.length) }) : ""],
+        [translate("create.page.sourcesSummary"), (contributes.assetSources || []).join("、")],
         ["Agent", (contributes.agents || []).join("、")],
     ];
     return rows.filter(([, value]) => value);
 }
 
 function formatTime(value?: string) {
-    if (!value) return "未记录";
+    if (!value) return translate("adminPages.plugins.pluginDetailModal.notRecorded");
     const time = dayjs(value);
-    return time.isValid() && time.year() > 1 ? time.format("YYYY-MM-DD HH:mm") : "未记录";
+    return time.isValid() && time.year() > 1 ? time.format("YYYY-MM-DD HH:mm") : translate("adminPages.plugins.pluginDetailModal.notRecorded");
 }

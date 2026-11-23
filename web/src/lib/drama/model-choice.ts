@@ -4,6 +4,7 @@
 import { logicalModelIDForConfig, modelDisplayName, modelOptionName, resolveModelChannel, selectableModelsByCapability, type AiConfig, type ModelCapability } from "@/stores/use-config-store";
 import type { DramaModelChoice, DramaModelOption, DramaVideoContinuity } from "@/services/api/drama";
 import { formatVideoResolutionLabel, videoResolutionComparisonKey } from "@/lib/video-generation-options";
+import { translate } from "@/i18n";
 
 export function dramaChoiceKey(choice?: DramaModelChoice) {
     if (!choice) return "";
@@ -49,7 +50,7 @@ export function dramaChoiceToModel(config: AiConfig, capability: ModelCapability
 export function dramaVideoRatioIssue(option: DramaModelOption | undefined, aspectRatio: string) {
     const ratios = option?.videoRatios;
     if (!ratios || !aspectRatio || ratios.includes(aspectRatio)) return "";
-    return `不支持 ${aspectRatio} 画幅（可选 ${ratios.join("、")}）`;
+    return translate("shared.drama.modelChoice.doesNotSupportTheAspectRatioAvailable", { v0: String(aspectRatio), v1: String(ratios.join("、")) });
 }
 
 /** 视频模型给不出作品指定分辨率的原因；未指定分辨率（按模型默认）或目录未加载时不限制。 */
@@ -57,7 +58,9 @@ export function dramaVideoResolutionIssue(option: DramaModelOption | undefined, 
     if (!option || !resolution) return "";
     const values = option.videoResolutions || [];
     if (values.some((value) => videoResolutionComparisonKey(value) === videoResolutionComparisonKey(resolution))) return "";
-    return values.length ? `不支持 ${formatVideoResolutionLabel(resolution)} 分辨率（可选 ${values.map(formatVideoResolutionLabel).join("、")}）` : "不提供可选分辨率";
+    return values.length
+        ? translate("shared.drama.modelChoice.doesNotSupportResolutionAvailable", { v0: String(formatVideoResolutionLabel(resolution)), v1: String(values.map(formatVideoResolutionLabel).join("、")) })
+        : translate("shared.drama.modelChoice.doesNotOfferSelectableResolutions");
 }
 
 /** 视频模型能否用于作品：给得出作品画幅与分辨率，尾帧续接时还要支持图生视频（tailFrameChain 为 false 时服务端不下发该字段）。 */

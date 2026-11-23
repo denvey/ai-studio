@@ -1,6 +1,7 @@
 import { getDramaCanvas, registerDramaCanvasAssets } from "@/services/api/drama";
 import { createCanvasProjectWithRemoteSync, loadAssetsForUse, localSavedRemotePendingMessage, saveRemoteUserDataNow } from "@/services/user-data-sync";
 import { useCanvasStore } from "@/stores/canvas/use-canvas-store";
+import { translate } from "@/i18n";
 
 // 短剧 ↔ 精修画布的副作用：找到或新建作品的精修画布、拼跳转地址、为投送的媒体登记素材记录。
 
@@ -91,6 +92,6 @@ export async function linkCanvasToDrama(canvasId: string, dramaId: string): Prom
         await saveRemoteUserDataNow(canvasId);
         return { linked: true };
     } catch (error) {
-        return { linked: true, warning: localSavedRemotePendingMessage("画布已在本机关联到新短剧", error) };
+        return { linked: true, warning: localSavedRemotePendingMessage(translate("shared.dramaCanvas.theCanvasHasBeenLinkedToTheNewShortDrama"), error) };
     }
 }

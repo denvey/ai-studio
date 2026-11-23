@@ -1,10 +1,11 @@
+import { translate } from "@/i18n";
 export const modelTagColors = [
-    { value: "purple", label: "紫色" },
-    { value: "blue", label: "蓝色" },
-    { value: "green", label: "绿色" },
-    { value: "gold", label: "金色" },
-    { value: "orange", label: "橙色" },
-    { value: "pink", label: "粉色" },
+    { value: "purple", label: translate("shared.modelTags.purple") },
+    { value: "blue", label: translate("shared.modelTags.blue") },
+    { value: "green", label: translate("shared.modelTags.green") },
+    { value: "gold", label: translate("shared.modelTags.gold") },
+    { value: "orange", label: translate("shared.modelTags.orange") },
+    { value: "pink", label: translate("shared.canvas.canvasAppearance.pink") },
 ] as const;
 
 export type ModelTag = { text: string; color: (typeof modelTagColors)[number]["value"] };
@@ -13,9 +14,9 @@ export type ModelTag = { text: string; color: (typeof modelTagColors)[number]["v
 export function referenceCapabilityTag(references?: { maxImages?: number; maxVideos?: number; maxAudios?: number }): ModelTag | undefined {
     if (!references) return undefined;
     const counts = [
-        ["图", references.maxImages],
-        ["视", references.maxVideos],
-        ["音", references.maxAudios],
+        [translate("shared.modelTags.img"), references.maxImages],
+        [translate("shared.modelTags.vid"), references.maxVideos],
+        [translate("shared.modelTags.aud"), references.maxAudios],
     ] as const;
     const text = counts
         .filter(([, count]) => typeof count === "number" && Number.isFinite(count) && count > 0)

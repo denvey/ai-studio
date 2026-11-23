@@ -7,6 +7,7 @@ import "@vidstack/react/player/styles/base.css";
 import "@vidstack/react/player/styles/default/theme.css";
 import "@vidstack/react/player/styles/default/layouts/video.css";
 import "./video-player.css";
+import { translate } from "@/i18n";
 
 type MediaPlayerProps = ComponentProps<typeof MediaPlayer>;
 
@@ -28,45 +29,45 @@ type VideoPlayerProps = {
 };
 
 const zhCNTranslations = {
-    Accessibility: "辅助功能",
-    AirPlay: "隔空播放",
-    Audio: "音频",
-    Auto: "自动",
-    Boost: "音量增强",
-    Captions: "字幕",
-    "Caption Styles": "字幕样式",
-    Chapters: "章节",
-    "Closed-Captions Off": "关闭字幕",
-    "Closed-Captions On": "开启字幕",
-    Connected: "已连接",
-    Connecting: "连接中",
-    Default: "默认",
-    Disabled: "已禁用",
-    Disconnected: "已断开",
-    Download: "下载",
-    "Enter Fullscreen": "进入全屏",
-    "Enter PiP": "进入画中画",
-    "Exit Fullscreen": "退出全屏",
-    "Exit PiP": "退出画中画",
-    Fullscreen: "全屏",
-    Loop: "循环播放",
-    Mute: "静音",
-    Normal: "正常",
-    Off: "关闭",
-    Pause: "暂停",
-    Play: "播放",
-    Playback: "播放",
-    PiP: "画中画",
-    Quality: "画质",
-    Replay: "重新播放",
-    Reset: "重置",
-    Seek: "跳转",
-    "Seek Backward": "快退",
-    "Seek Forward": "快进",
-    Settings: "设置",
-    Speed: "倍速",
-    Unmute: "取消静音",
-    Volume: "音量",
+    Accessibility: translate("shared.videoPlayer.accessibility"),
+    AirPlay: translate("shared.videoPlayer.airPlay"),
+    Audio: translate("account.settings.modelConfig.capabilities.audio"),
+    Auto: translate("account.layout.oss.auto"),
+    Boost: translate("shared.videoPlayer.volumeBoost"),
+    Captions: translate("shared.plugins.builtin.editor.editorInspector.subtitles"),
+    "Caption Styles": translate("shared.videoPlayer.subtitleStyle"),
+    Chapters: translate("shared.videoPlayer.chapters"),
+    "Closed-Captions Off": translate("shared.videoPlayer.hideSubtitles"),
+    "Closed-Captions On": translate("shared.videoPlayer.showSubtitles"),
+    Connected: translate("shared.videoPlayer.connected"),
+    Connecting: translate("shared.videoPlayer.connecting"),
+    Default: translate("canvasB.common.default"),
+    Disabled: translate("shared.videoPlayer.disabled"),
+    Disconnected: translate("shared.videoPlayer.disconnected"),
+    Download: translate("canvasA.assetView.download"),
+    "Enter Fullscreen": translate("shared.videoPlayer.enterFullscreen"),
+    "Enter PiP": translate("shared.videoPlayer.enterPictureInPicture"),
+    "Exit Fullscreen": translate("shared.videoPlayer.exitFullscreen"),
+    "Exit PiP": translate("shared.videoPlayer.exitPictureInPicture"),
+    Fullscreen: translate("shared.videoPlayer.fullscreen"),
+    Loop: translate("shared.videoPlayer.loop"),
+    Mute: translate("shared.videoPlayer.mute"),
+    Normal: translate("shared.videoPlayer.normal"),
+    Off: translate("common.close"),
+    Pause: translate("canvasA.outbox.pause"),
+    Play: translate("shared.plugins.builtin.editor.editorPreviewMonitor.play"),
+    Playback: translate("shared.plugins.builtin.editor.editorPreviewMonitor.play"),
+    PiP: translate("shared.videoPlayer.pictureInPicture"),
+    Quality: translate("shared.videoPlayer.quality"),
+    Replay: translate("shared.videoPlayer.replay"),
+    Reset: translate("account.layout.list.reset"),
+    Seek: translate("shared.videoPlayer.seek"),
+    "Seek Backward": translate("shared.videoPlayer.rewind"),
+    "Seek Forward": translate("shared.videoPlayer.forward"),
+    Settings: translate("nav.tools.settings"),
+    Speed: translate("shared.videoPlayer.playbackSpeed"),
+    Unmute: translate("shared.plugins.builtin.editor.editorTimelinePanel.unmute"),
+    Volume: translate("shared.plugins.builtin.editor.editorInspector.volume"),
 } satisfies Partial<DefaultLayoutTranslations>;
 
 const supportedVideoMimeTypes = new Set<VideoMimeType>(["video/mp4", "video/webm", "video/3gp", "video/ogg", "video/avi", "video/mpeg", "video/object"]);
@@ -75,7 +76,21 @@ const supportedVideoMimeTypes = new Set<VideoMimeType>(["video/mp4", "video/webm
  * 统一视频播放表面，保留原生媒体 URL 契约，同时提供可访问的完整控件布局。
  * 画布节点需要隔离播放器手势，避免拖动进度条时被误判为拖动画布。
  */
-export function VideoPlayer({ src, mimeType, title = "视频", className, brandColor = "#f5f5f5", preload = "metadata", autoPlay = false, dataCanvasNoZoom = false, compactControls = false, hasAudio, onCanPlay, onPlay, onError }: VideoPlayerProps) {
+export function VideoPlayer({
+    src,
+    mimeType,
+    title = translate("account.feedback.video"),
+    className,
+    brandColor = "#f5f5f5",
+    preload = "metadata",
+    autoPlay = false,
+    dataCanvasNoZoom = false,
+    compactControls = false,
+    hasAudio,
+    onCanPlay,
+    onPlay,
+    onError,
+}: VideoPlayerProps) {
     const [detectedHasAudio, setDetectedHasAudio] = useState<boolean | undefined>(undefined);
     const autoPlayAttemptedRef = useRef(false);
     const audioProbeGenerationRef = useRef(0);

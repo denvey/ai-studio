@@ -2,6 +2,7 @@ import type { AgentMediaSettings } from "@/services/api/agent";
 import { isCanvasNodeGenerating } from "@/lib/canvas/canvas-node-task-state";
 import type { CanvasNodeData } from "@/types/canvas";
 import { logicalModelIDForConfig, modelOptionName, resolveModelChannel, selectableModelsByCapability, type AiConfig } from "@/stores/use-config-store";
+import { translate } from "@/i18n";
 
 export type AgentImageApproval = AgentMediaSettings & { prompt: string; referenceNodeIds: string[] };
 export type AgentVideoApproval = AgentImageApproval & { referenceTransientIds: string[]; sourceNodeId: string };
@@ -120,7 +121,7 @@ export function agentApprovalModelSelection(config: AiConfig, model: string): Pi
     const logicalModelId = logicalModelIDForConfig({ ...config, model });
     if (logicalModelId) return { logicalModelId };
     const channel = resolveModelChannel(config, model);
-    if (channel.scope !== "system") throw new Error("Agent 生成仅支持平台模型");
+    if (channel.scope !== "system") throw new Error(translate("shared.canvas.agentMediaApproval.agentGenerationSupportsPlatformModelsOnly"));
     return { channelId: channel.id, channelModelKey: modelOptionName(model) };
 }
 

@@ -11,6 +11,7 @@ import { imageSizePresets } from "@/lib/image-size-presets";
 import { Select } from "@/components/ui/base/select";
 import { ImageParameterInput } from "@/components/image-parameter-fields";
 import { imageParameterConstraints, imageParametersForSpec, type ImageParameter } from "@/lib/image-parameters";
+import { translate } from "@/i18n";
 
 export type CapabilityKind = CapabilitySpec["capability"];
 export type Scalar = string | number | boolean;
@@ -25,17 +26,17 @@ type CapabilityScopeEditorProps = {
 
 const inputDefinitions: Record<CapabilityKind, Array<{ name: string; label: string; unit: string }>> = {
     text: [
-        { name: "image", label: "参考图片", unit: "张" },
-        { name: "video", label: "参考视频", unit: "个" },
+        { name: "image", label: translate("library.tasks.params.referenceImages"), unit: translate("canvasA.characterLibrary.pageItem") },
+        { name: "video", label: translate("library.tasks.params.referenceVideos"), unit: translate("adminPages.logicalModels.modelRoutingCapabilities.items") },
     ],
     image: [
-        { name: "image", label: "参考图片", unit: "张" },
-        { name: "mask", label: "蒙版", unit: "张" },
+        { name: "image", label: translate("library.tasks.params.referenceImages"), unit: translate("canvasA.characterLibrary.pageItem") },
+        { name: "mask", label: translate("adminPages.logicalModels.modelRoutingCapabilities.mask"), unit: translate("canvasA.characterLibrary.pageItem") },
     ],
     video: [
-        { name: "image", label: "参考图片", unit: "张" },
-        { name: "video", label: "参考视频", unit: "个" },
-        { name: "audio", label: "参考音频", unit: "个" },
+        { name: "image", label: translate("library.tasks.params.referenceImages"), unit: translate("canvasA.characterLibrary.pageItem") },
+        { name: "video", label: translate("library.tasks.params.referenceVideos"), unit: translate("adminPages.logicalModels.modelRoutingCapabilities.items") },
+        { name: "audio", label: translate("library.tasks.params.referenceAudios"), unit: translate("adminPages.logicalModels.modelRoutingCapabilities.items") },
     ],
     audio: [],
 };
@@ -43,23 +44,23 @@ const inputDefinitions: Record<CapabilityKind, Array<{ name: string; label: stri
 const optionDefinitions: Record<CapabilityKind, Array<{ name: string; label: string; unit?: string }>> = {
     text: [],
     image: [
-        { name: "size", label: "画面尺寸或比例" },
-        { name: "quality", label: "生成质量" },
-        { name: "transparentBackground", label: "透明背景" },
-        { name: "count", label: "输出数量", unit: "张" },
+        { name: "size", label: translate("adminPages.logicalModels.modelRoutingCapabilities.imageSizeOrAspectRatio") },
+        { name: "quality", label: translate("adminPages.logicalModels.modelRoutingCapabilities.generationQuality") },
+        { name: "transparentBackground", label: translate("adminPages.logicalModels.modelRoutingCapabilities.transparentBackground") },
+        { name: "count", label: translate("adminPages.logicalModels.modelRoutingCapabilities.outputCount"), unit: translate("canvasA.characterLibrary.pageItem") },
     ],
     video: [
-        { name: "size", label: "画面比例" },
-        { name: "videoSeconds", label: "视频时长", unit: "秒" },
-        { name: "vquality", label: "输出分辨率" },
-        { name: "videoGenerateAudio", label: "同步生成音频" },
-        { name: "videoWatermark", label: "输出水印" },
+        { name: "size", label: translate("adminPages.logicalModels.modelRoutingCapabilities.aspectRatio") },
+        { name: "videoSeconds", label: translate("adminPages.logicalModels.modelRoutingCapabilities.videoDuration"), unit: translate("account.settings.models.unitSecond") },
+        { name: "vquality", label: translate("adminPages.logicalModels.modelRoutingCapabilities.outputResolution") },
+        { name: "videoGenerateAudio", label: translate("adminPages.logicalModels.modelRoutingCapabilities.generateAudioWithVideo") },
+        { name: "videoWatermark", label: translate("adminPages.logicalModels.modelRoutingCapabilities.outputWatermark") },
     ],
     audio: [
-        { name: "audioVoice", label: "音色" },
-        { name: "audioFormat", label: "音频格式" },
-        { name: "audioSpeed", label: "语速", unit: "倍" },
-        { name: "audioInstructions", label: "朗读指令" },
+        { name: "audioVoice", label: translate("library.tasks.params.voice") },
+        { name: "audioFormat", label: translate("library.tasks.params.audioFormat") },
+        { name: "audioSpeed", label: translate("adminPages.logicalModels.modelRoutingCapabilities.speed"), unit: translate("adminPages.logicalModels.modelRoutingCapabilities.times") },
+        { name: "audioInstructions", label: translate("adminPages.logicalModels.modelRoutingCapabilities.speechInstructions") },
     ],
 };
 
@@ -69,7 +70,7 @@ function definitionsFor(capability: CapabilityKind, specs: CapabilitySpec[] = []
 }
 
 export function capabilityLabel(value: CapabilityKind) {
-    return { text: "文本", image: "图片", video: "视频", audio: "音频" }[value];
+    return { text: translate("account.settings.modelConfig.capabilities.text"), image: translate("account.feedback.image"), video: translate("account.feedback.video"), audio: translate("account.settings.modelConfig.capabilities.audio") }[value];
 }
 
 export function emptyCapabilitySpec(capability: CapabilityKind): CapabilitySpec {
@@ -261,18 +262,18 @@ export function capabilitySourceError(capability: CapabilityKind, sourceSpecs: C
     const matching = sourceSpecs.filter((item) => item.capability === capability);
     const current = value?.capability === capability ? value : emptyCapabilitySpec(capability);
     const currentOperations = current.operations || [];
-    if (!matching.length) return "没有可用的渠道模型能力来源";
+    if (!matching.length) return translate("adminPages.logicalModels.modelRoutingCapabilities.noChannelModelCapabilitiesAvailable");
     if (!currentOperations.length && matching.every((item) => (item.operations || []).length > 0)) {
-        return "请选择至少一种供应线路支持的生成方式";
+        return translate("adminPages.logicalModels.modelRoutingCapabilities.pleaseSelectAtLeastOneGenerationModeSupportedByThe");
     }
     if (currentOperations.some((operation) => !matching.some((item) => !(item.operations || []).length || item.operations?.includes(operation)))) {
-        return "当前生成方式已不受供应线路支持";
+        return translate("adminPages.logicalModels.modelRoutingCapabilities.theCurrentGenerationModeIsNoLongerSupportedByThe");
     }
     for (const [name, constraint] of Object.entries(current.inputs || {})) {
-        if (!inputConstraintCovered(constraint, name, matching)) return `当前${inputLabel(capability, name)}范围存在供应线路无法覆盖的数量`;
+        if (!inputConstraintCovered(constraint, name, matching)) return translate("adminPages.logicalModels.modelRoutingCapabilities.theCurrentRangeIncludesCountsNotCoveredByTheSupply", { v0: String(inputLabel(capability, name)) });
     }
     for (const [name, constraint] of Object.entries(current.options || {})) {
-        if (!optionConstraintCovered(constraint, name, matching)) return `当前${optionLabel(capability, name)}范围存在供应线路无法覆盖的值`;
+        if (!optionConstraintCovered(constraint, name, matching)) return translate("adminPages.logicalModels.modelRoutingCapabilities.theCurrentRangeIncludesValuesNotCoveredByTheSupply", { v0: String(optionLabel(capability, name)) });
     }
     return undefined;
 }
@@ -294,27 +295,31 @@ export function CapabilityScopeEditor({ capability, sourceSpecs, value, onChange
         <div className="space-y-5">
             <div className="flex justify-end">
                 <Button size="small" type="text" icon={<RotateCcw className="size-3.5" />} onClick={reset}>
-                    恢复全部可用范围
+                    {translate("adminPages.logicalModels.modelRoutingCapabilities.restoreAllAvailableOptions")}
                 </Button>
             </div>
 
-            {sourceError ? <Callout tone="warning" title="当前选择需要调整">{`${sourceError}。可重新选择，或采用全部可用范围。`}</Callout> : null}
+            {sourceError ? (
+                <Callout tone="warning" title={translate("adminPages.logicalModels.modelRoutingCapabilities.theCurrentSelectionNeedsAdjustment")}>
+                    {translate("adminPages.logicalModels.modelRoutingCapabilities.selectAgainOrUseAllAvailableOptions", { v0: String(sourceError) })}
+                </Callout>
+            ) : null}
 
             {source.operations?.length ? (
-                <CapabilityBlock title="生成方式">
+                <CapabilityBlock title={translate("adminPages.logicalModels.modelRoutingCapabilities.generationMode")}>
                     <Select
                         className="w-full"
                         mode="multiple"
                         value={current.operations || []}
                         options={source.operations.map((operation) => ({ value: operation, label: operationLabel(operation) }))}
-                        placeholder="选择创作端可用的生成方式"
+                        placeholder={translate("adminPages.logicalModels.modelRoutingCapabilities.chooseGenerationModesAvailableToCreators")}
                         onChange={(operations) => update({ operations })}
                     />
                 </CapabilityBlock>
             ) : null}
 
             {sourceInputs.length ? (
-                <CapabilityBlock title="参考素材">
+                <CapabilityBlock title={translate("adminPages.logicalModels.modelRoutingCapabilities.referenceAssets")}>
                     <div className="divide-y divide-border">
                         {sourceInputs.map((definition) => {
                             const limit = source.inputs![definition.name];
@@ -324,7 +329,7 @@ export function CapabilityScopeEditor({ capability, sourceSpecs, value, onChange
                                     <div className="col-span-12 sm:col-span-5">
                                         <div className="text-sm font-medium">{definition.label}</div>
                                         <div className="text-xs text-foreground/45">
-                                            线路支持 {limit.min}-{limit.max} {definition.unit}
+                                            {translate("adminPages.logicalModels.modelRoutingCapabilities.supportedByRoutes")} {limit.min}-{limit.max} {definition.unit}
                                         </div>
                                     </div>
                                     <div className="col-span-12 sm:col-span-1">
@@ -332,7 +337,7 @@ export function CapabilityScopeEditor({ capability, sourceSpecs, value, onChange
                                     </div>
                                     <div className="col-span-6 sm:col-span-3">
                                         <NumberInput
-                                            label="最少"
+                                            label={translate("adminPages.logicalModels.modelRoutingCapabilities.minimum")}
                                             unit={definition.unit}
                                             value={selected?.min}
                                             min={limit.min}
@@ -343,7 +348,7 @@ export function CapabilityScopeEditor({ capability, sourceSpecs, value, onChange
                                     </div>
                                     <div className="col-span-6 sm:col-span-3">
                                         <NumberInput
-                                            label="最多"
+                                            label={translate("adminPages.logicalModels.modelRoutingCapabilities.maximum")}
                                             unit={definition.unit}
                                             value={selected?.max}
                                             min={selected?.min ?? limit.min}
@@ -360,7 +365,7 @@ export function CapabilityScopeEditor({ capability, sourceSpecs, value, onChange
             ) : null}
 
             {sourceOptions.length ? (
-                <CapabilityBlock title="生成参数">
+                <CapabilityBlock title={translate("adminPages.logicalModels.modelRoutingCapabilities.generationParameters")}>
                     <div className="divide-y divide-border">
                         {sourceOptions.map((definition) => (
                             <OptionRuleEditor
@@ -376,8 +381,8 @@ export function CapabilityScopeEditor({ capability, sourceSpecs, value, onChange
             ) : null}
 
             {!sourceInputs.length && !sourceOptions.length && !source.operations?.length ? (
-                <Callout tone="info" title="该类型暂无额外能力参数">
-                    线路仍可按优先级和权重参与路由。
+                <Callout tone="info" title={translate("adminPages.logicalModels.modelRoutingCapabilities.noAdditionalCapabilityParametersForThisType")}>
+                    {translate("adminPages.logicalModels.modelRoutingCapabilities.routesCanStillParticipateInRoutingByPriorityAndWeight")}
                 </Callout>
             ) : null}
         </div>
@@ -386,7 +391,7 @@ export function CapabilityScopeEditor({ capability, sourceSpecs, value, onChange
 
 export function DefaultOptionsEditor({ spec, value, onChange }: { spec?: CapabilitySpec; value?: Record<string, unknown>; onChange?: (value: Record<string, Scalar>) => void }) {
     const options = definitionsFor(spec?.capability || "text", spec ? [spec] : []).filter((item) => spec?.options?.[item.name]);
-    if (!options.length) return <div className="rounded-md bg-muted/20 px-3 py-2 text-xs text-foreground/50">当前能力没有需要设置的默认参数。</div>;
+    if (!options.length) return <div className="rounded-md bg-muted/20 px-3 py-2 text-xs text-foreground/50">{translate("adminPages.logicalModels.modelRoutingCapabilities.thisCapabilityHasNoDefaultParametersToConfigure")}</div>;
     return (
         <div className="divide-y divide-border">
             {options.map((definition) => {
@@ -396,7 +401,7 @@ export function DefaultOptionsEditor({ spec, value, onChange }: { spec?: Capabil
                     <div key={definition.name} className="grid grid-cols-12 items-center gap-2 py-3 first:pt-0 last:pb-0">
                         <div className="col-span-12 sm:col-span-5">
                             <div className="text-sm font-medium">{definition.label}</div>
-                            <div className="text-xs text-foreground/45">留空时由创作端或线路默认值决定</div>
+                            <div className="text-xs text-foreground/45">{translate("adminPages.logicalModels.modelRoutingCapabilities.leaveBlankToUseTheCreatorSChoiceOrRoute")}</div>
                         </div>
                         <div className="col-span-12 sm:col-span-7">
                             <ConstraintValueInput
@@ -437,7 +442,7 @@ export function CapabilityRequestEditor({
     return (
         <div className="space-y-4">
             {inputItems.length ? (
-                <CapabilityBlock title="实际输入数量">
+                <CapabilityBlock title={translate("adminPages.logicalModels.modelRoutingCapabilities.actualInputCount")}>
                     <div className="grid gap-2 sm:grid-cols-2">
                         {inputItems.map((definition) => {
                             const constraint = spec.inputs![definition.name];
@@ -457,7 +462,7 @@ export function CapabilityRequestEditor({
                 </CapabilityBlock>
             ) : null}
             {optionItems.length ? (
-                <CapabilityBlock title="请求参数">
+                <CapabilityBlock title={translate("adminPages.logicalModels.modelRoutingCapabilities.requestParameters")}>
                     <div className="grid gap-2 sm:grid-cols-2">
                         {optionItems.map((definition) => {
                             const constraint = spec.options![definition.name];
@@ -485,7 +490,7 @@ export function CapabilityRequestEditor({
                     </div>
                 </CapabilityBlock>
             ) : null}
-            {!inputItems.length && !optionItems.length ? <div className="rounded-md bg-muted/20 px-3 py-2 text-xs text-foreground/50">该模型没有额外请求参数。</div> : null}
+            {!inputItems.length && !optionItems.length ? <div className="rounded-md bg-muted/20 px-3 py-2 text-xs text-foreground/50">{translate("adminPages.logicalModels.modelRoutingCapabilities.thisModelHasNoAdditionalRequestParameters")}</div> : null}
         </div>
     );
 }
@@ -506,7 +511,7 @@ export function CapabilitySummary({ spec }: { spec: CapabilitySpec }) {
         labels.push(option.values ? `${definition.label} ${option.values.map(scalarLabel).join("/")}` : `${definition.label} ${option.min}-${option.max}${definition.unit || ""}`);
     }
     if (spec.operations?.length) labels.unshift(spec.operations.map(operationLabel).join("/"));
-    if (!labels.length) return <span className="text-xs text-foreground/45">基础能力</span>;
+    if (!labels.length) return <span className="text-xs text-foreground/45">{translate("adminPages.logicalModels.modelRoutingCapabilities.baseCapabilities")}</span>;
     return (
         <div className="flex min-w-0 max-w-full flex-wrap gap-1">
             {labels.slice(0, 4).map((label) => (
@@ -567,7 +572,7 @@ function OptionRuleEditor({ definition, source, value, onChange }: { definition:
                 ) : (
                     <div className="grid grid-cols-3 gap-2">
                         <label>
-                            <span className="mb-1 block text-xs text-foreground/45">最小值</span>
+                            <span className="mb-1 block text-xs text-foreground/45">{translate("adminPages.logicalModels.modelRoutingCapabilities.minimumValue")}</span>
                             <InputNumber
                                 className="w-full"
                                 disabled={!value}
@@ -578,7 +583,7 @@ function OptionRuleEditor({ definition, source, value, onChange }: { definition:
                             />
                         </label>
                         <label>
-                            <span className="mb-1 block text-xs text-foreground/45">最大值</span>
+                            <span className="mb-1 block text-xs text-foreground/45">{translate("adminPages.logicalModels.modelRoutingCapabilities.maximumValue")}</span>
                             <InputNumber
                                 className="w-full"
                                 disabled={!value}
@@ -589,7 +594,7 @@ function OptionRuleEditor({ definition, source, value, onChange }: { definition:
                             />
                         </label>
                         <label>
-                            <span className="mb-1 block text-xs text-foreground/45">调整步长</span>
+                            <span className="mb-1 block text-xs text-foreground/45">{translate("adminPages.logicalModels.modelRoutingCapabilities.stepSize")}</span>
                             <InputNumber
                                 className="w-full"
                                 disabled={!value}
@@ -693,9 +698,9 @@ function scalarKey(value: unknown) {
 
 function scalarLabel(value: unknown) {
     const normalized = normalizeScalar(value);
-    if (normalized === true) return "支持";
-    if (normalized === false) return "不启用";
-    if (normalized === "*") return "自定义";
+    if (normalized === true) return translate("adminPages.logicalModels.modelRoutingCapabilities.supported");
+    if (normalized === false) return translate("adminPages.logicalModels.modelRoutingCapabilities.disabled");
+    if (normalized === "*") return translate("account.settings.models.scopeCustom");
     return String(normalized);
 }
 
@@ -707,15 +712,15 @@ function normalizeScalar(value: unknown) {
 export function operationLabel(value: string) {
     return (
         {
-            text_to_video: "文生视频",
-            image_to_video: "图生视频",
-            reference_to_video: "全模态参考",
-            extend: "视频续写",
-            inpaint: "局部修改",
-            replace_element: "元素替换",
-            camera_motion: "运镜调整",
-            style_transfer: "风格迁移",
-            audio_to_video: "音频生视频",
+            text_to_video: translate("adminPages.logicalModels.modelRoutingCapabilities.textToVideo"),
+            image_to_video: translate("adminPages.logicalModels.modelRoutingCapabilities.imageToVideo"),
+            reference_to_video: translate("adminPages.logicalModels.modelRoutingCapabilities.multimodalReference"),
+            extend: translate("adminPages.logicalModels.modelRoutingCapabilities.videoContinuation"),
+            inpaint: translate("adminPages.logicalModels.modelRoutingCapabilities.localEdit"),
+            replace_element: translate("adminPages.logicalModels.modelRoutingCapabilities.elementReplacement"),
+            camera_motion: translate("adminPages.logicalModels.modelRoutingCapabilities.cameraMoveAdjustment"),
+            style_transfer: translate("adminPages.logicalModels.modelRoutingCapabilities.styleTransfer"),
+            audio_to_video: translate("adminPages.logicalModels.modelRoutingCapabilities.audioToVideo"),
         }[value] || value
     );
 }
@@ -729,8 +734,13 @@ function optionLabel(capability: CapabilityKind, name: string) {
 }
 
 function constraintSummary(constraint: OptionConstraint, unit = "") {
-    if (constraint.values) return `线路支持 ${constraint.values.map(scalarLabel).join("、")}`;
-    return `线路支持 ${constraint.min}-${constraint.max}${unit}${constraint.step ? `，步进 ${constraint.step}` : ""}`;
+    if (constraint.values) return translate("adminPages.logicalModels.modelRoutingCapabilities.routeSupports", { v0: String(constraint.values.map(scalarLabel).join("、")) });
+    return translate("adminPages.logicalModels.modelRoutingCapabilities.routeSupports2", {
+        v0: String(constraint.min),
+        v1: String(constraint.max),
+        v2: String(unit),
+        v3: String(constraint.step ? translate("adminPages.logicalModels.modelRoutingCapabilities.step", { v0: String(constraint.step) }) : ""),
+    });
 }
 
 function constraintIncludes(constraint: OptionConstraint, value: unknown) {

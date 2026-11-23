@@ -7,16 +7,17 @@ import { parseBackendGenerationResult } from "@/services/api/generation-task";
 import { resourceStorageKey, resolveResourceVariantUrl } from "@/services/api/resources";
 import type { GenerationTask } from "@/services/api/task-center";
 
+import { currentLocale, translate } from "@/i18n";
 const statusLabels: Record<string, string> = {
-    draft: "草稿",
-    planning: "策划中",
-    awaiting_confirmation: "待确认",
-    running: "生成中",
-    queued: "排队中",
-    partial_success: "部分完成",
-    completed: "已完成",
-    failed: "生成失败",
-    cancelled: "已取消",
+    draft: translate("ecommerce.projectHistory.draft"),
+    planning: translate("ecommerce.projectHistory.planning"),
+    awaiting_confirmation: translate("ecommerce.projectHistory.awaitingConfirmation"),
+    running: translate("canvasB.mediaVersion.generating"),
+    queued: translate("canvasPage.taskStatus.queued"),
+    partial_success: translate("ecommerce.projectHistory.partiallyComplete"),
+    completed: translate("library.tasks.filter.succeeded"),
+    failed: translate("canvasPage.batches.generationFailed"),
+    cancelled: translate("ecommerce.projectHistory.cancelled"),
 };
 
 export function ecommerceHistoryCovers(project: EcommerceProject, tasks: Record<string, GenerationTask>): string[] {
@@ -63,9 +64,9 @@ function ProjectCard({
     const [failed, setFailed] = useState<string[]>([]);
     const candidates = useMemo(() => ecommerceHistoryCovers(project, tasks), [project, tasks]);
     const cover = candidates.find((candidate) => !failed.includes(candidate));
-    const title = project.name?.trim() || projectDraft(project).productName?.trim() || "未命名商品";
+    const title = project.name?.trim() || projectDraft(project).productName?.trim() || translate("ecommerce.projectHistory.untitledProduct");
     const date = new Date(project.updatedAt);
-    const updated = Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit" });
+    const updated = Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString(currentLocale(), { month: "2-digit", day: "2-digit" });
     return (
         <div className={`ecommerce-project-tile${selecting ? " is-selecting" : ""}`}>
             <button
@@ -74,17 +75,21 @@ function ProjectCard({
                 style={{ animationDelay: `${Math.min(index, 11) * 32}ms` }}
                 aria-current={active ? "true" : undefined}
                 aria-pressed={selecting ? selected : undefined}
-                aria-label={selecting ? `${selected ? "取消选择" : "选择"}项目：${title}` : `打开项目：${title}`}
+                aria-label={
+                    selecting
+                        ? translate("ecommerce.projectHistory.project", { v0: String(selected ? translate("ecommerce.projectHistory.clearSelection") : translate("ecommerce.projectHistory.select")), v1: String(title) })
+                        : translate("ecommerce.projectHistory.openProject", { v0: String(title) })
+                }
                 disabled={disabled}
                 onClick={() => (selecting ? onSelect(project.id) : onOpen(project))}
             >
                 <span className="ecommerce-project-cover">
                     {cover ? (
-                        <img src={cover} alt={`${title}项目封面`} loading="lazy" decoding="async" onError={() => setFailed((values) => [...values, cover])} />
+                        <img src={cover} alt={translate("ecommerce.projectHistory.projectCover", { v0: String(title) })} loading="lazy" decoding="async" onError={() => setFailed((values) => [...values, cover])} />
                     ) : (
                         <span className="ecommerce-project-cover-empty">
                             <Images size={27} strokeWidth={1.5} />
-                            <span>{candidates.length ? "封面暂不可用" : "暂无商品图片"}</span>
+                            <span>{candidates.length ? translate("ecommerce.projectHistory.coverTemporarilyUnavailable") : translate("ecommerce.projectHistory.noProductImagesYet")}</span>
                         </span>
                     )}
                 </span>
@@ -93,9 +98,9 @@ function ProjectCard({
                         {title}
                     </span>
                     <span className="ecommerce-project-meta">
-                        <span className={`ecommerce-project-status ecommerce-project-status-${project.status}`}>{statusLabels[project.status] || "已保存"}</span>
+                        <span className={`ecommerce-project-status ecommerce-project-status-${project.status}`}>{statusLabels[project.status] || translate("ecommerce.projectHistory.saved")}</span>
                         {updated ? (
-                            <time dateTime={project.updatedAt} title={date.toLocaleString("zh-CN")}>
+                            <time dateTime={project.updatedAt} title={date.toLocaleString(currentLocale())}>
                                 {updated}
                             </time>
                         ) : null}
@@ -110,7 +115,14 @@ function ProjectCard({
                 )}
             </button>
             {!selecting ? (
-                <button type="button" className="ecommerce-project-delete" aria-label={`删除项目：${title}`} title="删除项目" disabled={disabled} onClick={() => onDelete(project)}>
+                <button
+                    type="button"
+                    className="ecommerce-project-delete"
+                    aria-label={translate("ecommerce.projectHistory.deleteProject", { v0: String(title) })}
+                    title={translate("ecommerce.projectHistory.deleteProject2")}
+                    disabled={disabled}
+                    onClick={() => onDelete(project)}
+                >
                     <Trash2 size={15} strokeWidth={1.8} />
                 </button>
             ) : null}
@@ -174,7 +186,7 @@ export function EcommerceProjectHistory({
                 if (result.total > 0 && page > Math.ceil(result.total / pageSize)) setPage(Math.ceil(result.total / pageSize));
             })
             .catch((cause) => {
-                if (!cancelled) setError(cause instanceof Error ? cause.message : "项目加载失败，请重试");
+                if (!cancelled) setError(cause instanceof Error ? cause.message : translate("ecommerce.projectHistory.failedToLoadProjectsRetry"));
             })
             .finally(() => {
                 if (!cancelled) setLoading(false);
@@ -215,11 +227,11 @@ export function EcommerceProjectHistory({
             setSelected(new Set());
             setSelecting(false);
             setRetry((value) => value + 1);
-            message.success(`已删除 ${result.deleted} 个项目`);
+            message.success(translate("ecommerce.projectHistory.deletedProjects", { v0: String(result.deleted) }));
         } catch (cause) {
             setDeleteTarget(null);
             setRetry((value) => value + 1);
-            message.error(cause instanceof Error ? cause.message : "删除失败，请刷新后重试");
+            message.error(cause instanceof Error ? cause.message : translate("ecommerce.projectHistory.deleteFailedRefreshAndRetry"));
         } finally {
             setDeleting(false);
         }
@@ -240,26 +252,26 @@ export function EcommerceProjectHistory({
             className="ecommerce-history-modal"
             transitionName="ecommerce-history-motion"
             maskTransitionName="ecommerce-history-mask"
-            aria-label="历史项目"
+            aria-label={translate("ecommerce.projectHistory.projectHistory")}
         >
-            <section className="ecommerce-history" aria-label="我的电商项目">
+            <section className="ecommerce-history" aria-label={translate("ecommerce.projectHistory.myEcommerceProjects")}>
                 <header className="ecommerce-history-heading">
                     <div className="ecommerce-history-emblem">
                         <FolderOpen size={23} strokeWidth={1.55} />
                     </div>
                     <div className="ecommerce-history-heading-copy">
                         <span>COMMERCE / PROJECT LIBRARY</span>
-                        <h2>我的电商项目</h2>
-                        <p>选择一个项目，继续上次的创作。</p>
+                        <h2>{translate("ecommerce.projectHistory.myEcommerceProjects")}</h2>
+                        <p>{translate("ecommerce.projectHistory.chooseAProjectToContinueYourPreviousWork")}</p>
                     </div>
-                    <button type="button" className="ecommerce-history-close" aria-label="关闭历史项目" disabled={deleting} onClick={onClose}>
+                    <button type="button" className="ecommerce-history-close" aria-label={translate("ecommerce.projectHistory.closeProjectHistory")} disabled={deleting} onClick={onClose}>
                         <X size={19} />
                     </button>
                 </header>
                 <div className="ecommerce-history-controls">
                     <div className="ecommerce-history-actions">
                         <span className="ecommerce-history-count">
-                            <strong>{total}</strong> 个项目
+                            <strong>{total}</strong> {translate("ecommerce.projectHistory.projects")}
                         </span>
                         {total > 0 ? (
                             <button
@@ -271,26 +283,28 @@ export function EcommerceProjectHistory({
                                     setSelected(new Set());
                                 }}
                             >
-                                {selecting ? "完成管理" : "多选管理"}
+                                {selecting ? translate("ecommerce.projectHistory.finishManaging") : translate("ecommerce.projectHistory.manageSelection")}
                             </button>
                         ) : null}
                         {selecting ? (
                             <>
-                                <span className="ecommerce-history-selected">已选 {selected.size}</span>
+                                <span className="ecommerce-history-selected">
+                                    {translate("ecommerce.projectHistory.selected")} {selected.size}
+                                </span>
                                 <button type="button" className="ecommerce-history-action" disabled={loading || deleting || !projects.length} onClick={togglePage}>
-                                    {pageSelected ? "取消本页" : "全选本页"}
+                                    {pageSelected ? translate("ecommerce.projectHistory.deselectThisPage") : translate("ecommerce.projectHistory.selectThisPage")}
                                 </button>
                                 <button type="button" className="ecommerce-history-action ecommerce-history-danger" disabled={deleting || !selected.size} onClick={() => setDeleteTarget({ kind: "selected", ids: [...selected], count: selected.size })}>
-                                    删除所选
+                                    {translate("ecommerce.projectHistory.deleteSelected")}
                                 </button>
                             </>
                         ) : null}
                     </div>
                     <div className="ecommerce-history-actions">
                         <label className="ecommerce-history-page-size">
-                            每页显示{" "}
+                            {translate("ecommerce.projectHistory.itemsPerPage")}{" "}
                             <select
-                                aria-label="每页项目数"
+                                aria-label={translate("ecommerce.projectHistory.projectsPerPage")}
                                 value={pageSize}
                                 disabled={loading || deleting}
                                 onChange={(event) => {
@@ -302,11 +316,11 @@ export function EcommerceProjectHistory({
                                 <option value={50}>50</option>
                                 <option value={100}>100</option>
                             </select>{" "}
-                            个
+                            {translate("ecommerce.projectHistory.items")}
                         </label>
                         {total > 0 ? (
                             <button type="button" className="ecommerce-history-action ecommerce-history-danger" disabled={loading || deleting || deletionDisabled} onClick={() => setDeleteTarget({ kind: "all", ids: [], count: total })}>
-                                删除全部
+                                {translate("ecommerce.projectHistory.deleteAll")}
                             </button>
                         ) : null}
                     </div>
@@ -315,14 +329,14 @@ export function EcommerceProjectHistory({
                     {loading ? (
                         <div className="ecommerce-history-message" role="status">
                             <span className="ecommerce-history-loader" />
-                            正在整理项目档案…
+                            {translate("ecommerce.projectHistory.organizingProjectRecords")}
                         </div>
                     ) : error ? (
                         <div className="ecommerce-history-message" role="alert">
-                            <strong>项目加载失败</strong>
+                            <strong>{translate("ecommerce.projectHistory.failedToLoadProjects")}</strong>
                             <span>{error}</span>
                             <button type="button" onClick={() => setRetry((value) => value + 1)}>
-                                重新加载
+                                {translate("account.layout.state.reload")}
                             </button>
                         </div>
                     ) : projects.length ? (
@@ -339,33 +353,40 @@ export function EcommerceProjectHistory({
                                     disabled={deleting || deletionDisabled}
                                     onOpen={onOpen}
                                     onSelect={toggleSelected}
-                                    onDelete={(item) => setDeleteTarget({ kind: "one", ids: [item.id], count: 1, name: item.name?.trim() || "未命名商品" })}
+                                    onDelete={(item) => setDeleteTarget({ kind: "one", ids: [item.id], count: 1, name: item.name?.trim() || translate("ecommerce.projectHistory.untitledProduct") })}
                                 />
                             ))}
                         </div>
                     ) : (
                         <div className="ecommerce-history-message">
                             <FolderOpen size={32} strokeWidth={1.3} />
-                            <strong>还没有历史项目</strong>
-                            <span>保存商品资料或开始策划后，项目会显示在这里。</span>
+                            <strong>{translate("ecommerce.projectHistory.noPreviousProjectsYet")}</strong>
+                            <span>{translate("ecommerce.projectHistory.projectsWillAppearHereAfterYouSaveProductDetailsOr")}</span>
                         </div>
                     )}
                 </div>
                 <footer className="ecommerce-history-footer">
                     <span>
-                        显示 {first}–{last} / {total}
-                        {selecting && selected.size ? ` · 跨页已选 ${selected.size}` : ""}
+                        {translate("ecommerce.projectHistory.show")} {first}–{last} / {total}
+                        {selecting && selected.size ? translate("ecommerce.projectHistory.selectedAcrossPages", { v0: String(selected.size) }) : ""}
                     </span>
-                    <nav className="ecommerce-history-pagination" aria-label="项目分页">
-                        <button type="button" aria-label="上一页" disabled={page <= 1 || loading || deleting} onClick={() => setPage((value) => value - 1)}>
+                    <nav className="ecommerce-history-pagination" aria-label={translate("ecommerce.projectHistory.projectPagination")}>
+                        <button type="button" aria-label={translate("account.layout.pagination.prev")} disabled={page <= 1 || loading || deleting} onClick={() => setPage((value) => value - 1)}>
                             <ChevronLeft size={17} />
                         </button>
                         {pages.map((number) => (
-                            <button key={number} type="button" aria-label={`第 ${number} 页`} aria-current={page === number ? "page" : undefined} disabled={loading || deleting} onClick={() => setPage(number)}>
+                            <button
+                                key={number}
+                                type="button"
+                                aria-label={translate("ecommerce.projectHistory.page", { v0: String(number) })}
+                                aria-current={page === number ? "page" : undefined}
+                                disabled={loading || deleting}
+                                onClick={() => setPage(number)}
+                            >
                                 {number}
                             </button>
                         ))}
-                        <button type="button" aria-label="下一页" disabled={page >= pageCount || loading || deleting} onClick={() => setPage((value) => value + 1)}>
+                        <button type="button" aria-label={translate("account.layout.pagination.next")} disabled={page >= pageCount || loading || deleting} onClick={() => setPage((value) => value + 1)}>
                             <ChevronRight size={17} />
                         </button>
                     </nav>
@@ -374,11 +395,17 @@ export function EcommerceProjectHistory({
             <Modal
                 className="ecommerce-delete-confirm"
                 open={Boolean(deleteTarget)}
-                title={deleteTarget?.kind === "all" ? "删除全部电商项目？" : deleteTarget?.kind === "one" ? "删除这个项目？" : `删除所选 ${deleteTarget?.count || 0} 个项目？`}
+                title={
+                    deleteTarget?.kind === "all"
+                        ? translate("ecommerce.projectHistory.deleteAllEcommerceProjects")
+                        : deleteTarget?.kind === "one"
+                          ? translate("ecommerce.projectHistory.deleteThisProject")
+                          : translate("ecommerce.projectHistory.deleteSelectedProjects", { v0: String(deleteTarget?.count || 0) })
+                }
                 centered
-                okText={deleting ? "正在删除…" : "确认删除"}
+                okText={deleting ? translate("ecommerce.projectHistory.deleting") : translate("account.ui.delete.confirm")}
                 okButtonProps={{ danger: true, loading: deleting }}
-                cancelText="取消"
+                cancelText={translate("common.cancel")}
                 cancelButtonProps={{ disabled: deleting }}
                 closable={!deleting}
                 mask={{ closable: !deleting }}
@@ -390,12 +417,12 @@ export function EcommerceProjectHistory({
             >
                 <p>
                     {deleteTarget?.kind === "all"
-                        ? `将删除你账号中的全部 ${deleteTarget.count} 个电商项目，包括其他分页中的项目。`
+                        ? translate("ecommerce.projectHistory.allEcommerceProjectsInYourAccountWillBeDeletedIncluding", { v0: String(deleteTarget.count) })
                         : deleteTarget?.kind === "one"
-                          ? `将删除「${deleteTarget.name}」。`
-                          : `将删除跨页选中的 ${deleteTarget?.count || 0} 个电商项目。`}
+                          ? translate("ecommerce.projectHistory.willBeDeleted", { v0: String(deleteTarget.name) })
+                          : translate("ecommerce.projectHistory.theEcommerceProjectsSelectedAcrossPagesWillBeDeleted", { v0: String(deleteTarget?.count || 0) })}
                 </p>
-                <p>删除后项目无法恢复；已生成的图片仍保留在资产库，正在运行的任务不会因此取消。</p>
+                <p>{translate("ecommerce.projectHistory.deletedProjectsCannotBeRestoredGeneratedImagesRemainInThe")}</p>
             </Modal>
         </AppModal>
     );

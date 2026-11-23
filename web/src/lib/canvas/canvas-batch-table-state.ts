@@ -10,6 +10,7 @@ import { batchRowInputSignature } from "./canvas-batch-references";
 import { batchPromptForRow } from "./canvas-batch-table";
 import { createCanvasNode } from "./canvas-project-domain";
 import { buildGenerationConfig, resetGenerationTaskMetadata } from "./canvas-project-generation";
+import { translate } from "@/i18n";
 
 export type CanvasBatchGenerationTarget = Pick<CanvasGenerationBatchItem, "rowId" | "nodeId" | "inputSnapshot">;
 
@@ -49,7 +50,7 @@ export function prepareCanvasBatchTableGeneration({
 }) {
     const sourceNode = nodes.find((node) => node.id === sourceNodeId);
     const table = sourceNode?.metadata?.batchTable;
-    if (!sourceNode || !table || sourceNode.metadata?.locked) throw new Error("批量创作表已变化或锁定，请重新选择");
+    if (!sourceNode || !table || sourceNode.metadata?.locked) throw new Error(translate("shared.canvas.canvasBatchTableState.theBatchCreationTableHasChangedOrIsLockedSelect"));
     const imageSpec = NODE_DEFAULT_SIZE[CanvasNodeType.Image];
     const nextNodes = [...nodes];
     let nextConnections = [...connections];

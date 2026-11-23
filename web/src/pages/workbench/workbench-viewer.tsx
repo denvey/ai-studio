@@ -11,12 +11,13 @@ import type { WorkbenchKind } from "@/services/api/workbench";
 import type { WorkbenchOutput } from "./workbench-batches";
 import type { GalleryBatch } from "./workbench-gallery";
 
+import { translate } from "@/i18n";
 function elapsedLabel(task: GenerationTask) {
     const start = Date.parse(task.startedAt || task.createdAt);
     const end = task.completedAt ? Date.parse(task.completedAt) : Number.NaN;
     if (!Number.isFinite(start) || !Number.isFinite(end)) return "";
     const seconds = Math.max(0, Math.round((end - start) / 1000));
-    return seconds < 60 ? `${seconds} 秒` : `${Math.floor(seconds / 60)} 分 ${seconds % 60} 秒`;
+    return seconds < 60 ? translate("ecommerce.workbench.workbenchViewer.s", { v0: String(seconds) }) : translate("ecommerce.workbench.workbenchViewer.mS", { v0: String(Math.floor(seconds / 60)), v1: String(seconds % 60) });
 }
 
 function isEditableTarget(target: EventTarget | null) {
@@ -86,7 +87,7 @@ export function WorkbenchViewer({
                             {failedKey === output.key ? (
                                 <span className="wb-viewer-empty">
                                     <ImageOff />
-                                    <span>预览不可用，作品可能已被删除</span>
+                                    <span>{translate("ecommerce.workbench.workbenchViewer.previewUnavailableThisWorkMayHaveBeenDeleted")}</span>
                                 </span>
                             ) : output.kind === "video" ? (
                                 <video
@@ -103,7 +104,7 @@ export function WorkbenchViewer({
                                 <img
                                     key={output.key}
                                     src={output.url}
-                                    alt={prompt.slice(0, 60) || "生成结果"}
+                                    alt={prompt.slice(0, 60) || translate("library.tasks.detail.generated")}
                                     style={output.thumbUrl ? { backgroundImage: `url("${output.thumbUrl}")` } : undefined}
                                     onLoad={(event) => setSize({ key: output.key, width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })}
                                     onError={() => setFailedKey(output.key)}
@@ -114,19 +115,33 @@ export function WorkbenchViewer({
                                     <span className="wb-viewer-counter">
                                         {index + 1} / {outputs.length}
                                     </span>
-                                    <button type="button" className="wb-viewer-nav is-prev" data-icon-only aria-label="上一个" onClick={() => onNavigate(outputs[(index - 1 + outputs.length) % outputs.length])}>
+                                    <button
+                                        type="button"
+                                        className="wb-viewer-nav is-prev"
+                                        data-icon-only
+                                        aria-label={translate("ecommerce.workbench.workbenchViewer.previous")}
+                                        onClick={() => onNavigate(outputs[(index - 1 + outputs.length) % outputs.length])}
+                                    >
                                         <ChevronLeft />
                                     </button>
-                                    <button type="button" className="wb-viewer-nav is-next" data-icon-only aria-label="下一个" onClick={() => onNavigate(outputs[(index + 1) % outputs.length])}>
+                                    <button type="button" className="wb-viewer-nav is-next" data-icon-only aria-label={translate("ecommerce.workbench.workbenchViewer.next")} onClick={() => onNavigate(outputs[(index + 1) % outputs.length])}>
                                         <ChevronRight />
                                     </button>
                                 </>
                             ) : null}
                         </div>
                         {outputs.length > 1 ? (
-                            <div className="wb-viewer-strip" role="listbox" aria-label="同批作品">
+                            <div className="wb-viewer-strip" role="listbox" aria-label={translate("ecommerce.workbench.workbenchViewer.worksInThisBatch")}>
                                 {outputs.map((item, itemIndex) => (
-                                    <button key={item.key} type="button" role="option" aria-selected={item.key === output.key} aria-label={`第 ${itemIndex + 1} 个`} className={item.key === output.key ? "is-active" : ""} onClick={() => onNavigate(item)}>
+                                    <button
+                                        key={item.key}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={item.key === output.key}
+                                        aria-label={translate("ecommerce.workbench.workbenchViewer.item", { v0: String(itemIndex + 1) })}
+                                        className={item.key === output.key ? "is-active" : ""}
+                                        onClick={() => onNavigate(item)}
+                                    >
                                         {item.thumbUrl ? <img src={item.thumbUrl} alt="" loading="lazy" /> : <span className="wb-viewer-strip-video" />}
                                     </button>
                                 ))}
@@ -136,23 +151,26 @@ export function WorkbenchViewer({
                     <aside className="wb-viewer-info">
                         <header>
                             <div>
-                                <span className="wb-viewer-kicker">{kind === "image" ? "图片" : "视频"}作品</span>
-                                <h2>{batch.toolName || "自由创作"}</h2>
+                                <span className="wb-viewer-kicker">
+                                    {kind === "image" ? translate("account.feedback.image") : translate("account.feedback.video")}
+                                    {translate("ecommerce.workbench.workbenchViewer.works")}
+                                </span>
+                                <h2>{batch.toolName || translate("ecommerce.workbench.workbenchViewer.freeCreation")}</h2>
                             </div>
-                            <button type="button" className="wb-icon-button" data-icon-only aria-label="关闭预览" onClick={onClose}>
+                            <button type="button" className="wb-icon-button" data-icon-only aria-label={translate("ecommerce.workbench.workbenchViewer.closePreview")} onClick={onClose}>
                                 <X />
                             </button>
                         </header>
                         <div className="wb-viewer-scroll">
                             <section className="wb-viewer-block">
                                 <div className="wb-viewer-block-head">
-                                    <span>提示词</span>
+                                    <span>{translate("canvasA.assetView.prompt")}</span>
                                     <button type="button" className="wb-text-link" disabled={!prompt} onClick={() => onCopyPrompt(prompt)}>
                                         <Copy />
-                                        复制
+                                        {translate("canvasB.common.copy")}
                                     </button>
                                 </div>
-                                <p className="wb-viewer-prompt">{prompt || "（无提示词）"}</p>
+                                <p className="wb-viewer-prompt">{prompt || translate("ecommerce.workbench.workbenchViewer.noPrompt")}</p>
                             </section>
                             {batch.chips.length ? (
                                 <div className="wb-viewer-tags">
@@ -166,37 +184,37 @@ export function WorkbenchViewer({
                             <dl className="wb-viewer-meta">
                                 {batch.modelLabel ? (
                                     <div>
-                                        <dt>模型</dt>
+                                        <dt>{translate("canvasA.assetView.model")}</dt>
                                         <dd>{batch.modelLabel}</dd>
                                     </div>
                                 ) : null}
                                 {presetName ? (
                                     <div>
-                                        <dt>模板</dt>
+                                        <dt>{translate("ecommerce.workbench.workbenchViewer.template")}</dt>
                                         <dd>{presetName}</dd>
                                     </div>
                                 ) : null}
                                 {dimensions ? (
                                     <div>
-                                        <dt>尺寸</dt>
+                                        <dt>{translate("canvasA.assetView.size")}</dt>
                                         <dd>{dimensions} px</dd>
                                     </div>
                                 ) : null}
                                 <div>
-                                    <dt>创建</dt>
+                                    <dt>{translate("ecommerce.workbench.workbenchViewer.created")}</dt>
                                     <dd>
                                         <RelativeTime value={task?.createdAt || batch.createdAt} />
                                     </dd>
                                 </div>
                                 {elapsed ? (
                                     <div>
-                                        <dt>耗时</dt>
+                                        <dt>{translate("library.tasks.detail.duration")}</dt>
                                         <dd>{elapsed}</dd>
                                     </div>
                                 ) : null}
                                 {billing ? (
                                     <div>
-                                        <dt>积分</dt>
+                                        <dt>{translate("shell.credits")}</dt>
                                         <dd>{taskBillingLabel(billing)}</dd>
                                     </div>
                                 ) : null}
@@ -204,22 +222,23 @@ export function WorkbenchViewer({
                         </div>
                         <footer className="wb-viewer-actions">
                             <Button type="primary" icon={<Download />} onClick={() => onDownload(output)}>
-                                下载{output.kind === "video" ? "视频" : "原图"}
+                                {translate("canvasA.assetView.download")}
+                                {output.kind === "video" ? translate("account.feedback.video") : translate("canvasPage.batchReferences.original")}
                             </Button>
                             <div className="wb-viewer-secondary">
                                 {onUseAsReference && output.kind === "image" && output.resourceId ? (
                                     <Button icon={<ImagePlus />} onClick={() => onUseAsReference(output)}>
-                                        用作参考图
+                                        {translate("ecommerce.workbench.workbenchViewer.useAsReferenceImage")}
                                     </Button>
                                 ) : null}
                                 {onMakeVideo && output.kind === "image" && output.resourceId ? (
                                     <Button icon={<Clapperboard />} onClick={() => onMakeVideo(output)}>
-                                        做成视频
+                                        {translate("ecommerce.workbench.workbenchViewer.makeAVideo")}
                                     </Button>
                                 ) : null}
                                 {task ? (
                                     <Button icon={<SquarePen />} onClick={() => onReuse(task)}>
-                                        复用参数
+                                        {translate("ecommerce.workbench.workbenchViewer.reuseSettings")}
                                     </Button>
                                 ) : null}
                             </div>

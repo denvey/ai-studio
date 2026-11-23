@@ -3,8 +3,15 @@ import { ChevronDown, ChevronUp, Layers } from "lucide-react";
 
 import type { canvasThemes } from "@/lib/canvas-theme";
 import { agentMediaBatchCounts, agentMediaBatchPhaseLabel, type CloudAgentMediaBatchItemStatus, type CloudAgentMediaBatchProgress } from "@/lib/canvas/cloud-agent-media-batch";
+import { translate } from "@/i18n";
 
-const STATUS_LABEL: Record<CloudAgentMediaBatchItemStatus, string> = { pending: "排队", submitted: "生成中", succeeded: "完成", failed: "失败", cancelled: "已取消" };
+const STATUS_LABEL: Record<CloudAgentMediaBatchItemStatus, string> = {
+    pending: translate("canvasTools.canvasCloudAgentMediaBatchBar.queued"),
+    submitted: translate("canvasB.mediaVersion.generating"),
+    succeeded: translate("account.payment.done"),
+    failed: translate("library.assets.batch.failed"),
+    cancelled: translate("canvasTools.canvasCloudAgentMediaBatchBar.cancelled"),
+};
 
 /**
  * 批量生成进度条：一格对应一个条目，颜色表示状态；点格子定位到画布节点。
@@ -19,21 +26,32 @@ export function AgentMediaBatchBar({ batch, theme, onFocusNode }: { batch: Cloud
     const color = (status: CloudAgentMediaBatchItemStatus) =>
         status === "succeeded" ? "var(--color-success, #429477)" : status === "failed" ? theme.accent.danger : status === "submitted" ? theme.accent.primary : status === "cancelled" ? theme.node.muted : theme.toolbar.itemHover;
     return (
-        <section className="agent-media-batch-bar mx-3 mb-2 overflow-hidden rounded-xl" style={{ color: theme.node.text }} aria-label="批量生成进度">
+        <section className="agent-media-batch-bar mx-3 mb-2 overflow-hidden rounded-xl" style={{ color: theme.node.text }} aria-label={translate("canvasTools.canvasCloudAgentMediaBatchBar.batchGenerationProgress")}>
             <button type="button" className="flex w-full items-center gap-2 px-3 py-2 text-left focus-visible:outline focus-visible:outline-2" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
                 <Layers className="size-3.5 shrink-0" style={{ color: theme.accent.primary }} aria-hidden="true" />
-                <span className="text-xs font-semibold">批量生成</span>
+                <span className="text-xs font-semibold">{translate("canvasTools.canvasCloudAgentMediaBatchBar.batchGeneration")}</span>
                 <span className="text-[var(--fs-label)] tabular-nums opacity-60" aria-live="polite">
-                    {counts.succeeded}/{total} 完成
-                    {counts.submitted ? ` · ${counts.submitted} 生成中` : ""}
-                    {counts.failed ? ` · ${counts.failed} 失败` : ""}
+                    {translate("canvasTools.inline.canvasCloudAgentMediaBatchBar.done", {
+                        v0: String(counts.succeeded),
+                        v1: String(total),
+                        v2: String(counts.submitted ? translate("canvasTools.canvasCloudAgentMediaBatchBar.generating", { v0: String(counts.submitted) }) : ""),
+                        v3: String(counts.failed ? translate("canvasTools.canvasCloudAgentMediaBatchBar.failed", { v0: String(counts.failed) }) : ""),
+                    })}
                 </span>
                 <span className="min-w-0 flex-1" />
                 <span className="shrink-0 text-[var(--fs-label)] opacity-55">{agentMediaBatchPhaseLabel(batch.phase)}</span>
                 {expanded ? <ChevronUp className="size-3.5 shrink-0 opacity-50" aria-hidden="true" /> : <ChevronDown className="size-3.5 shrink-0 opacity-50" aria-hidden="true" />}
             </button>
             <div className="px-3 pb-2">
-                <div className="h-1 overflow-hidden rounded-full" style={{ background: theme.toolbar.itemHover }} role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={finished} aria-label="已结束条目">
+                <div
+                    className="h-1 overflow-hidden rounded-full"
+                    style={{ background: theme.toolbar.itemHover }}
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={total}
+                    aria-valuenow={finished}
+                    aria-label={translate("canvasTools.canvasCloudAgentMediaBatchBar.finishedItems")}
+                >
                     <div className="agent-media-batch-progress h-full rounded-full" style={{ width: `${total ? Math.round((finished / total) * 100) : 0}%`, background: theme.accent.primary }} />
                 </div>
                 <div className="agent-media-batch-grid mt-2" role="list">
@@ -46,7 +64,7 @@ export function AgentMediaBatchBar({ batch, theme, onFocusNode }: { batch: Cloud
                             data-status={item.status}
                             style={{ background: color(item.status) }}
                             title={`#${item.index + 1} ${item.title || ""} · ${STATUS_LABEL[item.status]}${item.error ? `：${item.error}` : ""}`}
-                            aria-label={`第 ${item.index + 1} 条 ${item.title || ""}，${STATUS_LABEL[item.status]}`}
+                            aria-label={translate("canvasTools.canvasCloudAgentMediaBatchBar.item", { v0: String(item.index + 1), v1: String(item.title || ""), v2: String(STATUS_LABEL[item.status]) })}
                             onClick={() => onFocusNode?.(item.nodeId)}
                             disabled={!onFocusNode}
                         />
@@ -58,7 +76,7 @@ export function AgentMediaBatchBar({ batch, theme, onFocusNode }: { batch: Cloud
                             <li key={item.index} className="flex min-w-0 gap-1">
                                 <span className="shrink-0 tabular-nums">#{item.index + 1}</span>
                                 <span className="min-w-0 truncate" title={item.error}>
-                                    {item.title || "未命名"}：{item.error || "未成功"}
+                                    {item.title || translate("canvasTools.canvasCloudAgentMediaBatchBar.untitled")}：{item.error || translate("canvasTools.canvasCloudAgentMediaBatchBar.unsuccessful")}
                                 </span>
                             </li>
                         ))}

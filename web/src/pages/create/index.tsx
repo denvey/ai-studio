@@ -84,6 +84,7 @@ import { CreationRecentCanvases } from "./creation-recent-canvases";
 import { CreationAgentEntry } from "./creation-agent-entry";
 import { createCreationSubmitGate } from "./creation-submit-gate";
 import { creationVideoConfig } from "./creation-generation-config";
+import { translate } from "@/i18n";
 
 const AssetLibraryPickerModal = lazy(() => import("@/components/assets/asset-library-picker-modal").then((module) => ({ default: module.AssetLibraryPickerModal })));
 const InspirationHall = lazy(() => import("@/pages/inspirations"));
@@ -389,7 +390,7 @@ export default function CreatePage() {
             })
             .catch((error: unknown) => {
                 if (cancelled || getActiveUserScope() !== scope || (useUserStore.getState().user?.id || null) !== userId) return;
-                setConversationStorageError(error instanceof Error ? error.message : "读取本地创作记录失败");
+                setConversationStorageError(error instanceof Error ? error.message : translate("shared.create.failedToLoadLocalCreationHistory"));
                 if (!cached?.length) setHydrated(true);
             });
         return () => {
@@ -1340,7 +1341,8 @@ export default function CreatePage() {
             <div className="grid h-full place-items-center">
                 <div className="text-center">
                     <p role="alert" className="mb-3 text-sm text-foreground/65">
-                        创作记录读取失败：{conversationStorageError}
+                        {translate("shared.create.failedToLoadCreationHistory")}
+                        {conversationStorageError}
                     </p>
                     <Button
                         onClick={() => {
@@ -1348,7 +1350,7 @@ export default function CreatePage() {
                             setConversationLoadAttempt((attempt) => attempt + 1);
                         }}
                     >
-                        重试
+                        {translate("common.retry")}
                     </Button>
                 </div>
             </div>
@@ -1445,7 +1447,7 @@ export default function CreatePage() {
             <div className="creation-home relative flex h-full min-h-0 flex-col overflow-hidden">
                 {conversationStorageError ? (
                     <p role="status" className="mx-auto mb-3 max-w-3xl px-4 text-xs text-foreground/55">
-                        本地历史读取失败，当前会话仍保留。 {conversationStorageError}{" "}
+                        {translate("shared.create.failedToLoadLocalHistoryTheCurrentSessionIsPreserved")} {conversationStorageError}{" "}
                         <button
                             type="button"
                             className="underline underline-offset-2"
@@ -1454,7 +1456,7 @@ export default function CreatePage() {
                                 setConversationLoadAttempt((attempt) => attempt + 1);
                             }}
                         >
-                            重试
+                            {translate("common.retry")}
                         </button>
                     </p>
                 ) : null}

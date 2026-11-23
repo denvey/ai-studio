@@ -5,6 +5,7 @@ import { accountStorageMeter, accountStorageStateMessage, formatStorageCapacity,
 import { getAdminUserStorage, grantAdminUserStorage, revokeAdminStorageGrant, storageGrantActive, type AdminUserStorage, type UserStorageGrant } from "@/services/api/storage-grants";
 
 import { AdminDataTable, AdminStatusBadge, AdminTableEmpty } from "./admin-ui";
+import { translate } from "@/i18n";
 
 type GrantFormValues = { storageGB: number; durationDays: number; note?: string };
 
@@ -21,7 +22,7 @@ export function AdminUserStoragePanel({ userId }: { userId: string }) {
         try {
             setData(await getAdminUserStorage(userId));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "读取存储空间失败");
+            message.error(error instanceof Error ? error.message : translate("admin.adminUserStoragePanel.failedToLoadStorageCapacity"));
         } finally {
             setLoading(false);
         }
@@ -38,10 +39,10 @@ export function AdminUserStoragePanel({ userId }: { userId: string }) {
         setGranting(true);
         try {
             await grantAdminUserStorage(userId, { bytes: values.storageGB * 1024 ** 3, durationDays: values.durationDays || 0, note: values.note?.trim() });
-            message.success("已赠送存储空间");
+            message.success(translate("admin.adminUserStoragePanel.storageSpaceGranted"));
             await load();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "赠送存储空间失败");
+            message.error(error instanceof Error ? error.message : translate("admin.adminUserStoragePanel.failedToGrantStorageCapacity"));
         } finally {
             setGranting(false);
         }
@@ -50,22 +51,22 @@ export function AdminUserStoragePanel({ userId }: { userId: string }) {
     const revoke = (item: UserStorageGrant) => {
         let reason = "";
         modal.confirm({
-            title: `撤销 ${formatStorageCapacity(item.bytes)} 扩容？`,
+            title: translate("admin.adminUserStoragePanel.revokeStorageExpansion", { v0: String(formatStorageCapacity(item.bytes)) }),
             content: (
                 <div className="space-y-2">
-                    <p className="text-sm text-foreground/60">撤销后立即减少该用户的有效容量；如已用超出新容量，将进入 7 天宽限期后只读。</p>
-                    <Input.TextArea rows={3} maxLength={500} placeholder="撤销原因（必填），例如：线下退款" onChange={(event) => (reason = event.target.value)} />
+                    <p className="text-sm text-foreground/60">{translate("admin.adminUserStoragePanel.theUserSCapacityDecreasesImmediatelyIfUsageExceedsThe")}</p>
+                    <Input.TextArea rows={3} maxLength={500} placeholder={translate("admin.adminUserStoragePanel.revocationReasonRequiredForExampleOfflineRefund")} onChange={(event) => (reason = event.target.value)} />
                 </div>
             ),
-            okText: "撤销",
+            okText: translate("account.settings.memory.actors.restore"),
             okButtonProps: { danger: true },
             onOk: async () => {
                 if (!reason.trim()) {
-                    message.error("请填写撤销原因");
+                    message.error(translate("admin.adminUserStoragePanel.enterARevocationReason"));
                     throw new Error("missing reason");
                 }
                 await revokeAdminStorageGrant(item.id, reason.trim());
-                message.success("已撤销扩容");
+                message.success(translate("admin.adminUserStoragePanel.storageExpansionRevoked"));
                 await load();
             },
         });
@@ -81,8 +82,8 @@ export function AdminUserStoragePanel({ userId }: { userId: string }) {
                 <div className="rounded-md border border-border p-4">
                     <div className="mb-1 flex items-center justify-between gap-3 text-xs">
                         <span className="text-foreground/60">
-                            基础 {meter.baseLabel}
-                            {meter.purchasedLabel ? ` + 扩容 ${meter.purchasedLabel}` : ""}
+                            {translate("admin.adminUserStoragePanel.base")} {meter.baseLabel}
+                            {meter.purchasedLabel ? translate("admin.adminUserStoragePanel.expansion", { v0: String(meter.purchasedLabel) }) : ""}
                         </span>
                         <span className="shrink-0 tabular-nums text-foreground/75">
                             {meter.usedLabel} / {meter.totalLabel}
@@ -94,17 +95,22 @@ export function AdminUserStoragePanel({ userId }: { userId: string }) {
             ) : null}
 
             <Form form={form} layout="inline" className="flex flex-wrap gap-y-2">
-                <Form.Item name="storageGB" label="容量（GB）" rules={[{ required: true }, { type: "integer", min: 1, max: 100_000, message: "1-100000 GB" }]}>
+                <Form.Item name="storageGB" label={translate("admin.adminUserStoragePanel.capacityGB")} rules={[{ required: true }, { type: "integer", min: 1, max: 100_000, message: "1-100000 GB" }]}>
                     <InputNumber min={1} max={100_000} precision={0} />
                 </Form.Item>
-                <Form.Item name="durationDays" label="有效天数" tooltip="0 表示永久有效" rules={[{ required: true }, { type: "integer", min: 0, max: 3650, message: "0-3650 天" }]}>
+                <Form.Item
+                    name="durationDays"
+                    label={translate("admin.adminUserStoragePanel.validForDays")}
+                    tooltip={translate("admin.adminUserStoragePanel.item0MeansNoExpiration")}
+                    rules={[{ required: true }, { type: "integer", min: 0, max: 3650, message: translate("admin.adminUserStoragePanel.item03650Days") }]}
+                >
                     <InputNumber min={0} max={3650} precision={0} />
                 </Form.Item>
                 <Form.Item name="note" rules={[{ max: 500 }]}>
-                    <Input placeholder="备注（可选）" />
+                    <Input placeholder={translate("admin.adminUserStoragePanel.noteOptional")} />
                 </Form.Item>
                 <Button type="primary" loading={granting} onClick={() => void grant()}>
-                    赠送空间
+                    {translate("admin.adminUserStoragePanel.grantStorage")}
                 </Button>
             </Form>
 
@@ -115,26 +121,41 @@ export function AdminUserStoragePanel({ userId }: { userId: string }) {
                     dataSource: data?.grants || [],
                     pagination: false,
                     columns: [
-                        { title: "生效时间", dataIndex: "startsAt", width: 150, render: (value) => formatStorageDate(value) },
-                        { title: "来源", key: "source", width: 160, ellipsis: true, render: (_, item) => item.productName || (item.source === "admin" ? "管理员赠送" : item.source) },
-                        { title: "容量", dataIndex: "bytes", width: 100, align: "right", render: (value) => `+${formatStorageCapacity(value)}` },
-                        { title: "有效期", key: "duration", width: 170, render: (_, item) => (item.expiresAt ? `${formatStorageDuration(item.durationDays)} · ${formatStorageDate(item.expiresAt)} 到期` : "永久有效") },
+                        { title: translate("admin.adminUserStoragePanel.effectiveTime"), dataIndex: "startsAt", width: 150, render: (value) => formatStorageDate(value) },
+                        { title: translate("canvasA.assetView.origin"), key: "source", width: 160, ellipsis: true, render: (_, item) => item.productName || (item.source === "admin" ? translate("account.wallet.topup.grantAdmin") : item.source) },
+                        { title: translate("admin.adminUserStoragePanel.capacity"), dataIndex: "bytes", width: 100, align: "right", render: (value) => `+${formatStorageCapacity(value)}` },
                         {
-                            title: "状态",
+                            title: translate("admin.adminUserStoragePanel.validity"),
+                            key: "duration",
+                            width: 170,
+                            render: (_, item) =>
+                                item.expiresAt
+                                    ? translate("admin.adminUserStoragePanel.expires", { v0: String(formatStorageDuration(item.durationDays)), v1: String(formatStorageDate(item.expiresAt)) })
+                                    : translate("admin.adminUserStoragePanel.neverExpires"),
+                        },
+                        {
+                            title: translate("library.tasks.detail.status"),
                             key: "status",
                             width: 90,
-                            render: (_, item) => (item.revokedAt ? <AdminStatusBadge label="已撤销" tone="neutral" /> : storageGrantActive(item) ? <AdminStatusBadge label="生效中" tone="success" /> : <AdminStatusBadge label="已到期" tone="neutral" />),
+                            render: (_, item) =>
+                                item.revokedAt ? (
+                                    <AdminStatusBadge label={translate("account.settings.memory.undone")} tone="neutral" />
+                                ) : storageGrantActive(item) ? (
+                                    <AdminStatusBadge label={translate("admin.adminUserStoragePanel.active")} tone="success" />
+                                ) : (
+                                    <AdminStatusBadge label={translate("admin.adminUserStoragePanel.expired")} tone="neutral" />
+                                ),
                         },
-                        { title: "备注", key: "note", ellipsis: true, render: (_, item) => (item.revokeReason ? `撤销：${item.revokeReason}` : item.note || "--") },
+                        { title: translate("library.assets.form.note"), key: "note", ellipsis: true, render: (_, item) => (item.revokeReason ? translate("admin.adminUserStoragePanel.revoked", { v0: String(item.revokeReason) }) : item.note || "--") },
                         {
-                            title: "操作",
+                            title: translate("account.settings.runninghub.actions"),
                             key: "actions",
                             width: 80,
                             align: "center",
                             render: (_, item) =>
                                 !item.revokedAt && storageGrantActive(item) ? (
                                     <Button size="small" danger onClick={() => revoke(item)}>
-                                        撤销
+                                        {translate("account.settings.memory.actors.restore")}
                                     </Button>
                                 ) : null,
                         },

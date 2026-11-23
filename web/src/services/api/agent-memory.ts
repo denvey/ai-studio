@@ -1,4 +1,5 @@
 import { http, compactApiParams } from "./request";
+import { translate } from "@/i18n";
 
 /** 长期记忆文件：每个用户一份，分「关于用户」和「工作笔记」，Agent 自己维护，每次修改可撤销。 */
 export type AgentMemorySection = "user" | "notes";
@@ -51,14 +52,14 @@ export type AgentMemoryDocRevision = {
 export type AgentMemoryEntryInput = { id?: string; section: AgentMemorySection; text: string };
 
 export const AGENT_MEMORY_SECTIONS: Array<{ key: AgentMemorySection; label: string; hint: string }> = [
-    { key: "user", label: "关于用户", hint: "称呼、偏好、习惯、常用规格" },
-    { key: "notes", label: "工作笔记", hint: "验证过的做法、踩过的坑、项目约定" },
+    { key: "user", label: translate("canvasA.memoryCard.sectionUser"), hint: translate("shared.api.agentMemory.namePreferencesHabitsAndCommonSettings") },
+    { key: "notes", label: translate("canvasA.memoryCard.sectionNotes"), hint: translate("shared.api.agentMemory.provenMethodsLessonsLearnedAndProjectConventions") },
 ];
 
 export const AGENT_MEMORY_MODES: Array<{ value: AgentMemoryMode; label: string; description: string }> = [
-    { value: "auto", label: "自动生效", description: "Agent 记下的内容立即生效，可随时撤销" },
-    { value: "review", label: "需我确认", description: "Agent 的修改先等你确认" },
-    { value: "off", label: "关闭", description: "不使用也不修改记忆，已有内容保留" },
+    { value: "auto", label: translate("shared.api.agentMemory.applyAutomatically"), description: translate("shared.api.agentMemory.agentMemoriesTakeEffectImmediatelyAndCanBeUndoneAnytime") },
+    { value: "review", label: translate("shared.api.agentMemory.requireMyConfirmation"), description: translate("shared.api.agentMemory.agentChangesWaitForYourConfirmation") },
+    { value: "off", label: translate("common.close"), description: translate("shared.api.agentMemory.doNotUseOrModifyMemoryExistingContentIsPreserved") },
 ];
 
 export function getAgentMemory(signal?: AbortSignal) {

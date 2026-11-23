@@ -2,6 +2,7 @@ import { getActiveUserScope } from "@/lib/user-scope";
 import { importResourceFromUrl, refreshResource, resourceFileUrl, uploadResourceFile, type RemoteResource } from "@/services/api/resources";
 import type { EcommerceReference, EcommerceReferenceRole } from "@/services/api/ecommerce";
 
+import { translate } from "@/i18n";
 export const COMMERCE_IMAGE_RESOURCE_DND_TYPE = "application/x-yingce-image-resource";
 export const COMMERCE_IMAGE_ACCEPT = "image/png,image/jpeg,image/webp,image/gif,image/avif,image/bmp";
 const maxImageBytes = 30 * 1024 * 1024;
@@ -13,8 +14,8 @@ export type CommerceImageTransfer = { files: File[]; resourceId?: string; name?:
 export function normalizeCommerceImageFile(file: File): File {
     const inferred = extensionMimes[file.name.toLowerCase().split(".").pop() || ""];
     const type = !file.type || file.type === "application/octet-stream" ? inferred : file.type;
-    if (!type || !imageMime.test(type)) throw new Error(`“${file.name}”不是支持的图片，请使用 PNG、JPEG、WebP、GIF、AVIF 或 BMP`);
-    if (!file.size || file.size > maxImageBytes) throw new Error(`“${file.name}”须为不超过 30 MB 的非空图片`);
+    if (!type || !imageMime.test(type)) throw new Error(translate("ecommerce.imageTransfer.isNotASupportedImageUsePNGJPEGWebPGIF", { v0: String(file.name) }));
+    if (!file.size || file.size > maxImageBytes) throw new Error(translate("ecommerce.imageTransfer.mustBeANonemptyImageNoLargerThan30MB", { v0: String(file.name) }));
     return file.type === type ? file : new File([file], file.name, { type, lastModified: file.lastModified });
 }
 
@@ -82,8 +83,8 @@ export function writeCommerceImageTransfer(transfer: DataTransfer, source: { res
 }
 
 function requireImageResource(resource: RemoteResource) {
-    if (resource.kind !== "image" || resource.status !== "ready" || !imageMime.test(resource.mimeType)) throw new Error("该内容不是可用的图片资源，请保存原图后上传");
-    if (!resource.size || resource.size > maxImageBytes) throw new Error("图片须为不超过 30 MB 的非空图片");
+    if (resource.kind !== "image" || resource.status !== "ready" || !imageMime.test(resource.mimeType)) throw new Error(translate("ecommerce.imageTransfer.thisContentIsNotAUsableImageResourceSaveThe"));
+    if (!resource.size || resource.size > maxImageBytes) throw new Error(translate("ecommerce.imageTransfer.theImageMustBeNonemptyAndNoLargerThan30"));
     return resource;
 }
 
@@ -121,7 +122,7 @@ export async function importCommerceImageTransfer(
         assertScope();
         requireImageResource(resource);
         if (seen.has(resource.id)) return;
-        if (references.length >= capacity) throw new Error("参考图片已达上限，请先移除部分图片");
+        if (references.length >= capacity) throw new Error(translate("ecommerce.imageTransfer.referenceImageLimitReachedRemoveSomeImagesFirst"));
         seen.add(resource.id);
         references.push({ resourceId: resource.id, role, name, ...(resource.width && resource.height ? { width: resource.width, height: resource.height } : {}) });
     };
@@ -149,7 +150,7 @@ export async function importCommerceImageTransfer(
         return { references, errors };
     }
     if (resourceId && seen.has(resourceId)) return { references, errors };
-    if (capacity === 0) throw new Error("参考图片已达上限，请先移除部分图片");
+    if (capacity === 0) throw new Error(translate("ecommerce.imageTransfer.referenceImageLimitReachedRemoveSomeImagesFirst"));
     if (resourceId) {
         options.onProgress?.("正在读取站内图片…");
         // A typed drag payload is untrusted. Always check ownership and current status on the server.
@@ -157,12 +158,12 @@ export async function importCommerceImageTransfer(
         return { references, errors };
     }
     const url = supportedImageUrl(source.url || "", globalThis.location?.href);
-    if (!url) throw new Error("未读取到图片，请拖入图片文件，或复制图片后在这里粘贴");
+    if (!url) throw new Error(translate("ecommerce.imageTransfer.noImageFoundDragAnImageFileHereOrCopy"));
     options.onProgress?.("正在导入网页图片…");
     if (/^(?:blob:|data:)/i.test(url)) {
-        if (url.length > maxImageBytes * 1.4) throw new Error("图片超过 30 MB，请缩小后上传");
+        if (url.length > maxImageBytes * 1.4) throw new Error(translate("ecommerce.imageTransfer.theImageExceeds30MBResizeItBeforeUploading"));
         const response = await fetch(url, { credentials: "omit", signal: AbortSignal.timeout(30_000) });
-        if (!response.ok) throw new Error("无法读取临时图片，请复制图片或保存原图后上传");
+        if (!response.ok) throw new Error(translate("ecommerce.imageTransfer.unableToReadThisTemporaryImageCopyTheImageOr"));
         const blob = await response.blob();
         assertScope();
         const file = normalizeCommerceImageFile(new File([blob], "网页图片", { type: blob.type }));

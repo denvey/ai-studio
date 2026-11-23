@@ -9,9 +9,15 @@ import { MediaThumb, parseList } from "../drama-shared";
 import { CastLibraryPicker } from "./cast-library-picker";
 import { CastVoicePreview } from "./cast-voice";
 import { referenceMissingReason } from "./segment-parts";
+import { translate } from "@/i18n";
 
 const ASSET_KINDS = ["character", "scene", "prop"] as const;
-const KIND_LABEL = { character: "人物", scene: "场景", prop: "道具", image: "附加图片" };
+const KIND_LABEL = {
+    character: translate("drama.studio.segmentReferences.characters"),
+    scene: translate("drama.studio.segmentReferences.scene"),
+    prop: translate("drama.studio.segmentReferences.props"),
+    image: translate("drama.studio.segmentReferences.additionalImages"),
+};
 type AssetKind = keyof typeof KIND_LABEL;
 type Reference = DramaSegment["request"]["references"][number];
 
@@ -76,14 +82,14 @@ export function ReferenceBoard({
     };
     const addImage = async (resourceId: string, name: string) => {
         if (request.references.some((ref) => ref.resourceId === resourceId)) {
-            message.info("本段已添加这张参考图");
+            message.info(translate("drama.studio.segmentReferences.thisReferenceImageIsAlreadyAddedToTheSegment"));
             return;
         }
         await onSave({ referenceImages: [...images, { resourceId, name }] });
     };
     const upload = async (file: File) => {
         if (!file.type.startsWith("image/") || file.size > 20 * 1024 * 1024) {
-            message.error("请选择不超过 20 MB 的图片");
+            message.error(translate("drama.studio.segmentReferences.chooseAnImageNoLargerThan20MB"));
             return;
         }
         setUploading(true);
@@ -91,7 +97,7 @@ export function ReferenceBoard({
             const resource = await uploadResourceFile(file, "image", { fileName: file.name });
             await addImage(resource.id, file.name.replace(/\.[^.]+$/, ""));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "添加参考图失败");
+            message.error(error instanceof Error ? error.message : translate("drama.studio.segmentReferences.failedToAddReferenceImage"));
         } finally {
             setUploading(false);
         }
@@ -130,18 +136,32 @@ export function ReferenceBoard({
         const selected = selectedVoices.includes(character.id);
         const audio = request.audioReferences?.find((voice) => voice.castId === character.id);
         return (
-            <div className="drama-sdx-asset-voice" aria-label={`${character.name}音色`}>
+            <div className="drama-sdx-asset-voice" aria-label={translate("drama.studio.segmentReferences.voice", { v0: String(character.name) })}>
                 <button
                     type="button"
                     aria-pressed={selected}
-                    aria-label={`${selected ? "关闭" : "开启"}${character.name}的音色`}
+                    aria-label={translate("drama.studio.segmentReferences.voice2", { v0: String(selected ? translate("common.close") : translate("drama.studio.segmentReferences.enable")), v1: String(character.name) })}
                     disabled={busy || (!selected && (!character.voiceSampleResourceId || selectedVoices.length >= audioLimit))}
                     onClick={() => setVoiceDraft(selected ? selectedVoices.filter((id) => id !== character.id) : [...selectedVoices, character.id])}
                 >
-                    {selected ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}音色{selected ? "已开启" : "已关闭"}
+                    {selected ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}
+                    {translate("library.tasks.params.voice")}
+                    {selected ? translate("drama.studio.segmentReferences.enabled") : translate("account.feedback.status.closed")}
                 </button>
                 <CastVoicePreview resourceId={character.voiceSampleResourceId} name={character.name} />
-                <small>{voiceDraft !== null ? "音色调整未保存" : audio ? (audio.sent ? `${audio.label} · 随请求发送` : audio.note) : !character.voiceSampleResourceId ? "请在角色设定中绑定音频" : cast.parentId ? "沿用角色本体音色" : ""}</small>
+                <small>
+                    {voiceDraft !== null
+                        ? translate("drama.studio.segmentReferences.unsavedVoiceChanges")
+                        : audio
+                          ? audio.sent
+                              ? translate("drama.studio.segmentReferences.sentWithRequest", { v0: String(audio.label) })
+                              : audio.note
+                          : !character.voiceSampleResourceId
+                            ? translate("drama.studio.segmentReferences.attachAudioInTheCharacterDesign")
+                            : cast.parentId
+                              ? translate("drama.studio.segmentReferences.useTheBaseCharacterSVoice")
+                              : ""}
+                </small>
             </div>
         );
     };
@@ -158,7 +178,13 @@ export function ReferenceBoard({
                 badge={ref?.label}
                 checked={Boolean(ref)}
                 disabled={busy}
-                note={ref ? (ref.sent ? "随请求发送" : `未附图：${referenceMissingReason(segment, cast, ref.resourceId)}`) : "未选用参考图"}
+                note={
+                    ref
+                        ? ref.sent
+                            ? translate("drama.studio.segmentReferences.sentWithRequest2")
+                            : translate("drama.studio.segmentReferences.imageNotAttached", { v0: String(referenceMissingReason(segment, cast, ref.resourceId)) })
+                        : translate("drama.studio.segmentReferences.referenceImageNotSelected")
+                }
                 onToggle={() => toggleCast(cast)}
                 onOpen={() => onOpenCast(cast.id)}
                 onPreview={openPreview}
@@ -180,7 +206,7 @@ export function ReferenceBoard({
                 badge={ref.label}
                 checked
                 disabled={busy}
-                note={ref.sent ? "随请求发送" : `未附图：${referenceMissingReason(segment, undefined, ref.resourceId)}`}
+                note={ref.sent ? translate("drama.studio.segmentReferences.sentWithRequest2") : translate("drama.studio.segmentReferences.imageNotAttached", { v0: String(referenceMissingReason(segment, undefined, ref.resourceId)) })}
                 onToggle={() => save({ referenceImages: images.filter((image) => image.resourceId !== ref.resourceId) })}
                 onPreview={openPreview}
                 onRaise={index > 0 ? () => save({ referenceImages: moved(images, index, index - 1) }) : undefined}
@@ -193,7 +219,7 @@ export function ReferenceBoard({
         <>
             {segment.audioReferenceMode === "custom" ? (
                 <Button size="small" type="text" disabled={busy || voiceDraft !== null} onClick={() => save({ autoAudioReferences: true })}>
-                    恢复自动音色
+                    {translate("drama.studio.segmentReferences.restoreAutomaticVoices")}
                 </Button>
             ) : null}
             {voiceDraft !== null ? (
@@ -207,27 +233,29 @@ export function ReferenceBoard({
                                 .catch(() => {});
                         }}
                     >
-                        保存音色选择
+                        {translate("drama.studio.segmentReferences.saveVoiceSelection")}
                     </Button>
                     <Button size="small" type="text" disabled={busy} onClick={() => setVoiceDraft(null)}>
-                        取消调整
+                        {translate("drama.studio.segmentReferences.cancelChanges")}
                     </Button>
                 </>
             ) : null}
         </>
     );
     return (
-        <section className="drama-sdx-section" aria-label="本段参考资产">
+        <section className="drama-sdx-section" aria-label={translate("drama.studio.segmentReferences.segmentReferenceAssets")}>
             <div className="drama-sdx-section-head">
                 <span className="drama-sdx-count">
-                    本段参考 {request.references.filter((ref) => ref.sent).length}/{request.references.length}
+                    {translate("drama.studio.segmentReferences.segmentReferences")} {request.references.filter((ref) => ref.sent).length}/{request.references.length}
                 </span>
                 <small>
-                    {segment.referenceMode === "custom" ? "手动指定" : "按镜头自动取"} · 本段最多发送 {request.referenceCapacity} 张{request.modelMaxImages ? ` · 模型上限 ${request.modelMaxImages} 张（含首帧）` : ""}
+                    {segment.referenceMode === "custom" ? translate("drama.studio.segmentReferences.selectedManually") : translate("drama.studio.segmentReferences.selectedAutomaticallyFromShots")} {translate("drama.studio.segmentReferences.segmentLimit")}{" "}
+                    {request.referenceCapacity} {translate("canvasA.characterLibrary.pageItem")}
+                    {request.modelMaxImages ? translate("drama.studio.segmentReferences.modelLimitImagesIncludingFirstFrame", { v0: String(request.modelMaxImages) }) : ""}
                 </small>
                 {segment.referenceMode === "custom" ? (
                     <Button size="small" type="text" disabled={busy} icon={<RotateCcw className="size-3.5" />} onClick={() => save({ autoReferences: true })}>
-                        恢复自动参考
+                        {translate("drama.studio.segmentReferences.restoreAutomaticReferences")}
                     </Button>
                 ) : null}
             </div>
@@ -250,7 +278,7 @@ export function ReferenceBoard({
                                 voiceDraft !== null ? (
                                     <>
                                         <small>
-                                            音色 {selectedVoices.length}/{audioLimit}
+                                            {translate("library.tasks.params.voice")} {selectedVoices.length}/{audioLimit}
                                         </small>
                                         {voiceActions}
                                     </>
@@ -265,59 +293,87 @@ export function ReferenceBoard({
                     }
                 >
                     <Button size="small" icon={<Search className="size-3.5" />} aria-expanded={menuOpen}>
-                        管理参考资产
+                        {translate("drama.studio.segmentReferences.manageReferenceAssets")}
                     </Button>
                 </Popover>
                 <Button size="small" icon={<Library className="size-3.5" />} disabled={busy} onClick={() => setLibraryOpen(true)}>
-                    素材库
+                    {translate("canvasB.mention.assetLibrary")}
                 </Button>
                 <Button size="small" icon={<Upload className="size-3.5" />} loading={uploading} disabled={busy} onClick={() => fileRef.current?.click()}>
-                    上传参考图
+                    {translate("canvasPage.batchReferences.uploadLabel")}
                 </Button>
-                <small>分类和卡片均可调整顺序；移除只取消本段引用。</small>
+                <small>{translate("drama.studio.segmentReferences.reorderCategoriesAndCardsAsNeededRemovingAnAssetOnly")}</small>
             </div>
             <div className="drama-sdx-frame-note">
                 {request.firstFrameResourceId ? (
-                    <button type="button" aria-label="预览上一段尾帧" onClick={() => setPreview({ resourceId: request.firstFrameResourceId!, name: "上一段尾帧" })}>
-                        <MediaThumb resourceId={request.firstFrameResourceId} alt="上一段尾帧" />
+                    <button
+                        type="button"
+                        aria-label={translate("drama.studio.segmentReferences.previewPreviousSegmentSLastFrame")}
+                        onClick={() => setPreview({ resourceId: request.firstFrameResourceId!, name: translate("drama.studio.segmentReferences.previousSegmentSLastFrame") })}
+                    >
+                        <MediaThumb resourceId={request.firstFrameResourceId} alt={translate("drama.studio.segmentReferences.previousSegmentSLastFrame")} />
                     </button>
                 ) : null}
-                <span>{first ? "开场段：无首帧，按提示词与参考图生成" : request.firstFrameResourceId ? `首帧：第 ${segment.index} 段尾帧` : `首帧：等待第 ${segment.index} 段视频生成`}</span>
+                <span>
+                    {first
+                        ? translate("drama.studio.segmentReferences.openingSegmentNoFirstFrameGeneratedFromPromptAndReferences")
+                        : request.firstFrameResourceId
+                          ? translate("drama.studio.segmentReferences.firstFrameLastFrameOfSegment", { v0: String(segment.index) })
+                          : translate("drama.studio.segmentReferences.firstFrameWaitingForSegmentVideo", { v0: String(segment.index) })}
+                </span>
             </div>
             {groupOrder.map((kind) => {
                 const group = [...ids.map((id) => castById.get(id)).filter((cast): cast is DramaCast => Boolean(cast)), ...[...castById.values()].filter((cast) => visible.has(cast.id) && !ids.includes(cast.id))].filter((cast) => cast.kind === kind);
                 const index = activeKinds.indexOf(kind);
                 return (
-                    <section className="drama-sdx-asset-group" aria-label={`${KIND_LABEL[kind]}参考`} key={kind}>
+                    <section className="drama-sdx-asset-group" aria-label={translate("drama.studio.segmentReferences.references", { v0: String(KIND_LABEL[kind]) })} key={kind}>
                         <div className="drama-sdx-group-head">
                             <strong>{KIND_LABEL[kind]}</strong>
-                            <small>{groupedIDs(kind).length} 个参考</small>
-                            <Button size="small" type="text" disabled={busy || index <= 0} aria-label={`提前${KIND_LABEL[kind]}分组`} icon={<ArrowUp className="size-3.5" />} onClick={() => moveGroup(kind, -1)} />
-                            <Button size="small" type="text" disabled={busy || index < 0 || index === activeKinds.length - 1} aria-label={`后移${KIND_LABEL[kind]}分组`} icon={<ArrowDown className="size-3.5" />} onClick={() => moveGroup(kind, 1)} />
+                            <small>
+                                {groupedIDs(kind).length} {translate("drama.studio.segmentReferences.references2")}
+                            </small>
+                            <Button
+                                size="small"
+                                type="text"
+                                disabled={busy || index <= 0}
+                                aria-label={translate("drama.studio.segmentReferences.moveGroupEarlier", { v0: String(KIND_LABEL[kind]) })}
+                                icon={<ArrowUp className="size-3.5" />}
+                                onClick={() => moveGroup(kind, -1)}
+                            />
+                            <Button
+                                size="small"
+                                type="text"
+                                disabled={busy || index < 0 || index === activeKinds.length - 1}
+                                aria-label={translate("drama.studio.segmentReferences.moveGroupLater", { v0: String(KIND_LABEL[kind]) })}
+                                icon={<ArrowDown className="size-3.5" />}
+                                onClick={() => moveGroup(kind, 1)}
+                            />
                         </div>
                         {kind === "character" ? (
                             <div className="drama-sdx-assets-foot">
                                 <small>
-                                    音色 {selectedVoices.length}/{audioLimit} · {segment.audioReferenceMode === "custom" ? "手动选择" : "按对白自动开启"} · {audioLimit ? `当前模型音色不可多于 ${audioLimit} 个` : "当前模型不支持参考音色"}
+                                    {translate("library.tasks.params.voice")} {selectedVoices.length}/{audioLimit} ·{" "}
+                                    {segment.audioReferenceMode === "custom" ? translate("drama.studio.segmentReferences.selectedManually2") : translate("drama.studio.segmentReferences.enabledAutomaticallyFromDialogue")} ·{" "}
+                                    {audioLimit ? translate("drama.studio.segmentReferences.theCurrentModelSupportsNoMoreThanVoices", { v0: String(audioLimit) }) : translate("drama.studio.segmentReferences.theCurrentModelDoesNotSupportReferenceVoices")}
                                 </small>
                                 {voiceActions}
                             </div>
                         ) : null}
-                        {kind === "character" && selectedVoices.length > audioLimit ? <p className="drama-sdx-hint is-error">已选音色超过模型上限，请在人物卡片下关闭部分音色后保存。</p> : null}
-                        {group.length ? <div className="drama-sdx-assets">{group.map(renderCast)}</div> : <p className="drama-sdx-hint">暂无{KIND_LABEL[kind]}参考，可在“管理参考资产”中搜索添加。</p>}
+                        {kind === "character" && selectedVoices.length > audioLimit ? <p className="drama-sdx-hint is-error">{translate("drama.studio.segmentReferences.theSelectedVoicesExceedTheModelSLimitDisableSome")}</p> : null}
+                        {group.length ? <div className="drama-sdx-assets">{group.map(renderCast)}</div> : <p className="drama-sdx-hint">{translate("drama.sentences.noReferences", { kind: KIND_LABEL[kind] })}</p>}
                     </section>
                 );
             })}
             {images.length ? (
-                <section className="drama-sdx-asset-group" aria-label="附加图片参考">
+                <section className="drama-sdx-asset-group" aria-label={translate("drama.studio.segmentReferences.additionalImageReferences")}>
                     <div className="drama-sdx-group-head">
-                        <strong>附加图片</strong>
-                        <small>排在设定参考之后</small>
+                        <strong>{translate("drama.studio.segmentReferences.additionalImages")}</strong>
+                        <small>{translate("drama.studio.segmentReferences.placedAfterDesignReferences")}</small>
                     </div>
                     <div className="drama-sdx-assets">{request.references.filter((ref) => !ref.castId).map(renderImage)}</div>
                 </section>
             ) : null}
-            <small className="drama-sdx-hint">顺序变化会更新参考图编号。模型撰写的提示词需重新撰写；手写提示词请核对编号。</small>
+            <small className="drama-sdx-hint">{translate("drama.studio.segmentReferences.reorderingChangesReferenceNumbersModelWrittenPromptsMustBeRewritten")}</small>
             <input
                 ref={fileRef}
                 type="file"
@@ -364,27 +420,36 @@ function AssetMenu({
     const filteredCasts = casts.filter((cast) => (kind === "all" || cast.kind === kind) && matches(`${castName(cast)} ${parseList(cast.aliasesJson).join(" ")}`));
     const filteredImages = kind === "all" || kind === "image" ? images.filter((ref) => matches(ref.name)) : [];
     return (
-        <div className="drama-root drama-sdx-asset-menu" aria-label="搜索参考资产">
-            <Input allowClear value={query} prefix={<Search className="size-3.5" />} placeholder="搜索人物、别名、造型、场景或道具" aria-label="搜索资产" onChange={(event) => setQuery(event.target.value)} />
-            <nav className="drama-sdx-asset-menu-kinds" aria-label="资产分类">
+        <div className="drama-root drama-sdx-asset-menu" aria-label={translate("drama.studio.segmentReferences.searchReferenceAssets")}>
+            <Input
+                allowClear
+                value={query}
+                prefix={<Search className="size-3.5" />}
+                placeholder={translate("drama.studio.segmentReferences.searchCharactersAliasesLooksScenesOrProps")}
+                aria-label={translate("canvasA.assetView.searchPlaceholder")}
+                onChange={(event) => setQuery(event.target.value)}
+            />
+            <nav className="drama-sdx-asset-menu-kinds" aria-label={translate("drama.studio.segmentReferences.assetCategory")}>
                 {(["all", ...ASSET_KINDS, "image"] as const).map((value) => (
                     <button key={value} type="button" aria-pressed={kind === value} onClick={() => setKind(value)}>
-                        {value === "all" ? "全部" : KIND_LABEL[value]}
+                        {value === "all" ? translate("canvasA.toolPicker.all") : KIND_LABEL[value]}
                     </button>
                 ))}
             </nav>
             <div className="drama-sdx-asset-menu-results">
                 {filteredCasts.map(renderCast)}
                 {filteredImages.map(renderImage)}
-                {!filteredCasts.length && !filteredImages.length ? <p className="drama-sdx-hint">没有匹配的资产，请更换关键词或从素材库添加。</p> : null}
+                {!filteredCasts.length && !filteredImages.length ? <p className="drama-sdx-hint">{translate("drama.studio.segmentReferences.noMatchingAssetsTryOtherKeywordsOrAddAssetsFrom")}</p> : null}
             </div>
             <div className="drama-sdx-assets-foot">
-                <small>已添加 {ids.length + images.length} 项 · 点击卡片按钮添加或移除</small>
+                <small>
+                    {translate("drama.studio.segmentReferences.added")} {ids.length + images.length} {translate("drama.studio.segmentReferences.itemsUseCardButtonsToAddOrRemove")}
+                </small>
                 <Button size="small" disabled={busy} onClick={onLibrary}>
-                    素材库
+                    {translate("canvasB.mention.assetLibrary")}
                 </Button>
                 <Button size="small" disabled={busy} onClick={onUpload}>
-                    上传参考图
+                    {translate("canvasPage.batchReferences.uploadLabel")}
                 </Button>
             </div>
             {voiceActions ? <div className="drama-sdx-assets-foot">{voiceActions}</div> : null}
@@ -422,22 +487,22 @@ function AssetCard({
     children?: ReactNode;
 }) {
     return (
-        <article className={`drama-sdx-asset ${checked ? "is-checked" : ""}`} aria-label={`${name}资产`}>
+        <article className={`drama-sdx-asset ${checked ? "is-checked" : ""}`} aria-label={translate("drama.studio.segmentReferences.assets", { v0: String(name) })}>
             <button
                 type="button"
                 className="drama-sdx-asset-thumb"
                 disabled={!resourceId}
-                aria-label={`放大预览${name}`}
+                aria-label={translate("drama.studio.segmentReferences.enlarge", { v0: String(name) })}
                 onClick={() => {
                     if (resourceId) onPreview({ resourceId, name });
                 }}
             >
-                {resourceId ? <MediaThumb resourceId={resourceId} alt={name} /> : <span>暂无{kind}图片</span>}
+                {resourceId ? <MediaThumb resourceId={resourceId} alt={name} /> : <span>{translate("drama.sentences.noReferenceImage", { kind })}</span>}
                 {badge ? <em>{badge}</em> : null}
                 {resourceId ? <ZoomIn className="drama-sdx-asset-zoom size-4" /> : null}
             </button>
             {onOpen ? (
-                <button type="button" className="drama-sdx-asset-text" onClick={onOpen} aria-label={`查看${name}设定`}>
+                <button type="button" className="drama-sdx-asset-text" onClick={onOpen} aria-label={translate("drama.studio.segmentReferences.viewDesign", { v0: String(name) })}>
                     <b>{name}</b>
                 </button>
             ) : (
@@ -445,13 +510,20 @@ function AssetCard({
             )}
             <small className="drama-sdx-asset-note">{note}</small>
             <div className="drama-sdx-asset-actions">
-                <Button size="small" type="text" icon={checked ? <Trash2 className="size-3.5" /> : <Plus className="size-3.5" />} disabled={disabled} aria-label={checked ? `移除参考图${name}` : `添加参考图${name}`} onClick={onToggle}>
-                    {checked ? "移除" : "添加"}
+                <Button
+                    size="small"
+                    type="text"
+                    icon={checked ? <Trash2 className="size-3.5" /> : <Plus className="size-3.5" />}
+                    disabled={disabled}
+                    aria-label={checked ? translate("drama.studio.segmentReferences.removeReferenceImage", { v0: String(name) }) : translate("drama.studio.segmentReferences.addReferenceImage", { v0: String(name) })}
+                    onClick={onToggle}
+                >
+                    {checked ? translate("canvasB.common.remove") : translate("canvasB.common.add")}
                 </Button>
                 {checked ? (
                     <>
-                        <Button size="small" type="text" disabled={disabled || !onRaise} icon={<ArrowUp className="size-3.5" />} aria-label={`提前${name}`} onClick={onRaise} />
-                        <Button size="small" type="text" disabled={disabled || !onLower} icon={<ArrowDown className="size-3.5" />} aria-label={`后移${name}`} onClick={onLower} />
+                        <Button size="small" type="text" disabled={disabled || !onRaise} icon={<ArrowUp className="size-3.5" />} aria-label={translate("drama.studio.segmentReferences.moveEarlier", { v0: String(name) })} onClick={onRaise} />
+                        <Button size="small" type="text" disabled={disabled || !onLower} icon={<ArrowDown className="size-3.5" />} aria-label={translate("drama.studio.segmentReferences.moveLater", { v0: String(name) })} onClick={onLower} />
                     </>
                 ) : null}
             </div>

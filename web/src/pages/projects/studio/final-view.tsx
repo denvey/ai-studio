@@ -7,6 +7,7 @@ import type { DramaEpisodeDetail } from "@/services/api/drama";
 import { aspectRatioValue, downloadResource, formatDuration, MediaThumb, STAGE_LABEL, useResourceMediaUrl } from "../drama-shared";
 import { JianyingDraftModal } from "./asset-transfer";
 import { secondsLabel } from "./segment-parts";
+import { translate } from "@/i18n";
 
 /** 成片：各剧情段视频按顺序拼接，保留视频模型生成的对白与音效。片段条可跳到对应段并打开该段详情。 */
 export function FinalView({
@@ -40,7 +41,9 @@ export function FinalView({
     }, 0);
     const download = () => {
         if (!episode.finalResourceId) return;
-        void downloadResource(episode.finalResourceId, `${title}-第${episode.number}集.mp4`).catch((error) => message.error(error instanceof Error ? error.message : "下载失败"));
+        void downloadResource(episode.finalResourceId, translate("drama.studio.finalView.episodeMp4", { v0: String(title), v1: String(episode.number) })).catch((error) =>
+            message.error(error instanceof Error ? error.message : translate("canvasA.assetView.downloadFailed")),
+        );
     };
     return (
         <div className="drama-finalv">
@@ -51,7 +54,9 @@ export function FinalView({
                     ) : (
                         <div className="drama-finalv-empty">
                             <Film className="size-6" aria-hidden />
-                            <span>{STAGE_LABEL[episode.stage]} · 全部段视频生成后自动合成</span>
+                            <span>
+                                {STAGE_LABEL[episode.stage]} {translate("drama.studio.finalView.rendersAutomaticallyWhenAllSegmentVideosAreReady")}
+                            </span>
                         </div>
                     )}
                 </div>
@@ -68,37 +73,44 @@ export function FinalView({
                             }}
                         >
                             <MediaThumb resourceId={segment.tailFrameResourceId} alt={segment.title} fallback={<span className="drama-filmstrip-empty" />} />
-                            <span>
-                                第 {segment.index + 1} 段 · {secondsLabel(segment.durationMs)}
-                            </span>
+                            <span>{translate("drama.sentences.segmentTime", { number: segment.index + 1, time: secondsLabel(segment.durationMs) })}</span>
                         </button>
                     ))}
                 </div>
             </div>
             <aside className="drama-finalv-side">
-                <h2>
-                    第 {episode.number} 集 · {episode.title}
-                </h2>
+                <h2>{translate("drama.sentences.episodeTitle", { number: episode.number, title: episode.title })}</h2>
                 <p>
-                    {formatDuration(episode.durationMs)} · {segments.length} 个剧情段 · 对白与音效来自视频模型
+                    {formatDuration(episode.durationMs)} · {segments.length} {translate("drama.studio.finalView.storySegmentsDialogueAndSoundEffectsComeFromTheVideo")}
                 </p>
                 {episode.finalStale ? (
                     <p className="drama-finalv-stale" role="status">
-                        内容已修改，当前成片是修改前的版本，相关段重新生成后会自动重新合成。
+                        {translate("drama.studio.finalView.theContentHasChangedThisFinalCutIsThePrevious")}
                     </p>
                 ) : null}
                 <Button icon={<Download className="size-4" />} disabled={!episode.finalResourceId} onClick={download}>
-                    下载成片
+                    {translate("drama.studio.finalView.downloadFinalCut")}
                 </Button>
                 <Button icon={<Scissors className="size-4" />} disabled={!readySegments} loading={cutOpening} onClick={onOpenCut}>
-                    到画布精剪
+                    {translate("drama.studio.finalView.editOnCanvas")}
                 </Button>
-                <Button icon={<Clapperboard className="size-4" />} disabled={!readySegments} onClick={() => setExportingDraft(true)} title={readySegments ? "导出为剪映专业版草稿，在剪映里继续剪辑" : "本集还没有生成好的剧情段视频"}>
-                    导出剪映草稿
+                <Button
+                    icon={<Clapperboard className="size-4" />}
+                    disabled={!readySegments}
+                    onClick={() => setExportingDraft(true)}
+                    title={readySegments ? translate("drama.studio.finalView.exportAJianyingProDraftToContinueEditingInJianying") : translate("drama.studio.finalView.thisEpisodeHasNoCompletedSegmentVideosYet")}
+                >
+                    {translate("drama.studio.finalView.exportJianyingDraft")}
                 </Button>
-                {readySegments ? <p className="drama-editor-note">按成片顺序把 {readySegments} 段视频载入精修画布的时间线，或导出为剪映草稿；剪辑结果不会替换这里的成片。</p> : null}
+                {readySegments ? (
+                    <p className="drama-editor-note">
+                        {translate("drama.studio.finalView.load")} {readySegments} {translate("drama.studio.finalView.segmentVideosIntoTheRefinementCanvasTimelineInFinalCut")}
+                    </p>
+                ) : null}
             </aside>
-            {exportingDraft ? <JianyingDraftModal open projectId={projectId} episodeId={episode.id} episodeLabel={`第 ${episode.number} 集`} readySegments={readySegments} onClose={() => setExportingDraft(false)} /> : null}
+            {exportingDraft ? (
+                <JianyingDraftModal open projectId={projectId} episodeId={episode.id} episodeLabel={translate("drama.studio.finalView.episode", { v0: String(episode.number) })} readySegments={readySegments} onClose={() => setExportingDraft(false)} />
+            ) : null}
         </div>
     );
 }

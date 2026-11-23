@@ -3,6 +3,7 @@ import type { GenerationTask } from "@/services/api/task-center";
 import type { WorkbenchKind } from "@/services/api/workbench";
 
 /** 一次提交的作品数上限：图片宫格最多 12 张，视频最多 8 条。实际上限还受模型单次张数和账号并发约束。 */
+import { translate } from "@/i18n";
 export const IMAGE_BATCH_MAX = 12;
 export const VIDEO_BATCH_MAX = 8;
 
@@ -38,11 +39,11 @@ export function isActiveWorkbenchTask(task: Pick<GenerationTask, "status">) {
 }
 
 export function workbenchTaskStateLabel(task: Pick<GenerationTask, "status" | "stage" | "error">) {
-    if (task.status === "queued") return "排队中";
-    if (task.status === "running") return task.stage || "生成中";
-    if (task.status === "succeeded") return "已完成";
-    if (task.status === "cancelled") return "已取消";
-    return task.error || task.stage || "生成失败";
+    if (task.status === "queued") return translate("canvasPage.taskStatus.queued");
+    if (task.status === "running") return task.stage || translate("canvasB.mediaVersion.generating");
+    if (task.status === "succeeded") return translate("library.tasks.filter.succeeded");
+    if (task.status === "cancelled") return translate("ecommerce.workbench.workbenchBatches.cancelled");
+    return task.error || task.stage || translate("canvasPage.batches.generationFailed");
 }
 
 export type WorkbenchTaskGroup = {
@@ -189,7 +190,7 @@ export function workbenchDownloadName(output: Pick<WorkbenchOutput, "kind" | "mi
         baseName
             .replace(/[\x00-\x1f\\/:*?"<>|]/g, "_")
             .trim()
-            .slice(0, 60) || (output.kind === "image" ? "商品图" : "商品视频");
+            .slice(0, 60) || (output.kind === "image" ? translate("ecommerce.workbench.workbenchBatches.productImages") : translate("ecommerce.workbench.workbenchBatches.productVideos"));
     const fromPath = /\.([a-z0-9]{3,4})(?:[?#]|$)/i.exec(output.url.split(/[?#]/, 1)[0])?.[1]?.toLowerCase();
     const extension = (output.mimeType && DOWNLOAD_EXTENSIONS[output.mimeType.toLowerCase()]) || (fromPath && Object.values(DOWNLOAD_EXTENSIONS).includes(fromPath) ? fromPath : "") || (output.kind === "image" ? "png" : "mp4");
     const pad = (value: number) => String(value).padStart(2, "0");
@@ -288,8 +289,8 @@ const STANDARD_RATIOS = ["1:1", "3:4", "4:3", "9:16", "16:9", "2:3", "3:2", "4:5
 function ratioLabel(value: unknown) {
     const raw = text(value);
     if (!raw) return "";
-    if (raw === "auto") return "自动尺寸";
-    if (raw === "adaptive") return "自适应画幅";
+    if (raw === "auto") return translate("ecommerce.workbench.workbenchBatches.automaticSize");
+    if (raw === "adaptive") return translate("ecommerce.workbench.workbenchBatches.adaptiveFrameSize");
     if (raw.includes(":")) return raw;
     const ratio = aspectRatioOf(raw);
     const standard = ratio ? STANDARD_RATIOS.find((item) => Math.abs((aspectRatioOf(item) || 0) - ratio) / ratio < 0.02) : undefined;
@@ -305,16 +306,25 @@ export function workbenchParameterSummary(kind: WorkbenchKind, parameters: Recor
         const resolution = text(parameters.imageResolution);
         if (resolution && resolution !== "auto") items.push(resolution.toUpperCase());
         const quality = text(parameters.quality);
-        if (quality && quality !== "auto" && !/^\d(\.\d)?k$/i.test(quality)) items.push({ low: "快速", medium: "标准", high: "高清", standard: "标准", hd: "高清" }[quality.toLowerCase()] || quality);
+        if (quality && quality !== "auto" && !/^\d(\.\d)?k$/i.test(quality))
+            items.push(
+                {
+                    low: translate("ecommerce.workbench.workbenchBatches.fast"),
+                    medium: translate("library.assets.density.standard"),
+                    high: translate("ecommerce.workbench.workbenchBatches.highDefinition"),
+                    standard: translate("library.assets.density.standard"),
+                    hd: translate("ecommerce.workbench.workbenchBatches.highDefinition"),
+                }[quality.toLowerCase()] || quality,
+            );
     } else {
         const seconds = Number(parameters.seconds);
-        if (Number.isFinite(seconds) && seconds > 0) items.push(`${seconds} 秒`);
+        if (Number.isFinite(seconds) && seconds > 0) items.push(translate("ecommerce.workbench.workbenchBatches.s", { v0: String(seconds) }));
         const ratio = ratioLabel(parameters.ratio);
         if (ratio) items.push(ratio);
         const resolution = text(parameters.resolution);
         if (resolution) items.push(/^\d+$/.test(resolution) ? `${resolution}p` : resolution);
-        if (parameters.generateAudio === true) items.push("有声");
+        if (parameters.generateAudio === true) items.push(translate("ecommerce.workbench.workbenchBatches.withAudio"));
     }
-    if (outputCount && outputCount > 0) items.push(kind === "image" ? `${outputCount} 张` : `${outputCount} 条`);
+    if (outputCount && outputCount > 0) items.push(kind === "image" ? translate("ecommerce.workbench.workbenchBatches.images", { v0: String(outputCount) }) : translate("ecommerce.workbench.workbenchBatches.videos", { v0: String(outputCount) }));
     return items;
 }

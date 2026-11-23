@@ -1,13 +1,14 @@
 import type { ImageSplitParams } from "@/lib/canvas/canvas-image-data";
+import { translate } from "@/i18n";
 
 export const CANVAS_GRID_SPLIT_MAX = 5;
 export const CANVAS_GRID_SPLIT_GAP = 48;
 
 export const CANVAS_GRID_SPLIT_PRESETS: Array<{ rows: number; columns: number; label: string }> = [
-    { rows: 2, columns: 2, label: "4宫格 (2×2)" },
-    { rows: 3, columns: 3, label: "9宫格 (3×3)" },
-    { rows: 4, columns: 4, label: "16宫格 (4×4)" },
-    { rows: 5, columns: 5, label: "25宫格 (5×5)" },
+    { rows: 2, columns: 2, label: translate("shared.canvas.canvasGridSplit.item4Panels22") },
+    { rows: 3, columns: 3, label: translate("shared.canvas.canvasGridSplit.item9Panels33") },
+    { rows: 4, columns: 4, label: translate("shared.canvas.canvasGridSplit.item16Panels44") },
+    { rows: 5, columns: 5, label: translate("shared.canvas.canvasGridSplit.item25PanelGrid55") },
 ];
 
 export type GridSplitCellSize = {

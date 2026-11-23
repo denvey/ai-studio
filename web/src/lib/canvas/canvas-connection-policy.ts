@@ -3,6 +3,8 @@ import { getNodeAcceptedInputKinds, getNodeGenerationMode, getNodeInputKind, get
 import { readNodeGenerationSpec, resolveGenerationSelection } from "@/lib/canvas/generation-contract";
 import type { AiConfig } from "@/stores/use-config-store";
 import { CanvasNodeType, type CanvasConnection, type CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 type ConnectionCandidate = Pick<CanvasConnection, "fromNodeId" | "toNodeId">;
 type CanvasConnectionPolicyOptions = {
@@ -12,8 +14,8 @@ type CanvasConnectionPolicyOptions = {
 
 export function canvasConnectionError(config: AiConfig, nodes: CanvasNodeData[], connections: CanvasConnection[], candidate: ConnectionCandidate, options: CanvasConnectionPolicyOptions = {}) {
     const target = nodes.find((node) => node.id === candidate.toNodeId);
-    if (!target) return "找不到连线目标节点";
-    if (target.type === CanvasNodeType.BatchTable && target.metadata?.locked) return "批量创作表已锁定";
+    if (!target) return translate("shared.canvas.canvasConnectionPolicy.connectionTargetNodeNotFound");
+    if (target.type === CanvasNodeType.BatchTable && target.metadata?.locked) return translate("shared.canvas.canvasConnectionPolicy.theBatchCreationTableIsLocked");
     const acceptedInputKinds = getNodeAcceptedInputKinds(target.type);
     if (acceptedInputKinds.length) {
         const source = nodes.find((node) => node.id === candidate.fromNodeId);
@@ -23,9 +25,9 @@ export function canvasConnectionError(config: AiConfig, nodes: CanvasNodeData[],
             ? source?.type === CanvasNodeType.Image || source?.type === CanvasNodeType.Video
             : Boolean(sourceKind && acceptedInputKinds.includes(sourceKind));
         if (!sourceKind || !hasAcceptedSource) {
-            const labels = acceptedInputKinds.map(acceptedInputKindLabel).join("或");
-            const targetLabel = isMediaConversion ? "转换" : target.type === CanvasNodeType.BatchTable ? "批量创作表" : labels;
-            return `${targetLabel}节点只接受${labels}输入`;
+            const labels = acceptedInputKinds.map(acceptedInputKindLabel).join(translate("common.or"));
+            const targetLabel = isMediaConversion ? translate("shared.canvas.canvasConnectionPolicy.conversion") : target.type === CanvasNodeType.BatchTable ? translate("shared.canvas.nodeRegistry.definitions.builtinNodes.batchCreationTable") : labels;
+            return translate("shared.canvas.canvasConnectionPolicy.nodesOnlyAcceptInput", { v0: String(targetLabel), v1: String(labels) });
         }
         const maxInputCount = getNodeMaxInputCount(target.type);
         if (maxInputCount) {
@@ -34,7 +36,7 @@ export function canvasConnectionError(config: AiConfig, nodes: CanvasNodeData[],
                     .filter((connection) => connection.toNodeId === target.id)
                     .map((connection) => connection.fromNodeId),
             ).size;
-            if (inputCount > maxInputCount) return `${isMediaConversion ? "转换" : "当前"}节点最多连接 ${maxInputCount} 个输入`;
+            if (inputCount > maxInputCount) return translate("shared.canvas.canvasConnectionPolicy.nodesAcceptUpToInputs", { v0: String(isMediaConversion ? translate("shared.canvas.canvasConnectionPolicy.conversion") : translate("canvasB.mediaVersion.current")), v1: String(maxInputCount) });
         }
     }
     const mode = getNodeGenerationMode(target);
@@ -43,22 +45,22 @@ export function canvasConnectionError(config: AiConfig, nodes: CanvasNodeData[],
     const visualInputCount = input.imageCount + input.characterCount;
 
     if (mode === "image") {
-        if (input.videoCount > 0) return "图片生成节点不能连接参考视频";
-        if (input.audioCount > 0) return "图片生成节点不能连接参考音频";
-        return options.ignoreCapacity ? "" : capacityError(config, mode, "image", visualInputCount, "参考图");
+        if (input.videoCount > 0) return translate("shared.canvas.canvasConnectionPolicy.imageGenerationNodesCannotConnectToReferenceVideos");
+        if (input.audioCount > 0) return translate("shared.canvas.canvasConnectionPolicy.imageGenerationNodesCannotConnectToReferenceAudio");
+        return options.ignoreCapacity ? "" : capacityError(config, mode, "image", visualInputCount, translate("canvasPage.connection.referenceImage"));
     }
     if (mode === "video") {
-        return options.ignoreCapacity ? "" : capacityError(config, mode, "image", visualInputCount, "参考图") || capacityError(config, mode, "video", input.videoCount, "参考视频") || capacityError(config, mode, "audio", input.audioCount, "参考音频");
+        return options.ignoreCapacity ? "" : capacityError(config, mode, "image", visualInputCount, translate("canvasPage.connection.referenceImage")) || capacityError(config, mode, "video", input.videoCount, translate("library.tasks.params.referenceVideos")) || capacityError(config, mode, "audio", input.audioCount, translate("library.tasks.params.referenceAudios"));
     }
-    if (mode === "text" && input.audioCount > 0) return "文本生成节点不能连接参考音频";
+    if (mode === "text" && input.audioCount > 0) return translate("shared.canvas.canvasConnectionPolicy.textGenerationNodesCannotConnectToReferenceAudio");
     if (mode === "audio") {
         const model = routedAudioModel(config, target, input);
         if (isDoubaoAudioModel(config, model)) return doubaoAudioInputError(input);
-        if (input.imageCount > 0 || input.videoCount > 0) return "音频生成节点不能连接参考图片或参考视频";
-        if (input.characterCount > 1) return "角色配音一次只能连接一个角色卡";
+        if (input.imageCount > 0 || input.videoCount > 0) return translate("shared.canvas.canvasConnectionPolicy.audioGenerationNodesCannotConnectToReferenceImagesOrVideos");
+        if (input.characterCount > 1) return translate("shared.canvas.canvasConnectionPolicy.characterVoiceoverAcceptsOnlyOneCharacterCardAtATime");
         const maxAudios = audioReferenceCapacity(config, model);
         if (input.audioCount > maxAudios) {
-            return maxAudios > 0 ? `音频生成节点最多连接 ${maxAudios} 个参考音频` : "当前音频模型不支持参考音频";
+            return maxAudios > 0 ? translate("shared.canvas.canvasConnectionPolicy.audioGenerationNodesAcceptUpToAudioReferences", { v0: String(maxAudios) }) : translate("shared.canvas.canvasConnectionPolicy.theCurrentAudioModelDoesNotSupportAudioReferences");
         }
     }
     return "";
@@ -74,11 +76,11 @@ function routedAudioModel(config: AiConfig, target: CanvasNodeData, input: Model
 }
 
 function acceptedInputKindLabel(kind: "image" | "video" | "audio" | "text" | "table_data") {
-    if (kind === "image") return "图片";
-    if (kind === "video") return "视频";
-    if (kind === "audio") return "音频";
-    if (kind === "table_data") return "多维表格";
-    return "文本";
+    if (kind === "image") return translate("account.feedback.image");
+    if (kind === "video") return translate("account.feedback.video");
+    if (kind === "audio") return translate("account.settings.modelConfig.capabilities.audio");
+    if (kind === "table_data") return translate("shared.canvas.canvasConnectionPolicy.multidimensionalTable");
+    return translate("account.settings.modelConfig.capabilities.text");
 }
 
 export function connectionInputSummary(targetNodeId: string, nodes: CanvasNodeData[], connections: CanvasConnection[], candidate?: ConnectionCandidate): ModelInputSummary {
@@ -104,6 +106,6 @@ export function connectionInputSummary(targetNodeId: string, nodes: CanvasNodeDa
 function capacityError(config: AiConfig, capability: "image" | "video", kind: "image" | "video" | "audio", count: number, label: string) {
     const maximum = maxModelInputCapacity(config, capability, kind);
     if (maximum === null || count <= maximum) return "";
-    const unit = kind === "image" ? "张" : "个";
-    return maximum > 0 ? `已配置模型最多支持 ${maximum} ${unit}${label}` : `已配置模型均不支持${label}`;
+    const unit = kind === "image" ? translate("canvasA.characterLibrary.pageItem") : translate("shared.plugins.builtin.editor.editorExport.items");
+    return maximum > 0 ? translate("shared.canvas.canvasConnectionPolicy.configuredModelsSupportUpTo", { v0: String(maximum), v1: String(unit), v2: String(label) }) : translate("shared.canvas.canvasConnectionPolicy.noConfiguredModelSupports", { v0: String(label) });
 }

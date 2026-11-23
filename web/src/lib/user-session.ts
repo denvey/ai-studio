@@ -20,6 +20,7 @@ import { clearResourceAccessCache } from "@/services/api/resources";
 import { clearResourceBlobCache } from "@/services/resource-blob-cache";
 import { withGenerationConsumersPaused } from "@/services/generation-consumer-lifecycle";
 import { recordDiagnosticEvent } from "@/services/diagnostics/client-diagnostics";
+import { translate } from "@/i18n";
 
 export async function switchUserStorageScope(userId?: string | null) {
     await withGenerationConsumersPaused(async () => {
@@ -176,10 +177,10 @@ export async function refreshSystemChannels() {
 // 目录仅接受系统渠道模型，避免畸形响应被当成空目录写入配置。
 function modelCatalogChannels(catalog: ModelCatalogResponse): ModelChannel[] {
     if (catalog.source === "system") {
-        if (!Array.isArray(catalog.channels)) throw new Error("模型目录响应缺少系统渠道列表");
+        if (!Array.isArray(catalog.channels)) throw new Error(translate("shared.userSession.theModelCatalogResponseIsMissingTheSystemChannelList"));
         return systemChannelModelChannels(catalog.channels);
     }
-    throw new Error("模型目录响应来源无效");
+    throw new Error(translate("shared.userSession.invalidModelCatalogResponseSource"));
 }
 
 // 系统渠道模型转换为前端配置格式

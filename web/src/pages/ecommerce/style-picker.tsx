@@ -5,18 +5,19 @@ import type { EcommerceCreativeDirection, EcommerceStyleRewrite } from "@/servic
 import { DirectionEditor, directionDescription, directionSwatches, rewriteDirection } from "./direction-cards";
 import "./style-picker.css";
 
+import { translate } from "@/i18n";
 const RECOMMENDED = "recommended";
 const CUSTOM = "custom";
-const UNGROUPED = "更多风格";
+const UNGROUPED = translate("ecommerce.stylePicker.moreStyles");
 
 /** Starting points for a typed style; clicking one fills the form. */
 const inspirations: EcommerceStyleRewrite[] = [
-    { name: "赛博霓虹", description: "雨夜街头的霓虹灯牌与湿润反光地面，紫青撞色，超粗发光标题" },
-    { name: "莫兰迪奶油", description: "低饱和奶油色与雾感灰调，柔和漫射光，圆润细体字与大留白" },
-    { name: "法式复古", description: "巴黎咖啡馆桌面，胶片颗粒与暖色褪色调，优雅衬线标题" },
-    { name: "日系清新", description: "通透自然光与浅蓝白色调，干净桌面与绿植，细黑体短句" },
-    { name: "暗黑哥特", description: "深酒红与黑色的戏剧暗场，烛光与丝绒，尖锐衬线标题" },
-    { name: "极光梦幻", description: "极光渐变与流光粒子，蓝紫梦幻色调，漂浮构图与细线字" },
+    { name: translate("ecommerce.stylePicker.cyberNeon"), description: "雨夜街头的霓虹灯牌与湿润反光地面，紫青撞色，超粗发光标题" },
+    { name: translate("ecommerce.stylePicker.morandiCream"), description: "低饱和奶油色与雾感灰调，柔和漫射光，圆润细体字与大留白" },
+    { name: translate("ecommerce.stylePicker.frenchVintage"), description: "巴黎咖啡馆桌面，胶片颗粒与暖色褪色调，优雅衬线标题" },
+    { name: translate("ecommerce.stylePicker.freshJapanese"), description: "通透自然光与浅蓝白色调，干净桌面与绿植，细黑体短句" },
+    { name: translate("ecommerce.stylePicker.darkGothic"), description: "深酒红与黑色的戏剧暗场，烛光与丝绒，尖锐衬线标题" },
+    { name: translate("ecommerce.stylePicker.dreamyAurora"), description: "极光渐变与流光粒子，蓝紫梦幻色调，漂浮构图与细线字" },
 ];
 
 function cardStyle(direction: EcommerceCreativeDirection, index: number): CSSProperties {
@@ -48,7 +49,7 @@ function StyleCard({ direction, index, chosen, disabled, onSelect, onEdit }: { d
                     <span className="commerce-style-card-desc">{directionDescription(direction)}</span>
                     {typography ? (
                         <span className="commerce-style-card-meta">
-                            <em>字体</em>
+                            <em>{translate("ecommerce.stylePicker.fonts")}</em>
                             <span>{typography}</span>
                         </span>
                     ) : null}
@@ -67,7 +68,14 @@ function StyleCard({ direction, index, chosen, disabled, onSelect, onEdit }: { d
             <span className="commerce-style-card-check" aria-hidden="true">
                 <Check size={14} />
             </span>
-            <button type="button" className="commerce-style-card-edit" aria-label={`改写风格：${direction.name}`} title="改写这个风格" disabled={disabled} onClick={onEdit}>
+            <button
+                type="button"
+                className="commerce-style-card-edit"
+                aria-label={translate("ecommerce.stylePicker.rewriteStyle", { v0: String(direction.name) })}
+                title={translate("ecommerce.stylePicker.rewriteThisStyle")}
+                disabled={disabled}
+                onClick={onEdit}
+            >
                 <PencilLine size={14} />
             </button>
         </div>
@@ -119,15 +127,22 @@ export function CommerceStylePicker({
     const visible = tab === RECOMMENDED ? directions : library.filter((item) => (item.group || UNGROUPED) === tab);
     const customReady = Boolean(custom.name.trim() || custom.description.trim());
     const picked = selectedId === CUSTOM ? undefined : all.find((entry) => entry.id === selectedId);
-    const chosen = selectedId === CUSTOM ? (customReady ? { name: custom.name.trim() || "自定义风格", group: "自定义" } : undefined) : picked ? { name: resolve(picked).name, group: picked.group || "为你推荐" } : undefined;
+    const chosen =
+        selectedId === CUSTOM
+            ? customReady
+                ? { name: custom.name.trim() || translate("ecommerce.stylePicker.customStyle"), group: translate("account.settings.models.scopeCustom") }
+                : undefined
+            : picked
+              ? { name: resolve(picked).name, group: picked.group || translate("ecommerce.stylePicker.recommendedForYou") }
+              : undefined;
     const tabs = [
-        { id: RECOMMENDED, label: "为你推荐", count: directions.length },
+        { id: RECOMMENDED, label: translate("ecommerce.stylePicker.recommendedForYou"), count: directions.length },
         ...groups.map((group) => ({ id: group, label: group, count: library.filter((item) => (item.group || UNGROUPED) === group).length })),
-        { id: CUSTOM, label: "自定义", count: 0 },
+        { id: CUSTOM, label: translate("account.settings.models.scopeCustom"), count: 0 },
     ];
     const confirm = () => {
         if (disabled || degraded || editing || !chosen) return;
-        const direction = selectedId === CUSTOM ? { id: "custom", name: custom.name.trim() || "自定义风格", summary: custom.description.trim(), tags: [] } : picked ? resolve(picked) : undefined;
+        const direction = selectedId === CUSTOM ? { id: "custom", name: custom.name.trim() || translate("ecommerce.stylePicker.customStyle"), summary: custom.description.trim(), tags: [] } : picked ? resolve(picked) : undefined;
         if (!direction) return;
         setConfirming(true);
         onConfirm(direction);
@@ -144,7 +159,7 @@ export function CommerceStylePicker({
     };
     const total = directions.length + library.length;
     return (
-        <Modal open={open} onCancel={onClose} footer={null} width={1120} centered destroyOnHidden title="选择视觉风格" className="commerce-style-picker-modal" rootClassName="commerce-style-picker-root">
+        <Modal open={open} onCancel={onClose} footer={null} width={1120} centered destroyOnHidden title={translate("ecommerce.stylePicker.chooseAVisualStyle")} className="commerce-style-picker-modal" rootClassName="commerce-style-picker-root">
             <div className="commerce-style-picker">
                 <header className="commerce-style-picker-head">
                     <span className="commerce-style-picker-avatar" aria-hidden="true">
@@ -153,13 +168,15 @@ export function CommerceStylePicker({
                     <div>
                         <small>
                             <Sparkles size={12} />
-                            STYLE STUDIO · {total} 种风格
+                            STYLE STUDIO · {total} {translate("ecommerce.stylePicker.styles")}
                         </small>
-                        <h2>为这件商品选一种视觉风格</h2>
-                        <p>已按这件商品的品类推荐 {total} 套视觉方案，包含专属场景、字体和版式。可以按分类挑选，或点铅笔改写风格。</p>
+                        <h2>{translate("ecommerce.stylePicker.chooseAVisualStyleForThisProduct")}</h2>
+                        <p>
+                            {translate("ecommerce.stylePicker.recommendedForThisProductCategory")} {total} {translate("ecommerce.stylePicker.visualConceptsWithTailoredScenesFontsAndLayoutsBrowseCategories")}
+                        </p>
                     </div>
                 </header>
-                <nav className="commerce-style-picker-tabs" role="tablist" aria-label="风格分类">
+                <nav className="commerce-style-picker-tabs" role="tablist" aria-label={translate("ecommerce.stylePicker.styleCategories")}>
                     {tabs.map((entry) => (
                         <button
                             key={entry.id}
@@ -179,26 +196,26 @@ export function CommerceStylePicker({
                     ))}
                 </nav>
                 {tab === CUSTOM ? (
-                    <div className="commerce-style-custom" role="tabpanel" aria-label="自定义风格">
+                    <div className="commerce-style-custom" role="tabpanel" aria-label={translate("ecommerce.stylePicker.customStyle")}>
                         <div className="commerce-style-custom-form">
                             <label>
-                                <span>风格名称</span>
-                                <input value={custom.name} maxLength={40} placeholder="例如：赛博霓虹" onChange={(event) => editCustom({ ...custom, name: event.target.value })} />
+                                <span>{translate("ecommerce.stylePicker.styleName")}</span>
+                                <input value={custom.name} maxLength={40} placeholder={translate("ecommerce.stylePicker.eGCyberNeon")} onChange={(event) => editCustom({ ...custom, name: event.target.value })} />
                             </label>
                             <label>
-                                <span>风格描述</span>
+                                <span>{translate("ecommerce.stylePicker.styleDescription")}</span>
                                 <textarea
                                     value={custom.description}
                                     maxLength={500}
                                     rows={5}
-                                    placeholder="描述你想要的布景、配色、光线、字体或参考感觉，例如：雨夜街头的霓虹灯牌，紫青撞色，超粗发光标题"
+                                    placeholder={translate("ecommerce.stylePicker.describeYourDesiredSettingColorsLightingFontsOrMoodFor")}
                                     onChange={(event) => editCustom({ ...custom, description: event.target.value })}
                                 />
                             </label>
-                            <p>确定后，小夜会把这段描述扩写成整套配色、字体与版式，再按它策划和生成图片。</p>
+                            <p>{translate("ecommerce.stylePicker.onceConfirmedXiaoyeExpandsThisDescriptionIntoAFullColor")}</p>
                         </div>
                         <div className="commerce-style-inspirations">
-                            <span>找找灵感</span>
+                            <span>{translate("ecommerce.stylePicker.findInspiration")}</span>
                             {inspirations.map((entry, index) => (
                                 <button key={entry.name} type="button" style={{ "--i": index } as CSSProperties} onClick={() => editCustom(entry)}>
                                     <b>{entry.name}</b>
@@ -208,7 +225,7 @@ export function CommerceStylePicker({
                         </div>
                     </div>
                 ) : (
-                    <div className="commerce-style-grid" role="tabpanel" aria-label={tab === RECOMMENDED ? "为你推荐" : tab} key={tab}>
+                    <div className="commerce-style-grid" role="tabpanel" aria-label={tab === RECOMMENDED ? translate("ecommerce.stylePicker.recommendedForYou") : tab} key={tab}>
                         {visible.map((item, index) =>
                             editing?.id === item.id ? (
                                 <DirectionEditor
@@ -241,28 +258,29 @@ export function CommerceStylePicker({
                     <span>
                         {chosen ? (
                             <>
-                                已选<b>{chosen.name}</b>
+                                {translate("ecommerce.stylePicker.selected")}
+                                <b>{chosen.name}</b>
                                 <em>{chosen.group}</em>
                             </>
                         ) : degraded ? (
-                            "知识检索暂不可用，请关闭后重新推荐"
+                            translate("ecommerce.stylePicker.knowledgeSearchIsTemporarilyUnavailableCloseAndRequestRecommendationsAgain")
                         ) : (
-                            "选一个风格，或在「自定义」里写下你的风格"
+                            translate("ecommerce.stylePicker.chooseAStyleOrDescribeYourOwnUnderCustom")
                         )}
                     </span>
                     <div>
                         <button type="button" className="commerce-style-picker-later" onClick={onClose}>
-                            稍后再选
+                            {translate("ecommerce.stylePicker.chooseLater")}
                         </button>
                         <button type="button" className="commerce-style-picker-confirm" disabled={!chosen || disabled || degraded || Boolean(editing)} onClick={confirm}>
                             {confirming && disabled ? (
                                 <>
                                     <LoaderCircle size={15} className="is-spinning" aria-hidden="true" />
-                                    正在应用风格…
+                                    {translate("ecommerce.stylePicker.applyingStyle")}
                                 </>
                             ) : (
                                 <>
-                                    确定，按此风格生成
+                                    {translate("ecommerce.stylePicker.confirmAndGenerateInThisStyle")}
                                     <ArrowUpRight size={15} aria-hidden="true" />
                                 </>
                             )}

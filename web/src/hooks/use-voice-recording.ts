@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { translate } from "@/i18n";
+
 
 export type VoiceRecordingState = "idle" | "recording" | "paused";
 
@@ -130,7 +132,7 @@ export function useVoiceRecording(options: UseVoiceRecordingOptions = {}): UseVo
                 }
             }, 100);
         } catch (err) {
-            const message = err instanceof Error ? err.message : "无法访问麦克风";
+            const message = err instanceof Error ? err.message : translate("shared.hooks.useVoiceRecording.unableToAccessTheMicrophone");
             setError(message);
             setState("idle");
             cleanup();

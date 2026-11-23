@@ -7,29 +7,30 @@ import { workbenchCategoryLabel } from "./workbench-catalog";
  * 这些只是帮助用户更快写出可用的提示词和选对画幅，最终参数仍以所选模型能力为准。
  */
 
+import { translate } from "@/i18n";
 export type RatioUsage = { label: string; title: string };
 
 const IMAGE_RATIO_USAGE: Record<string, RatioUsage> = {
-    "1:1": { label: "主图", title: "淘宝 / 天猫 / 京东 / 拼多多 / 亚马逊商品主图" },
-    "3:4": { label: "服饰主图", title: "天猫服饰主图、小红书笔记封面" },
-    "4:3": { label: "横版", title: "横版商品图、详情页配图" },
-    "9:16": { label: "竖屏", title: "抖音 / 快手 / 视频号竖屏、开屏与直播间海报" },
-    "16:9": { label: "横幅", title: "详情页首屏、店铺 Banner" },
-    "2:3": { label: "海报", title: "竖版海报、详情长图分屏" },
-    "3:2": { label: "横版", title: "横版海报与图文配图" },
-    "4:5": { label: "信息流", title: "社媒信息流竖图" },
-    "5:4": { label: "横版", title: "横版商品图" },
-    "21:9": { label: "通栏", title: "店铺通栏横幅" },
+    "1:1": { label: translate("ecommerce.workbench.workbenchPresets.mainImage"), title: translate("ecommerce.workbench.workbenchPresets.mainProductImagesForTaobaoTmallJDPinduoduoAmazon") },
+    "3:4": { label: translate("ecommerce.workbench.workbenchPresets.fashionMainImage"), title: translate("ecommerce.workbench.workbenchPresets.tmallFashionMainImageXiaohongshuPostCover") },
+    "4:3": { label: translate("ecommerce.workbench.workbenchPresets.landscape"), title: translate("ecommerce.workbench.workbenchPresets.landscapeProductImagesAndDetailPageIllustrations") },
+    "9:16": { label: translate("create.ratio.portrait"), title: translate("ecommerce.workbench.workbenchPresets.portraitContentLaunchAdsAndLivestreamPostersForDouyinKuaishou") },
+    "16:9": { label: translate("ecommerce.workbench.workbenchPresets.banner"), title: translate("ecommerce.workbench.workbenchPresets.detailPageHeroAndStoreBanner") },
+    "2:3": { label: translate("ecommerce.workbench.workbenchPresets.poster"), title: translate("ecommerce.workbench.workbenchPresets.portraitPostersAndDetailPageScreenSegments") },
+    "3:2": { label: translate("ecommerce.workbench.workbenchPresets.landscape"), title: translate("ecommerce.workbench.workbenchPresets.landscapePostersAndPostIllustrations") },
+    "4:5": { label: translate("ecommerce.workbench.workbenchPresets.feed"), title: translate("ecommerce.workbench.workbenchPresets.portraitSocialFeedImages") },
+    "5:4": { label: translate("ecommerce.workbench.workbenchPresets.landscape"), title: translate("ecommerce.workbench.workbenchPresets.landscapeProductImages") },
+    "21:9": { label: translate("ecommerce.workbench.workbenchPresets.fullWidth"), title: translate("ecommerce.workbench.workbenchPresets.fullWidthStoreBanner") },
 };
 
 const VIDEO_RATIO_USAGE: Record<string, RatioUsage> = {
-    "9:16": { label: "竖屏短视频", title: "抖音 / 快手 / 视频号投放与直播切片" },
-    "1:1": { label: "主图视频", title: "淘宝 / 京东商品主图视频" },
-    "3:4": { label: "种草竖版", title: "小红书视频笔记、服饰主图视频" },
-    "4:3": { label: "横版", title: "横版商品展示" },
-    "16:9": { label: "详情横屏", title: "详情页视频、店铺首页横屏" },
-    "21:9": { label: "宽银幕", title: "品牌片头与店铺通栏" },
-    adaptive: { label: "跟随素材", title: "按参考素材的画幅生成" },
+    "9:16": { label: translate("ecommerce.workbench.workbenchPresets.portraitShortVideo"), title: translate("ecommerce.workbench.workbenchPresets.douyinKuaishouWeChatChannelsAdsAndLivestreamClips") },
+    "1:1": { label: translate("ecommerce.workbench.workbenchPresets.mainProductVideo"), title: translate("ecommerce.workbench.workbenchPresets.taobaoJDMainProductVideo") },
+    "3:4": { label: translate("ecommerce.workbench.workbenchPresets.portraitProductDiscovery"), title: translate("ecommerce.workbench.workbenchPresets.xiaohongshuVideoPostsAndFashionMainVideos") },
+    "4:3": { label: translate("ecommerce.workbench.workbenchPresets.landscape"), title: translate("ecommerce.workbench.workbenchPresets.landscapeProductShowcase") },
+    "16:9": { label: translate("ecommerce.workbench.workbenchPresets.landscapeDetailVideo"), title: translate("ecommerce.workbench.workbenchPresets.detailPageVideoAndLandscapeStoreHomepage") },
+    "21:9": { label: translate("create.ratio.widescreen"), title: translate("ecommerce.workbench.workbenchPresets.brandIntrosAndFullWidthStoreBanners") },
+    adaptive: { label: translate("ecommerce.workbench.workbenchPresets.matchAsset"), title: translate("ecommerce.workbench.workbenchPresets.generateUsingTheReferenceAssetSFrameSize") },
 };
 
 function normalizedRatio(value: string) {
@@ -42,24 +43,24 @@ export function workbenchRatioUsage(kind: WorkbenchKind, ratio: string): RatioUs
 }
 
 export const WORKBENCH_SPEC_TIPS: Record<WorkbenchKind, string> = {
-    image: "主图常用 1:1、2K 以上；服饰类用 3:4，投放素材用 9:16。",
-    video: "主图视频常用 1:1 或 3:4、5–10 秒；短视频投放用 9:16，开场 3 秒内露出商品。",
+    image: translate("ecommerce.workbench.workbenchPresets.mainImagesCommonlyUse11At2KOrHigher"),
+    video: translate("ecommerce.workbench.workbenchPresets.mainProductVideosCommonlyUse11Or34"),
 };
 
 export type InspirationGroup = { key: string; label: string; phrases: string[] };
 
 export const WORKBENCH_INSPIRATIONS: Record<WorkbenchKind, InspirationGroup[]> = {
     image: [
-        { key: "background", label: "背景", phrases: ["纯白无缝背景", "浅灰影棚背景", "大理石台面", "原木桌面", "绿植与自然光", "简约居家场景", "户外阳光", "节日氛围布景"] },
-        { key: "light", label: "光线", phrases: ["柔和棚拍光", "自然窗光", "侧逆光勾勒轮廓", "高调明亮", "低调质感光", "真实接触阴影"] },
-        { key: "composition", label: "构图", phrases: ["商品居中完整呈现", "45° 俯拍", "平视正面", "微距细节特写", "一侧留白便于排版", "多件组合陈列"] },
-        { key: "style", label: "风格", phrases: ["极简高级感", "清新日系", "奢华质感", "科技未来感", "国潮配色", "温暖生活感"] },
+        { key: "background", label: translate("canvasB.imageSettings.background"), phrases: ["纯白无缝背景", "浅灰影棚背景", "大理石台面", "原木桌面", "绿植与自然光", "简约居家场景", "户外阳光", "节日氛围布景"] },
+        { key: "light", label: translate("ecommerce.workbench.workbenchPresets.lighting"), phrases: ["柔和棚拍光", "自然窗光", "侧逆光勾勒轮廓", "高调明亮", "低调质感光", "真实接触阴影"] },
+        { key: "composition", label: translate("ecommerce.workbench.workbenchPresets.composition"), phrases: ["商品居中完整呈现", "45° 俯拍", "平视正面", "微距细节特写", "一侧留白便于排版", "多件组合陈列"] },
+        { key: "style", label: translate("canvasA.toolPicker.style.short"), phrases: ["极简高级感", "清新日系", "奢华质感", "科技未来感", "国潮配色", "温暖生活感"] },
     ],
     video: [
-        { key: "camera", label: "运镜", phrases: ["镜头缓慢推近", "环绕商品展示", "平稳横移", "俯拍缓慢下降", "固定机位", "低角度跟拍"] },
-        { key: "rhythm", label: "节奏", phrases: ["节奏舒缓", "轻快明亮", "开场 3 秒内露出商品", "结尾定格 1 秒"] },
-        { key: "light", label: "光影", phrases: ["柔和棚拍光", "光线缓慢扫过商品表面", "自然窗光", "侧逆光勾边"] },
-        { key: "mood", label: "氛围", phrases: ["高级质感", "清新自然", "温暖居家", "科技感", "节日喜庆"] },
+        { key: "camera", label: translate("ecommerce.workbench.workbenchPresets.cameraMovement"), phrases: ["镜头缓慢推近", "环绕商品展示", "平稳横移", "俯拍缓慢下降", "固定机位", "低角度跟拍"] },
+        { key: "rhythm", label: translate("ecommerce.workbench.workbenchPresets.pacing"), phrases: ["节奏舒缓", "轻快明亮", "开场 3 秒内露出商品", "结尾定格 1 秒"] },
+        { key: "light", label: translate("ecommerce.workbench.workbenchPresets.lightAndShadow"), phrases: ["柔和棚拍光", "光线缓慢扫过商品表面", "自然窗光", "侧逆光勾边"] },
+        { key: "mood", label: translate("ecommerce.workbench.workbenchPresets.mood"), phrases: ["高级质感", "清新自然", "温暖居家", "科技感", "节日喜庆"] },
     ],
 };
 
@@ -67,18 +68,18 @@ export type SceneFacet = { key: string; label: string; keywords: string[] };
 
 export const WORKBENCH_SCENE_FACETS: Record<WorkbenchKind, SceneFacet[]> = {
     image: [
-        { key: "hero", label: "主图白底", keywords: ["主图", "白底", "柔影", "换背景", "陈列", "套系"] },
-        { key: "model", label: "模特上身", keywords: ["模特", "上身", "上脚", "佩戴", "手持", "穿搭"] },
-        { key: "detail", label: "细节材质", keywords: ["细节", "微距", "质地", "面料", "工艺", "尺寸", "色号"] },
-        { key: "scene", label: "场景氛围", keywords: ["场景", "氛围", "空间", "生活方式", "静物", "软装", "故事"] },
-        { key: "marketing", label: "详情营销", keywords: ["详情", "活动", "海报", "广告", "封面", "卖点", "变体"] },
+        { key: "hero", label: translate("ecommerce.workbench.workbenchPresets.mainWhiteBackground"), keywords: ["主图", "白底", "柔影", "换背景", "陈列", "套系"] },
+        { key: "model", label: translate("ecommerce.workbench.workbenchPresets.modelTryOn"), keywords: ["模特", "上身", "上脚", "佩戴", "手持", "穿搭"] },
+        { key: "detail", label: translate("ecommerce.workbench.workbenchPresets.detailsAndMaterials"), keywords: ["细节", "微距", "质地", "面料", "工艺", "尺寸", "色号"] },
+        { key: "scene", label: translate("ecommerce.workbench.workbenchPresets.sceneAndMood"), keywords: ["场景", "氛围", "空间", "生活方式", "静物", "软装", "故事"] },
+        { key: "marketing", label: translate("ecommerce.workbench.workbenchPresets.detailsAndMarketing"), keywords: ["详情", "活动", "海报", "广告", "封面", "卖点", "变体"] },
     ],
     video: [
-        { key: "showcase", label: "商品展示", keywords: ["英雄", "环绕", "推进", "揭示", "聚光", "静帧", "收尾"] },
-        { key: "model", label: "模特动态", keywords: ["模特", "步态", "通勤", "转身", "面料"] },
-        { key: "detail", label: "细节特写", keywords: ["微距", "细节", "特写", "微光", "滴管", "喷雾", "热气"] },
-        { key: "usage", label: "使用演示", keywords: ["使用", "开箱", "冲煮", "功能", "演示"] },
-        { key: "ads", label: "短视频投放", keywords: ["钩子", "竖屏", "对照", "短片"] },
+        { key: "showcase", label: translate("ecommerce.workbench.workbenchPresets.productShowcase"), keywords: ["英雄", "环绕", "推进", "揭示", "聚光", "静帧", "收尾"] },
+        { key: "model", label: translate("ecommerce.workbench.workbenchPresets.modelMovement"), keywords: ["模特", "步态", "通勤", "转身", "面料"] },
+        { key: "detail", label: translate("ecommerce.workbench.workbenchPresets.detailCloseUp"), keywords: ["微距", "细节", "特写", "微光", "滴管", "喷雾", "热气"] },
+        { key: "usage", label: translate("ecommerce.workbench.workbenchPresets.usageDemonstration"), keywords: ["使用", "开箱", "冲煮", "功能", "演示"] },
+        { key: "ads", label: translate("ecommerce.workbench.workbenchPresets.shortVideoAds"), keywords: ["钩子", "竖屏", "对照", "短片"] },
     ],
 };
 
@@ -109,7 +110,7 @@ export function workbenchPageCategories(tools: WorkbenchTool[]) {
     const hasRecommended = tools.some((tool) => tool.recommended);
     const known = PAGE_CATEGORY_ORDER.filter((id) => (id === "recommended" ? hasRecommended : present.has(id)));
     const unknown = [...present].filter((id) => !PAGE_CATEGORY_ORDER.includes(id));
-    return [...known, ...unknown].map((value) => ({ value, label: value === "recommended" ? "推荐" : workbenchCategoryLabel(value) }));
+    return [...known, ...unknown].map((value) => ({ value, label: value === "recommended" ? translate("ecommerce.workbench.workbenchPresets.recommended") : workbenchCategoryLabel(value) }));
 }
 
 /** 快捷场景：后台标为推荐的电商工具优先，其次电商与商品分类。 */

@@ -15,6 +15,8 @@ import {
     type AiCommandPlan,
     type AiCommandBatchVerdict,
 } from "@/lib/timeline/ai-command-schema";
+import { translate } from "@/i18n";
+
 
 type UiEntry =
     | { kind: "user"; id: string; text: string }
@@ -25,7 +27,7 @@ type UiEntry =
 const FAILED_MARK = "（上一轮指令被宿主拒绝）";
 const RETRY_MODIFY_PREFIX = "宿主拒绝了上一轮输出，错误：";
 const MAX_VISIBLE_RAW = 240;
-const PREVIEW_HEAD = "以下指令将直接修改时间线，请确认后执行：";
+const PREVIEW_HEAD = translate("shared.plugins.builtin.editor.editorAiAssistant.theFollowingCommandsWillModifyTheTimelineDirectlyReviewThem");
 // 空态建议指令：点击直接发送（对应参考图的 suggestion chips）。
 const SUGGESTED_PROMPTS = [
     "把第二段素材换成封面图",
@@ -43,7 +45,7 @@ function commandLine(cmd: { op: string; payload?: unknown }, index: number): str
 
 function describePlan(plan: AiCommandPlan): string {
     const lines = plan.commands.map((c, i) => commandLine(c, i));
-    return [plan.reasoning?.trim(), `已提交 ${plan.commands.length} 条指令：`, ...lines]
+    return [plan.reasoning?.trim(), translate("shared.plugins.builtin.editor.editorAiAssistant.submittedCommands", { v0: String(plan.commands.length) }), ...lines]
         .filter((line): line is string => Boolean(line))
         .join("\n");
 }
@@ -125,7 +127,7 @@ export function EditorAiAssistant() {
     function failTurn(assistantId: string, reason: string, userText: string, fixable: boolean): void {
         patchEntry(
             assistantId,
-            `指令未应用：${reason.slice(0, MAX_VISIBLE_RAW)}${reason.length > MAX_VISIBLE_RAW ? "…" : ""}`,
+            translate("shared.plugins.builtin.editor.editorAiAssistant.commandsWereNotApplied", { v0: String(reason.slice(0, MAX_VISIBLE_RAW)), v1: String(reason.length > MAX_VISIBLE_RAW ? "…" : "") }),
         );
         pushHistory({ role: "assistant", content: FAILED_MARK });
         const retry = fixable ? `${RETRY_MODIFY_PREFIX}${reason}。请只输出修正后的命令 JSON。` : userText;
@@ -162,7 +164,7 @@ export function EditorAiAssistant() {
             settleAnswer(assistantId, answer, text);
         } catch (err) {
             const reason = err instanceof Error ? err.message : String(err);
-            patchEntry(assistantId, `请求失败：${reason.slice(0, MAX_VISIBLE_RAW)}`);
+            patchEntry(assistantId, translate("shared.plugins.builtin.editor.editorAiAssistant.requestFailed", { v0: String(reason.slice(0, MAX_VISIBLE_RAW)) }));
             const errId = nextId();
             setEntries((prev) => [...prev, { kind: "error", id: errId, text: reason, retry: text }]);
             setBusy(false);
@@ -171,7 +173,7 @@ export function EditorAiAssistant() {
 
     function settleAnswer(assistantId: string, answer: string, userText: string): void {
         if (!project) {
-            failTurn(assistantId, "编辑器项目已不可用，无法校验指令。", userText, false);
+            failTurn(assistantId, translate("shared.plugins.builtin.editor.editorAiAssistant.theEditorProjectIsNoLongerAvailableCommandsCannotBe"), userText, false);
             return;
         }
         let plan: AiCommandPlan;
@@ -193,7 +195,7 @@ export function EditorAiAssistant() {
         if (!verdict.ok) {
             failTurn(
                 assistantId,
-                `命令校验失败：${verdict.op}（第 ${verdict.index + 1} 条）：${verdict.error}`,
+                translate("shared.plugins.builtin.editor.editorAiAssistant.commandValidationFailedCommand", { v0: String(verdict.op), v1: String(verdict.index + 1), v2: String(verdict.error) }),
                 userText,
                 true,
             );
@@ -203,7 +205,7 @@ export function EditorAiAssistant() {
             applyPlan(assistantId, plan);
             return;
         }
-        patchEntry(assistantId, plan.reasoning?.trim() || `${PREVIEW_HEAD}共 ${plan.commands.length} 条。`);
+        patchEntry(assistantId, plan.reasoning?.trim() || translate("shared.plugins.builtin.editor.editorAiAssistant.commandsInTotal", { v0: String(PREVIEW_HEAD), v1: String(plan.commands.length) }));
         const previewId = nextId();
         setEntries((prev) => [...prev, { kind: "preview", id: previewId, plan }]);
         pushHistory({
@@ -238,24 +240,24 @@ export function EditorAiAssistant() {
     const ready = hasProject && Boolean(modelValue);
     const canSend = ready && !busy && input.trim().length > 0;
     const placeholder = !hasProject
-        ? "编辑器尚未就绪"
+        ? translate("shared.plugins.builtin.editor.editorAiAssistant.theEditorIsNotReady")
         : !modelValue
-          ? "未检测到文本模型，请先在「AI 设置」启用文本渠道"
-          : "描述编辑意图，或提问当前时间线…";
+          ? translate("shared.plugins.builtin.editor.editorAiAssistant.noTextModelFoundEnableATextChannelInAI")
+          : translate("shared.plugins.builtin.editor.editorAiAssistant.describeAnEditOrAskAboutTheCurrentTimeline");
 
     return (
         <div className="flex h-full min-h-0 flex-col bg-[var(--previs-sequencer-surface)]">
             <div className="flex shrink-0 items-center gap-2 border-b border-[var(--previs-sequencer-border)] px-3 py-2">
                 <span className="shrink-0 text-[var(--fs-label)] uppercase tracking-wider text-[var(--previs-dock-fg)]/50">
-                    对话模型
+                    {translate("shared.plugins.builtin.editor.editorAiAssistant.chatModel")}
                 </span>
                 {textModels.length > 0 ? (
                     <select
                         value={modelValue}
                         onChange={(e) => onModelChange(e.target.value)}
                         disabled={busy}
-                        aria-label="选择文本对话模型"
-                        title="选择文本对话模型"
+                        aria-label={translate("shared.plugins.builtin.editor.editorAiAssistant.selectTextChatModel")}
+                        title={translate("shared.plugins.builtin.editor.editorAiAssistant.selectTextChatModel")}
                         className="h-7 min-w-0 flex-1 rounded-md border border-[var(--previs-sequencer-border)] bg-[var(--previs-control-hover)] px-2 text-xs text-[var(--previs-dock-fg)] outline-none focus:border-[var(--previs-accent)] disabled:opacity-50 [&>option]:bg-[var(--previs-sequencer-surface-raised)] [&>option]:text-[var(--previs-dock-fg)]"
                     >
                         {textModels.map((m) => (
@@ -266,7 +268,7 @@ export function EditorAiAssistant() {
                     </select>
                 ) : (
                     <span className="text-[var(--fs-label)] text-[var(--previs-warning)]">
-                        未检测到可用文本模型，请先配置渠道
+                        {translate("shared.plugins.builtin.editor.editorAiAssistant.noTextModelAvailableConfigureAChannelFirst")}
                     </span>
                 )}
             </div>
@@ -279,13 +281,12 @@ export function EditorAiAssistant() {
                         <div className="grid size-10 place-items-center rounded-full bg-[var(--previs-dock-active-surface)]">
                             <Orbit className="size-4 text-[var(--previs-dock-fg)]/80" />
                         </div>
-                        <p className="text-xs text-[var(--previs-dock-fg)]/70">AI 剪辑助手</p>
+                        <p className="text-xs text-[var(--previs-dock-fg)]/70">{translate("shared.plugins.builtin.editor.editorAiAssistant.aIEditingAssistant")}</p>
                         <p className="max-w-[240px] text-[var(--fs-label)] leading-relaxed text-[var(--previs-dock-fg)]/50">
-                            基于当前时间线提问，或描述编辑意图（如"把第二段素材换成封面图"）。
-                            修改指令会先在宿主侧校验，数量超过 3 条时需你确认后才执行。
+                            {translate("shared.plugins.builtin.editor.editorAiAssistant.askAboutTheCurrentTimelineOrDescribeAnEditFor")}
                         </p>
                         <div className="flex max-w-[260px] flex-wrap items-center justify-center gap-2">
-                            {SUGGESTED_PROMPTS.map((s) => (
+                            {SUGGESTED_PROMPTS.map((s, index) => (
                                 <button
                                     key={s}
                                     type="button"
@@ -293,7 +294,7 @@ export function EditorAiAssistant() {
                                     onClick={() => void send(s)}
                                     className="rounded-full border border-[var(--previs-sequencer-border)] px-2 py-1 text-[var(--fs-label)] text-[var(--previs-dock-fg)]/70 transition-colors hover:border-[var(--previs-accent)] hover:text-[var(--previs-accent)] disabled:opacity-40"
                                 >
-                                    {s}
+                                    {translate(`shared.plugins.builtin.editor.display.suggestions.${["replaceSecondClip", "removeGaps", "outlineSubtitles", "countClips"][index]}`)}
                                 </button>
                             ))}
                         </div>
@@ -319,7 +320,7 @@ export function EditorAiAssistant() {
                                 {entry.text || (
                                     <span className="inline-flex items-center gap-2 text-[var(--previs-dock-fg)]/60">
                                         <Loader2 className="size-3 animate-spin" />
-                                        思考中…
+                                        {translate("shared.plugins.builtin.editor.editorAiAssistant.thinking")}
                                     </span>
                                 )}
                             </div>
@@ -345,7 +346,7 @@ export function EditorAiAssistant() {
                                                 className="mt-1 inline-flex items-center gap-1 rounded border border-[var(--previs-sequencer-border)] px-2 py-0.5 text-[var(--fs-label)] text-[var(--previs-dock-fg)]/80 hover:bg-[var(--previs-control-hover)] disabled:opacity-40"
                                             >
                                                 <RotateCcw className="size-2.5" />
-                                                修正后重试
+                                                {translate("shared.plugins.builtin.editor.editorAiAssistant.reviseAndRetry")}
                                             </button>
                                         )}
                                     </div>
@@ -378,7 +379,7 @@ export function EditorAiAssistant() {
                                     disabled={busy}
                                     className="rounded-md border border-[var(--previs-sequencer-border)] px-2 py-1 text-[var(--fs-label)] text-[var(--previs-dock-fg)]/80 hover:bg-[var(--previs-control-hover)] disabled:opacity-40"
                                 >
-                                    放弃
+                                    {translate("shared.plugins.builtin.editor.editorAiAssistant.discard")}
                                 </button>
                                 <button
                                     type="button"
@@ -386,7 +387,7 @@ export function EditorAiAssistant() {
                                     disabled={busy}
                                     className="flex items-center gap-1 rounded-md bg-[var(--previs-accent)] px-2 py-1 text-[var(--fs-label)] font-medium text-[var(--previs-on-accent)] hover:bg-[var(--previs-accent-hover)] disabled:opacity-40"
                                 >
-                                    确认执行（{entry.plan.commands.length}）
+                                    {translate("shared.plugins.builtin.editor.editorAiAssistant.confirmExecution")}{entry.plan.commands.length}）
                                 </button>
                             </div>
                         </div>
@@ -411,8 +412,8 @@ export function EditorAiAssistant() {
                     type="button"
                     onClick={() => void send()}
                     disabled={!canSend}
-                    aria-label={modelValue ? "发送" : "无可用文本模型"}
-                    title={modelValue ? "发送" : "请先选择文本模型"}
+                    aria-label={modelValue ? translate("shared.plugins.builtin.editor.editorAiAssistant.send") : translate("shared.plugins.builtin.editor.editorAiAssistant.noTextModelAvailable")}
+                    title={modelValue ? translate("shared.plugins.builtin.editor.editorAiAssistant.send") : translate("shared.plugins.builtin.editor.editorAiAssistant.selectATextModelFirst")}
                     className="grid size-7 shrink-0 place-items-center rounded-md bg-[var(--previs-accent)] text-[var(--previs-on-accent)] hover:bg-[var(--previs-accent-hover)] disabled:opacity-40"
                 >
                     {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}

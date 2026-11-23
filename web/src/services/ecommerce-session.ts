@@ -2,6 +2,7 @@ import { createClientUUID } from "@/lib/client-id";
 import { localForageStorageForScope } from "@/lib/localforage-storage";
 import { getActiveUserScope, scopedStorageKey } from "@/lib/user-scope";
 import { createEcommerceProject, saveEcommerceProject, type EcommerceDraft, type EcommercePlan, type EcommerceProject } from "@/services/api/ecommerce";
+import { translate } from "@/i18n";
 
 export type EcommerceWorkspaceCheckpoint = {
     sessionId: string;
@@ -177,19 +178,19 @@ const sessions = new Map<string, SessionState>();
 const projectSessions = new Map<string, SessionState>();
 
 export function createEcommerceSession(scope: string, initialProject?: EcommerceProject | null, sessionId: string = createClientUUID(), dependencies: EcommerceSessionDependencies = defaultDependencies) {
-    if (!scope || scope === "guest") throw new Error("请先登录后恢复电商项目");
+    if (!scope || scope === "guest") throw new Error(translate("shared.ecommerceSession.signInBeforeRestoringTheECommerceProject"));
     const sessionKey = scopedStorageKey(`ecommerce-session:${sessionId}`, scope);
     const projectKey = (id: string) => scopedStorageKey(`ecommerce-project:${id}`, scope);
     const state = (initialProject ? projectSessions.get(projectKey(initialProject.id)) : undefined) || sessions.get(sessionKey) || { project: null, tail: Promise.resolve(), submitting: false };
     sessions.set(sessionKey, state);
     const adopt = (project: EcommerceProject) => {
-        if (state.project && state.project.id !== project.id) throw new Error("电商项目已切换，请使用对应项目会话");
+        if (state.project && state.project.id !== project.id) throw new Error(translate("shared.ecommerceSession.theECommerceProjectHasChangedUseTheCorrespondingProject"));
         if (!state.project || project.revision >= state.project.revision) state.project = copy(project);
         projectSessions.set(projectKey(project.id), state);
     };
     if (initialProject) adopt(initialProject);
     const assertScope = () => {
-        if (dependencies.activeScope() !== scope) throw new Error("登录账号已切换，已停止保存原账号电商项目");
+        if (dependencies.activeScope() !== scope) throw new Error(translate("shared.ecommerceSession.accountChangedSavingThePreviousAccountSECommerceProject"));
     };
     return {
         id: sessionId,

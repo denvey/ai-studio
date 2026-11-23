@@ -26,6 +26,8 @@ import { AgentImagePreview } from "./canvas-cloud-agent-composer";
 // 输入区已拆到 canvas-cloud-agent-composer.tsx；附件类型与引用转换在 canvas-cloud-agent-attachments.ts。
 // 这里保留再导出，既有 import 路径保持可用。
 import { agentAttachmentReferences, type CloudAgentChatAttachment } from "./canvas-cloud-agent-attachments";
+import { translate } from "@/i18n";
+
 export { agentAttachmentReferences, type CloudAgentChatAttachment } from "./canvas-cloud-agent-attachments";
 export { AGENT_SCENE_DEFS, AgentChatComposer, AgentImagePreview, AgentSceneCapsules, type AgentSceneBucket } from "./canvas-cloud-agent-composer";
 
@@ -140,19 +142,19 @@ export function agentControlMessage(id: string, text: string, meta?: string): Cl
 }
 
 const AGENT_FORM_FIELD_LABELS: Record<string, string> = {
-    genre: "题材",
-    aspectRatio: "画幅",
-    style: "画风",
-    visualStyle: "画风",
-    comedyStyle: "喜剧风格",
-    projectType: "项目类型",
-    model: "模型",
-    notes: "补充说明",
+    genre: translate("canvasTools.canvasCloudAgentChatUi.genre"),
+    aspectRatio: translate("canvasTools.canvasCloudAgentChatUi.frameSize"),
+    style: translate("canvasTools.canvasCloudAgentChatUi.style"),
+    visualStyle: translate("canvasTools.canvasCloudAgentChatUi.style"),
+    comedyStyle: translate("canvasTools.canvasCloudAgentChatUi.comedyStyle"),
+    projectType: translate("canvasTools.canvasCloudAgentChatUi.projectType"),
+    model: translate("canvasA.assetView.model"),
+    notes: translate("canvasTools.canvasCloudAgentChatUi.additionalNotes"),
 };
 
 const AGENT_FORM_VALUE_LABELS: Record<string, string> = {
-    costume_time_travel: "古装穿越",
-    absurd: "荒诞",
+    costume_time_travel: translate("canvasTools.canvasCloudAgentChatUi.historicalTimeTravel"),
+    absurd: translate("canvasTools.canvasCloudAgentChatUi.absurdist"),
 };
 
 function formAnswerRecord(value: unknown): Record<string, string | string[]> | undefined {
@@ -206,8 +208,8 @@ function AgentFormAnswerCard({ answer, theme }: { answer: CloudAgentFormAnswer; 
     const entries = Object.entries(values).filter(([, value]) => (Array.isArray(value) ? value.length > 0 : value.trim()));
     return (
         <div className="agent-form-answer-card" style={{ color: theme.node.text }}>
-            <div className="agent-form-answer-heading">已确认创作方向</div>
-            {answer.useRecommendedDefaults ? <div className="agent-form-answer-note">已采用推荐方案</div> : null}
+            <div className="agent-form-answer-heading">{translate("canvasTools.canvasCloudAgentChatUi.creativeDirectionConfirmed")}</div>
+            {answer.useRecommendedDefaults ? <div className="agent-form-answer-note">{translate("canvasTools.canvasCloudAgentChatUi.recommendedPlanAdopted")}</div> : null}
             {entries.length ? (
                 <div className="agent-form-answer-list">
                     {entries.map(([key, value]) => (
@@ -218,18 +220,18 @@ function AgentFormAnswerCard({ answer, theme }: { answer: CloudAgentFormAnswer; 
                     ))}
                     {answer.additionalNotes ? (
                         <div className="agent-form-answer-row">
-                            <span className="agent-form-answer-label">补充说明</span>
+                            <span className="agent-form-answer-label">{translate("canvasTools.canvasCloudAgentChatUi.additionalNotes")}</span>
                             <span className="agent-form-answer-value">{answer.additionalNotes}</span>
                         </div>
                     ) : null}
                 </div>
             ) : answer.additionalNotes ? (
                 <div className="agent-form-answer-row">
-                    <span className="agent-form-answer-label">补充说明</span>
+                    <span className="agent-form-answer-label">{translate("canvasTools.canvasCloudAgentChatUi.additionalNotes")}</span>
                     <span className="agent-form-answer-value">{answer.additionalNotes}</span>
                 </div>
             ) : (
-                <div className="agent-form-answer-note">已确认，按推荐方案继续</div>
+                <div className="agent-form-answer-note">{translate("canvasTools.canvasCloudAgentChatUi.confirmedContinueWithTheRecommendedPlan")}</div>
             )}
         </div>
     );
@@ -266,26 +268,26 @@ export function extractCloudAgentQuickActions(text: string): CloudAgentQuickActi
     return actions;
 }
 
-const WORKING_TEXT = "正在处理";
+const WORKING_TEXT = translate("canvasTools.canvasCloudAgentChatUi.processing");
 const AGENT_NODE_LINK_PREFIX = "#agent-node:";
 const AGENT_NODE_TYPE_LABELS: Record<string, string> = {
-    image: "图片节点",
-    video: "视频节点",
-    audio: "音频节点",
-    text: "文本节点",
-    script: "脚本节点",
-    drawing: "绘图节点",
-    config: "工作流节点",
-    frame: "画框节点",
-    markdown: "Markdown 节点",
-    svg: "SVG 节点",
-    html: "HTML 节点",
-    panorama: "全景节点",
-    compare: "对比节点",
-    chart: "图表节点",
-    colorgrade: "调色节点",
-    "media-conversion": "转码节点",
-    "batch-table": "批量表节点",
+    image: translate("canvasA.assetTray.imageNodeFallback"),
+    video: translate("canvasTools.canvasCloudAgentChatUi.videoNode"),
+    audio: translate("canvasTools.canvasCloudAgentChatUi.audioNode"),
+    text: translate("canvasTools.canvasCloudAgentChatUi.textNode"),
+    script: translate("canvasTools.canvasCloudAgentChatUi.scriptNode"),
+    drawing: translate("canvasTools.canvasCloudAgentChatUi.drawingNode"),
+    config: translate("canvasTools.canvasCloudAgentChatUi.workflowNode"),
+    frame: translate("canvasTools.canvasCloudAgentChatUi.frameNode"),
+    markdown: translate("canvasTools.canvasCloudAgentChatUi.markdownNode"),
+    svg: translate("canvasTools.canvasCloudAgentChatUi.sVGNode"),
+    html: translate("canvasTools.canvasCloudAgentChatUi.hTMLNode"),
+    panorama: translate("canvasTools.canvasCloudAgentChatUi.panoramaNode"),
+    compare: translate("canvasTools.canvasCloudAgentChatUi.comparisonNode"),
+    chart: translate("canvasTools.canvasCloudAgentChatUi.chartNode"),
+    colorgrade: translate("canvasTools.canvasCloudAgentChatUi.colorGradingNode"),
+    "media-conversion": translate("canvasTools.canvasCloudAgentChatUi.conversionNode"),
+    "batch-table": translate("canvasTools.canvasCloudAgentChatUi.batchTableNode"),
 };
 const AGENT_NODE_TYPE_PREFIXES = Object.keys(AGENT_NODE_TYPE_LABELS).sort((left, right) => right.length - left.length);
 const BUILTIN_AGENT_NODE_ID_PATTERN = "(?:image|video|audio|text|script|drawing|config|frame|markdown|svg|html|panorama|compare|chart|colorgrade|media-conversion|batch-table)-[A-Za-z0-9][A-Za-z0-9_-]*";
@@ -296,11 +298,11 @@ function escapeAgentNodePattern(value: string) {
 
 function agentNodeTypeLabel(nodeId: string, reference?: CanvasResourceReference) {
     // 角色卡底层是 text 节点，sourceType 会是 text；按资源 kind 先识别，避免报成"文本节点"。
-    if (reference?.kind === "character") return "角色卡";
+    if (reference?.kind === "character") return translate("canvasA.characterNode.card");
     const sourceType = String(reference?.sourceType || "");
     if (sourceType && AGENT_NODE_TYPE_LABELS[sourceType]) return AGENT_NODE_TYPE_LABELS[sourceType];
     const prefix = AGENT_NODE_TYPE_PREFIXES.find((candidate) => nodeId.startsWith(`${candidate}-`));
-    return (prefix && AGENT_NODE_TYPE_LABELS[prefix]) || (reference?.kind ? `${reference.kind} 节点` : "画布节点");
+    return (prefix && AGENT_NODE_TYPE_LABELS[prefix]) || (reference?.kind ? translate("canvasTools.canvasCloudAgentChatUi.node", { v0: String(reference.kind) }) : translate("canvasB.mention.canvasNodes"));
 }
 
 function agentNodeLinkLabel(nodeId: string, reference?: CanvasResourceReference) {
@@ -376,7 +378,7 @@ function createAgentMessageMarkdownComponents(references: CanvasResourceReferenc
             }
 
             const reference = referenceByNodeId.get(nodeId);
-            const title = reference?.title || reference?.label || "画布节点";
+            const title = reference?.title || reference?.label || translate("canvasB.mention.canvasNodes");
             const previewUrl = reference?.previewUrl;
             return (
                 <a
@@ -384,8 +386,8 @@ function createAgentMessageMarkdownComponents(references: CanvasResourceReferenc
                     href={href}
                     className="agent-message-node-link"
                     data-agent-node-id={nodeId}
-                    aria-label={`定位到画布中的${title}`}
-                    title={`定位到画布中的${title}`}
+                    aria-label={translate("canvasTools.canvasCloudAgentChatUi.locateOnTheCanvas", { v0: String(title) })}
+                    title={translate("canvasTools.canvasCloudAgentChatUi.locateOnTheCanvas", { v0: String(title) })}
                     onClick={(event) => {
                         event.preventDefault();
                         onFocusNode?.(nodeId);
@@ -480,13 +482,17 @@ export const AgentChatMessage = memo(function AgentChatMessage({
                 <div className="min-w-0 flex-1 py-0.5 leading-5" style={{ color: theme.node.muted }}>
                     {item.compaction.status === "pending" ? (
                         <>
-                            <span className="font-medium">压缩中</span>
-                            <span className="ml-2 opacity-75">上下文已超过服务端压缩阈值，已暂停本轮执行并压缩历史（保留用户提示摘要、操作记录、未完成任务、当前工作、设计决策、限制和偏好），压完会从压缩后的上下文继续。</span>
+                            <span className="font-medium">{translate("canvasTools.canvasCloudAgentChatUi.compacting")}</span>
+                            <span className="ml-2 opacity-75">{translate("canvasTools.canvasCloudAgentChatUi.theContextExceededTheServerSCompactionThresholdThisRun")}</span>
                         </>
                     ) : item.compaction.status === "completed" ? (
                         <span className="font-medium">{item.text}</span>
                     ) : (
-                        <span className="font-medium">{item.text || item.compaction.errorMessage || (item.compaction.status === "aborted" ? "上下文压缩已取消" : "上下文压缩失败")}</span>
+                        <span className="font-medium">
+                            {item.text ||
+                                item.compaction.errorMessage ||
+                                (item.compaction.status === "aborted" ? translate("canvasTools.canvasCloudAgentChatUi.contextCompactionCanceled") : translate("canvasTools.canvasCloudAgentChatUi.contextCompactionFailed"))}
+                        </span>
                     )}
                 </div>
             </div>
@@ -509,12 +515,12 @@ export const AgentChatMessage = memo(function AgentChatMessage({
         if (objectField(item.detail, "status") === "pending") return <AgentPendingToolCard summary={item.text} detail={item.detail} theme={theme} onReject={() => onRejectTool?.(item.id)} onApprove={() => onApproveTool?.(item.id)} />;
         return (
             <div className="flex min-w-0 items-start">
-                <AgentToolCard title={item.title || "工具调用"} text={item.text} detail={item.detail} theme={theme} references={references} onFocusNode={onFocusNode} onUndo={onUndo} undoStates={undoStates} />
+                <AgentToolCard title={item.title || translate("canvasTools.canvasCloudAgentChatUi.toolCall")} text={item.text} detail={item.detail} theme={theme} references={references} onFocusNode={onFocusNode} onUndo={onUndo} undoStates={undoStates} />
             </div>
         );
     }
     if (item.role === "error") {
-        const title = item.title || (errorTone === "warning" ? "Agent 正在重试" : "Agent 暂时无法继续");
+        const title = item.title || (errorTone === "warning" ? translate("canvasTools.canvasCloudAgentChatUi.agentIsRetrying") : translate("canvasTools.canvasCloudAgentChatUi.agentCannotContinueRightNow"));
         const { description, diagnosticId } = agentErrorContent(item.text, title);
         return (
             <motion.div className="agent-error-reveal" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} transition={{ duration: reducedMotion ? 0 : 0.2, ease: "easeOut" }}>
@@ -533,9 +539,9 @@ export const AgentChatMessage = memo(function AgentChatMessage({
                                     icon={retrying ? <LoaderCircle className="size-3.5 animate-spin" /> : <RotateCcw className="size-3.5" />}
                                     disabled={retrying}
                                     onClick={onRetry}
-                                    title="用同样的内容重新发起一轮（会重新计费）"
+                                    title={translate("canvasTools.canvasCloudAgentChatUi.startAnotherRunWithTheSameContentBilledAgain")}
                                 >
-                                    {retrying ? "重试中" : "重试本轮"}
+                                    {retrying ? translate("canvasTools.canvasCloudAgentChatUi.retrying") : translate("canvasTools.canvasCloudAgentChatUi.retryThisRun")}
                                 </Button>
                             ) : null}
                         </div>
@@ -545,10 +551,10 @@ export const AgentChatMessage = memo(function AgentChatMessage({
                             <details className="agent-error-diagnostics">
                                 <summary>
                                     <ChevronDown className="size-3" aria-hidden="true" />
-                                    诊断信息
+                                    {translate("canvasTools.canvasCloudAgentChatUi.diagnostics")}
                                 </summary>
                                 <div className="agent-error-diagnostics-body">
-                                    <p>如反复出现，请将诊断号反馈给管理员。</p>
+                                    <p>{translate("canvasTools.canvasCloudAgentChatUi.ifThisKeepsHappeningSendTheDiagnosticIDToAn")}</p>
                                     <code>{diagnosticId}</code>
                                 </div>
                             </details>
@@ -577,21 +583,33 @@ export const AgentChatMessage = memo(function AgentChatMessage({
                                     type="button"
                                     className="agent-interjection-action"
                                     disabled={withdrawing}
-                                    title="撤回到队列：这句不再送给本轮，回到排队队首；本轮继续运行，已提交的生成任务不受影响"
-                                    aria-label="撤回这句插话"
+                                    title={translate("canvasTools.canvasCloudAgentChatUi.returnThisMessageToTheFrontOfTheQueueWithout")}
+                                    aria-label={translate("canvasTools.canvasCloudAgentChatUi.withdrawThisInterjection")}
                                     onClick={() => onWithdrawInterjection(item.id)}
                                 >
                                     {withdrawing ? <LoaderCircle className="size-3 animate-spin" aria-hidden="true" /> : <CornerUpLeft className="size-3" aria-hidden="true" />}
-                                    撤回到队列
+                                    {translate("canvasTools.canvasCloudAgentChatUi.returnToQueue")}
                                 </button>
                             ) : null}
                             {item.interjection === "undelivered" && onRequeueInterjection ? (
                                 <>
-                                    <button type="button" className="agent-interjection-action" title="把这句作为下一轮发送" aria-label="把这句未送达的插话作为下一轮发送" onClick={() => onRequeueInterjection(item.id, "send")}>
-                                        作为下一轮发送
+                                    <button
+                                        type="button"
+                                        className="agent-interjection-action"
+                                        title={translate("canvasTools.canvasCloudAgentChatUi.sendThisMessageAsTheNextRun")}
+                                        aria-label={translate("canvasTools.canvasCloudAgentChatUi.sendThisUndeliveredInterjectionAsTheNextRun")}
+                                        onClick={() => onRequeueInterjection(item.id, "send")}
+                                    >
+                                        {translate("canvasTools.canvasCloudAgentChatUi.sendAsNextRun")}
                                     </button>
-                                    <button type="button" className="agent-interjection-action" title="放回队列并编辑" aria-label="编辑这句未送达的插话" onClick={() => onRequeueInterjection(item.id, "edit")}>
-                                        编辑
+                                    <button
+                                        type="button"
+                                        className="agent-interjection-action"
+                                        title={translate("canvasTools.canvasCloudAgentChatUi.returnToQueueAndEdit")}
+                                        aria-label={translate("canvasTools.canvasCloudAgentChatUi.editThisUndeliveredInterjection")}
+                                        onClick={() => onRequeueInterjection(item.id, "edit")}
+                                    >
+                                        {translate("account.settings.channels.edit")}
                                     </button>
                                 </>
                             ) : null}
@@ -660,7 +678,7 @@ function AgentMessageCopyButton({ text, align }: { text: string; align: "start" 
             <button
                 type="button"
                 className="agent-message-action"
-                aria-label="复制这条消息"
+                aria-label={translate("canvasTools.canvasCloudAgentChatUi.copyThisMessage")}
                 onClick={(event) => {
                     const trigger = event.currentTarget;
                     void writeClipboardText(text).then((copied) => {
@@ -671,7 +689,7 @@ function AgentMessageCopyButton({ text, align }: { text: string; align: "start" 
                 }}
             >
                 {state === "copied" ? <Check className="size-3" aria-hidden="true" /> : <Copy className="size-3" aria-hidden="true" />}
-                <span aria-live="polite">{state === "copied" ? "已复制" : state === "failed" ? "复制失败" : "复制"}</span>
+                <span aria-live="polite">{state === "copied" ? translate("canvasB.common.copied") : state === "failed" ? translate("canvasB.common.copyFailed") : translate("canvasB.common.copy")}</span>
             </button>
         </div>
     );
@@ -682,17 +700,17 @@ const EMPTY_REFERENCES: CanvasResourceReference[] = [];
 function agentInterjectionLabel(state: CloudAgentInterjectionState) {
     switch (state) {
         case "undelivered":
-            return "插话未送达";
+            return translate("canvasTools.canvasCloudAgentChatUi.interjectionNotDelivered");
         case "withdrawn":
-            return "插话已撤回";
+            return translate("canvasTools.canvasCloudAgentChatUi.interjectionWithdrawn");
         case "delivered":
-            return "插话已送达";
+            return translate("canvasTools.canvasCloudAgentChatUi.interjectionDelivered");
         case "requeued":
-            return "已转为下一轮";
+            return translate("canvasTools.canvasCloudAgentChatUi.movedToTheNextTurn");
         case "sending":
-            return "插话 · 发送中";
+            return translate("canvasTools.canvasCloudAgentChatUi.interjectionSending");
         default:
-            return "插话 · 等待送达";
+            return translate("canvasTools.canvasCloudAgentChatUi.interjectionAwaitingDelivery");
     }
 }
 
@@ -730,20 +748,20 @@ export const AgentReasoningFeed = memo(function AgentReasoningFeed({ items, them
         .join("\n\n");
     // 收起态用最新一段思考的首行做预览：一排"模型思考"空标题看不出每次在想什么。
     const preview = agentReasoningPreview(items);
-    const countLabel = !streaming && items.length > 1 ? `${items.length} 段` : "";
+    const countLabel = !streaming && items.length > 1 ? translate("canvasTools.canvasCloudAgentChatUi.segments", { v0: String(items.length) }) : "";
     return (
         <details className={`agent-activity agent-reasoning${streaming ? " is-live" : ""}`} data-agent-tone="think" style={{ "--agent-reasoning-accent": theme.accent.primary } as CSSProperties}>
             <summary className="agent-activity-row">
                 <span className="agent-activity-glyph" aria-hidden="true">
                     <AgentThinkGlyph />
                 </span>
-                <span className="agent-activity-title">{streaming ? "正在思考" : "思考过程"}</span>
+                <span className="agent-activity-title">{streaming ? translate("canvasTools.canvasCloudAgentChatUi.thinking") : translate("canvasTools.canvasCloudAgentChatUi.reasoning")}</span>
                 {preview ? <span className="agent-activity-detail agent-reasoning-preview">{preview}</span> : null}
                 {countLabel ? <span className="agent-activity-meta">{countLabel}</span> : null}
                 <AgentChevronGlyph className="agent-activity-chevron" />
             </summary>
             <div className="agent-activity-body agent-reasoning-content" data-canvas-wheel-scroll>
-                <div className="agent-reasoning-text">{text || (streaming ? "正在整理思路…" : "暂无可展示的推理摘要")}</div>
+                <div className="agent-reasoning-text">{text || (streaming ? translate("canvasTools.canvasCloudAgentChatUi.organizingThoughts") : translate("canvasTools.canvasCloudAgentChatUi.noReasoningSummaryAvailable"))}</div>
             </div>
         </details>
     );
@@ -856,7 +874,7 @@ function splitAgentMessageMentions(text: string, references: CanvasResourceRefer
         if (reference) return { text: "", token: part, reference };
         // Never expose an internal Skill ID in the chat bubble when an old
         // conversation references a removed/unloaded Skill.
-        if (/^@\[skill:[^\]]+\]$/u.test(part)) return { text: "技能包" };
+        if (/^@\[skill:[^\]]+\]$/u.test(part)) return { text: translate("canvasTools.canvasCloudAgentChatUi.skillBundle") };
         return { text: part };
     });
 }
@@ -878,9 +896,9 @@ export function AgentPendingToolCard({ summary, detail, theme, onReject, onAppro
                 <div className="flex items-start gap-3">
                     <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2 text-[var(--fs-ui)] font-semibold leading-5">
-                            <span>需要你的确认</span>
+                            <span>{translate("canvasTools.canvasCloudAgentChatUi.yourConfirmationIsRequired")}</span>
                             <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[var(--fs-label)] font-medium" style={{ color: "#f97316", background: "rgba(249,115,22,.1)" }}>
-                                等待确认
+                                {translate("canvasTools.canvasCloudAgentChatUi.awaitingConfirmation")}
                             </span>
                         </div>
                         <div className="mt-1 text-xs leading-5" style={{ color: theme.node.text }}>
@@ -891,10 +909,10 @@ export function AgentPendingToolCard({ summary, detail, theme, onReject, onAppro
                 {impact?.operationCount ? (
                     <div className="mt-3 pt-1">
                         <div className="grid grid-cols-4 gap-1">
-                            <ImpactMetric label="操作" value={impact.operationCount} theme={theme} />
-                            <ImpactMetric label="涉及节点" value={impact.affectedNodeCount} theme={theme} />
-                            <ImpactMetric label="删除" value={impact.destructiveCount} attention={impact.destructiveCount > 0} theme={theme} />
-                            <ImpactMetric label="生成" value={impact.generationCount} attention={impact.generationCount > 0} theme={theme} />
+                            <ImpactMetric label={translate("account.settings.runninghub.actions")} value={impact.operationCount} theme={theme} />
+                            <ImpactMetric label={translate("canvasTools.canvasCloudAgentChatUi.affectedNodes")} value={impact.affectedNodeCount} theme={theme} />
+                            <ImpactMetric label={translate("common.delete")} value={impact.destructiveCount} attention={impact.destructiveCount > 0} theme={theme} />
+                            <ImpactMetric label={translate("account.welcome.chapters.motion.label")} value={impact.generationCount} attention={impact.generationCount > 0} theme={theme} />
                         </div>
                         {impact.items.length ? (
                             <div className="mt-3 space-y-2">
@@ -912,10 +930,10 @@ export function AgentPendingToolCard({ summary, detail, theme, onReject, onAppro
                 {onReject || onApprove ? (
                     <div className="mt-2 flex gap-2">
                         <Button danger size="small" className="!h-8 flex-1" icon={<XCircle className="size-3.5" />} onClick={() => onReject?.()}>
-                            暂不执行
+                            {translate("canvasTools.canvasCloudAgentChatUi.doNotExecuteYet")}
                         </Button>
                         <Button size="small" className="!h-8 flex-1" icon={<CheckCircle2 className="size-3.5" />} style={{ borderColor: "rgba(22,163,74,.42)", color: "#16a34a", background: "transparent" }} onClick={() => onApprove?.()}>
-                            确认执行
+                            {translate("canvasTools.canvasCloudAgentChatUi.confirmExecution")}
                         </Button>
                     </div>
                 ) : null}
@@ -990,7 +1008,7 @@ export function AgentToolCard({
     if (retry && Array.isArray(attempts)) {
         // 标签本身已含"已恢复 / 未完成"，这里只补尝试次数，避免重复拼接状态词。
         const label = agentToolRetryLabel(retry);
-        const progress = `${retry.attempt}/${retry.maxAttempts} 次尝试${retry.status === "recovered" ? "" : "未通过"}`;
+        const progress = translate("canvasTools.canvasCloudAgentChatUi.attempts", { v0: String(retry.attempt), v1: String(retry.maxAttempts), v2: String(retry.status === "recovered" ? "" : translate("canvasTools.canvasCloudAgentChatUi.failed")) });
         return (
             <details data-agent-tool-retry className="agent-tool-retry min-w-0 flex-1" data-agent-tone={retry.status === "recovered" ? "other" : "warning"}>
                 <summary className="agent-tool-step">
@@ -1000,7 +1018,7 @@ export function AgentToolCard({
                     <span className="agent-tool-summary">{`${label} · ${progress}`}</span>
                     <AgentChevronGlyph className="agent-activity-chevron" />
                 </summary>
-                <ol className="agent-tool-retry-list" aria-label="自动纠正详情">
+                <ol className="agent-tool-retry-list" aria-label={translate("canvasTools.canvasCloudAgentChatUi.automaticCorrectionDetails")}>
                     {(attempts as AgentToolRetryAttempt[]).map((attempt, index) => (
                         <li key={attempt.id}>
                             <span className="agent-tool-retry-index">{index + 1}</span>
@@ -1011,7 +1029,7 @@ export function AgentToolCard({
             </details>
         );
     }
-    const tone = state.isError ? "error" : state.label === "未生效" ? "warning" : category;
+    const tone = state.isError ? "error" : state.label === translate("canvasTools.canvasCloudAgentChatUi.notInEffect") ? "warning" : category;
     return (
         <div data-agent-tool-card data-agent-tone={tone} className={`agent-tool-row agent-tool-row--${category}${isPlain ? " agent-tool-row--plain" : ""}${state.isError ? " is-error" : ""}`}>
             <div className="agent-tool-step">
@@ -1020,7 +1038,7 @@ export function AgentToolCard({
                 </span>
                 <span className="sr-only">{categoryLabel}：</span>
                 <span className="agent-tool-summary">{summary}</span>
-                {state.label !== "已完成" ? <span className="agent-tool-label">{state.label}</span> : null}
+                {state.label !== translate("canvasTools.canvasCloudAgentChatUi.done") ? <span className="agent-tool-label">{state.label}</span> : null}
             </div>
             <div className="agent-tool-extra min-w-0 break-words">
                 {actions.length ? (
@@ -1032,7 +1050,7 @@ export function AgentToolCard({
                                 data-agent-node-id={action.nodeId}
                                 disabled={!onFocusNode}
                                 onClick={() => onFocusNode?.(action.nodeId)}
-                                aria-label={`在画布中定位${action.title}`}
+                                aria-label={translate("canvasTools.canvasCloudAgentChatUi.locateOnTheCanvas2", { v0: String(action.title) })}
                                 className="agent-tool-action-link"
                             >
                                 {agentCanvasActionLabel(action)}
@@ -1040,7 +1058,9 @@ export function AgentToolCard({
                         ))}
                         {isNodeRead && (collapsedReadNodeCount > 0 || readExpanded) ? (
                             <button type="button" className="agent-tool-more" aria-expanded={readExpanded} onClick={() => setReadExpanded((current) => !current)}>
-                                {readExpanded ? `收起其余 ${Math.max(0, actions.length - 1)} 个节点` : `另有 ${collapsedReadNodeCount} 个节点只是清单（未查看画面），展开查看`}
+                                {readExpanded
+                                    ? translate("canvasTools.canvasCloudAgentChatUi.collapseOtherNodes", { v0: String(Math.max(0, actions.length - 1)) })
+                                    : translate("canvasTools.canvasCloudAgentChatUi.otherNodesWereOnlyListedNotVisuallyInspectedExpandTo", { v0: String(collapsedReadNodeCount) })}
                             </button>
                         ) : null}
                     </div>
@@ -1048,19 +1068,21 @@ export function AgentToolCard({
                 {state.isError && text && text !== summary ? <span className="agent-tool-note whitespace-pre-wrap">{conciseError}</span> : null}
                 {state.isError && text.length > 180 ? (
                     <details className="agent-tool-note">
-                        <summary className="cursor-pointer">查看完整错误详情</summary>
+                        <summary className="cursor-pointer">{translate("canvasTools.canvasCloudAgentChatUi.viewFullErrorDetails")}</summary>
                         <p className="whitespace-pre-wrap break-words">{text}</p>
                     </details>
                 ) : null}
-                {state.isError && objectField(objectField(detail, "result"), "taskId") ? <span className="agent-tool-note break-all">任务 ID：{String(objectField(objectField(detail, "result"), "taskId"))}</span> : null}
+                {state.isError && objectField(objectField(detail, "result"), "taskId") ? (
+                    <span className="agent-tool-note break-all">{translate("canvasTools.inline.canvasCloudAgentChatUi.taskID", { v0: String(String(objectField(objectField(detail, "result"), "taskId"))) })}</span>
+                ) : null}
                 {undoState?.status === "error" ? (
                     <span className="agent-tool-note text-[var(--status-error)]" role="alert">
-                        撤销失败：{undoState.error || "请检查画布状态后重试"}
+                        {translate("canvasTools.inline.canvasCloudAgentChatUi.undoFailed", { v0: String(undoState.error || translate("canvasTools.canvasCloudAgentChatUi.checkTheCanvasStateAndTryAgain")) })}
                     </span>
                 ) : null}
                 {undoState?.status === "done" ? (
                     <span className="agent-tool-note text-[var(--status-success)]" role="status">
-                        此步骤已撤销
+                        {translate("canvasTools.canvasCloudAgentChatUi.thisStepWasUndone")}
                     </span>
                 ) : null}
                 {undoTarget && onUndo && undoState?.status !== "done" ? (
@@ -1068,17 +1090,21 @@ export function AgentToolCard({
                         type="text"
                         size="small"
                         className="agent-tool-undo mt-1 !h-7 !px-2"
-                        aria-label="撤销本次画布写入"
+                        aria-label={translate("canvasTools.canvasCloudAgentChatUi.undoThisCanvasUpdate")}
                         icon={undoState?.status === "pending" ? <LoaderCircle className="size-3.5 animate-spin motion-reduce:animate-none" /> : <Undo2 className="size-3.5" />}
                         loading={undoState?.status === "pending"}
                         disabled={undoState?.status === "pending"}
                         onClick={() => onUndo?.(undoTarget)}
                     >
-                        {undoState?.status === "pending" ? "撤销中" : undoState?.status === "error" ? "重新撤销" : "撤销这一步"}
+                        {undoState?.status === "pending"
+                            ? translate("canvasTools.canvasCloudAgentChatUi.undoing")
+                            : undoState?.status === "error"
+                              ? translate("canvasTools.canvasCloudAgentChatUi.retryUndo")
+                              : translate("canvasTools.canvasCloudAgentChatUi.undoThisStep")}
                     </Button>
                 ) : null}
             </div>
-            {state.label === "已完成" ? <span className="sr-only">已完成</span> : null}
+            {state.label === translate("canvasTools.canvasCloudAgentChatUi.done") ? <span className="sr-only">{translate("canvasTools.canvasCloudAgentChatUi.done")}</span> : null}
         </div>
     );
 }
@@ -1115,13 +1141,19 @@ export const AgentOperationFeed = memo(function AgentOperationFeed({
     const latest = items[items.length - 1];
     if (!latest) return null;
     const category = agentOperationCategory(latest);
-    const latestToolName = agentToolName(latest.title || "工具执行", latest.detail);
+    const latestToolName = agentToolName(latest.title || translate("canvasTools.canvasCloudAgentChatUi.toolExecution"), latest.detail);
     const latestRetry = agentToolRetry(latest.detail);
     // 自动纠正不属于任何工具类别；标题直接说"自动纠正"，比"其他操作"更能说明发生了什么。
-    const categoryLabel = latestRetry ? "自动纠正" : agentToolCategoryLabel(latestToolName, category);
+    const categoryLabel = latestRetry ? translate("canvasTools.canvasCloudAgentChatUi.automaticCorrection") : agentToolCategoryLabel(latestToolName, category);
     const categoryIcon = agentToolCategoryIcon(latestToolName, category, Boolean(latestRetry));
     const label = agentOperationSegmentLabel(items);
-    const visibleLabel = latestRetry ? `${latestRetry.status === "recovered" ? "已恢复" : "未完成"} · ${latestRetry.attempt}/${latestRetry.maxAttempts} 次尝试` : label;
+    const visibleLabel = latestRetry
+        ? translate("canvasTools.canvasCloudAgentChatUi.attempts2", {
+              v0: String(latestRetry.status === "recovered" ? translate("canvasTools.canvasCloudAgentChatUi.recovered") : translate("canvasTools.canvasCloudAgentChatUi.incomplete")),
+              v1: String(latestRetry.attempt),
+              v2: String(latestRetry.maxAttempts),
+          })
+        : label;
     // 错误摘要始终可见；详情只由用户展开，状态变化不挤走正在阅读的正文。
     const failed = agentOperationFailed(latest);
     const expanded = userExpanded ?? false;
@@ -1139,7 +1171,12 @@ export const AgentOperationFeed = memo(function AgentOperationFeed({
                 aria-expanded={expanded}
                 aria-controls={listId}
                 // aria-label 会顶掉可见文字，所以类别与最新一步必须自己报出来。
-                aria-label={`${expanded ? "收起" : "展开"} ${items.length} 步${categoryLabel}记录，最新一步：${label}`}
+                aria-label={translate("canvasTools.canvasCloudAgentChatUi.stepRecordedLatestStep", {
+                    v0: String(expanded ? translate("account.feedback.collapse") : translate("canvasTools.canvasCloudAgentChatUi.expand")),
+                    v1: String(items.length),
+                    v2: String(categoryLabel),
+                    v3: String(label),
+                })}
                 onClick={() => setUserExpanded(!expanded)}
             >
                 <span className="agent-activity-glyph" aria-hidden="true">
@@ -1159,7 +1196,7 @@ export const AgentOperationFeed = memo(function AgentOperationFeed({
                         {visibleLabel}
                     </motion.span>
                 </AnimatePresence>
-                {items.length > 1 ? <span className="agent-activity-meta">{items.length} 步</span> : null}
+                {items.length > 1 ? <span className="agent-activity-meta">{translate("canvasTools.inline.canvasCloudAgentChatUi.steps", { v0: String(items.length) })}</span> : null}
                 <AgentChevronGlyph className="agent-activity-chevron" />
             </button>
             <AnimatePresence initial={false}>
@@ -1191,7 +1228,7 @@ export function AgentWorkingMessage({ theme, label = WORKING_TEXT }: { theme: (t
                 <span />
             </span>
             <span>{label}</span>
-            <span className="agent-working-caption">实时处理中</span>
+            <span className="agent-working-caption">{translate("canvasTools.canvasCloudAgentChatUi.processingLive")}</span>
         </div>
     );
 }
@@ -1219,14 +1256,14 @@ export function AgentPlanBar({
         <div className="agent-plan-bar mx-3 mb-2 overflow-hidden rounded-xl" style={{ color: theme.node.text }}>
             <button type="button" className="flex w-full items-center gap-2 px-3 py-2 text-left focus-visible:outline focus-visible:outline-2" aria-expanded={!minimized} onClick={onToggle}>
                 <ListChecks className="size-3.5 shrink-0" style={{ color: allDone ? "#429477" : theme.node.muted }} />
-                <span className="text-xs font-semibold">本轮待办</span>
+                <span className="text-xs font-semibold">{translate("canvasTools.canvasCloudAgentChatUi.tasksForThisRun")}</span>
                 <span className="text-[var(--fs-label)] tabular-nums opacity-50">
                     {doneCount}/{items.length}
                 </span>
-                {waitingUser && !allDone ? <span className="shrink-0 text-[var(--fs-label)] opacity-55">等待你确认后继续</span> : null}
-                {terminal && !allDone ? <span className="shrink-0 text-[var(--fs-label)] opacity-55">本轮已结束，未完成项已停止</span> : null}
+                {waitingUser && !allDone ? <span className="shrink-0 text-[var(--fs-label)] opacity-55">{translate("canvasTools.canvasCloudAgentChatUi.waitingForYourConfirmationToContinue")}</span> : null}
+                {terminal && !allDone ? <span className="shrink-0 text-[var(--fs-label)] opacity-55">{translate("canvasTools.canvasCloudAgentChatUi.thisRunHasEndedUnfinishedItemsHaveStopped")}</span> : null}
                 <span className="min-w-0 flex-1" />
-                <span className="shrink-0 text-[var(--fs-label)] opacity-50">{minimized ? "展开" : "收起"}</span>
+                <span className="shrink-0 text-[var(--fs-label)] opacity-50">{minimized ? translate("canvasTools.canvasCloudAgentChatUi.expand") : translate("account.feedback.collapse")}</span>
                 {minimized ? <ChevronDown className="size-3.5 shrink-0 opacity-50" /> : <ChevronUp className="size-3.5 shrink-0 opacity-50" />}
             </button>
             {minimized ? null : (
@@ -1344,7 +1381,7 @@ export function AgentQuestionBar({
             return field.required && (empty || value === "other");
         });
         if (missing) {
-            setValidation(`请填写“${missing.title}”`);
+            setValidation(translate("canvasTools.canvasCloudAgentChatUi.enter", { v0: String(missing.title) }));
             const field = Array.from(fieldsScrollRef.current?.querySelectorAll<HTMLElement>("[data-agent-field-id]") || []).find((element) => element.dataset.agentFieldId === missing.id);
             field?.scrollIntoView({ block: "nearest" });
             field?.querySelector<HTMLElement>("input, textarea, button")?.focus({ preventScroll: true });
@@ -1401,21 +1438,41 @@ export function AgentQuestionBar({
                 <div className="flex items-start gap-2 px-3 pt-2">
                     <HelpCircle className="mt-[1px] size-3.5 shrink-0" style={{ color: theme.accent.primary }} />
                     <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 text-[var(--fs-label)] opacity-55">{question.round && question.maxRounds ? `确认 ${question.round}/${question.maxRounds}` : "需求确认"}</div>
+                        <div className="flex items-center gap-2 text-[var(--fs-label)] opacity-55">
+                            {question.round && question.maxRounds
+                                ? translate("canvasTools.canvasCloudAgentChatUi.confirm", { v0: String(question.round), v1: String(question.maxRounds) })
+                                : translate("canvasTools.canvasCloudAgentChatUi.confirmRequirements")}
+                        </div>
                         <div className="text-xs font-semibold leading-5">{question.question}</div>
-                        <div className="mt-0.5 text-[var(--fs-label)] opacity-50">已填入推荐值，可按需修改；不重要的字段可以留空。</div>
+                        <div className="mt-0.5 text-[var(--fs-label)] opacity-50">{translate("canvasTools.canvasCloudAgentChatUi.recommendedValuesAreFilledInAdjustThemAsNeededOptional")}</div>
                     </div>
                 </div>
-                <div className="agent-question-scroll-controls" aria-label="表单滚动">
-                    <span>{scrollEdges.below ? "下方还有更多选项" : scrollEdges.above ? "已到表单底部" : "确认后可直接继续"}</span>
-                    <button type="button" aria-label="向上查看表单" disabled={!scrollEdges.above} onClick={() => fieldsScrollRef.current?.scrollBy({ top: -Math.max(80, fieldsScrollRef.current.clientHeight * 0.8) })}>
+                <div className="agent-question-scroll-controls" aria-label={translate("canvasTools.canvasCloudAgentChatUi.scrollForm")}>
+                    <span>
+                        {scrollEdges.below
+                            ? translate("canvasTools.canvasCloudAgentChatUi.moreOptionsBelow")
+                            : scrollEdges.above
+                              ? translate("canvasTools.canvasCloudAgentChatUi.endOfForm")
+                              : translate("canvasTools.canvasCloudAgentChatUi.continueImmediatelyAfterConfirming")}
+                    </span>
+                    <button
+                        type="button"
+                        aria-label={translate("canvasTools.canvasCloudAgentChatUi.scrollUpInTheForm")}
+                        disabled={!scrollEdges.above}
+                        onClick={() => fieldsScrollRef.current?.scrollBy({ top: -Math.max(80, fieldsScrollRef.current.clientHeight * 0.8) })}
+                    >
                         <ChevronUp className="size-3.5" />
                     </button>
-                    <button type="button" aria-label="向下查看更多选项" disabled={!scrollEdges.below} onClick={() => fieldsScrollRef.current?.scrollBy({ top: Math.max(80, fieldsScrollRef.current.clientHeight * 0.8) })}>
+                    <button
+                        type="button"
+                        aria-label={translate("canvasTools.canvasCloudAgentChatUi.scrollDownForMoreOptions")}
+                        disabled={!scrollEdges.below}
+                        onClick={() => fieldsScrollRef.current?.scrollBy({ top: Math.max(80, fieldsScrollRef.current.clientHeight * 0.8) })}
+                    >
                         <ChevronDown className="size-3.5" />
                     </button>
                 </div>
-                <div ref={fieldsScrollRef} className="agent-question-scroll" tabIndex={0} role="region" aria-label="需求确认表单内容" onScroll={updateScrollEdges} data-canvas-wheel-scroll>
+                <div ref={fieldsScrollRef} className="agent-question-scroll" tabIndex={0} role="region" aria-label={translate("canvasTools.canvasCloudAgentChatUi.requirementsConfirmationForm")} onScroll={updateScrollEdges} data-canvas-wheel-scroll>
                     <div ref={fieldsContentRef}>
                         <div className="agent-question-fields px-3 py-2">
                             {orderedFields.map((field, index) => {
@@ -1485,7 +1542,7 @@ export function AgentQuestionBar({
                                                 {field.allowCustom && (custom || field.type === "text") ? (
                                                     <input
                                                         value={custom && values[field.id] !== "other" ? values[field.id] || "" : ""}
-                                                        placeholder={field.placeholder || "输入自定义内容"}
+                                                        placeholder={field.placeholder || translate("canvasTools.canvasCloudAgentChatUi.enterACustomValue")}
                                                         disabled={disabled}
                                                         className="agent-question-input mt-2"
                                                         onChange={(event) => updateValue(field, event.target.value)}
@@ -1501,13 +1558,13 @@ export function AgentQuestionBar({
                         </div>
                         <div className="agent-question-field px-3 pb-2">
                             <label className="agent-question-field-label" htmlFor="agent-question-additional-notes">
-                                补充说明
+                                {translate("canvasTools.canvasCloudAgentChatUi.additionalNotes")}
                             </label>
                             <textarea
                                 id="agent-question-additional-notes"
                                 rows={2}
                                 value={additionalNotes}
-                                placeholder="还有需要特别说明的场景、人物、节奏或限制吗？"
+                                placeholder={translate("canvasTools.canvasCloudAgentChatUi.anySpecificScenesCharactersPacingOrConstraintsToAdd")}
                                 disabled={disabled}
                                 className="agent-question-input agent-question-textarea"
                                 onChange={(event) => setAdditionalNotes(event.target.value)}
@@ -1534,7 +1591,7 @@ export function AgentQuestionBar({
                             submitForm(true);
                         }}
                     >
-                        按推荐方案开始
+                        {translate("canvasTools.canvasCloudAgentChatUi.startWithTheRecommendedPlan")}
                     </button>
                     <button
                         type="button"
@@ -1548,7 +1605,7 @@ export function AgentQuestionBar({
                             submitForm();
                         }}
                     >
-                        确认并继续
+                        {translate("canvasTools.canvasCloudAgentChatUi.confirmAndContinue")}
                     </button>
                 </div>
             </div>
@@ -1560,7 +1617,9 @@ export function AgentQuestionBar({
             <div className="flex items-start gap-2 px-3 pt-2">
                 <HelpCircle className="mt-[1px] size-3.5 shrink-0" style={{ color: theme.accent.primary }} />
                 <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 text-[var(--fs-label)] opacity-55">{question.round && question.maxRounds ? `确认 ${question.round}/${question.maxRounds}` : "需要确认"}</div>
+                    <div className="flex items-center gap-2 text-[var(--fs-label)] opacity-55">
+                        {question.round && question.maxRounds ? translate("canvasTools.canvasCloudAgentChatUi.confirm", { v0: String(question.round), v1: String(question.maxRounds) }) : translate("canvasTools.canvasCloudAgentChatUi.confirmationNeeded")}
+                    </div>
                     <div className="text-xs font-semibold leading-5">{question.question}</div>
                 </div>
             </div>
@@ -1573,11 +1632,13 @@ export function AgentQuestionBar({
                 />
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 px-3 pb-2">
-                <span className="text-[var(--fs-label)] opacity-50">{question.allowFreeform === false ? "请从上面选一项。" : "也可以在下方输入框里补充说明。"}</span>
+                <span className="text-[var(--fs-label)] opacity-50">
+                    {question.allowFreeform === false ? translate("canvasTools.canvasCloudAgentChatUi.chooseAnOptionAbove") : translate("canvasTools.canvasCloudAgentChatUi.youCanAlsoAddDetailsInTheInputBelow")}
+                </span>
                 <button
                     type="button"
                     disabled={disabled}
-                    title="使用安全默认方案继续"
+                    title={translate("canvasTools.canvasCloudAgentChatUi.continueWithSafeDefaults")}
                     className="agent-question-default max-w-full rounded-md border-0 px-3 py-2 text-left text-xs font-medium transition focus-visible:outline focus-visible:outline-2 disabled:cursor-not-allowed disabled:opacity-50"
                     style={{ background: theme.accent.primary, color: theme.accent.onPrimary }}
                     onMouseDown={stop}
@@ -1587,7 +1648,7 @@ export function AgentQuestionBar({
                         onAnswer("直接开始");
                     }}
                 >
-                    按默认方案开始
+                    {translate("canvasTools.canvasCloudAgentChatUi.startWithTheDefaultPlan")}
                 </button>
             </div>
         </div>
@@ -1610,7 +1671,7 @@ export function AgentPanelTabs<T extends string>({
     return (
         <div className="shrink-0 px-3 pb-1">
             <div className="flex min-h-8 items-center justify-between gap-2 rounded-lg px-0.5 py-0.5" style={{ background: "transparent" }}>
-                <nav className="grid min-w-0 flex-1 grid-flow-col auto-cols-fr items-center gap-0.5 text-[var(--fs-label)]" role="tablist" aria-label="Agent 面板">
+                <nav className="grid min-w-0 flex-1 grid-flow-col auto-cols-fr items-center gap-0.5 text-[var(--fs-label)]" role="tablist" aria-label={translate("canvasTools.canvasCloudAgentChatUi.agentPanel")}>
                     {items.map((item) => (
                         <button
                             key={item.value}
@@ -1655,7 +1716,14 @@ function AgentMessageAttachments({ attachments }: { attachments: CloudAgentChatA
         <>
             <div className="mt-2 grid grid-cols-3 gap-2">
                 {attachments.map((item) => (
-                    <button key={item.id} type="button" className="group relative overflow-hidden rounded-lg" onClick={() => setPreview(item)} onDoubleClick={() => setPreview(item)} aria-label={`查看图片 ${item.name}`}>
+                    <button
+                        key={item.id}
+                        type="button"
+                        className="group relative overflow-hidden rounded-lg"
+                        onClick={() => setPreview(item)}
+                        onDoubleClick={() => setPreview(item)}
+                        aria-label={translate("canvasTools.canvasCloudAgentChatUi.viewImage", { v0: String(item.name) })}
+                    >
                         <img src={item.url} alt={item.name} className="aspect-square w-full object-cover transition-opacity duration-150 group-hover:opacity-90" />
                     </button>
                 ))}
@@ -1670,11 +1738,11 @@ function toolCardState(title: string, text: string, detail?: unknown) {
     // 失败时优先显示稳定归类（"参数不符合契约"/"画布状态已变化"/"模型输出问题"…）：
     // 它比统一的"执行失败"更能说明下一步该做什么。
     const errorClassLabel = agentToolErrorClassLabel(detail);
-    if (status === "completed") return { label: "已完成", color: "#16a34a", softBg: "rgba(22,163,74,.04)", icon: <CheckCircle2 className="size-4" />, isError: false };
-    if (status === "failed") return { label: errorClassLabel ?? "执行失败", color: "#dc2626", softBg: "rgba(220,38,38,.04)", icon: <XCircle className="size-4" />, isError: true };
-    if (status === "noop") return { label: "未生效", color: "#d97706", softBg: "rgba(217,119,6,.04)", icon: <CircleAlert className="size-4" />, isError: false };
-    if (status === "rejected") return { label: errorClassLabel ?? "拒绝执行", color: "#dc2626", softBg: "rgba(220,38,38,.04)", icon: <XCircle className="size-4" />, isError: true };
-    return { label: "处理中", color: "#64748b", softBg: "rgba(100,116,139,.04)", icon: <CircleDot className="size-4" />, isError: false };
+    if (status === "completed") return { label: translate("canvasTools.canvasCloudAgentChatUi.done"), color: "#16a34a", softBg: "rgba(22,163,74,.04)", icon: <CheckCircle2 className="size-4" />, isError: false };
+    if (status === "failed") return { label: errorClassLabel ?? translate("canvasTools.canvasCloudAgentChatUi.executionFailed"), color: "#dc2626", softBg: "rgba(220,38,38,.04)", icon: <XCircle className="size-4" />, isError: true };
+    if (status === "noop") return { label: translate("canvasTools.canvasCloudAgentChatUi.notInEffect"), color: "#d97706", softBg: "rgba(217,119,6,.04)", icon: <CircleAlert className="size-4" />, isError: false };
+    if (status === "rejected") return { label: errorClassLabel ?? translate("canvasTools.canvasCloudAgentChatUi.reject"), color: "#dc2626", softBg: "rgba(220,38,38,.04)", icon: <XCircle className="size-4" />, isError: true };
+    return { label: translate("canvasA.fileUpload.processing"), color: "#64748b", softBg: "rgba(100,116,139,.04)", icon: <CircleDot className="size-4" />, isError: false };
 }
 
 function objectField(value: unknown, key: string) {

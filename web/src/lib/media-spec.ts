@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 // 素材卡片和素材档案共用的媒体规格标签：清晰度档位、画幅比例、音频采样率与码率。
 // 尺寸未知（0 或旧版本写入的 1×1 占位）时一律返回空字符串，由调用方决定是否展示。
 
@@ -45,7 +46,7 @@ export function imageResolutionTierLabel(width?: number, height?: number) {
     if (pixels >= 5_000_000) return "4K";
     if (pixels > 2_200_000) return "2K";
     if (pixels >= 700_000) return "1K";
-    return Math.min(width, height) >= 600 ? "720P" : "标清";
+    return Math.min(width, height) >= 600 ? "720P" : translate("shared.mediaSpec.sD");
 }
 
 /** 视频清晰度按短边归档：竖屏 768×1366 与横屏 1366×768 都是 768P；短边 1440 起为 2K，2160 起为 4K。 */

@@ -68,7 +68,8 @@ import {
     type EcommerceCreativeDirectionsResponse,
 } from "@/services/api/ecommerce";
 import { logicalModelIDForConfig, modelDisplayName, modelOptionName, resolveModelChannel, selectableModelsByCapability, useEffectiveConfig } from "@/stores/use-config-store";
-import { displayImageSizeChoices, imageTypes, labelOf, languages, options, platforms, imageSizeLabel as ratioLabel } from "./catalog";
+import { displayImageSizeChoices, displayLabelOf, imageTypes, labelOf, languages, options, platforms, imageSizeLabel as ratioLabel } from "./catalog";
+import { commerceUiText } from "./ui-text";
 import { CommerceMarketPicker, PlatformMark } from "./market-picker";
 import { CommerceDirectionCards, directionDescription } from "./direction-cards";
 import { CommerceStylePicker } from "./style-picker";
@@ -111,15 +112,16 @@ import "./agent-theme.css";
 import "./composer.css";
 import { getEcommerceDirectionsReceipt, setEcommerceDirectionsReceipt } from "@/services/ecommerce-session";
 
+import { currentLocale, translate } from "@/i18n";
 const referenceRoles: Array<[EcommerceReferenceRole, string]> = [
-    ["primary", "商品主图"],
-    ["detail", "细节参考"],
-    ["sku", "SKU 参考"],
-    ["style", "风格参考"],
-    ["logo", "品牌 Logo"],
-    ["package", "包装图"],
-    ["competitor", "竞品参考"],
-    ["model", "模特参考"],
+    ["primary", translate("ecommerce.page.mainProductImage")],
+    ["detail", translate("ecommerce.page.detailReference")],
+    ["sku", translate("ecommerce.page.sKUReference")],
+    ["style", translate("ecommerce.page.styleReference")],
+    ["logo", translate("ecommerce.page.brandLogo")],
+    ["package", translate("ecommerce.page.packagingImage")],
+    ["competitor", translate("ecommerce.page.competitorReference")],
+    ["model", translate("ecommerce.page.modelReference")],
 ];
 const terminal = (status: GenerationTask["status"]) => ["succeeded", "failed", "cancelled"].includes(status);
 type ComposerPanel = "platform" | "material";
@@ -139,7 +141,7 @@ function ratioPreview(value: string) {
     const ratio = parts.length === 2 && parts.every((part) => Number.isFinite(part) && part > 0) ? parts[0] / parts[1] : 1;
     return { width: Math.max(9, Math.round(ratio >= 1 ? 22 : 22 * ratio)), height: Math.max(9, Math.round(ratio >= 1 ? 22 / ratio : 22)) };
 }
-const errorText = (cause: unknown) => (cause instanceof Error ? cause.message : "操作失败，请稍后重试");
+const errorText = (cause: unknown) => (cause instanceof Error ? commerceUiText(cause.message) : translate("ecommerce.page.actionFailedTryAgainLater"));
 const mergeTaskAssets = (incoming: GenerationTask, previous?: GenerationTask): GenerationTask => ({
     ...incoming,
     outputs: incoming.outputs?.map((output) => ({ ...output, materializedAssetId: output.materializedAssetId || previous?.outputs?.find((item) => item.outputIndex === output.outputIndex)?.materializedAssetId })) || previous?.outputs,
@@ -157,7 +159,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
     const ecommerceEnabled = useUserStore((state) => state.features.ecommerceEnabled);
     const ecommerceVideoEnabled = useUserStore((state) => state.features.ecommerceVideoEnabled);
     const videoWorkbenchEnabled = useUserStore((state) => state.features.videoWorkbenchEnabled);
-    const nickname = useUserStore((state) => state.user?.displayName?.trim() || state.user?.username?.trim() || "创作者");
+    const nickname = useUserStore((state) => state.user?.displayName?.trim() || state.user?.username?.trim() || translate("shell.account.creator"));
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const requestedProjectId = searchParams.get("project");
@@ -193,7 +195,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
         const separator = entry.indexOf(":");
         const role = entry.slice(0, separator);
         const resourceId = entry.slice(separator + 1);
-        return separator > 0 && referenceRoles.some(([value]) => value === role) && resourceId ? [{ role: role as EcommerceReferenceRole, resourceId, name: "画布连接图片" }] : [];
+        return separator > 0 && referenceRoles.some(([value]) => value === role) && resourceId ? [{ role: role as EcommerceReferenceRole, resourceId, name: translate("ecommerce.page.canvasConnectedImage") }] : [];
     });
     const mergeReferences = (current: EcommerceDraft): EcommerceDraft => {
         const grouped = normalizeEcommerceReferenceGroups(current);
@@ -368,7 +370,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
     const adminModels = useCommerceAdminModels(config);
     const planningModel = adminModels.planningModel;
     const directionsModel = adminModels.visionModel;
-    const adminModelIssue = adminModels.problem || (adminModels.loaded ? "" : "正在读取后台指定的电商 Agent 模型，请稍后重试");
+    const adminModelIssue = adminModels.problem || (adminModels.loaded ? "" : translate("ecommerce.page.loadingTheConfiguredEcommerceAgentModelsTryAgainLater"));
     const planningReferenceCount = commercePlanningReferenceCount(draft);
     const planningModels = useMemo(() => commercePlanningModels(config, textModels, planningReferenceCount), [config, textModels, planningReferenceCount]);
     const imageProfile = draft.imageModel ? modelCapabilityConfigFor(config, draft.imageModel).image : undefined;
@@ -446,7 +448,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             const local = incoming
                 ? null
                 : await readEcommerceWorkspace(scope).catch(() => {
-                      setCacheError("本机草稿读取失败，将尝试恢复服务端项目");
+                      setCacheError(translate("ecommerce.page.failedToReadTheLocalDraftTryingToRestoreThe"));
                       return null;
                   });
             const cached = newWorkspaceId && local?.sessionId !== newWorkspaceId ? null : local;
@@ -463,7 +465,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                 owner = createEcommerceSession(scope);
                 saved = null;
                 setEcommerceActiveProject(scope, null);
-                setCacheError(compatibleCache ? "原项目已不存在，本机未提交的商品资料已保留为新草稿" : "原项目已不存在，已为你打开新草稿");
+                setCacheError(compatibleCache ? translate("ecommerce.page.theOriginalProjectNoLongerExistsUnsubmittedLocalProductDetails") : translate("ecommerce.page.theOriginalProjectNoLongerExistsANewDraftWas"));
             }
             if (cancelled || getActiveUserScope() !== scope) return;
             if (saved) {
@@ -529,7 +531,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
     useEffect(() => {
         if (!hydrated.current || restoring || !isCurrent(session)) return;
         void writeEcommerceWorkspace(scope, { sessionId: session.id, project, draft, plan, creationMode, autoGenerate, submittedDraft }).catch(() => {
-            if (isCurrent(session)) setCacheError("本机草稿缓存失败，请点击保存草稿；已提交任务仍在服务端运行");
+            if (isCurrent(session)) setCacheError(translate("ecommerce.page.failedToCacheTheLocalDraftClickSaveDraftSubmitted"));
         });
     }, [scope, session, project, draft, plan, creationMode, autoGenerate, submittedDraft, restoring]);
     useEffect(
@@ -571,7 +573,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             materializing.current.add(id);
             void materializeGenerationTaskAssets(task)
                 .then((materialized) => {
-                    if (!materialized.outputs?.some((output) => output.materializedAssetId)) throw new Error("生图已完成，但没有可保存的图片资产");
+                    if (!materialized.outputs?.some((output) => output.materializedAssetId)) throw new Error(translate("ecommerce.page.generationFinishedButThereAreNoImageAssetsToSave"));
                     if (isCurrent(session)) setTasks((current) => ({ ...current, [id]: materialized }));
                 })
                 .catch((cause) => {
@@ -592,7 +594,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                     if (isCurrent(session)) setQualityIssues((current) => ({ ...current, [assetId]: issues }));
                 })
                 .catch(() => {
-                    if (isCurrent(session)) setQualityIssues((current) => ({ ...current, [assetId]: ["文件技术检查暂不可用"] }));
+                    if (isCurrent(session)) setQualityIssues((current) => ({ ...current, [assetId]: [translate("ecommerce.page.technicalFileChecksAreTemporarilyUnavailable")] }));
                 });
         }
     }, [plan, tasks, session]);
@@ -605,7 +607,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             if (cached?.sessionId === owner.id || isCurrent(owner)) {
                 setEcommerceActiveProject(scope, saved.id);
                 void writeEcommerceWorkspace(scope, { sessionId: owner.id, project: saved, draft: nextDraft, plan: nextPlan, creationMode: cached?.creationMode || creationMode, autoGenerate: cached?.autoGenerate ?? autoGenerate }).catch(() => {
-                    if (isCurrent(owner)) setCacheError("服务端已保存，本机草稿缓存失败");
+                    if (isCurrent(owner)) setCacheError(translate("ecommerce.page.savedOnTheServerButLocalDraftCachingFailed"));
                 });
             }
             if (!isCurrent(owner)) return saved;
@@ -628,7 +630,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
         try {
             if (!plan || plan.inputSignature === commerceInputSignature(draft)) {
                 await save(draft, plan, owner);
-                if (isCurrent(owner)) message.success("草稿已保存到服务端");
+                if (isCurrent(owner)) message.success(translate("ecommerce.page.draftSavedToTheServer"));
                 return;
             }
             // Keep prior results in this project's canvas when saving the next round.
@@ -646,14 +648,14 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             setPlanningSaveError(false);
             autoStartRef.current = false;
             setEcommerceActiveProject(scope, saved.id);
-            await writeEcommerceWorkspace(scope, { sessionId: owner.id, project: saved, draft: nextDraft, plan: previousPlan, creationMode, autoGenerate }).catch(() => setCacheError("服务端已保存，本机草稿缓存失败"));
+            await writeEcommerceWorkspace(scope, { sessionId: owner.id, project: saved, draft: nextDraft, plan: previousPlan, creationMode, autoGenerate }).catch(() => setCacheError(translate("ecommerce.page.savedOnTheServerButLocalDraftCachingFailed")));
             if (!isCurrent(owner)) return;
             const params = new URLSearchParams({ project: saved.id });
             if (sourceCanvasId) params.set("canvas", sourceCanvasId);
             if (sourceAgentNodeId) params.set("agentNode", sourceAgentNodeId);
             navigate(`/ecommerce?${params.toString()}`, { replace: true });
             setStage("新配置已保存，原有图片保留在当前画布");
-            message.success("草稿已保存，原有图片保留在当前画布");
+            message.success(translate("ecommerce.page.draftSavedExistingImagesRemainOnTheCurrentCanvas"));
         } catch (cause) {
             if (isCurrent(owner)) message.error(errorText(cause));
         } finally {
@@ -669,15 +671,15 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             setPlanningSaveError(false);
             try {
                 let nextPlan: EcommercePlan | null = null;
-                let failure = task.error || "策划失败，可重新策划";
+                let failure = task.error || translate("ecommerce.page.planningFailedYouCanReplan");
                 if (task.status === "succeeded") {
                     try {
                         const result = parseBackendGenerationResult(task);
-                        if (!result.text) throw new Error("策划模型没有返回文本");
+                        if (!result.text) throw new Error(translate("ecommerce.page.thePlanningModelReturnedNoText"));
                         sourceDraft = commercePlanningSource(task);
                         nextPlan = continueCommercePlan(parsePlannerOutput(result.text, sourceDraft), projectPlan(session.project!));
                     } catch (cause) {
-                        failure = `策划结果未通过校验：${errorText(cause)}`;
+                        failure = translate("ecommerce.page.planValidationFailed", { v0: String(errorText(cause)) });
                     }
                 }
                 const nextDraft = { ...ensureModelDraft(sourceDraft), ...(nextPlan && sourceDraft.referenceMode === "detail" ? { count: nextPlan.images.length } : {}), planningTaskId: undefined };
@@ -777,7 +779,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                     return;
                 }
                 const response = JSON.parse(parseBackendGenerationResult(task).text || "") as EcommerceCreativeDirectionsResponse;
-                if (!response.recommendationId || response.directions?.length !== 4) throw new Error("分析结果缺少四套风格");
+                if (!response.recommendationId || response.directions?.length !== 4) throw new Error(translate("ecommerce.page.analysisDidNotIncludeFourStyles"));
                 setRecommendationId(response.recommendationId);
                 setCreativeDirections(response.directions);
                 setStyleLibrary(response.styleLibrary ?? []);
@@ -848,7 +850,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
         const separateVision = Boolean(directionsModel) && directionsModel !== planningModel;
         const visionRequest = separateVision ? textQuote(directionsModel) : null;
         void Promise.all([
-            Promise.allSettled(imageRequests.map((request) => (request ? quoteModel(request, controller.signal) : Promise.reject(new Error("图片模型无法报价"))))),
+            Promise.allSettled(imageRequests.map((request) => (request ? quoteModel(request, controller.signal) : Promise.reject(new Error(translate("ecommerce.page.theImageModelCannotProvideAQuote")))))),
             creationMode === "ai" && agentRequest ? quoteModel(agentRequest, controller.signal).catch(() => null) : Promise.resolve(null),
             creationMode === "ai" && visionRequest ? quoteModel(visionRequest, controller.signal).catch(() => null) : Promise.resolve(null),
         ]).then(([images, agent, vision]) => {
@@ -898,10 +900,10 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                 let ownsUpload = false;
                 try {
                     if (!isCurrent(owner)) return;
-                    if (uploadLock.current) throw new Error("参考风格图片仍在上传，请稍后添加商品图");
+                    if (uploadLock.current) throw new Error(translate("ecommerce.page.theStyleReferenceImageIsStillUploadingAddProductImages"));
                     uploadLock.current = true;
                     ownsUpload = true;
-                    setUploadProgress("正在读取图片…");
+                    setUploadProgress(translate("ecommerce.page.readingImages"));
                     // Read live composer state after the previous queued import finishes.
                     const current = draftRef.current;
                     const replacing = current.references.some((ref) => ref.role !== "model" && composerHiddenRefsRef.current.has(ref.resourceId));
@@ -929,7 +931,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                         composerTextOverrideRef.current = null;
                         setComposerHiddenRefs(hidden);
                         setComposerTextOverride(null);
-                        message.success(`已添加 ${result.references.length} 张商品图片`);
+                        message.success(translate("ecommerce.page.addedProductImages", { v0: String(result.references.length) }));
                     }
                     if (result.errors.length) throw new Error(result.errors.join("；"));
                 } finally {
@@ -948,16 +950,16 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
     };
 
     const uploadModeReference = async (source: CommerceImageTransfer, mode: EcommerceReferenceMode) => {
-        if (uploadLock.current) throw new Error("图片仍在上传，请稍候再添加");
+        if (uploadLock.current) throw new Error(translate("ecommerce.page.imagesAreStillUploadingWaitBeforeAddingMore"));
         const owner = session;
         const original = draftRef.current;
-        if (mode === "product" || (original.referenceMode || "product") !== mode) throw new Error("参考方式已切换，请重新上传");
+        if (mode === "product" || (original.referenceMode || "product") !== mode) throw new Error(translate("ecommerce.page.referenceModeChangedUploadTheImagesAgain"));
         const references = (original.layoutReferences || []).filter((ref) => !composerHiddenRefs.has(ref.resourceId));
         const capacity = 24 - original.references.length - references.length;
-        if (capacity <= 0) throw new Error("商品图与借鉴图片合计最多 24 张，请先移除部分图片");
+        if (capacity <= 0) throw new Error(translate("ecommerce.page.productAndInspirationImagesAreLimitedTo24InTotal"));
         uploadLock.current = true;
         setUploading(true);
-        setUploadProgress("正在上传参考图片…");
+        setUploadProgress(translate("ecommerce.page.uploadingReferenceImages"));
         try {
             const result = await importCommerceImageTransfer(source, "style", {
                 existingResourceIds: references.map((ref) => ref.resourceId),
@@ -968,7 +970,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             });
             if (!isCurrent(owner)) return;
             const current = draftRef.current;
-            if ((current.referenceMode || "product") !== mode) throw new Error("参考方式已切换，请重新上传");
+            if ((current.referenceMode || "product") !== mode) throw new Error(translate("ecommerce.page.referenceModeChangedUploadTheImagesAgain"));
             const existing = (current.layoutReferences || []).filter((ref) => !composerHiddenRefs.has(ref.resourceId));
             const added = result.references.filter((ref) => !existing.some((item) => item.resourceId === ref.resourceId));
             if (added.length) {
@@ -997,11 +999,11 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
     const requestCreativeDirections = async (followup = false) => {
         if (restoring || !hydrated.current || submissionLock.current || planningPending || (directionsPending && !draftDiffersFromPlan) || (activeImages && !draftDiffersFromPlan)) return;
         if (!draft.references.some((ref) => ref.role === "primary") && ![draft.productName, draft.description, draft.instruction].some((value) => value.trim())) {
-            message.error("请描述商品需求或上传商品主图");
+            message.error(translate("ecommerce.page.describeYourProductRequirementsOrUploadItsMainImage"));
             return;
         }
         if (!draft.platform || !draft.language) {
-            message.error("请先选择平台和语言");
+            message.error(translate("ecommerce.page.chooseAPlatformAndLanguageFirst"));
             return;
         }
         if (adminModelIssue) {
@@ -1009,19 +1011,19 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             return;
         }
         if (!planningModels.includes(planningModel) || !planningModels.includes(directionsModel)) {
-            message.error(`后台指定的分析模型无法读取当前 ${planningReferenceCount} 张商品图，请减少商品图或联系管理员更换模型`);
+            message.error(translate("ecommerce.page.theConfiguredAnalysisModelCannotReadTheCurrentProductImages", { v0: String(planningReferenceCount) }));
             return;
         }
         if (!imageModels.includes(draft.imageModel)) {
-            message.error("请选择可用的图片模型");
+            message.error(translate("ecommerce.page.selectAnAvailableImageModel"));
             return;
         }
         if ((imageProfile?.references.maxImages || 0) < commerceRequiredImageReferenceCount(draft)) {
-            message.error("图片模型无法接收当前商品参考图，请更换模型");
+            message.error(translate("ecommerce.page.theImageModelCannotAcceptTheseProductReferenceImagesChoose"));
             return;
         }
         if (!ratioChoices.includes(draft.ratio) || !resolutionChoices.includes(draft.resolution) || quote?.agent == null || quote.vision == null || quote.imageTotal == null) {
-            message.error("请等待当前图片参数和模型的服务端报价");
+            message.error(translate("ecommerce.page.waitForTheServerQuoteForTheCurrentImageSettings"));
             return;
         }
         const owner = session;
@@ -1051,10 +1053,10 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                 streamText: false,
                 referenceImages: snapshot.references
                     .filter((ref) => !["model", "style", "competitor"].includes(ref.role))
-                    .map((ref) => ({ id: ref.resourceId, name: ref.name || "商品参考图", type: "image/*", dataUrl: "", storageKey: resourceStorageKey(ref.resourceId) })),
+                    .map((ref) => ({ id: ref.resourceId, name: ref.name || translate("ecommerce.page.productReferenceImage"), type: "image/*", dataUrl: "", storageKey: resourceStorageKey(ref.resourceId) })),
                 metadata: { source: "ecommerce-agent", stage: "creative-directions", ecommerceProjectId: destination.id, ecommerceDraft: snapshot, ecommerceFollowupRequested: followup },
             });
-            if (getActiveUserScope() !== scope) throw new Error("登录账号已切换，已停止提交");
+            if (getActiveUserScope() !== scope) throw new Error(translate("ecommerce.page.signedInAccountChangedSubmissionStopped"));
             const task = await createGenerationTask(input);
             const nextDraft = { ...snapshot, directionsTaskId: task.id };
             setEcommerceDirectionsReceipt(scope, destination.id, task.id);
@@ -1070,7 +1072,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                     autoGenerate,
                     submittedDraft: snapshot,
                 }).catch(() => {
-                    if (isCurrent(owner)) setCacheError("本机缓存失败，服务端任务回执已保留");
+                    if (isCurrent(owner)) setCacheError(translate("ecommerce.page.localCachingFailedTheServerTaskReceiptIsSaved"));
                 });
             }
             await save(nextDraft, existingPlan, owner);
@@ -1103,7 +1105,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
         if (directionsInputSignatureRef.current !== commerceInputSignature(draft)) {
             setCreativeDirections([]);
             setRecommendationId("");
-            message.warning("创作参数已修改，请重新获取四个方向");
+            message.warning(translate("ecommerce.page.creativeSettingsChangedRequestFourNewDirections"));
             return;
         }
         directionSelectionLock.current = true;
@@ -1143,7 +1145,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
     const startPlanning = async () => {
         if (restoring || !hydrated.current || submissionLock.current || planningPending) return;
         if (activeImages && !draftDiffersFromPlan) {
-            message.info("当前图片仍在生成，可先修改配置，待本轮结束后开启新一轮策划");
+            message.info(translate("ecommerce.page.imagesAreStillGeneratingYouCanEditSettingsNowAnd"));
             return;
         }
         const skuCount = draft.imageType === "sku" ? requestedCount : 0;
@@ -1167,11 +1169,11 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             return;
         }
         if (draft.imageType === "sku" && (!draft.skus.length || skuCount < 1 || skuCount > 30 || draft.skus.some((sku) => !sku.name.trim()))) {
-            message.error("请填写SKU名称，并将SKU总张数控制在1到30张");
+            message.error(translate("ecommerce.page.enterSKUNamesAndKeepTheTotalImageCountBetween"));
             return;
         }
         if (!planningDraft.references.some((ref) => ref.role === "primary") && (planningDraft.referenceMode !== "product" || ![planningDraft.productName, planningDraft.description, draft.instruction].some((value) => value.trim()))) {
-            message.error("请在上方上传自己的商品主图，借鉴图片仅用于参考风格与排版");
+            message.error(translate("ecommerce.page.uploadYourOwnMainProductImageAboveInspirationImagesAre"));
             return;
         }
         const missingTypeFact = typeValidation(planningDraft);
@@ -1180,7 +1182,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             return;
         }
         if (!draft.imageModel || !imageModels.includes(draft.imageModel)) {
-            message.error("请选择可用的图片模型");
+            message.error(translate("ecommerce.page.selectAnAvailableImageModel"));
             return;
         }
         if (adminModelIssue) {
@@ -1190,7 +1192,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
         const pendingRefs = commercePlanningReferenceCount(planningDraft);
         const canAnalyzeImages = (textProfile?.references.maxImages || 0) >= pendingRefs;
         if (!canAnalyzeImages) {
-            message.error(`后台指定的视觉策划模型最多读取 ${textProfile?.references.maxImages || 0} 张图片，当前需要 ${pendingRefs} 张参考图。请减少参考图，或切换“直接生成”，或联系管理员更换模型。`);
+            message.error(translate("ecommerce.page.theConfiguredVisualPlanningModelCanReadAtMostImages", { v0: String(textProfile?.references.maxImages || 0), v1: String(pendingRefs) }));
             return;
         }
         try {
@@ -1200,19 +1202,19 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             return;
         }
         if (!ratioChoices.includes(draft.ratio) || !resolutionChoices.includes(draft.resolution)) {
-            message.error("所选比例或分辨率不被图片模型支持");
+            message.error(translate("ecommerce.page.theImageModelDoesNotSupportTheSelectedAspectRatio"));
             return;
         }
         if (!quote) {
-            message.error("当前配置尚未完成服务端报价，请稍后重试");
+            message.error(translate("ecommerce.page.theServerQuoteIsNotReadyForTheseSettingsTry"));
             return;
         }
         if (quote.agent == null) {
-            message.error("后台指定的视觉策划模型暂时无法报价，请稍后重试或联系管理员");
+            message.error(translate("ecommerce.page.theConfiguredVisualPlanningModelCannotProvideAQuoteRight"));
             return;
         }
         if (quote.imageTotal == null) {
-            message.error("图片模型暂时无法报价，请稍后重试或更换图片模型");
+            message.error(translate("ecommerce.page.theImageModelCannotProvideAQuoteRightNowTry"));
             return;
         }
         const owner = session;
@@ -1238,7 +1240,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             const skillPrompt = [planningDraft.skillIds?.length ? await getEcommerceSkillPrompt(planningDraft.skillIds) : "", directionInstruction || recoveredInstruction].filter(Boolean).join("\n\n");
             if (isCurrent(owner) && planningDraft.referenceMode !== "product") setStage("正在读取参考图并准备长图局部阅读视图");
             const payload = await prepareCommercePlanningPayload(planningDraft, textProfile?.references.maxImages || 0, skillPrompt, () => {
-                if (!isCurrent(owner)) throw new Error("当前项目已切换，已停止参考图分析");
+                if (!isCurrent(owner)) throw new Error(translate("ecommerce.page.theCurrentProjectChangedReferenceAnalysisStopped"));
             });
             const resolvedDraft = payload.draft;
             const previousPlan = archiveCommercePlan(plan, owner.project ? projectDraft(owner.project) : undefined);
@@ -1256,7 +1258,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                 referenceImages: payload.referenceImages,
                 metadata: { source: "ecommerce-agent", ecommerceProjectId: destination.id, stage: "planning", ecommerceDraft: { ...resolvedDraft, planningTaskId: undefined } },
             });
-            if (getActiveUserScope() !== scope) throw new Error("登录账号已切换，已停止提交");
+            if (getActiveUserScope() !== scope) throw new Error(translate("ecommerce.page.signedInAccountChangedSubmissionStopped"));
             const task = await createGenerationTask(taskInput);
             autoStartTaskRef.current = autoStartRef.current ? task.id : "";
             const nextDraft = { ...resolvedDraft, planningTaskId: task.id };
@@ -1265,7 +1267,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             if (peekEcommerceWorkspace(scope)?.sessionId === owner.id || isCurrent(owner)) {
                 void writeEcommerceWorkspace(scope, { sessionId: owner.id, project: destination, draft: nextDraft, plan: previousPlan, creationMode: "ai", autoGenerate: Boolean(selectedDirection) || autoGenerate, submittedDraft: resolvedDraft }).catch(
                     () => {
-                        if (isCurrent(owner)) setCacheError("本机缓存失败，任务回执已保留，请保存草稿");
+                        if (isCurrent(owner)) setCacheError(translate("ecommerce.page.localCachingFailedTheTaskReceiptIsSavedSaveYour"));
                     },
                 );
             }
@@ -1305,15 +1307,15 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
         }
         const expectedCount = selectedDraft.imageType === "sku" ? selectedDraft.skus.reduce((sum, sku) => sum + sku.count, 0) : selectedDraft.count;
         if (selectedPlan.images.length !== expectedCount) {
-            message.error(`当前策划为 ${selectedPlan.images.length} 张，与所选 ${expectedCount} 张不一致，请补齐策划后生成`);
+            message.error(translate("ecommerce.page.theCurrentPlanContainsImagesButAreSelectedCompleteThe", { v0: String(selectedPlan.images.length), v1: String(expectedCount) }));
             return;
         }
         if (selectedDraft.imageType === "sku" && selectedDraft.skus.some((sku) => selectedPlan.images.filter((image) => image.skuId === sku.id).length !== sku.count)) {
-            message.error("SKU 策划数量与各 SKU 设置不一致，请重新策划");
+            message.error(translate("ecommerce.page.theSKUPlanCountsDoNotMatchTheSKUSettings"));
             return;
         }
         if (selectedPlan.uncertainFacts.length) {
-            message.warning("请先核对待确认商品信息，并检查每张图的提示词");
+            message.warning(translate("ecommerce.page.reviewTheProductDetailsAwaitingConfirmationAndCheckEveryImage"));
             return;
         }
         try {
@@ -1323,7 +1325,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             return;
         }
         if (quote?.imageTotal == null) {
-            message.error("当前图片方案尚未完成服务端报价，请稍后重试");
+            message.error(translate("ecommerce.page.theServerQuoteForThisImagePlanIsNotReady"));
             return;
         }
         if (!alreadySubmitting && !owner.beginSubmission()) return;
@@ -1332,7 +1334,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
         try {
             currentPlan = await prepareCommerceReferencePlan(selectedDraft, currentPlan, {
                 assertCurrent: () => {
-                    if (!isCurrent(owner)) throw new Error("当前项目已切换，已停止参考图处理");
+                    if (!isCurrent(owner)) throw new Error(translate("ecommerce.page.theCurrentProjectChangedReferenceProcessingStopped"));
                 },
                 onProgress: (screen, count) => setStage(`正在准备第 ${screen} / ${count} 屏的对应参考图`),
                 onSaved: async (prepared) => {
@@ -1353,12 +1355,12 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
         for (const [index, planned] of currentPlan.images.entries()) {
             if (planned.taskId) continue;
             try {
-                if (getActiveUserScope() !== scope) throw new Error("登录账号已切换，已停止提交");
+                if (getActiveUserScope() !== scope) throw new Error(translate("ecommerce.page.signedInAccountChangedSubmissionStopped"));
                 const profile = modelCapabilityConfigFor(config, planned.imageModel).image;
-                if (!profile || !imageModels.includes(planned.imageModel)) throw new Error("图片模型已不可用，请重新选择");
+                if (!profile || !imageModels.includes(planned.imageModel)) throw new Error(translate("ecommerce.page.theImageModelIsNoLongerAvailableSelectAnotherModel"));
                 const refs = commerceImageReferences(selectedDraft, planned, index, false);
                 assertCommerceImageReferenceCapacity(refs.length, profile.references.maxImages);
-                if (!profile.size.values.includes(planned.ratio) || (profile.resolution.supported && !profile.resolution.values.includes(planned.resolution))) throw new Error("当前模型不支持所选画幅或分辨率");
+                if (!profile.size.values.includes(planned.ratio) || (profile.resolution.supported && !profile.resolution.values.includes(planned.resolution))) throw new Error(translate("ecommerce.page.theCurrentModelDoesNotSupportTheSelectedFrameSize"));
                 // 自动 is generated at the platform recommendation when the model supports it; the plan keeps "auto".
                 const image = { ...planned, ratio: commerceGenerationRatio(config, selectedDraft, planned) };
                 const parameters = commerceImageParameters(profile, image.ratio, image.resolution);
@@ -1382,7 +1384,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                           activeLimit: () => useUserStore.getState().runtimeLimits.activeTaskLimit,
                           listActive: (limit) => listGenerationTasks(limit, { activeOnly: true }),
                           assertCurrent: () => {
-                              if (!isCurrent(owner) || getActiveUserScope() !== scope) throw new Error("当前项目或登录账号已切换，剩余图片尚未提交");
+                              if (!isCurrent(owner) || getActiveUserScope() !== scope) throw new Error(translate("ecommerce.page.theCurrentProjectOrAccountChangedTheRemainingImagesHave"));
                           },
                           onWaiting: (_active, limit) => setStage(`账号的 ${limit} 个任务名额正在使用，等待空位后继续第 ${index + 1} / ${currentPlan.images.length} 张；已有创作继续运行`),
                           submit: () => {
@@ -1434,7 +1436,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
         try {
             const task = await cancelGenerationTask(image.taskId);
             setTasks((current) => ({ ...current, [task.id]: task }));
-            message.info("已提交取消请求，请等待服务端确认");
+            message.info(translate("ecommerce.page.cancellationRequestedWaitingForServerConfirmation"));
         } catch (cause) {
             message.error(errorText(cause));
         }
@@ -1450,7 +1452,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                 const recovered = await recoverGenerationTaskMedia(image.taskId);
                 if (!isCurrent(session)) return;
                 setTasks((current) => ({ ...current, [recovered.id]: recovered }));
-                message.success("已重新开始保存，不会重新生成或扣费");
+                message.success(translate("ecommerce.page.savingRestartedImagesWillNotBeGeneratedOrChargedAgain"));
                 return;
             }
             const priorId = sessionStorage.getItem(receiptKey);
@@ -1462,9 +1464,9 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             sessionStorage.removeItem(receiptKey);
             if (!isCurrent(session)) return;
             setPlan(nextPlan);
-            message.success("重试任务已提交");
+            message.success(translate("ecommerce.page.retryTaskSubmitted"));
         } catch (cause) {
-            if (isCurrent(session)) message.error(`重试提交状态未确认：${errorText(cause)}。请先查看创作历史，避免重复扣费。`);
+            if (isCurrent(session)) message.error(translate("ecommerce.page.retrySubmissionStatusIsUnconfirmedCheckCreativeHistoryFirstTo", { v0: String(errorText(cause)) }));
         } finally {
             session.endSubmission();
             if (isCurrent(session)) setBusy(false);
@@ -1472,34 +1474,34 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
     };
 
     const regenerateImage = async (edited: EcommercePlanImage) => {
-        if (submissionLock.current) throw new Error("上一项操作仍在提交，请稍候");
-        if (!plan || !projectRef.current) throw new Error("请先打开已保存的电商项目");
+        if (submissionLock.current) throw new Error(translate("ecommerce.page.thePreviousActionIsStillSubmittingPleaseWait"));
+        if (!plan || !projectRef.current) throw new Error(translate("ecommerce.page.openASavedEcommerceProjectFirst"));
         const originalProject = projectRef.current;
         const originalImage = commerceCanvasImages(plan).find((image) => image.id === edited.id);
-        if (!originalImage) throw new Error("原图片方案已更新，请重新打开图片编辑");
+        if (!originalImage) throw new Error(translate("ecommerce.page.theOriginalImagePlanChangedOpenImageEditingAgain"));
         const source = originalImage.sourceDraft || projectDraft(originalProject);
         edited = manuallyEditedCommerceImage(originalImage, edited);
         assertCommerceClaimsGrounded({ ...plan, images: [edited] }, source, { hardOnly: true });
         const profile = modelCapabilityConfigFor(config, edited.imageModel).image;
         const refs = commerceImageReferences(source, edited, Math.max(0, originalImage.referenceScreen ? originalImage.referenceScreen.screenIndex - 1 : plan.images.findIndex((image) => image.id === edited.id)), false);
-        if (!imageModels.includes(edited.imageModel) || !profile) throw new Error("该模型不能接收本图所需商品素材，请选择支持的模型");
+        if (!imageModels.includes(edited.imageModel) || !profile) throw new Error(translate("ecommerce.page.thisModelCannotAcceptTheProductAssetsNeededForThis"));
         assertCommerceImageReferenceCapacity(refs.length, profile.references.maxImages);
-        if (!profile.size.values.includes(edited.ratio) || (profile.resolution.supported && !profile.resolution.values.includes(edited.resolution))) throw new Error("当前模型不支持所选比例或分辨率");
+        if (!profile.size.values.includes(edited.ratio) || (profile.resolution.supported && !profile.resolution.values.includes(edited.resolution))) throw new Error(translate("ecommerce.page.theCurrentModelDoesNotSupportTheSelectedAspectRatio"));
         const generated = { ...edited, ratio: commerceGenerationRatio(config, source, edited) };
         const parameters = commerceImageParameters(profile, generated.ratio, generated.resolution);
         const receiptKey = `ecommerce-edit:${originalProject.id}:${edited.id}`;
         const signature = JSON.stringify([edited.prompt, edited.copy, edited.negativePrompt, edited.imageModel, edited.ratio, edited.resolution]);
         type EditReceipt = { projectId: string; signature: string; taskId?: string; submitting?: boolean };
         let receipt: EditReceipt | null = JSON.parse(sessionStorage.getItem(receiptKey) || "null");
-        if (receipt && (receipt.signature !== signature || (receipt.submitting && !receipt.taskId))) throw new Error("上次提交的回执尚未确认，请先查看创作历史，避免重复扣费");
-        if (!session.beginSubmission()) throw new Error("上一项操作仍在提交，请稍候");
+        if (receipt && (receipt.signature !== signature || (receipt.submitting && !receipt.taskId))) throw new Error(translate("ecommerce.page.thePreviousSubmissionReceiptIsUnconfirmedCheckCreativeHistoryFirst"));
+        if (!session.beginSubmission()) throw new Error(translate("ecommerce.page.thePreviousActionIsStillSubmittingPleaseWait"));
         submissionLock.current = true;
         setBusy(true);
         try {
-            if (receipt && receipt.projectId !== originalProject.id) throw new Error("先前的重生成任务已保存在历史项目，请先查看任务回执");
+            if (receipt && receipt.projectId !== originalProject.id) throw new Error(translate("ecommerce.page.thePreviousRegenerationTaskIsSavedInProjectHistoryCheck"));
             let destination = await getEcommerceProject(originalProject.id);
             const latestPlan = projectPlan(destination);
-            if (!latestPlan || !commerceCanvasImages(latestPlan).some((image) => image.id === edited.id)) throw new Error("当前图片已从画布移除，请刷新后查看任务历史");
+            if (!latestPlan || !commerceCanvasImages(latestPlan).some((image) => image.id === edited.id)) throw new Error(translate("ecommerce.page.thisImageWasRemovedFromTheCanvasRefreshAndCheck"));
             receipt ||= { projectId: destination.id, signature };
             receipt.submitting = true;
             sessionStorage.setItem(receiptKey, JSON.stringify(receipt));
@@ -1574,7 +1576,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
     const removeResult = async (image: EcommercePlanImage) => {
         if (!plan || !projectRef.current) return;
         if (submissionLock.current) {
-            message.info("请等待当前操作提交完成");
+            message.info(translate("ecommerce.page.waitForTheCurrentActionToFinishSubmitting"));
             return;
         }
         if (plan.previousImages?.some((entry) => entry.id === image.id)) {
@@ -1597,7 +1599,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             return;
         }
         if (draft.referenceMode === "detail") {
-            message.info("逐屏参考保留完整屏序，可选择需要的屏导出或重新策划");
+            message.info(translate("ecommerce.page.screenByScreenReferencesPreserveTheFullScreenOrderSelect"));
             return;
         }
         const images = plan.images.filter((entry) => entry.id !== image.id);
@@ -1612,7 +1614,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             setPlan(next);
             setDraft((current) => ({ ...current, count: source.count, skus: source.skus }));
             setSelectedExportIds((current) => new Set([...current].filter((id) => id !== image.id)));
-            message.success("已从结果区移除，原图保留在资产库与创作历史");
+            message.success(translate("ecommerce.page.removedFromResultsTheOriginalImageRemainsInTheAsset"));
         } catch (cause) {
             if (isCurrent(session)) message.error(errorText(cause));
         } finally {
@@ -1625,7 +1627,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
 
     const openProject = (item: EcommerceProject, focusId?: string) => {
         if (busy || uploading || submissionLock.current) {
-            message.info("请等待当前提交或上传完成");
+            message.info(translate("ecommerce.page.waitForTheCurrentSubmissionOrUploadToFinish"));
             return;
         }
         activateSession(createEcommerceSession(scope, item));
@@ -1695,7 +1697,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
     const resizePlan = (images: EcommercePlanImage[]) => {
         if (!plan) return;
         if (draft.referenceMode === "detail") {
-            message.info("逐屏参考按原长图顺序生成，调整屏数请重新策划");
+            message.info(translate("ecommerce.page.screenByScreenReferencesGenerateInTheOriginalLongImage"));
             return;
         }
         try {
@@ -1705,7 +1707,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             return;
         }
         if (draft.imageType === "sku") {
-            message.warning("SKU 图片数量请在对应 SKU 中修改后重新策划");
+            message.warning(translate("ecommerce.page.changeTheImageCountInTheRelevantSKUThenReplan"));
             return;
         }
         const nextDraft = { ...draft, count: images.length };
@@ -1772,14 +1774,14 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
     const total = plan?.images.length || requestedCount;
     // The next paid analysis starts from the user's follow-up action, never
     // automatically after the last image or when reopening a completed project.
-    const stage = submitted > 0 && completed === total ? `全部完成 · ${completed} 张图片已保存到资产库` : stageMessage;
+    const stage = submitted > 0 && completed === total ? translate("ecommerce.page.allCompleteImagesSavedToTheAssetLibrary", { v0: String(completed) }) : stageMessage;
     // Failed analysis used to render as plain grey text under the greeting; show
     // it as an error with a retry so the user knows what to do next.
     const failure = /^(商品分析未完成|分析结果读取失败|方向推荐提交或保存未完成|策划提交或保存未完成|暂时无法查询分析进度)[：:]\s*(.*)$/s.exec(stageMessage);
     const failedStage = failure
         ? {
-              title: failure[1].startsWith("策划") ? "策划未完成" : "商品分析未完成",
-              detail: failure[2].replace(/；已提交的任务可在返回项目后恢复$/, ""),
+              title: failure[1].startsWith("策划") ? translate("ecommerce.page.planningIncomplete") : translate("ecommerce.page.productAnalysisIncomplete"),
+              detail: commerceUiText(failure[2].replace(/；已提交的任务可在返回项目后恢复$/, "")),
               retry: failure[1].startsWith("策划")
                   ? undefined
                   : () => {
@@ -1793,20 +1795,20 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
     const estimate = pendingScreenCount || !quote || quote.imageTotal === null || (creationMode === "ai" && (quote.agent === null || quote.vision === null)) ? null : (creationMode === "direct" ? 0 : agentEstimate) + quote.imageTotal;
     const startDirect = async () => {
         if (draft.imageType === "detail") {
-            message.info("详情页必须先由 Agent 完成性能、场景与逐张文案策划");
+            message.info(translate("ecommerce.page.detailPagesRequireTheAgentToPlanPerformanceScenesAnd"));
             return;
         }
         if (draft.referenceMode && draft.referenceMode !== "product") {
-            message.info("参考图模式需先由 Agent 分析，请使用 AI 策划");
+            message.info(translate("ecommerce.page.referenceModeRequiresAgentAnalysisFirstUseAIPlanning"));
             return;
         }
         if (restoring || !hydrated.current || submissionLock.current || planningPending) return;
         if (activeImages && !draftDiffersFromPlan) {
-            message.info("本轮图片仍在生成，完成后可按当前配置继续创作");
+            message.info(translate("ecommerce.page.imagesAreStillGeneratingThisRoundContinueWithTheCurrent"));
             return;
         }
         if (!imageModels.includes(draft.imageModel)) {
-            message.error("请选择可用的图片模型");
+            message.error(translate("ecommerce.page.selectAnAvailableImageModel"));
             return;
         }
         const owner = session;
@@ -1823,7 +1825,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             const source = ensureModelDraft({ ...draft, count: requestedCount });
             const next = continueCommercePlan(directCommercePlan(source), plan, owner.project ? projectDraft(owner.project) : undefined);
             assertCommerceImageReferenceCapacity(commerceRequiredImageReferenceCount(source), imageProfile?.references.maxImages || 0);
-            if (quote?.imageTotal == null) throw new Error("请等待图片服务端报价后再生成");
+            if (quote?.imageTotal == null) throw new Error(translate("ecommerce.page.waitForTheServerImageQuoteBeforeGenerating"));
             await save(source, next, owner);
             if (isCurrent(owner)) {
                 setDraft(source);
@@ -1869,7 +1871,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                 return;
             }
             if (estimate === null && (creationMode === "direct" || quote?.agent == null)) {
-                message.error("当前配置尚未完成服务端报价，请稍后重试");
+                message.error(translate("ecommerce.page.theServerQuoteIsNotReadyForTheseSettingsTry"));
                 return;
             }
             if (localStorage.getItem(`ecommerce-confirm-skip:${scope}`) === "1") {
@@ -1933,7 +1935,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
         event.preventDefault();
         event.stopPropagation();
         if (restoring || (uploadLock.current && !hasQueuedProductImport())) {
-            message.warning("图片正在上传，请完成后再添加");
+            message.warning(translate("ecommerce.page.imagesAreUploadingWaitUntilTheyFinishBeforeAddingMore"));
             return;
         }
         importComposerImages(source);
@@ -1963,9 +1965,9 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
         active: activeImages,
     });
     const nextStep = !ecommerceEnabled
-        ? "电商创作暂未开放，历史方案和作品仍可查看与下载。"
+        ? translate("ecommerce.page.ecommerceCreationIsNotOpenYetYouCanStillView2")
         : !productReferences.length && !rememberedReferenceCount
-          ? `先在右侧添加${scene?.materials.required || "商品图"}，作品会显示在这里。`
+          ? translate("ecommerce.page.addOnTheRightFirstYourWorksWillAppearHere", { v0: scene ? commerceUiText(scene.materials.required) : translate("ecommerce.page.productImages2") })
           : commerceFlowNextStep(flowSteps);
     const roundDelivered = Boolean(plan && submitted > 0 && completed === total);
     // 商品视频交给视频生成页：带上一张已完成的作品做首帧。两个开关都开着才出现入口。
@@ -1991,7 +1993,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
         <>
             {restoring ? (
                 <p className="ecs-notice" role="status">
-                    正在恢复电商项目与分析任务…
+                    {translate("ecommerce.page.restoringEcommerceProjectAndAnalysisTasks")}
                 </p>
             ) : null}
             {cacheError ? (
@@ -2001,19 +2003,22 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             ) : null}
             {downloadError ? (
                 <p className="ecs-notice is-error" role="alert">
-                    图片导出未完成：{downloadError}。可以重新点击导出。
+                    {translate("ecommerce.page.imageExportIncomplete")}
+                    {downloadError}
+                    {translate("ecommerce.page.youCanClickExportAgain")}
                 </p>
             ) : null}
-            {planningSaveError && planningTask ? <Button onClick={() => void settlePlanningTask(planningTask, draft)}>重试保存分析结果</Button> : null}
+            {planningSaveError && planningTask ? <Button onClick={() => void settlePlanningTask(planningTask, draft)}>{translate("ecommerce.page.retrySavingAnalysis")}</Button> : null}
             {plan && plan.inputSignature !== commerceInputSignature(draft) ? (
                 <p className="ecs-notice" role="status">
-                    配置已更新。当前方案保留供参考，重新策划后再生成。
+                    {translate("ecommerce.page.settingsUpdatedTheCurrentPlanIsKeptForReferenceReplan")}
                 </p>
             ) : null}
             <CommerceSubmittedRequest draft={submittedDraft} />
             {chosenDirection && !creativeDirections.length ? (
                 <p className="ecs-notice commerce-direction-choice">
-                    已选视觉方向：<strong>{chosenDirection.name}</strong>
+                    {translate("ecommerce.page.selectedVisualDirection")}
+                    <strong>{chosenDirection.name}</strong>
                     {directionDescription(chosenDirection) ? ` · ${directionDescription(chosenDirection)}` : ""}
                 </p>
             ) : null}
@@ -2031,30 +2036,30 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                 />
             ) : roundDelivered && directionsStatus !== "loading" ? (
                 // 一轮的终点：交付动作集中在这里，不用再去右侧或资产库找下一步。
-                <section className="commerce-delivery" aria-label="本轮交付">
+                <section className="commerce-delivery" aria-label={translate("ecommerce.page.thisRoundSDeliverables")}>
                     <header>
-                        <strong>本轮 {completed} 张已全部完成</strong>
-                        <p>已保存到资产库。可以直接导出交付，也可以做成商品视频，或为这件商品继续下一组。</p>
+                        <strong>{translate("ecommerce.page.completedRound", { count: completed })}</strong>
+                        <p>{translate("ecommerce.page.savedToTheAssetLibraryExportForDeliveryTurnThem")}</p>
                     </header>
                     <div className="commerce-delivery-actions">
                         <Button type="primary" icon={<ArrowDownToLine size={14} />} disabled={busy || !exportItems.length} onClick={() => runExport("zip")}>
-                            {selectedExportIds.size ? `导出已选 ${exportItems.length} 张` : `导出全部 ${exportItems.length} 张`}
+                            {selectedExportIds.size ? translate("ecommerce.page.exportSelectedImages", { v0: String(exportItems.length) }) : translate("ecommerce.page.exportAllImages", { v0: String(exportItems.length) })}
                         </Button>
                         {longImageItems.length > 1 ? (
                             <Button disabled={busy} onClick={() => runExport("long")}>
-                                拼成长图
+                                {translate("ecommerce.page.stitchIntoALongImage")}
                             </Button>
                         ) : null}
                         {productVideoAvailable ? (
                             <Button icon={<Clapperboard size={14} />} onClick={() => makeProductVideo(firstDeliveredResource)}>
-                                做成商品视频
+                                {translate("ecommerce.page.makeAProductVideo")}
                             </Button>
                         ) : null}
                         <Button icon={<Sparkles size={14} />} disabled={busy || planningPending} onClick={() => void requestCreativeDirections(true)}>
-                            推荐下一组视觉方向
+                            {translate("ecommerce.page.recommendTheNextSetOfVisualDirections")}
                         </Button>
                         <Button type="text" onClick={() => navigate("/assets")}>
-                            去资产库
+                            {translate("ecommerce.page.openAssetLibrary")}
                         </Button>
                     </div>
                 </section>
@@ -2063,7 +2068,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             {restoring || planningPending || directionsStatus === "loading" ? (
                 <div className="ecs-progress commerce-assistant-progress" role="status">
                     <LoaderCircle className="commerce-planning-spin" size={15} />
-                    <span>{restoring ? "正在恢复商品创作…" : commerceFlowNextStep(flowSteps)}</span>
+                    <span>{restoring ? translate("ecommerce.page.restoringProductCreation") : commerceFlowNextStep(flowSteps)}</span>
                 </div>
             ) : null}
             {stageMessage && !(plan && completed === total && creativeDirections.length) ? (
@@ -2076,37 +2081,38 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                         </div>
                         {failedStage.retry ? (
                             <Button size="small" icon={<RotateCcw size={13} />} disabled={busy || uploading || restoring} onClick={failedStage.retry}>
-                                重试
+                                {translate("common.retry")}
                             </Button>
                         ) : null}
                     </div>
                 ) : (
                     <p className="ecs-notice commerce-assistant-status" role="status">
-                        {stage}
+                        {commerceUiText(stage)}
                     </p>
                 )
             ) : null}
             {!plan?.images.length && draft.creativeDirectionId && !planningPending ? (
                 <Button disabled={busy || uploading || restoring} onClick={() => void requestGenerationConfirmation("plan")}>
-                    按已选方向重新策划
+                    {translate("ecommerce.page.replanWithTheSelectedDirection")}
                 </Button>
             ) : null}
             {plan && plan.images.length > 0 ? (
                 <details className="ecs-review" open={!submitted || undefined}>
                     <summary>
-                        <strong>审阅图片方案</strong>
+                        <strong>{translate("ecommerce.page.reviewImagePlan")}</strong>
                         <span>
-                            {plan.images.length} 张{plan.uncertainFacts.length ? ` · ${plan.uncertainFacts.length} 项资料待确认` : ""}
+                            {plan.images.length} {translate("canvasA.characterLibrary.pageItem")}
+                            {plan.uncertainFacts.length ? translate("ecommerce.page.detailsAwaitingConfirmation", { v0: String(plan.uncertainFacts.length) }) : ""}
                         </span>
                     </summary>
                     <div className="ecs-review-body">
-                        <section aria-label="商品分析摘要">
-                            <h4>商品分析摘要</h4>
+                        <section aria-label={translate("ecommerce.page.productAnalysisSummary")}>
+                            <h4>{translate("ecommerce.page.productAnalysisSummary")}</h4>
                             <p>{plan.productSummary}</p>
                         </section>
                         {plan.referenceSummary ? (
-                            <section aria-label="参考图分析">
-                                <h4>参考图分析</h4>
+                            <section aria-label={translate("ecommerce.page.referenceImageAnalysis")}>
+                                <h4>{translate("ecommerce.page.referenceImageAnalysis")}</h4>
                                 <p>{plan.referenceSummary}</p>
                             </section>
                         ) : null}
@@ -2120,18 +2126,18 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                         />
                         {plan.qualityChecks.length ? (
                             <section className="ecs-review-checks">
-                                <h4>生成后请核对</h4>
+                                <h4>{translate("ecommerce.page.checkAfterGeneration")}</h4>
                                 <ul>
                                     {plan.qualityChecks.map((item, index) => (
                                         <li key={`${index}-${item}`}>{item}</li>
                                     ))}
                                 </ul>
-                                <small>这些是策划建议，尚未对图片自动质检。生成后请核对文字、结构与 Logo，可在作品上点“修改这张”调整。</small>
+                                <small>{translate("ecommerce.page.theseArePlanningSuggestionsImagesHaveNotBeenAutomaticallyChecked")}</small>
                             </section>
                         ) : null}
                         <div className="ecs-review-rows ecommerce-plan-list">
                             {plan.images.map((image, index) => (
-                                <section key={image.id} aria-label={`第 ${index + 1} 张图片方案`}>
+                                <section key={image.id} aria-label={translate("ecommerce.page.imagePlan", { v0: String(index + 1) })}>
                                     <header>
                                         <span className="ecs-review-index">{String(index + 1).padStart(2, "0")}</span>
                                         <Select size="small" value={image.imageType} options={options(imageTypes)} disabled={Boolean(image.taskId)} onChange={(value) => updateImage(image.id, { imageType: value })} />
@@ -2151,33 +2157,33 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                                         />
                                         <div className="ecs-review-actions">
                                             <Button size="small" type="text" disabled={draft.referenceMode === "detail" || index === 0} onClick={() => moveImage(index, -1)}>
-                                                上移
+                                                {translate("ecommerce.page.moveUp")}
                                             </Button>
                                             <Button size="small" type="text" disabled={draft.referenceMode === "detail" || index === plan.images.length - 1} onClick={() => moveImage(index, 1)}>
-                                                下移
+                                                {translate("ecommerce.page.moveDown")}
                                             </Button>
                                             {image.taskId && tasks[image.taskId] && !terminal(tasks[image.taskId].status) ? (
                                                 <Button size="small" type="text" onClick={() => void cancelImage(image)}>
-                                                    取消任务
+                                                    {translate("canvasA.activeTasks.cancel")}
                                                 </Button>
                                             ) : null}
                                             {image.taskId && ["failed", "cancelled"].includes(tasks[image.taskId]?.status || "") ? (
                                                 <Button size="small" type="text" disabled={busy} onClick={() => void retryImage(image)}>
-                                                    重试
+                                                    {translate("common.retry")}
                                                 </Button>
                                             ) : null}
                                             <Button size="small" type="text" danger disabled={submitted > 0 || draft.imageType === "sku" || plan.images.length <= 1} onClick={() => resizePlan(plan.images.filter((entry) => entry.id !== image.id))}>
-                                                删除
+                                                {translate("common.delete")}
                                             </Button>
                                         </div>
                                     </header>
                                     <ReferenceScreenSummary screen={image.referenceScreen} />
                                     <label>
-                                        <span>画面描述</span>
+                                        <span>{translate("ecommerce.page.frameDescription")}</span>
                                         <Input.TextArea autoSize={{ minRows: 2, maxRows: 6 }} value={image.prompt} disabled={Boolean(image.taskId)} onChange={(event) => updateImage(image.id, { prompt: event.target.value })} />
                                     </label>
                                     <label>
-                                        <span>成品文案</span>
+                                        <span>{translate("ecommerce.page.finalCopy")}</span>
                                         <Input.TextArea autoSize={{ minRows: 1, maxRows: 4 }} value={image.copy} disabled={Boolean(image.taskId)} onChange={(event) => updateImage(image.id, { copy: event.target.value })} />
                                     </label>
                                 </section>
@@ -2189,22 +2195,26 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                             disabled={submitted > 0 || draft.imageType === "sku" || plan.images.length >= 30}
                             onClick={() => {
                                 const template = plan.images.at(-1);
-                                if (template) resizePlan([...plan.images, { ...template, id: createClientUUID(), taskId: undefined, goal: "新增图片", theme: "待编辑", prompt: "请描述这张商品图片的视觉目标与保真约束" }]);
+                                if (template)
+                                    resizePlan([
+                                        ...plan.images,
+                                        { ...template, id: createClientUUID(), taskId: undefined, goal: translate("ecommerce.page.newImage"), theme: translate("ecommerce.page.toEdit"), prompt: "请描述这张商品图片的视觉目标与保真约束" },
+                                    ]);
                             }}
                         >
-                            添加一张
+                            {translate("ecommerce.page.addAnImage")}
                         </Button>
                     </div>
                 </details>
             ) : null}
             {plan && plan.images.length > 0 && !submitted && !planningPending ? (
                 <Button type="primary" disabled={busy} onClick={() => void startGeneration(plan.uncertainFacts.length ? excludeCommerceFacts(plan) : plan, draft)}>
-                    按方案生成 {plan.images.length} 张图片
+                    {translate("ecommerce.page.generateFromPlan")} {plan.images.length} {translate("ecommerce.page.images")}
                 </Button>
             ) : null}
             {plan && submitted > 0 && submitted < plan.images.length && !activeImages && !planningPending ? (
                 <Button type="primary" disabled={busy} onClick={() => void startGeneration(plan.uncertainFacts.length ? excludeCommerceFacts(plan) : plan, draft)}>
-                    继续生成剩余 {plan.images.length - submitted} 张图片
+                    {translate("ecommerce.page.generateTheRemaining")} {plan.images.length - submitted} {translate("ecommerce.page.images")}
                 </Button>
             ) : null}
         </>
@@ -2216,12 +2226,12 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                 <div className="ecs-mobile-tabs">
                     <SegmentedControl<"create" | "works">
                         block
-                        ariaLabel="切换创作面板与作品"
+                        ariaLabel={translate("ecommerce.page.switchBetweenCreationPanelAndGallery")}
                         value={mobileView}
                         onChange={setMobileView}
                         options={[
-                            { value: "create", label: "创作" },
-                            { value: "works", label: activeImages ? `作品 · ${activeImages}` : "作品" },
+                            { value: "create", label: translate("nav.tools.create") },
+                            { value: "works", label: activeImages ? translate("ecommerce.page.works", { v0: String(activeImages) }) : translate("ecommerce.page.works2") },
                         ]}
                     />
                 </div>
@@ -2258,74 +2268,87 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                     progress={ecommerceEnabled ? <CommerceFlowSteps steps={flowSteps} /> : null}
                     onMakeVideo={productVideoAvailable ? makeProductVideo : undefined}
                 />
-                <aside className="ecs-composer" aria-label="电商创作面板">
+                <aside className="ecs-composer" aria-label={translate("ecommerce.page.ecommerceCreationPanel")}>
                     <header className="ecs-composer-head">
-                        <nav className="ecs-kind-switch" aria-label="创作类型">
+                        <nav className="ecs-kind-switch" aria-label={translate("ecommerce.page.creationType")}>
                             <button type="button" className="is-active" aria-pressed="true">
                                 <ImageIcon size={15} />
-                                商品图片
+                                {translate("ecommerce.page.productImages")}
                             </button>
                             {/* 没开放商品视频时不放一个永远点不了的按钮；开放后带着已完成的作品去视频生成。 */}
                             {productVideoAvailable ? (
-                                <AntTooltip title={firstDeliveredResource ? "用本轮第一张作品做首帧，去视频生成制作商品视频" : "去视频生成制作商品视频；出图后可在作品上点「做成视频」"}>
+                                <AntTooltip title={firstDeliveredResource ? translate("ecommerce.page.useThisRoundSFirstImageAsTheOpeningFrame") : translate("ecommerce.page.openVideoGenerationToCreateAProductVideoOnceAn")}>
                                     <button type="button" aria-pressed="false" onClick={() => makeProductVideo(firstDeliveredResource)}>
                                         <Clapperboard size={15} />
-                                        商品视频
+                                        {translate("ecommerce.page.productVideos")}
                                     </button>
                                 </AntTooltip>
                             ) : null}
                         </nav>
                         <div className="ecs-head-actions">
-                            <AntTooltip title="保存草稿">
+                            <AntTooltip title={translate("ecommerce.page.saveDraft")}>
                                 <button type="button" className="ecs-icon-button" disabled={busy || uploading || restoring || !hydrated.current} onClick={() => void saveDraft()}>
                                     <Save size={16} />
-                                    <span className="sr-only">保存草稿</span>
+                                    <span className="sr-only">{translate("ecommerce.page.saveDraft")}</span>
                                 </button>
                             </AntTooltip>
-                            <AntTooltip title="历史项目">
+                            <AntTooltip title={translate("ecommerce.page.projectHistory")}>
                                 <button type="button" className="ecs-icon-button" aria-haspopup="dialog" aria-expanded={historyOpen} onClick={() => setHistoryOpen(true)}>
                                     <HistoryIcon size={16} />
-                                    <span className="sr-only">历史项目</span>
+                                    <span className="sr-only">{translate("ecommerce.page.projectHistory")}</span>
                                 </button>
                             </AntTooltip>
-                            <AntTooltip title="新建商品创作">
+                            <AntTooltip title={translate("ecommerce.page.startANewProductCreation")}>
                                 <button type="button" className="ecs-icon-button" disabled={!ecommerceEnabled || busy || uploading || Boolean(activeImages)} onClick={newProject}>
                                     <Plus size={16} />
-                                    <span className="sr-only">新建项目</span>
+                                    <span className="sr-only">{translate("ecommerce.page.newProject")}</span>
                                 </button>
                             </AntTooltip>
                         </div>
                     </header>
                     <div className="ecs-project-line">
-                        <strong>{project?.name || draft.productName || "新的商品创作"}</strong>
+                        <strong>{project?.name || draft.productName || translate("ecommerce.page.newProductCreation")}</strong>
                         <span>
-                            {selectedQuickType} · {labelOf(platforms, draft.platform)}
+                            {commerceUiText(selectedQuickType)} · {displayLabelOf(platforms, draft.platform)}
                         </span>
                     </div>
                     {!ecommerceEnabled ? (
                         <p className="ecs-paused" role="status">
-                            电商创作暂未开放。历史方案和作品仍可查看与下载。
+                            {translate("ecommerce.page.ecommerceCreationIsNotOpenYetYouCanStillView")}
                         </p>
                     ) : null}
                     <div className="ecs-composer-scroll" data-canvas-wheel-scroll>
-                        <ComposerBlock title="做什么">
-                            <div className="ecs-scene-grid" role="group" aria-label="创作场景">
+                        <ComposerBlock title={translate("ecommerce.page.whatToCreate")}>
+                            <div className="ecs-scene-grid" role="group" aria-label={translate("ecommerce.page.creativeScenario")}>
                                 {commerceScenes.map((item) => (
                                     <button type="button" key={item.label} className="ecs-scene" aria-pressed={selectedQuickType === item.label} onClick={() => chooseQuickType(item)}>
-                                        <strong>{item.label}</strong>
-                                        <small>{item.planned ? "策划整套" : `${item.count} 张起`}</small>
+                                        <strong>{commerceUiText(item.label)}</strong>
+                                        <small>{item.planned ? translate("ecommerce.page.planAFullSet") : translate("ecommerce.page.fromImages", { v0: String(item.count) })}</small>
                                     </button>
                                 ))}
                             </div>
-                            {scene ? <p className="ecs-note">{scene.summary}</p> : null}
+                            {scene ? <p className="ecs-note">{commerceUiText(scene.summary)}</p> : null}
                             {draft.imageType === "marketing" ? (
                                 <button type="button" className="ecs-select-row" aria-haspopup="dialog" onClick={() => setFlyPanel("material")}>
-                                    <span className="ecs-select-row-text">物料配置{materialCount ? ` · 已选 ${materialCount} 张` : " · 未选择"}</span>
+                                    <span className="ecs-select-row-text">
+                                        {translate("ecommerce.page.materialSettings")}
+                                        {materialCount ? translate("ecommerce.page.imagesSelected", { v0: String(materialCount) }) : " " + translate("ecommerce.page.noneSelected")}
+                                    </span>
                                     <ChevronDown size={14} />
                                 </button>
                             ) : null}
                         </ComposerBlock>
-                        <ComposerBlock title="商品素材" hint={scene ? `需要${scene.materials.required}${scene.materials.suggested ? `，建议补充${scene.materials.suggested}` : ""}` : undefined}>
+                        <ComposerBlock
+                            title={translate("ecommerce.page.productAssets")}
+                            hint={
+                                scene
+                                    ? translate("ecommerce.page.required", {
+                                          v0: commerceUiText(scene.materials.required),
+                                          v1: String(scene.materials.suggested ? translate("ecommerce.page.recommended", { v0: commerceUiText(scene.materials.suggested) }) : ""),
+                                      })
+                                    : undefined
+                            }
+                        >
                             <div className="ecs-product-slot">
                                 <ReferenceUploader
                                     key={session.id}
@@ -2339,17 +2362,23 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                                     onChange={(value) => update("references", [...value, ...draft.references.filter((ref) => ref.role === "model")])}
                                 />
                             </div>
-                            {rememberedReferenceCount ? <p className="ecs-note">沿用本商品的 {rememberedReferenceCount} 张商品图与已完成文案，可直接写下一轮需求。</p> : null}
+                            {rememberedReferenceCount ? <p className="ecs-note">{translate("ecommerce.page.reuseProduct", { count: rememberedReferenceCount })}</p> : null}
                             <label className="ecs-field">
-                                <span>商品名称</span>
-                                <Input variant="filled" value={draft.productName} placeholder="例如：便携式香薰机" disabled={busy || restoring || uploading} onChange={(event) => update("productName", event.target.value)} />
+                                <span>{translate("ecommerce.page.productName")}</span>
+                                <Input
+                                    variant="filled"
+                                    value={draft.productName}
+                                    placeholder={translate("ecommerce.page.eGPortableAromaDiffuser")}
+                                    disabled={busy || restoring || uploading}
+                                    onChange={(event) => update("productName", event.target.value)}
+                                />
                             </label>
                             <div className="ecs-field">
-                                <span>参考方式</span>
+                                <span>{translate("ecommerce.page.referenceMode")}</span>
                                 <ReferenceModePanel draft={draft} onChange={updateDraft} onUpload={uploadModeReference} uploading={uploading || restoring || busy} uploadProgress={uploadProgress} />
                             </div>
                         </ComposerBlock>
-                        <ComposerBlock title="画面描述" hint="点选短语会写入描述，可继续修改">
+                        <ComposerBlock title={translate("ecommerce.page.frameDescription")} hint={translate("ecommerce.page.clickPhrasesToAddThemToTheDescriptionThenEdit")}>
                             <div
                                 className={`ecs-prompt${composerDropping ? " is-dropping" : ""}`}
                                 ref={promptBox}
@@ -2372,11 +2401,11 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                             >
                                 {composerDropping ? (
                                     <div className="ecs-prompt-drop" aria-hidden="true">
-                                        松开即可添加商品图
+                                        {translate("ecommerce.page.dropToAddProductImages")}
                                     </div>
                                 ) : null}
                                 <Input.TextArea
-                                    aria-label="电商创作输入"
+                                    aria-label={translate("ecommerce.page.ecommerceCreationInput")}
                                     variant="borderless"
                                     value={composerText}
                                     autoSize={{ minRows: 4, maxRows: 10 }}
@@ -2384,14 +2413,14 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                                     onChange={(event) => changeComposerInstruction(event.target.value)}
                                     onKeyDown={submitComposerOnEnter}
                                     onPaste={pasteComposerImages}
-                                    placeholder={`描述这组${selectedQuickType}：商品、场景、光线与要强调的细节。也可以直接粘贴或拖入商品图。`}
+                                    placeholder={translate("ecommerce.page.describeThisSetOfProductSceneLightingAndDetailsTo", { v0: commerceUiText(selectedQuickType) })}
                                 />
                                 <div className="ecs-prompt-meta">
                                     <div className="commerce-example-wrap">
                                         <button
                                             type="button"
                                             className="ecs-text-button"
-                                            aria-label="填入示例描述"
+                                            aria-label={translate("ecommerce.page.fillInAnExampleDescription")}
                                             onClick={() => {
                                                 const example = "为参考图中的商品设计一套高级电商图，包含商品主视觉、真实使用场景和可见细节。保留产品外观，不添加未经确认的参数或功效。";
                                                 setComposerTextOverride(example);
@@ -2399,47 +2428,47 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                                             }}
                                         >
                                             <LightbulbIcon size={14} />
-                                            示例
+                                            {translate("ecommerce.page.example")}
                                         </button>
                                         <div className="commerce-example-preview" role="note">
-                                            <img src="/commerce/examples/diffuser-white-v1.png" alt="白底商品图案例" />
-                                            <span>示例商品仅供预览；生成时以你的商品图为准。</span>
+                                            <img src="/commerce/examples/diffuser-white-v1.png" alt={translate("ecommerce.page.whiteBackgroundProductImageExample")} />
+                                            <span>{translate("ecommerce.page.theSampleProductIsForPreviewOnlyGenerationUsesYour")}</span>
                                         </div>
                                     </div>
-                                    <span>Enter 发送 · Shift + Enter 换行</span>
+                                    <span>{translate("ecommerce.page.enterToSendShiftEnterForANewLine")}</span>
                                 </div>
                             </div>
                             {activePhraseGroup ? (
                                 <div className="ecs-phrases">
-                                    <div className="ecs-phrase-tabs" role="tablist" aria-label="描述短语分类">
+                                    <div className="ecs-phrase-tabs" role="tablist" aria-label={translate("ecommerce.page.descriptionPhraseCategories")}>
                                         {phraseGroups.map((group) => (
                                             <button type="button" key={group.key} role="tab" aria-selected={group.key === activePhraseGroup.key} onClick={() => setPhraseGroup(group.key)}>
-                                                {group.label}
+                                                {commerceUiText(group.label)}
                                             </button>
                                         ))}
                                     </div>
-                                    <div className="ecs-phrase-chips" role="group" aria-label={`${activePhraseGroup.label}短语，点击加入或移出描述`}>
+                                    <div className="ecs-phrase-chips" role="group" aria-label={translate("ecommerce.page.phrasesClickToAddToOrRemoveFromTheDescription", { v0: commerceUiText(activePhraseGroup.label) })}>
                                         {activePhraseGroup.phrases.map((phrase) => (
                                             <button type="button" key={phrase} className="ecs-chip" aria-pressed={promptHasPhrase(composerText, phrase)} onClick={() => changeComposerInstruction(togglePromptPhrase(composerText, phrase))}>
-                                                {phrase}
+                                                {commerceUiText(phrase)}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
                             ) : null}
                         </ComposerBlock>
-                        <ComposerBlock title="投放平台" hint="决定图片规范与图中文字语言">
+                        <ComposerBlock title={translate("ecommerce.page.targetPlatform")} hint={translate("ecommerce.page.determinesImageRulesAndTheLanguageOfTextInImages")}>
                             <button type="button" className="ecs-select-row" aria-haspopup="dialog" aria-expanded={flyPanel === "platform"} onClick={() => setFlyPanel("platform")}>
                                 <span className="ecs-select-row-logo" aria-hidden="true">
                                     <PlatformMark platform={draft.platform} />
                                 </span>
                                 <span className="ecs-select-row-text">
-                                    {labelOf(platforms, draft.platform)} · {labelOf(languages, draft.language)}
+                                    {displayLabelOf(platforms, draft.platform)} · {displayLabelOf(languages, draft.language)}
                                 </span>
                                 <ChevronDown size={14} />
                             </button>
                         </ComposerBlock>
-                        <ComposerBlock title="模型与规格" hint="比例与清晰度随模型变化">
+                        <ComposerBlock title={translate("ecommerce.page.modelAndSpecifications")} hint={translate("ecommerce.page.aspectRatioAndResolutionVaryByModel")}>
                             <ModelPicker
                                 config={config}
                                 capability="image"
@@ -2450,8 +2479,8 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                                 className="creation-model-picker ecs-model-picker"
                                 showSelectedPrice={false}
                                 showOptionPrices
-                                placeholder="选择图片模型"
-                                onMissingConfig={() => message.warning("当前没有可用于本次商品图片的模型")}
+                                placeholder={translate("ecommerce.page.chooseAnImageModel")}
+                                onMissingConfig={() => message.warning(translate("ecommerce.page.noModelsAreAvailableForTheseProductImages"))}
                                 onChange={(model) => {
                                     const profile = modelCapabilityConfigFor(config, model).image;
                                     setDraft((current) => ({
@@ -2467,14 +2496,17 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                             />
                             <div className="ecs-field">
                                 <span>
-                                    比例{" "}
+                                    {translate("canvasB.sizePicker.placeholder")}{" "}
                                     <small>
-                                        {modelDisplayName(config, draft.imageModel)} 支持 {ratioDisplayChoices.length} 种
+                                        {modelDisplayName(config, draft.imageModel)}
+                                        {translate("ecommerce.page.supports")}
+                                        {ratioDisplayChoices.length}
+                                        {translate("ecommerce.page.options")}
                                     </small>
                                 </span>
                                 <div className="ecs-ratio-grid" key={draft.imageModel}>
                                     {ratioDisplayChoices.map(({ label, value }) => (
-                                        <button type="button" key={label} className="ecs-choice" aria-pressed={ratioLabel(draft.ratio) === label} onClick={() => update("ratio", value)}>
+                                        <button type="button" key={label} className="ecs-choice" aria-pressed={commerceUiText(ratioLabel(draft.ratio)) === label} onClick={() => update("ratio", value)}>
                                             <span className="ecs-ratio-icon" style={ratioPreview(value)} aria-hidden="true" />
                                             {label}
                                         </button>
@@ -2483,8 +2515,8 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                             </div>
                             <div className="ecs-field-row">
                                 <div className="ecs-field">
-                                    <span>清晰度</span>
-                                    <div className="ecs-segment" role="group" aria-label="清晰度">
+                                    <span>{translate("ecommerce.page.sharpness")}</span>
+                                    <div className="ecs-segment" role="group" aria-label={translate("ecommerce.page.sharpness")}>
                                         {resolutionChoices.map((value) => (
                                             <button type="button" key={value} aria-pressed={draft.resolution === value} onClick={() => update("resolution", value)}>
                                                 {value.toUpperCase()}
@@ -2493,33 +2525,44 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                                     </div>
                                 </div>
                                 <div className="ecs-field">
-                                    <span>模特</span>
-                                    <div className="ecs-segment" role="group" aria-label="画面模特">
+                                    <span>{translate("ecommerce.page.model")}</span>
+                                    <div className="ecs-segment" role="group" aria-label={translate("ecommerce.page.onImageModel")}>
                                         <button type="button" aria-pressed={!draft.modelEnabled} onClick={() => update("modelEnabled", false)}>
-                                            智能匹配
+                                            {translate("ecommerce.page.smartMatch")}
                                         </button>
                                         <button type="button" aria-pressed={draft.modelEnabled} disabled={draft.imageType === "white"} onClick={() => update("modelEnabled", true)}>
-                                            统一模特
+                                            {translate("ecommerce.page.consistentModel")}
                                         </button>
                                     </div>
                                 </div>
                             </div>
                             <div className="ecs-field">
                                 <span>
-                                    张数 <small>{countLocked ? (draft.imageType === "marketing" ? "由物料配置决定" : draft.imageType === "single" ? "单图固定 1 张" : "由方案决定") : "最多 20 张"}</small>
+                                    {translate("ecommerce.page.imageCount")}{" "}
+                                    <small>
+                                        {countLocked
+                                            ? draft.imageType === "marketing"
+                                                ? translate("ecommerce.page.determinedByMaterialSettings")
+                                                : draft.imageType === "single"
+                                                  ? translate("ecommerce.page.singleImageFixedAt1")
+                                                  : translate("ecommerce.page.determinedByThePlan")
+                                            : translate("ecommerce.page.upTo20Images")}
+                                    </small>
                                 </span>
-                                <div className="ecs-stepper" role="group" aria-label="图片张数">
-                                    <button type="button" aria-label="减少一张" disabled={countLocked || displayCount <= 1} onClick={() => changeQuickCount(displayCount - 1)}>
+                                <div className="ecs-stepper" role="group" aria-label={translate("ecommerce.page.numberOfImages")}>
+                                    <button type="button" aria-label={translate("ecommerce.page.removeOneImage")} disabled={countLocked || displayCount <= 1} onClick={() => changeQuickCount(displayCount - 1)}>
                                         <Minus size={14} />
                                     </button>
-                                    <output aria-live="polite">{displayCount} 张</output>
-                                    <button type="button" aria-label="增加一张" disabled={countLocked || displayCount >= 20} onClick={() => changeQuickCount(displayCount + 1)}>
+                                    <output aria-live="polite">
+                                        {displayCount} {translate("canvasA.characterLibrary.pageItem")}
+                                    </output>
+                                    <button type="button" aria-label={translate("ecommerce.page.addOneImage")} disabled={countLocked || displayCount >= 20} onClick={() => changeQuickCount(displayCount + 1)}>
                                         <Plus size={14} />
                                     </button>
                                 </div>
                             </div>
                         </ComposerBlock>
-                        <ComposerBlock title="文案与视觉" hint="用于商品分析、文案策划与每张图">
+                        <ComposerBlock title={translate("ecommerce.page.copyAndVisuals")} hint={translate("ecommerce.page.usedForProductAnalysisCopyPlanningAndEveryImage")}>
                             <CreativeOptionsPanel draft={draft} onChange={updateDraft} />
                         </ComposerBlock>
                     </div>
@@ -2532,35 +2575,36 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                     <footer className="ecs-footer">
                         <div className="ecs-estimate" aria-live="polite">
                             {estimate === null ? (
-                                <strong className="is-pending">待报价</strong>
+                                <strong className="is-pending">{translate("ecommerce.page.awaitingQuote")}</strong>
                             ) : (
-                                <strong title={`预估消耗 ${new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 3 }).format(estimate)} 积分`}>
+                                <strong title={translate("ecommerce.page.estimatedCostCredits", { v0: String(new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 3 }).format(estimate)) })}>
                                     <CreditStar />
                                     <RollingCreditAmount value={estimate} maximumFractionDigits={3} />
-                                    <span>积分</span>
+                                    <span>{translate("shell.credits")}</span>
                                 </strong>
                             )}
                             <span>
-                                {displayCount} 张 · {creationMode === "direct" ? "按设置直接出图" : "先推荐视觉方向，选定后自动出图"}
+                                {displayCount} {translate("ecommerce.page.images2")}{" "}
+                                {creationMode === "direct" ? translate("ecommerce.page.generateDirectlyWithTheseSettings") : translate("ecommerce.page.recommendVisualDirectionsFirstThenAutomaticallyGenerateAfterSelection")}
                             </span>
                         </div>
                         {creationMode === "direct" ? null : (
-                            <AntTooltip title="不推荐视觉方向，直接写出整套图片方案，审阅后再出图">
+                            <AntTooltip title={translate("ecommerce.page.writeTheFullImagePlanDirectlyWithoutRecommendingDirectionsReview")}>
                                 <Button className="ecommerce-plan-button" disabled={!ecommerceEnabled || adminBlocked || busy || restoring || uploading || planningPending || confirmingGeneration} onClick={() => void requestGenerationConfirmation("plan")}>
-                                    跳过选方向
+                                    {translate("ecommerce.page.skipDirectionSelection")}
                                 </Button>
                             </AntTooltip>
                         )}
                         <Button
                             type="primary"
                             className="ecs-submit"
-                            aria-label={busyIndicator ? "正在准备" : "开始创作"}
+                            aria-label={busyIndicator ? translate("ecommerce.page.preparing") : translate("account.welcome.start")}
                             aria-busy={busyIndicator}
                             disabled={submitDisabled || adminBlocked}
                             icon={busyIndicator ? <LoaderCircle className="commerce-planning-spin" size={15} /> : <ArrowUp size={15} />}
                             onClick={() => void requestGenerationConfirmation()}
                         >
-                            开始创作
+                            {translate("account.welcome.start")}
                         </Button>
                     </footer>
                 </aside>
@@ -2589,7 +2633,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                     onClose={() => setFlyPanel(null)}
                 />
             ) : null}
-            <AppModal open={flyPanel === "material"} title="营销物料配置" footer={null} width="min(860px, calc(100vw - 32px))" onCancel={() => setFlyPanel(null)} className="ecs-material-modal" centered>
+            <AppModal open={flyPanel === "material"} title={translate("ecommerce.page.marketingMaterialSettings")} footer={null} width="min(860px, calc(100vw - 32px))" onCancel={() => setFlyPanel(null)} className="ecs-material-modal" centered>
                 <MarketingMaterialPicker draft={draft} ratios={ratioChoices} onChange={changeMarketingMaterials} onClose={() => setFlyPanel(null)} />
             </AppModal>
             <CommerceStylePicker
@@ -2601,21 +2645,25 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                 onClose={() => setStylePickerOpen(false)}
                 onConfirm={(direction) => void chooseCreativeDirection(direction)}
             />
-            <AppModal title="确认生成配置" open={confirmOpen} onCancel={() => setConfirmOpen(false)} footer={null} width={560} className="commerce-confirm-modal" centered>
+            <AppModal title={translate("ecommerce.page.confirmGenerationSettings")} open={confirmOpen} onCancel={() => setConfirmOpen(false)} footer={null} width={560} className="commerce-confirm-modal" centered>
                 <p className="commerce-confirm-caption">
-                    {creationMode === "direct" ? "确认后按下面的设置直接出图。" : confirmAction === "plan" ? "确认后跳过选方向，直接写出整套图片方案；方案出来后先审阅，再确认出图。" : "确认后先识别商品并推荐 4 套视觉方向；选定一套后自动策划并出图。"}
+                    {creationMode === "direct"
+                        ? translate("ecommerce.page.confirmToGenerateDirectlyWithTheSettingsBelow")
+                        : confirmAction === "plan"
+                          ? translate("ecommerce.page.confirmToSkipDirectionSelectionAndWriteTheFullImage")
+                          : translate("ecommerce.page.confirmToIdentifyTheProductAndRecommendFourVisualDirections")}
                 </p>
                 <div className="commerce-confirm-grid">
                     {[
-                        ["创作类型", selectedQuickType],
-                        ["电商平台", labelOf(platforms, draft.platform)],
-                        ["语言", labelOf(languages, draft.language)],
-                        ["生图模型", modelDisplayName(config, draft.imageModel)],
-                        ["图片张数", `${requestedCount} 张`],
-                        ["画面文本", draft.noText ? "无文本" : "有文本"],
-                        ["画面模特", draft.modelEnabled ? "使用模特" : "智能匹配"],
-                        ["尺寸 / 比例", ratioLabel(draft.ratio)],
-                        ["清晰度", draft.resolution.toUpperCase()],
+                        [translate("ecommerce.page.creationType"), commerceUiText(selectedQuickType)],
+                        [translate("ecommerce.page.ecommercePlatform"), displayLabelOf(platforms, draft.platform)],
+                        [translate("ecommerce.page.language"), displayLabelOf(languages, draft.language)],
+                        [translate("ecommerce.page.imageGenerationModel"), modelDisplayName(config, draft.imageModel)],
+                        [translate("ecommerce.page.numberOfImages"), translate("ecommerce.page.images3", { v0: String(requestedCount) })],
+                        [translate("ecommerce.page.imageText"), draft.noText ? translate("ecommerce.page.noText") : translate("ecommerce.page.withText")],
+                        [translate("ecommerce.page.onImageModel"), draft.modelEnabled ? translate("ecommerce.page.useAModel") : translate("ecommerce.page.smartMatch")],
+                        [translate("ecommerce.page.sizeAspectRatio"), commerceUiText(ratioLabel(draft.ratio))],
+                        [translate("ecommerce.page.sharpness"), draft.resolution.toUpperCase()],
                     ].map(([label, value]) => (
                         <div key={label}>
                             <span>{label}</span>
@@ -2625,16 +2673,18 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                 </div>
                 <label className="commerce-confirm-skip">
                     <input type="checkbox" checked={skipConfirm} onChange={(event) => setSkipConfirm(event.target.checked)} />
-                    <span>下次不再弹出确认窗</span>
+                    <span>{translate("ecommerce.page.doNotShowThisConfirmationAgain")}</span>
                 </label>
                 <div className="commerce-confirm-footer">
                     <span>
-                        预估消耗 <strong>{estimate === null ? new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 3 }).format(agentEstimate) : new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 3 }).format(estimate)}</strong> 积分
-                        {estimate === null ? "起 · 图片费用按识别屏数另行报价" : ""}
+                        {translate("ecommerce.page.estimatedCost")}{" "}
+                        <strong>{estimate === null ? new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 3 }).format(agentEstimate) : new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 3 }).format(estimate)}</strong>{" "}
+                        {translate("shell.credits")}
+                        {estimate === null ? translate("ecommerce.page.andUpImageCostsAreQuotedSeparatelyBasedOnDetected") : ""}
                     </span>
-                    <Button onClick={() => setConfirmOpen(false)}>取消</Button>
+                    <Button onClick={() => setConfirmOpen(false)}>{translate("common.cancel")}</Button>
                     <Button type="primary" onClick={() => beginConfirmedGeneration()} disabled={estimate === null && (creationMode === "direct" || quote?.agent == null)}>
-                        {creationMode === "direct" ? "确认并出图" : confirmAction === "plan" ? "确认并策划" : "确认并开始"}
+                        {creationMode === "direct" ? translate("ecommerce.page.confirmAndGenerate") : confirmAction === "plan" ? translate("ecommerce.page.confirmAndPlan") : translate("ecommerce.page.confirmAndStart")}
                     </Button>
                 </div>
             </AppModal>

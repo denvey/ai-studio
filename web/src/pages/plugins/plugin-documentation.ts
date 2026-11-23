@@ -1,19 +1,25 @@
 import type { PluginManifest, PluginManifestV2 } from "@/lib/plugins/plugin-types";
+import { ART_CRITIQUE_PLUGIN_ID } from "@/lib/art-critique/contracts";
+import { translate } from "@/i18n";
 
 const permissionLabels: Record<string, string> = {
-    "canvas.read": "读取画布",
-    "canvas.write": "修改画布",
-    "asset.read": "读取素材",
-    "asset.search": "搜索素材",
-    "asset.import": "导入素材",
-    "asset.upload": "上传素材",
-    "generation.run": "调用生成",
-    "ai.text": "调用已配置的文本/视觉理解模型",
-    "external.open": "打开外部详情",
+    "canvas.read": translate("shared.plugins.readCanvas"),
+    "canvas.write": translate("shared.plugins.editCanvas"),
+    "asset.read": translate("shared.plugins.readingAssets"),
+    "asset.search": translate("library.picker.search"),
+    "asset.import": translate("shared.plugins.importAssets"),
+    "asset.upload": translate("shared.plugins.uploadAssets"),
+    "generation.run": translate("shared.plugins.runGeneration"),
+    "ai.text": translate("shared.plugins.callConfiguredTextVisionModels"),
+    "external.open": translate("shared.plugins.openExternalDetails"),
 };
 
 export function pluginPermissionLabel(permission: string) {
     return permissionLabels[permission] || permission;
+}
+
+export function pluginDisplayDescription(manifest: PluginManifest | PluginManifestV2) {
+    return manifest.id === ART_CRITIQUE_PLUGIN_ID ? translate("shared.plugins.builtin.aiArtCritique.displayDescription") : manifest.description;
 }
 
 export function getPluginDocumentation(manifest: PluginManifest | PluginManifestV2) {
@@ -23,14 +29,14 @@ export function getPluginDocumentation(manifest: PluginManifest | PluginManifest
     return [
         `# ${manifest.name}`,
         "",
-        manifest.description || "该插件没有提供简介。",
+        pluginDisplayDescription(manifest) || translate("shared.plugins.pluginDocumentation.thisPluginHasNoDescription"),
         "",
-        "## 插件信息",
+        translate("shared.plugins.pluginDocumentation.pluginInformation"),
         "",
-        `- 作者：${manifest.author || "未声明"}`,
-        `- 版本：${manifest.version}`,
-        `- 能力：${capabilities.join("、") || "未声明"}`,
+        translate("shared.plugins.pluginDocumentation.author", { v0: String(manifest.author || translate("shared.plugins.pluginDocumentation.notSpecified")) }),
+        translate("shared.plugins.pluginDocumentation.version", { v0: String(manifest.version) }),
+        translate("shared.plugins.pluginDocumentation.capabilities", { v0: String(capabilities.join("、") || translate("shared.plugins.pluginDocumentation.notSpecified")) }),
         "",
-        manifest.contributes.providers?.length ? "> 此插件没有提供接入文档。请联系插件作者补充 `documentation`，不要仅凭清单字段推测上游接口。" : "> 该插件当前没有单独的使用文档。",
+        manifest.contributes.providers?.length ? translate("shared.plugins.pluginDocumentation.thisPluginHasNoIntegrationDocumentationAskTheAuthorTo") : translate("shared.plugins.pluginDocumentation.thisPluginCurrentlyHasNoSeparateUsageDocumentation"),
     ].join("\n");
 }

@@ -3,16 +3,17 @@ import { systemChannelModelChannels } from "@/lib/user-session";
 import { modelCapabilityConfigFor } from "@/lib/model-capabilities";
 import { defaultConfig, resolveModelChannel, selectableModelsByCapability, type AiConfig } from "@/stores/use-config-store";
 import { encodeChannelModel, modelOptionName } from "@/stores/config-model-options";
+import { translate } from "@/i18n";
 
 /** 阶段模型必须能读商品图；不能选时直接告诉管理员去哪里开启。 */
-export const COMMERCE_VISION_DISABLED_REASON = "未开启识图：渠道管理 → 该模型 → 能力与参数 → 引用与限制，把「最多识别图片数」设为 1 以上";
+export const COMMERCE_VISION_DISABLED_REASON = translate("adminPages.ecommerceModelCatalog.imageRecognitionIsDisabledChannelManagementThisModelCapabilitiesAnd");
 
 /**
  * 阶段模型下拉用的模型目录：与创作端同一份公开目录和同一个通用下拉组件，
  * 持久化身份仍是渠道模型行 ID（channelModelId），不是展示名。
  */
 export function commerceStageModelConfig(catalog: ModelCatalogResponse): AiConfig {
-    if (catalog.source !== "system" || !Array.isArray(catalog.channels)) throw new Error("模型目录响应无效");
+    if (catalog.source !== "system" || !Array.isArray(catalog.channels)) throw new Error(translate("adminPages.ecommerceModelCatalog.invalidModelCatalogResponse"));
     return { ...defaultConfig, channels: systemChannelModelChannels(catalog.channels) };
 }
 

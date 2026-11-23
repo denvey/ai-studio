@@ -1,14 +1,15 @@
 import type { CanvasFolderTheme } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 export const CANVAS_FOLDER_THEME_OPTIONS: ReadonlyArray<{
     key: CanvasFolderTheme;
     label: string;
     cover: string;
 }> = [
-    { key: "aurora", label: "赤蓝流光", cover: "/images/canvas/folder-default-cover.png" },
-    { key: "obsidian", label: "曜石银蓝", cover: "/images/canvas/folder-theme-obsidian.png" },
-    { key: "ember", label: "熔金赤焰", cover: "/images/canvas/folder-theme-ember.png" },
-    { key: "pearl", label: "珍珠薄雾", cover: "/images/canvas/folder-theme-pearl.png" },
+    { key: "aurora", label: translate("shared.canvas.canvasFolderTheme.redAndBlueGlow"), cover: "/images/canvas/folder-default-cover.png" },
+    { key: "obsidian", label: translate("shared.canvas.canvasFolderTheme.obsidianSilverBlue"), cover: "/images/canvas/folder-theme-obsidian.png" },
+    { key: "ember", label: translate("shared.canvas.canvasFolderTheme.moltenGoldAndFlame"), cover: "/images/canvas/folder-theme-ember.png" },
+    { key: "pearl", label: translate("shared.canvas.canvasFolderTheme.pearlMist"), cover: "/images/canvas/folder-theme-pearl.png" },
 ];
 
 export function resolveCanvasFolderTheme(value?: string): CanvasFolderTheme {

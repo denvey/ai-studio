@@ -22,6 +22,7 @@ import { findArtCritiqueRubricCheck } from "./rubrics";
 import type { ArtCritiqueReviewInput } from "./review";
 import { parseAggregatePayload, parseCandidates, parseEditPromptPayload, parseGroundingPayload, parseSceneRouterPayload, parseVerificationPayload, stripJsonFence, toIssueDraft, toOptionDraft, uniqueId } from "./pipeline-parse";
 import { aggregateMessages, colorMessages, compositionMessages, editPromptMessages, groundingMessages, lightingMessages, sceneMessages, structureMessages, verificationMessages } from "./pipeline-messages";
+import { translate } from "@/i18n";
 
 export { parseAggregatePayload, parseEditPromptPayload, parseGroundingPayload, parseSceneReviewPayload, parseSceneRouterPayload, parseVerificationPayload } from "./pipeline-parse";
 
@@ -299,7 +300,7 @@ export const artCritiquePipelineTools = {
 
 export async function runArtCritiquePipeline(config: AiConfig, input: ArtCritiqueReviewInput, options: ArtCritiquePipelineOptions = {}) {
     const textModel = config.textModel.trim();
-    if (!textModel) throw new Error("未配置文本/视觉理解模型，请先在设置中选择支持图片理解的文本模型");
+    if (!textModel) throw new Error(translate("shared.artCritique.pipeline.noTextVisionModelConfiguredSelectATextModelWith"));
     // requestToolResponse resolves the request model from config.model first. Override it here so
     // an image-generation default cannot silently receive the critique's tool-calling requests.
     const critiqueConfig = { ...config, model: textModel };
@@ -334,7 +335,7 @@ export async function runArtCritiquePipeline(config: AiConfig, input: ArtCritiqu
         scene = sceneOutcome.scene;
     } else {
         rethrowIfAborted(sceneOutcome.error, options.signal);
-        warnings.push("场景理解阶段未完成，后续步骤使用了默认场景上下文。");
+        warnings.push(translate("shared.artCritique.pipeline.sceneUnderstandingDidNotCompleteSubsequentStepsUsedTheDefault"));
     }
 
     const appendReviewerResult = (reviewer: ArtCritiqueReviewer, result: PromiseSettledResult<{ candidates: ArtCritiqueCandidate[] }>) => {
@@ -344,7 +345,7 @@ export async function runArtCritiquePipeline(config: AiConfig, input: ArtCritiqu
             return;
         }
         rethrowIfAborted(result.reason, options.signal);
-        warnings.push(`${reviewerLabel(reviewer)} Reviewer 未完成，已使用其他通道继续。`);
+        warnings.push(translate("shared.artCritique.pipeline.theReviewerDidNotFinishProcessingContinuedWithOtherChannels", { v0: String(reviewerLabel(reviewer)) }));
     };
     reviewerResults.forEach((result, index) => appendReviewerResult(reviewerSpecs[index].reviewer, result));
 
@@ -358,7 +359,7 @@ export async function runArtCritiquePipeline(config: AiConfig, input: ArtCritiqu
             aggregate = filterAggregateAgainstCandidates(parsed, candidates, warnings);
         } catch (error) {
             rethrowIfAborted(error, options.signal);
-            warnings.push("问题聚合阶段未完成，已使用本地规则整理候选问题。");
+            warnings.push(translate("shared.artCritique.pipeline.issueAggregationDidNotCompleteLocalRulesWereUsedTo"));
             aggregate = fallbackAggregate(scene, candidates, warnings);
         }
     }
@@ -390,7 +391,7 @@ export async function runArtCritiquePipeline(config: AiConfig, input: ArtCritiqu
             issues = applyGrounding(issues, grounding.targets);
         } catch (error) {
             rethrowIfAborted(error, options.signal);
-            warnings.push("问题定位阶段未完成，已根据问题描述使用参考区域坐标；坐标仅作辅助参考，文字报告仍然保留。");
+            warnings.push(translate("shared.artCritique.pipeline.issueLocalizationDidNotCompleteReferenceCoordinatesWereInferredFrom"));
             issues = applyReferenceCoordinates(issues);
         }
 
@@ -406,19 +407,19 @@ export async function runArtCritiquePipeline(config: AiConfig, input: ArtCritiqu
             issues = verified.issues;
             verificationSummary = verified.summary;
             if (!issues.length) {
-                warnings.push("独立复核未确认重点问题，已过滤不可靠的批改项。");
+                warnings.push(translate("shared.artCritique.pipeline.independentVerificationDidNotConfirmThePriorityIssuesUnreliableCritique"));
                 aggregate = { ...aggregate, summary: "独立复核后未确认需要优先修改的问题。" };
             }
         } else {
             rethrowIfAborted(verificationResult.reason, options.signal);
-            warnings.push("独立复核阶段未完成，已保留聚合后的批改结果。");
+            warnings.push(translate("shared.artCritique.pipeline.independentVerificationDidNotCompleteTheAggregatedCritiqueWasRetained"));
         }
 
         if (promptResult.status === "fulfilled") {
             issues = applyEditPrompts(issues, promptResult.value.prompts, warnings);
         } else {
             rethrowIfAborted(promptResult.reason, options.signal);
-            warnings.push("AI 修改提示词阶段未完成，报告仍保留问题和定位结果；请重新批改后再复制提示词。");
+            warnings.push(translate("shared.artCritique.pipeline.aIEditPromptGenerationDidNotCompleteIssuesAndLocations"));
         }
     } else {
         options.onDraftReport?.(buildReport());
@@ -485,7 +486,7 @@ export function applyVerification(issues: readonly ArtCritiqueIssue[], decisions
 export function applyEditPrompts(issues: readonly ArtCritiqueIssue[], prompts: readonly EditPromptResult["prompts"][number][], warnings: string[] = []) {
     const promptByIssue = new Map(prompts.map((prompt) => [prompt.issueId, prompt.editPrompt]));
     const missingCount = issues.filter((issue) => !promptByIssue.has(issue.id)).length;
-    if (missingCount) warnings.push(`AI 修改提示词未覆盖 ${missingCount} 个问题，缺失项不会使用本地拼接替代。`);
+    if (missingCount) warnings.push(translate("shared.artCritique.pipeline.aIEditPromptsAreMissingForIssuesLocalTextWill", { v0: String(missingCount) }));
     return issues.map((issue) => {
         const editPrompt = promptByIssue.get(issue.id);
         return editPrompt ? { ...issue, editPrompt } : issue;
@@ -539,7 +540,7 @@ export function filterAggregateAgainstCandidates(aggregate: AggregateResult, can
         return sources.length > 0 && sources.every((candidate) => candidate.kind === "option" && candidate.category === option.category) && option.confidence >= MIN_REPORTABLE_CONFIDENCE;
     });
     if (accepted.length !== aggregate.issues.length || acceptedOptions.length !== aggregate.options.length) {
-        warnings.push(`聚合阶段返回了 ${aggregate.issues.length - accepted.length + aggregate.options.length - acceptedOptions.length} 个无可靠来源或低置信度结果，已过滤。`);
+        warnings.push(translate("shared.artCritique.pipeline.removedAggregatedResultsWithUnreliableSourcesOrLowConfidence", { v0: String(aggregate.issues.length - accepted.length + aggregate.options.length - acceptedOptions.length) }));
     }
     const deduplicated = deduplicateAggregateIssues(accepted, warnings);
     return { ...aggregate, issues: prioritizeIssues(deduplicated).slice(0, MAX_ISSUES), options: prioritizeOptions(acceptedOptions).slice(0, MAX_OPTIONS) };
@@ -557,7 +558,7 @@ export function deduplicateAggregateIssues(issues: readonly AggregateIssueDraft[
         merged[existingIndex] = mergeAggregateIssues(merged[existingIndex], issue);
         mergedCount += 1;
     }
-    if (mergedCount && warnings) warnings.push(`聚合阶段合并了 ${mergedCount} 个重复或同根因问题。`);
+    if (mergedCount && warnings) warnings.push(translate("shared.artCritique.pipeline.mergedDuplicateIssuesOrIssuesWithTheSameRootCause", { v0: String(mergedCount) }));
     return merged;
 }
 
@@ -691,10 +692,10 @@ export function isReviewerAllowed(reviewer: ArtCritiqueCandidate["reviewer"], ca
 }
 
 function reviewerLabel(reviewer: ArtCritiqueReviewer) {
-    if (reviewer === "composition") return "构图与叙事";
-    if (reviewer === "color") return "色彩";
-    if (reviewer === "lighting") return "光线";
-    return "结构与比例";
+    if (reviewer === "composition") return translate("shared.artCritique.pipeline.compositionAndNarrative");
+    if (reviewer === "color") return translate("shared.artCritique.pipeline.color");
+    if (reviewer === "lighting") return translate("shared.artCritique.pipeline.lighting");
+    return translate("shared.artCritique.pipeline.structureAndProportion");
 }
 
 const ALL_SUPPORTED_IMAGE_TYPES = ["portrait", "landscape", "product", "illustration", "concept-art", "architecture", "still-life", "other"] as const;

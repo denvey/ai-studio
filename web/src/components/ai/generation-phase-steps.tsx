@@ -1,5 +1,6 @@
 import { GENERATION_PHASE_STEPS } from "@/lib/generation-task-display";
 import { progressFillStyle } from "@/lib/progress-fill";
+import { translate } from "@/i18n";
 
 /**
  * 排队 → 生成 → 保存 三段进度。画布节点与首页创作卡片共用；颜色由外层容器通过
@@ -9,7 +10,7 @@ export function GenerationPhaseSteps({ step, progress, className }: { step: numb
     const value = typeof progress === "number" && Number.isFinite(progress) ? Math.max(0, Math.min(100, Math.round(progress))) : null;
     const finished = step >= GENERATION_PHASE_STEPS.length;
     const current = GENERATION_PHASE_STEPS[Math.min(step, GENERATION_PHASE_STEPS.length - 1)];
-    const summary = finished ? "生成进度：已完成" : `生成进度：${current}${value !== null ? ` ${value}%` : ""}`;
+    const summary = finished ? translate("shared.ai.generationPhaseSteps.generationProgressCompleted") : translate("shared.ai.generationPhaseSteps.generationProgress", { v0: String(current), v1: String(value !== null ? ` ${value}%` : "") });
     return (
         <ol className={className ? `generation-phase-steps ${className}` : "generation-phase-steps"} aria-label={summary}>
             {GENERATION_PHASE_STEPS.map((label, index) => {

@@ -3,13 +3,14 @@ import { validateImageLayerRegion, type ImageLayerBackgroundPatch, type ImageLay
 import { decodeLayer, pngBlob, type LayerInput } from "@/services/canvas-image-layer-compositor";
 import { imageLayerAlphaBounds, suggestImageLayerRegion } from "@/lib/canvas/canvas-image-layer-region";
 import type { ImageLayerPlan } from "@/lib/canvas/canvas-image-layer-plan";
+import { translate } from "@/i18n";
 
 function regionPath(context: CanvasRenderingContext2D, region: ImageLayerRegion, width: number, height: number) {
     const { bbox, shape, radiusRatio } = validateImageLayerRegion(region);
     const [left, top, right, bottom] = bbox.map((n, i) => Math.round((n * (i % 2 ? height : width)) / 1000));
     const w = right - left,
         h = bottom - top;
-    if (w < 1 || h < 1) throw new Error("原图提取区域小于一个像素");
+    if (w < 1 || h < 1) throw new Error(translate("shared.canvasImageLayerSource.theSourceExtractionRegionIsSmallerThanOnePixel"));
     if (shape === "ellipse") {
         context.moveTo(right, top + h / 2);
         context.ellipse(left + w / 2, top + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
@@ -23,7 +24,7 @@ async function encode(canvas: HTMLCanvasElement) {
     const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(String(reader.result));
-        reader.onerror = () => reject(new Error("无法读取原图提取 PNG"));
+        reader.onerror = () => reject(new Error(translate("shared.canvasImageLayerSource.unableToReadTheSourceExtractionPNG")));
         reader.readAsDataURL(blob);
     });
     return { dataUrl, width: canvas.width, height: canvas.height, bytes: blob.size, mimeType: "image/png" };
@@ -37,7 +38,7 @@ export async function cropImageLayerMaterial(source: LayerInput) {
         canvas.width = decoded.info.width;
         canvas.height = decoded.info.height;
         const context = canvas.getContext("2d", { willReadFrequently: true });
-        if (!context) throw new Error("浏览器不支持独立素材提取");
+        if (!context) throw new Error(translate("shared.canvasImageLayerSource.theBrowserDoesNotSupportSeparateAssetExtraction"));
         context.drawImage(decoded.bitmap, 0, 0);
         const bounds = imageLayerAlphaBounds(canvas.width, canvas.height, context.getImageData(0, 0, canvas.width, canvas.height).data);
         canvas.width = bounds.width;
@@ -58,7 +59,7 @@ export async function calibrateImageLayerRegions(source: LayerInput, regions: Im
         canvas.width = Math.round(decoded.info.width * scale);
         canvas.height = Math.round(decoded.info.height * scale);
         const context = canvas.getContext("2d", { willReadFrequently: true });
-        if (!context) throw new Error("浏览器不支持区域边界校准");
+        if (!context) throw new Error(translate("shared.canvasImageLayerSource.theBrowserDoesNotSupportRegionBoundaryCalibration"));
         context.drawImage(decoded.bitmap, 0, 0, canvas.width, canvas.height);
         const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
         return regions.map((region) => suggestImageLayerRegion(canvas.width, canvas.height, pixels, region));
@@ -99,17 +100,17 @@ export async function calibrateImageLayerPlan(source: LayerInput, plan: ImageLay
 
 /** 按原坐标复制源图像素，不裁切或重新居中输出画布。 */
 export async function extractImageLayerFromSource(source: LayerInput, extraction: ImageLayerExtraction, target?: { width: number; height: number }) {
-    if (extraction.method === "generate" || (extraction.method === "source-region" && !extraction.region)) throw new Error("原图提取方式或区域缺失");
+    if (extraction.method === "generate" || (extraction.method === "source-region" && !extraction.region)) throw new Error(translate("shared.canvasImageLayerSource.missingSourceExtractionMethodOrRegion"));
     if (extraction.region) validateImageLayerRegion(extraction.region);
     const decoded = await decodeLayer(source);
     const canvas = document.createElement("canvas");
     try {
         const { width, height } = decoded.info;
-        if (target && (width !== target.width || height !== target.height)) throw new Error("原图资源尺寸已变化，请重新规划");
+        if (target && (width !== target.width || height !== target.height)) throw new Error(translate("shared.canvasImageLayerSource.sourceImageResourceDimensionsHaveChangedPlanAgain"));
         canvas.width = width;
         canvas.height = height;
         const context = canvas.getContext("2d", { willReadFrequently: true });
-        if (!context) throw new Error("浏览器不支持原图图层提取");
+        if (!context) throw new Error(translate("shared.canvasImageLayerSource.theBrowserDoesNotSupportSourceImageLayerExtraction"));
         if (extraction.method === "source-region") {
             context.beginPath();
             regionPath(context, extraction.region!, width, height);
@@ -127,7 +128,7 @@ export async function extractImageLayerFromSource(source: LayerInput, extraction
 
 /** 选定区域外保留原图，仅在区域内使用生成的修补结果。 */
 export async function patchImageLayerBackground(generated: LayerInput, patch: ImageLayerBackgroundPatch) {
-    if (!patch.regions.length || patch.regions.length > 7) throw new Error("底图修补区域无效");
+    if (!patch.regions.length || patch.regions.length > 7) throw new Error(translate("shared.canvasImageLayerSource.invalidBackgroundRepairRegion"));
     patch.regions.forEach(validateImageLayerRegion);
     const source = await decodeLayer(patch.source);
     const canvas = document.createElement("canvas");
@@ -137,11 +138,11 @@ export async function patchImageLayerBackground(generated: LayerInput, patch: Im
         try {
             validateImageLayerOutput(result.info);
             const { width, height } = source.info;
-            if (result.info.width !== width || result.info.height !== height) throw new Error("底图修补结果与原图尺寸不一致");
+            if (result.info.width !== width || result.info.height !== height) throw new Error(translate("shared.canvasImageLayerSource.backgroundRepairResultDimensionsDoNotMatchTheSource"));
             canvas.width = width;
             canvas.height = height;
             const context = canvas.getContext("2d");
-            if (!context) throw new Error("浏览器不支持底图局部修补");
+            if (!context) throw new Error(translate("shared.canvasImageLayerSource.theBrowserDoesNotSupportLocalBackgroundRepair"));
             context.drawImage(source.bitmap, 0, 0);
             context.beginPath();
             patch.regions.forEach((region) => regionPath(context, region, width, height));

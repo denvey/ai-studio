@@ -5,6 +5,7 @@ import { AppModal } from "@/components/ui/product/app-modal";
 import { EcommerceLibraryPanel } from "./ecommerce-library-panel";
 import { installEcommerceSkillFile, installEcommerceSkillGitHub, renameEcommerceSkill, listEcommerceManagedSkills, setEcommerceManagedSkillEnabled, type EcommerceManagedSkill } from "@/services/api/ecommerce-skills";
 import "./ecommerce-skills.css";
+import { translate } from "@/i18n";
 
 export default function EcommerceSkillsPage() {
     const { message } = App.useApp();
@@ -50,11 +51,11 @@ export default function EcommerceSkillsPage() {
     );
     const install = async (file?: File) => {
         if (file && !/\.(zip|md|markdown)$/i.test(file.name)) {
-            setInstallError("请选择 ZIP 或 Markdown 技能文件。");
+            setInstallError(translate("adminPages.ecommerceSkillsPage.pleaseSelectAZIPOrMarkdownSkillFile"));
             return;
         }
         if (file && file.size > 1024 ** 3) {
-            setInstallError("文件太大，电商 Skills 最大支持 1GB，请缩小后重试。");
+            setInstallError(translate("adminPages.ecommerceSkillsPage.fileTooLargeEcommerceSkillsSupportsUpTo1GB"));
             return;
         }
         setInstalling(true);
@@ -67,7 +68,7 @@ export default function EcommerceSkillsPage() {
             setInstallOpen(false);
             setUrl("");
             setSubdir("");
-            message.success("Skills 安装完成，已默认启用，Agent 将自动分析并按需调用");
+            message.success(translate("adminPages.ecommerceSkillsPage.skillsInstalledAndEnabledByDefaultTheAgentWillAnalyze"));
         } catch (cause) {
             setInstallError(cause instanceof Error ? cause.message : String(cause));
         } finally {
@@ -78,7 +79,7 @@ export default function EcommerceSkillsPage() {
         try {
             await renameEcommerceSkill(skill.id, name);
             await refresh();
-            message.success("技能名称已保存");
+            message.success(translate("adminPages.ecommerceSkillsPage.skillNameSaved"));
         } catch (cause) {
             message.error(cause instanceof Error ? cause.message : String(cause));
         }
@@ -88,7 +89,7 @@ export default function EcommerceSkillsPage() {
         try {
             const result = await setEcommerceManagedSkillEnabled(skill.id, enabled);
             setSkills((current) => current.map((entry) => (entry.id === skill.id ? { ...entry, enabled: result.enabled } : entry)));
-            message.success(`${skill.name}已${result.enabled ? "启用" : "关闭"}`);
+            message.success(translate("adminPages.ecommerceSkillsPage.isNow", { v0: String(skill.name), v1: String(result.enabled ? translate("adminPages.ecommerceSkillsPage.enabled") : translate("adminPages.ecommerceSkillsPage.disabled2")) }));
         } catch (cause) {
             message.error(cause instanceof Error ? cause.message : String(cause));
         } finally {
@@ -97,7 +98,7 @@ export default function EcommerceSkillsPage() {
     };
     return (
         <EcommerceLibraryPanel
-            description="按商品、参考方式、提示词与已选风格调用适用的技能方法，并交给已配置的图片模型执行。"
+            description={translate("adminPages.ecommerceSkillsPage.applySuitableSkillMethodsBasedOnTheProductReferenceMode")}
             actions={
                 <Space wrap>
                     <Button
@@ -108,46 +109,56 @@ export default function EcommerceSkillsPage() {
                             setInstallOpen(true);
                         }}
                     >
-                        安装电商 Skills
+                        {translate("adminPages.ecommerceSkillsPage.installECommerceSkills")}
                     </Button>
                     <Button icon={<RefreshCw size={14} />} loading={loading} onClick={() => void refresh()}>
-                        刷新
+                        {translate("common.refresh")}
                     </Button>
                 </Space>
             }
         >
             {error ? <Alert type="error" showIcon message={error} /> : null}
             <Space wrap>
-                <Tag icon={<Sparkles size={12} />}>已安装 {skills.length}</Tag>
-                <Typography.Text>已启用 {skills.filter((skill) => skill.enabled).length}</Typography.Text>
+                <Tag icon={<Sparkles size={12} />}>
+                    {translate("canvasA.skillSuggestion.installedBadge")} {skills.length}
+                </Tag>
+                <Typography.Text>
+                    {translate("account.layout.oss.enabled")} {skills.filter((skill) => skill.enabled).length}
+                </Typography.Text>
                 <Typography.Text type="secondary">
-                    GitHub 适配 {skills.filter((skill) => skill.origin === "github-adapted").length} · 原创 {skills.filter((skill) => skill.origin === "first-party").length}
+                    {translate("adminPages.ecommerceSkillsPage.gitHubAdaptation")} {skills.filter((skill) => skill.origin === "github-adapted").length} {translate("adminPages.ecommerceSkillsPage.original")}{" "}
+                    {skills.filter((skill) => skill.origin === "first-party").length}
                 </Typography.Text>
             </Space>
-            <Alert type="info" showIcon message="安装后默认启用，Agent 从全部已启用 Skills 中分析匹配，每轮按需调用最多 8 项。GitHub 安装自动跟随来源分支更新；已提交任务保留当时的技能快照。" />
+            <Alert type="info" showIcon message={translate("adminPages.ecommerceSkillsPage.enabledByDefaultAfterInstallationTheAgentAnalyzesAllEnabled")} />
             <Space wrap>
-                <Input.Search allowClear placeholder="搜索技能、用途或来源" value={search} onChange={(event) => setSearch(event.target.value)} style={{ width: 300 }} />
+                <Input.Search allowClear placeholder={translate("adminPages.ecommerceSkillsPage.searchSkillsPurposesOrSources")} value={search} onChange={(event) => setSearch(event.target.value)} style={{ width: 300 }} />
                 <Select
-                    aria-label="技能来源"
+                    aria-label={translate("adminPages.ecommerceSkillsPage.skillSource")}
                     value={origin}
                     onChange={setOrigin}
                     style={{ width: 150 }}
                     options={[
-                        { value: "", label: "全部来源" },
-                        { value: "user-installed", label: "用户安装" },
-                        { value: "github-adapted", label: "GitHub 适配" },
-                        { value: "first-party", label: "原创" },
+                        { value: "", label: translate("adminPages.ecommerceSkillsPage.allSources") },
+                        { value: "user-installed", label: translate("adminPages.ecommerceSkillsPage.userInstalled") },
+                        { value: "github-adapted", label: translate("adminPages.ecommerceSkillsPage.gitHubAdaptation") },
+                        { value: "first-party", label: translate("adminPages.ecommerceSkillsPage.original2") },
                     ]}
                 />
-                <Select value={group} onChange={setGroup} style={{ width: 160 }} options={[{ value: "", label: "全部用途" }, ...[...new Set(skills.map((skill) => skill.group))].map((value) => ({ value, label: value }))]} />
+                <Select
+                    value={group}
+                    onChange={setGroup}
+                    style={{ width: 160 }}
+                    options={[{ value: "", label: translate("adminPages.ecommerceSkillsPage.allPurposes") }, ...[...new Set(skills.map((skill) => skill.group))].map((value) => ({ value, label: value }))]}
+                />
                 <Select
                     value={status}
                     onChange={setStatus}
                     style={{ width: 140 }}
                     options={[
-                        { value: "", label: "全部状态" },
-                        { value: "enabled", label: "已启用" },
-                        { value: "disabled", label: "已关闭" },
+                        { value: "", label: translate("library.ark.expiry.all") },
+                        { value: "enabled", label: translate("account.layout.oss.enabled") },
+                        { value: "disabled", label: translate("adminPages.ecommerceSkillsPage.disabled") },
                     ]}
                 />
             </Space>
@@ -161,23 +172,23 @@ export default function EcommerceSkillsPage() {
                 expandable={{ expandedRowRender: (skill) => <Typography.Paragraph style={{ whiteSpace: "pre-wrap", margin: 0 }}>{skill.instructions}</Typography.Paragraph> }}
                 columns={[
                     {
-                        title: "技能与用途",
+                        title: translate("adminPages.ecommerceSkillsPage.skillsAndPurposes"),
                         key: "skill",
                         render: (_, skill) => (
                             <div>
-                                <Typography.Text strong editable={skill.origin === "user-installed" ? { onChange: (name) => void rename(skill, name), tooltip: "编辑技能名称", maxLength: 80 } : false}>
+                                <Typography.Text strong editable={skill.origin === "user-installed" ? { onChange: (name) => void rename(skill, name), tooltip: translate("adminPages.ecommerceSkillsPage.editSkillName"), maxLength: 80 } : false}>
                                     {skill.name}
                                 </Typography.Text>
                                 {skill.origin === "user-installed" ? (
                                     <Tag color="cyan" icon={<Sparkles size={12} />}>
-                                        用户安装
+                                        {translate("adminPages.ecommerceSkillsPage.userInstalled")}
                                     </Tag>
                                 ) : null}
                                 <br />
                                 <Typography.Text type="secondary">{skill.description}</Typography.Text>
                                 <br />
                                 <Space wrap size={4}>
-                                    <Tag>{skill.origin === "user-installed" ? "电商自装技能" : skill.group}</Tag>
+                                    <Tag>{skill.origin === "user-installed" ? translate("adminPages.ecommerceSkillsPage.customECommerceSkills") : skill.group}</Tag>
                                     {skill.types.map((type) => (
                                         <Tag key={type}>{type}</Tag>
                                     ))}
@@ -186,29 +197,29 @@ export default function EcommerceSkillsPage() {
                         ),
                     },
                     {
-                        title: "来源与版本",
+                        title: translate("adminPages.ecommerceSkillsPage.sourceAndVersion"),
                         key: "source",
                         width: 230,
                         render: (_, skill) => (
                             <div>
                                 {skill.origin === "user-installed" ? (
                                     <>
-                                        <Typography.Text>{skill.autoUpdate ? "GitHub · 自动更新" : "本地文件 · 重新上传更新"}</Typography.Text>
+                                        <Typography.Text>{skill.autoUpdate ? translate("adminPages.ecommerceSkillsPage.gitHubAutomaticUpdates") : translate("adminPages.ecommerceSkillsPage.localFileReUploadToUpdate")}</Typography.Text>
                                         <br />
                                         {skill.sourceUrl ? (
                                             <a href={skill.sourceUrl} target="_blank" rel="noreferrer">
-                                                查看上游
+                                                {translate("adminPages.ecommerceSkillsPage.viewUpstream")}
                                             </a>
                                         ) : null}
-                                        <Typography.Text type="secondary">{skill.lastCheckedAt ? ` 最近检查：${skill.lastCheckedAt}` : ""}</Typography.Text>
-                                        {skill.syncError ? <Alert type="warning" title="更新失败，继续使用上次版本" description={skill.syncError} /> : null}
+                                        <Typography.Text type="secondary">{skill.lastCheckedAt ? translate("adminPages.ecommerceSkillsPage.lastChecked", { v0: String(skill.lastCheckedAt) }) : ""}</Typography.Text>
+                                        {skill.syncError ? <Alert type="warning" title={translate("adminPages.ecommerceSkillsPage.updateFailedUsingThePreviousVersion")} description={skill.syncError} /> : null}
                                     </>
                                 ) : skill.origin === "github-adapted" ? (
                                     <a href={skill.sourceUrl} target="_blank" rel="noreferrer">
-                                        GitHub · 固定版本
+                                        {translate("adminPages.ecommerceSkillsPage.gitHubPinnedVersion")}
                                     </a>
                                 ) : (
-                                    <Typography.Text>魅夜原创</Typography.Text>
+                                    <Typography.Text>{translate("adminPages.ecommerceSkillsPage.meiyeOriginal")}</Typography.Text>
                                 )}
                                 <br />
                                 <Typography.Text type="secondary">
@@ -220,23 +231,25 @@ export default function EcommerceSkillsPage() {
                         ),
                     },
                     {
-                        title: "调用状态",
+                        title: translate("adminPages.ecommerceSkillsPage.callStatus"),
                         key: "enabled",
                         width: 120,
                         render: (_, skill) => (
-                            <Switch checked={skill.enabled} checkedChildren="启用" unCheckedChildren="关闭" loading={saving === skill.id} disabled={loading || Boolean(saving && saving !== skill.id)} onChange={(enabled) => void toggle(skill, enabled)} />
+                            <Switch
+                                checked={skill.enabled}
+                                checkedChildren={translate("account.layout.oss.switchOn")}
+                                unCheckedChildren={translate("adminPages.ecommerceSkillsPage.off")}
+                                loading={saving === skill.id}
+                                disabled={loading || Boolean(saving && saving !== skill.id)}
+                                onChange={(enabled) => void toggle(skill, enabled)}
+                            />
                         ),
                     },
                 ]}
             />
-            <AppModal title="安装电商 Skills" open={installOpen} onCancel={() => !installing && setInstallOpen(false)} closable={!installing} maskClosable={!installing} footer={null}>
+            <AppModal title={translate("adminPages.ecommerceSkillsPage.installECommerceSkills")} open={installOpen} onCancel={() => !installing && setInstallOpen(false)} closable={!installing} maskClosable={!installing} footer={null}>
                 <Space orientation="vertical" size={16} style={{ width: "100%" }}>
-                    <Alert
-                        type="info"
-                        showIcon
-                        title="支持超过 500MB 的技能包，最大 1GB"
-                        description="安装后默认启用并显示发光标识。ZIP 可含素材附件，SKILL.md 与引用的策划文本合计不超过 32KB。本地文件需重新上传更新。后台安装的技能对本站电商 Agent 生效。"
-                    />
+                    <Alert type="info" showIcon title={translate("adminPages.ecommerceSkillsPage.supportsSkillPackagesOver500MBUpTo1GB")} description={translate("adminPages.ecommerceSkillsPage.installedSkillsAreEnabledByDefaultAndMarkedWithA")} />
                     {installError ? <Alert type="error" showIcon title={installError} /> : null}
                     <Upload
                         accept=".zip,.md,.markdown"
@@ -247,16 +260,22 @@ export default function EcommerceSkillsPage() {
                             return false;
                         }}
                     >
-                        <Button loading={installing}>选择 ZIP / Markdown 安装</Button>
+                        <Button loading={installing}>{translate("adminPages.ecommerceSkillsPage.chooseZIPMarkdownToInstall")}</Button>
                     </Upload>
-                    {installing ? progress < 0 ? <Typography.Text role="status">正在读取 GitHub 并安装技能…</Typography.Text> : <Progress percent={progress} status="active" format={(value) => (value === 100 ? "解析中" : `${value}%`)} /> : null}
-                    <label htmlFor="ecommerce-skill-url">GitHub 仓库或技能目录地址</label>
+                    {installing ? (
+                        progress < 0 ? (
+                            <Typography.Text role="status">{translate("adminPages.ecommerceSkillsPage.readingGitHubAndInstallingSkills")}</Typography.Text>
+                        ) : (
+                            <Progress percent={progress} status="active" format={(value) => (value === 100 ? translate("adminPages.ecommerceSkillsPage.parsing") : `${value}%`)} />
+                        )
+                    ) : null}
+                    <label htmlFor="ecommerce-skill-url">{translate("adminPages.ecommerceSkillsPage.gitHubRepositoryOrSkillDirectoryURL")}</label>
                     <Input id="ecommerce-skill-url" value={url} onChange={(event) => setUrl(event.target.value)} disabled={installing} placeholder="https://github.com/owner/repo" />
-                    <label htmlFor="ecommerce-skill-subdir">技能子目录（合集仓库必填）</label>
+                    <label htmlFor="ecommerce-skill-subdir">{translate("adminPages.ecommerceSkillsPage.skillSubdirectoryRequiredForCollections")}</label>
                     <Input id="ecommerce-skill-subdir" value={subdir} onChange={(event) => setSubdir(event.target.value)} disabled={installing} placeholder="skills/product-photography" />
-                    <Typography.Text type="secondary">GitHub 来源每 6 小时检查更新，跟随安装地址的分支。请使用分支地址，固定提交或标签不会持续产生新版本。更新保留自定义名称和启用状态。</Typography.Text>
+                    <Typography.Text type="secondary">{translate("adminPages.ecommerceSkillsPage.gitHubSourcesAreCheckedEvery6HoursAndFollowThe")}</Typography.Text>
                     <Button type="primary" loading={installing} disabled={!url.trim()} onClick={() => void install()}>
-                        从 GitHub 安装并自动更新
+                        {translate("adminPages.ecommerceSkillsPage.installFromGitHubWithAutomaticUpdates")}
                     </Button>
                 </Space>
             </AppModal>

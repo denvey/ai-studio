@@ -3,9 +3,10 @@ import { useEffect, useRef, useState } from "react";
 
 import { getResourceAccess, resolveResourceAccessURL } from "@/services/api/resources";
 import type { AudioAsset, EntityAsset } from "@/stores/use-asset-store";
+import { translate } from "@/i18n";
 
 function initial(name: string) {
-    return Array.from(name.trim())[0] || "角";
+    return Array.from(name.trim())[0] || translate("canvasA.characterNode.initialFallback");
 }
 
 /** 换取资源展示地址；一次换取供多个 <img> 共用，避免两个图片组件各自加载、各自失败。 */
@@ -68,7 +69,10 @@ export function CharacterAssetCover({ asset, size = "card" }: { asset: EntityAss
 export function characterAssetSummary(asset: EntityAsset) {
     const role = typeof asset.data.definition.role === "string" ? asset.data.definition.role.trim() : "";
     const appearance = typeof asset.data.definition.appearance === "string" ? asset.data.definition.appearance.trim() : "";
-    const states = [asset.data.visualStatus === "ready" ? "形象就绪" : "形象待完善", asset.data.voiceName ? `声音：${asset.data.voiceName}` : "未绑定声音"];
+    const states = [
+        asset.data.visualStatus === "ready" ? translate("canvasA.characterLibrary.visualReady") : translate("canvasA.characterNode.visualPending"),
+        asset.data.voiceName ? translate("shared.assets.assetRichCover.voice", { v0: String(asset.data.voiceName) }) : translate("shared.assets.assetLibraryPanels.noVoiceLinked"),
+    ];
     return [role || appearance, ...states].filter(Boolean).join(" · ");
 }
 
@@ -171,7 +175,7 @@ export function useAudioPreview(asset: AudioAsset | null, onPlayingChange?: (pla
         // 先给出暂停态反馈，换取地址和缓冲期间按钮不显得没反应。
         setPlaying(true);
         try {
-            if (!(await ensureSource(audio))) throw new Error("音频地址为空");
+            if (!(await ensureSource(audio))) throw new Error(translate("shared.assets.assetRichCover.theAudioURLIsEmpty"));
             if (activePreviewAudio && activePreviewAudio !== audio) activePreviewAudio.pause();
             activePreviewAudio = audio;
             await audio.play();
@@ -216,8 +220,8 @@ export function AudioPlayButton({ asset, className = "", onPlayingChange, previe
     return (
         <button
             type="button"
-            aria-label={`${playing ? "暂停" : "试听"} ${asset.title}`}
-            title={playing ? "暂停" : "试听"}
+            aria-label={`${playing ? translate("canvasA.outbox.pause") : translate("shared.assets.assetRichCover.previewAudio")} ${asset.title}`}
+            title={playing ? translate("canvasA.outbox.pause") : translate("shared.assets.assetRichCover.previewAudio")}
             onClick={(event) => {
                 event.stopPropagation();
                 void toggle();
@@ -244,7 +248,7 @@ export function AudioPreviewBar({ asset, className = "" }: { asset: AudioAsset; 
                 step={1}
                 value={Math.round(progress * 1000)}
                 disabled={!durationMs}
-                aria-label={`${asset.title} 试听进度`}
+                aria-label={translate("shared.assets.assetRichCover.playbackProgress", { v0: String(asset.title) })}
                 aria-valuetext={`${formatPreviewClock(currentMs)} / ${formatPreviewClock(durationMs)}`}
                 className="assets-audio-preview-range"
                 onChange={(event) => void seek(Number(event.target.value) / 1000)}

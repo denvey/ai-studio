@@ -6,6 +6,7 @@ import { WorkspaceErrorState } from "@/components/layout/workspace-state";
 import { AppModal } from "@/components/ui/product/app-modal";
 import { cn } from "@/lib/utils";
 import { installSkillRecommendations, listSkillRecommendations, type SkillRecommendationIndustry, type SkillRecommendationList } from "@/services/api/skills";
+import { translate } from "@/i18n";
 
 const INDUSTRY_ICONS: Record<string, LucideIcon> = { shapes: Shapes, film: Film, "shopping-bag": ShoppingBag, megaphone: Megaphone, landmark: Landmark, palette: Palette, users: Users, wrench: Wrench };
 
@@ -55,7 +56,7 @@ export function SkillRecommendationsModal({ open, onClose, onInstalled }: SkillR
                 setIndustryId((current) => (result.industries.some((industry) => industry.industryId === current) ? current : result.industries[0]?.industryId || ""));
             })
             .catch((cause) => {
-                if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : "推荐技能读取失败");
+                if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : translate("shared.skills.skillRecommendationsModal.failedToLoadRecommendedSkills"));
             })
             .finally(() => {
                 if (!controller.signal.aborted) setLoading(false);
@@ -71,11 +72,11 @@ export function SkillRecommendationsModal({ open, onClose, onInstalled }: SkillR
         try {
             const result = await installSkillRecommendations(target.industryId, skillIds);
             setData((current) => (current ? markInstalled(current, result.installed) : current));
-            if (result.installed.length) message.success(`已安装 ${result.installed.length} 个技能，Agent 会按任务自动选用`);
-            else message.info("这些技能已经在你的技能库里");
+            if (result.installed.length) message.success(translate("shared.skills.skillRecommendationsModal.skillsInstalledTheAgentSelectsThemAutomaticallyForEachTask", { v0: String(result.installed.length) }));
+            else message.info(translate("shared.skills.skillRecommendationsModal.theseSkillsAreAlreadyInYourLibrary"));
             onInstalled?.(result.installed);
         } catch (cause) {
-            message.error(cause instanceof Error ? cause.message : "安装推荐技能失败");
+            message.error(cause instanceof Error ? cause.message : translate("shared.skills.skillRecommendationsModal.failedToInstallRecommendedSkills"));
         } finally {
             setInstalling("");
         }
@@ -84,19 +85,19 @@ export function SkillRecommendationsModal({ open, onClose, onInstalled }: SkillR
     const pendingIds = industry ? industry.skills.filter((skill) => !skill.isAdded).map((skill) => skill.skillId) : [];
 
     return (
-        <AppModal open={open} width={760} title="按行业推荐技能" className="library-modal skill-recommendations-modal" footer={null} onCancel={onClose} mask={{ closable: !installing }}>
-            <p className="mb-4 text-sm leading-6 text-foreground/55">选一个最接近你工作的行业，装上常用技能。装好后 Agent 会在任务需要时自己查找并使用，不用每次手动选择。</p>
+        <AppModal open={open} width={760} title={translate("shared.skills.skillRecommendationsModal.recommendedSkillsByIndustry")} className="library-modal skill-recommendations-modal" footer={null} onCancel={onClose} mask={{ closable: !installing }}>
+            <p className="mb-4 text-sm leading-6 text-foreground/55">{translate("shared.skills.skillRecommendationsModal.chooseTheIndustryClosestToYourWorkAndInstallUseful")}</p>
             {loading && !data ? (
                 <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground" role="status">
                     <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
-                    正在读取推荐技能…
+                    {translate("shared.skills.skillRecommendationsModal.loadingRecommendedSkills")}
                 </div>
             ) : null}
-            {error && !data ? <WorkspaceErrorState compact title="推荐技能读取失败" description={error} onRetry={() => setReloadKey((value) => value + 1)} /> : null}
-            {data && !data.industries.length ? <p className="py-12 text-center text-sm text-muted-foreground">暂时没有可推荐的技能。</p> : null}
+            {error && !data ? <WorkspaceErrorState compact title={translate("shared.skills.skillRecommendationsModal.failedToLoadRecommendedSkills")} description={error} onRetry={() => setReloadKey((value) => value + 1)} /> : null}
+            {data && !data.industries.length ? <p className="py-12 text-center text-sm text-muted-foreground">{translate("shared.skills.skillRecommendationsModal.noRecommendedSkillsAvailableYet")}</p> : null}
             {data && industry ? (
                 <div className="flex min-w-0 flex-col gap-4">
-                    <div className="flex flex-wrap gap-2" role="group" aria-label="选择行业">
+                    <div className="flex flex-wrap gap-2" role="group" aria-label={translate("shared.skills.skillRecommendationsModal.selectIndustry")}>
                         {data.industries.map((item) => {
                             const Icon = INDUSTRY_ICONS[item.icon] || Shapes;
                             const active = item.industryId === industry.industryId;
@@ -123,10 +124,10 @@ export function SkillRecommendationsModal({ open, onClose, onInstalled }: SkillR
                     <div className="flex flex-wrap items-start justify-between gap-3">
                         <p className="min-w-0 flex-1 text-sm leading-6 text-foreground/65">{industry.description}</p>
                         <Button type="primary" icon={<Plus className="size-4" />} disabled={!pendingIds.length || Boolean(installing)} loading={installing === `all:${industry.industryId}`} onClick={() => void install(industry, [])}>
-                            {pendingIds.length ? `全部安装（${pendingIds.length}）` : "已全部安装"}
+                            {pendingIds.length ? translate("shared.skills.skillRecommendationsModal.installAll", { v0: String(pendingIds.length) }) : translate("shared.skills.skillRecommendationsModal.allInstalled")}
                         </Button>
                     </div>
-                    <ul className="thin-scrollbar max-h-[52vh] space-y-2 overflow-y-auto pr-1" aria-label={`${industry.name}推荐技能`}>
+                    <ul className="thin-scrollbar max-h-[52vh] space-y-2 overflow-y-auto pr-1" aria-label={translate("shared.skills.skillRecommendationsModal.recommendedSkillsFor", { v0: String(industry.name) })}>
                         {industry.skills.map((skill) => (
                             <li key={skill.skillId} className="flex min-w-0 items-start gap-3 rounded-xl border border-border px-4 py-3">
                                 <div className="min-w-0 flex-1">
@@ -141,7 +142,7 @@ export function SkillRecommendationsModal({ open, onClose, onInstalled }: SkillR
                                 {skill.isAdded ? (
                                     <span className="inline-flex shrink-0 items-center gap-1 py-1 text-xs text-muted-foreground">
                                         <Check className="size-3.5" aria-hidden="true" />
-                                        已安装
+                                        {translate("canvasA.skillSuggestion.installedBadge")}
                                     </span>
                                 ) : (
                                     <Button
@@ -150,15 +151,15 @@ export function SkillRecommendationsModal({ open, onClose, onInstalled }: SkillR
                                         disabled={Boolean(installing)}
                                         loading={installing === skill.skillId}
                                         onClick={() => void install(industry, [skill.skillId])}
-                                        aria-label={`安装技能 ${skill.skillName}`}
+                                        aria-label={translate("shared.skills.skillRecommendationsModal.installSkill", { v0: String(skill.skillName) })}
                                     >
-                                        安装
+                                        {translate("canvasA.skillSuggestion.install")}
                                     </Button>
                                 )}
                             </li>
                         ))}
                     </ul>
-                    <p className="text-xs leading-5 text-muted-foreground">不想让某个技能被自动使用，可以在 Agent 设置的 Skills 里把它改成「仅手动」。</p>
+                    <p className="text-xs leading-5 text-muted-foreground">{translate("shared.skills.skillRecommendationsModal.toPreventASkillFromBeingUsedAutomaticallySetIt")}</p>
                 </div>
             ) : null}
         </AppModal>

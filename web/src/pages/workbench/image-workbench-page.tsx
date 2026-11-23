@@ -49,6 +49,7 @@ import { SceneLibraryModal } from "./workbench-scene-library";
 import { WorkbenchViewer } from "./workbench-viewer";
 import "./workbench.css";
 
+import { currentLocale, translate } from "@/i18n";
 export { filterWorkbenchTools } from "./workbench-presets";
 export { workbenchTaskSnapshot } from "./workbench-batches";
 export type { WorkbenchReference } from "./workbench-composer";
@@ -108,7 +109,7 @@ function mediaKindOfFile(file: File): MediaKind | null {
 }
 
 function mediaLabel(kind: MediaKind) {
-    return kind === "image" ? "图片" : kind === "video" ? "视频" : "音频";
+    return kind === "image" ? translate("account.feedback.image") : kind === "video" ? translate("account.feedback.video") : translate("account.settings.modelConfig.capabilities.audio");
 }
 
 /** 视频的首帧、尾帧各只能有一个；新设为首帧/尾帧时把原来的降为普通参考。 */
@@ -230,7 +231,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
     const quickTools = useMemo(() => workbenchQuickTools(tools), [tools]);
     const promptRequired = workbenchPromptRequired(tool);
     const missingInput = missingWorkbenchInput(tool, references);
-    const kindLabel = kind === "image" ? "图片" : "视频";
+    const kindLabel = kind === "image" ? translate("account.feedback.image") : translate("account.feedback.video");
 
     const promptReferences = useMemo<CanvasResourceReference[]>(
         () =>
@@ -264,7 +265,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                     setTools(directory.tools.filter((item) => item.kind === kind && item.enabled !== false && (!capabilitySupportedModes(item).length || capabilitySupportedModes(item).includes(kind))).sort((a, b) => a.sortOrder - b.sortOrder));
                 })
                 .catch((error) => {
-                    if (!signal?.aborted) setDirectoryError(errorMessage(error, "场景目录加载失败"));
+                    if (!signal?.aborted) setDirectoryError(errorMessage(error, translate("ecommerce.workbench.imageWorkbenchPage.failedToLoadScenarioCatalog")));
                 })
                 .finally(() => {
                     if (!signal?.aborted) setDirectoryLoading(false);
@@ -404,7 +405,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
             setTasks(result);
             return result;
         } catch (error) {
-            if (!loadFailedRef.current) message.error(errorMessage(error, "作品列表加载失败"));
+            if (!loadFailedRef.current) message.error(errorMessage(error, translate("ecommerce.workbench.imageWorkbenchPage.failedToLoadGallery")));
             loadFailedRef.current = true;
             return null;
         } finally {
@@ -557,7 +558,8 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                     const detailLoaded = Boolean(detail?.resultJson);
                     const missing = detailLoaded || detailErrors.has(task.id) ? 0 : Math.max(0, expected - taskOutputs.length);
                     for (let slot = 0; slot < missing; slot += 1) tiles.push({ type: "loading", key: `${task.id}:loading:${slot}`, task });
-                    if (detailLoaded && !taskOutputs.length) tiles.push({ type: "failed", key: `${task.id}:missing`, task: { ...task, status: "failed", error: "作品已生成，但暂时无法载入预览" } });
+                    if (detailLoaded && !taskOutputs.length)
+                        tiles.push({ type: "failed", key: `${task.id}:missing`, task: { ...task, status: "failed", error: translate("ecommerce.workbench.imageWorkbenchPage.theWorkIsGeneratedButItsPreviewCannotBeLoaded") } });
                     if (detailLoaded) counts.total += taskOutputs.length - expected;
                     return;
                 }
@@ -675,7 +677,8 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
         }
         dropped.forEach(revokeReferencePreview);
         setReferences(kept);
-        if (dropped.length) message.info(`${dropped.length} 个素材不适用于${next ? `“${next.name}”` : "自由创作"}，已移除`);
+        if (dropped.length)
+            message.info(translate("ecommerce.workbench.imageWorkbenchPage.assetsDoNotApplyToAndWereRemoved", { v0: String(dropped.length), v1: String(next ? `“${next.name}”` : translate("ecommerce.workbench.imageWorkbenchPage.freeCreation")) }));
     };
 
     const chooseTool = (next: WorkbenchTool | null) => {
@@ -744,8 +747,11 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                 if (!target) {
                     rejected.add(
                         preferredSlotKey
-                            ? `“${slots.find((entry) => entry.key === preferredSlotKey)?.name || "该槽位"}”只接受${(slots.find((entry) => entry.key === preferredSlotKey)?.mediaTypes || []).map(mediaLabel).join("、")}或已满`
-                            : `没有可以放${mediaLabel(item.kind)}的素材位置`,
+                            ? translate("ecommerce.workbench.imageWorkbenchPage.onlyAcceptsOrIsFull", {
+                                  v0: String(slots.find((entry) => entry.key === preferredSlotKey)?.name || translate("ecommerce.workbench.imageWorkbenchPage.thisSlot")),
+                                  v1: String((slots.find((entry) => entry.key === preferredSlotKey)?.mediaTypes || []).map(mediaLabel).join("、")),
+                              })
+                            : translate("ecommerce.workbench.imageWorkbenchPage.noAssetSlotIsAvailableFor", { v0: String(mediaLabel(item.kind)) }),
                     );
                     if (item.previewUrl.startsWith("blob:")) URL.revokeObjectURL(item.previewUrl);
                     continue;
@@ -756,7 +762,11 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                 const sameKind = [...referencesRef.current, ...pending].filter((entry) => entry.kind === item.kind).length;
                 const limit = referenceLimitFor(item.kind);
                 if (sameKind >= limit) {
-                    rejected.add(limit ? `${mediaLabel(item.kind)}最多 ${limit} 个` : `当前模型不支持参考${mediaLabel(item.kind)}`);
+                    rejected.add(
+                        limit
+                            ? translate("ecommerce.workbench.imageWorkbenchPage.upToAssets", { v0: String(mediaLabel(item.kind)), v1: String(limit) })
+                            : translate("ecommerce.workbench.imageWorkbenchPage.theCurrentModelDoesNotSupportReferences", { v0: String(mediaLabel(item.kind)) }),
+                    );
                     if (item.previewUrl.startsWith("blob:")) URL.revokeObjectURL(item.previewUrl);
                     continue;
                 }
@@ -789,7 +799,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
             const mediaKind = mediaKindOfFile(file);
             return mediaKind && allowed.includes(mediaKind) ? [{ file, mediaKind }] : [];
         });
-        if (typed.length < list.length) message.warning(kind === "image" ? "只能上传图片" : "只能上传图片、视频或音频");
+        if (typed.length < list.length) message.warning(kind === "image" ? translate("ecommerce.workbench.imageWorkbenchPage.onlyImagesCanBeUploaded") : translate("ecommerce.workbench.imageWorkbenchPage.onlyImagesVideosOrAudioCanBeUploaded"));
         const accepted = appendReferences(
             typed.map(({ file, mediaKind }) => ({ kind: mediaKind, name: file.name, previewUrl: URL.createObjectURL(file), file })),
             preferredSlotKey,
@@ -803,7 +813,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                     });
                     setReferences((current) => current.map((item) => (item.id === reference.id ? { ...item, resourceId: resource.id, uploading: false, progress: 100 } : item)));
                 } catch (error) {
-                    setReferences((current) => current.map((item) => (item.id === reference.id ? { ...item, uploading: false, error: errorMessage(error, "上传失败") } : item)));
+                    setReferences((current) => current.map((item) => (item.id === reference.id ? { ...item, uploading: false, error: errorMessage(error, translate("library.assets.batch.uploadFailed")) } : item)));
                 }
             }),
         );
@@ -813,7 +823,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
     const addResourceReferences = async (items: Array<{ resourceId: string; kind: MediaKind; name: string }>, preferredSlotKey?: string) => {
         const resolved = await Promise.all(items.map(async (item) => ({ ...item, previewUrl: (await resolveWorkbenchResourceURL(item.resourceId, item.kind === "image" ? "thumbnail" : "original")) || "" })));
         const available = resolved.filter((item) => item.previewUrl);
-        if (available.length < resolved.length) message.warning(`${resolved.length - available.length} 个素材已不存在或暂时无法读取，未添加`);
+        if (available.length < resolved.length) message.warning(translate("ecommerce.workbench.imageWorkbenchPage.assetsNoLongerExistOrCannotBeReadRightNow", { v0: String(resolved.length - available.length) }));
         return appendReferences(available, preferredSlotKey);
     };
 
@@ -849,8 +859,8 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
         params.delete("ref");
         setSearchParams(params, { replace: true });
         if (!/^[A-Za-z0-9_-]{1,80}$/.test(resourceId)) return;
-        void addResourceReferences([{ resourceId, kind: "image", name: "商品图" }]).then((accepted) => {
-            if (accepted.length) message.success("已放入商品首帧，描述镜头后即可生成视频");
+        void addResourceReferences([{ resourceId, kind: "image", name: translate("ecommerce.workbench.imageWorkbenchPage.productImages2") }]).then((accepted) => {
+            if (accepted.length) message.success(translate("ecommerce.workbench.imageWorkbenchPage.productOpeningFrameAddedDescribeTheShotToGenerateA"));
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [directoryLoading, kind, searchParams, tool]);
@@ -893,31 +903,31 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
         params.delete("tool");
         params.delete("preset");
         setSearchParams(params, { replace: true });
-        message.success("创作面板已重置，作品不受影响");
+        message.success(translate("ecommerce.workbench.imageWorkbenchPage.creationPanelResetYourWorksAreUnaffected"));
     };
 
     // ---------- 提交 ----------
     const disabledReason = !selectedModel
-        ? `先选择${kindLabel}模型`
+        ? translate("ecommerce.workbench.imageWorkbenchPage.chooseAModelFirst", { v0: String(kindLabel) })
         : missingInput
-          ? `请上传“${missingInput.name || "必填素材"}”`
+          ? translate("ecommerce.workbench.imageWorkbenchPage.upload", { v0: String(missingInput.name || translate("ecommerce.workbench.imageWorkbenchPage.requiredAsset")) })
           : references.some((reference) => reference.uploading)
-            ? "素材上传中，请稍候"
+            ? translate("ecommerce.workbench.imageWorkbenchPage.assetsAreUploadingPleaseWait")
             : references.some((reference) => reference.error)
-              ? "请移除上传失败的素材"
+              ? translate("ecommerce.workbench.imageWorkbenchPage.removeAssetsThatFailedToUpload")
               : promptRequired && !prompt.trim()
-                ? "请填写画面描述"
+                ? translate("ecommerce.workbench.imageWorkbenchPage.enterASceneDescription")
                 : undefined;
 
     const buildBatchRequest = (): BatchRequest | string => {
         const submittedPrompt = normalizeCanvasNodeMentionTokens(prompt.trim(), promptReferences);
-        if (promptRequired && !submittedPrompt) return "请填写画面描述";
+        if (promptRequired && !submittedPrompt) return translate("ecommerce.workbench.imageWorkbenchPage.enterASceneDescription");
         const missing = missingWorkbenchInput(tool, references);
-        if (missing) return `请上传“${missing.name || "必填素材"}”`;
-        if (!selectedModel || !models.includes(selectedModel)) return `请选择可用的${kindLabel}模型`;
-        if (!isAiConfigReady(config, selectedModel)) return "当前模型配置不完整，请先完成模型设置";
-        if (references.some((reference) => reference.uploading || reference.error || !reference.resourceId)) return "请等待素材上传完成，或移除上传失败的素材";
-        if (submittedPrompt.length > promptMaxChars) return "描述超过当前模型支持的长度";
+        if (missing) return translate("ecommerce.workbench.imageWorkbenchPage.upload", { v0: String(missing.name || translate("ecommerce.workbench.imageWorkbenchPage.requiredAsset")) });
+        if (!selectedModel || !models.includes(selectedModel)) return translate("ecommerce.workbench.imageWorkbenchPage.selectAnAvailableModel", { v0: String(kindLabel) });
+        if (!isAiConfigReady(config, selectedModel)) return translate("ecommerce.workbench.imageWorkbenchPage.theCurrentModelSettingsAreIncompleteFinishModelSetupFirst");
+        if (references.some((reference) => reference.uploading || reference.error || !reference.resourceId)) return translate("ecommerce.workbench.imageWorkbenchPage.waitForAssetsToFinishUploadingOrRemoveFailedUploads");
+        if (submittedPrompt.length > promptMaxChars) return translate("ecommerce.workbench.imageWorkbenchPage.theDescriptionExceedsThisModelSSupportedLength");
         const logicalModelId = logicalModelIDForConfig({ ...composerConfig, model: selectedModel });
         const channel = resolveModelChannel(config, selectedModel);
         const imageRequest = kind === "image" && imageProfile ? normalizeImageValue(imageProfile, { size: ratio, quality, imageResolution, imageParameters: config.imageParameters, count: "1", transparentBackground: config.transparentBackground }) : null;
@@ -1020,7 +1030,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                     updateLocalBatch(batchId, (batch) => ({ ...batch, states: batch.states.map((state, itemIndex) => (itemIndex === index ? "created" : state)), receipts: { ...batch.receipts, [index]: task } }));
                 } catch (error) {
                     // 一个任务失败（并发上限、积分不足、参数被拒）时后面的大概率同样失败：停下来，交给用户决定是否继续提交。
-                    failure = errorMessage(error, "任务提交失败");
+                    failure = errorMessage(error, translate("ecommerce.workbench.imageWorkbenchPage.taskSubmissionFailed"));
                     const remaining = new Set(indices.slice(position));
                     updateLocalBatch(batchId, (batch) => ({ ...batch, error: failure, states: batch.states.map((state, itemIndex) => (remaining.has(itemIndex) ? "failed" : state)) }));
                     break;
@@ -1031,10 +1041,10 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
             setBusy(false);
             pollKickRef.current();
         }
-        const unit = kind === "image" ? "批" : "条";
-        if (created && !failure) message.success(created > 1 ? `已提交 ${created} 个任务，正在生成` : "已提交，正在生成");
-        else if (created) message.warning(`已提交 ${created} 个任务，其余未提交：${failure}`);
-        else if (failure) message.error(indices.length > 1 ? `这${unit}没有提交成功：${failure}` : failure);
+        const unit = kind === "image" ? translate("ecommerce.workbench.imageWorkbenchPage.batch") : translate("ecommerce.workbench.imageWorkbenchPage.videos");
+        if (created && !failure) message.success(created > 1 ? translate("ecommerce.workbench.imageWorkbenchPage.submittedTasksGenerating", { v0: String(created) }) : translate("ecommerce.workbench.imageWorkbenchPage.submittedGenerating"));
+        else if (created) message.warning(translate("ecommerce.workbench.imageWorkbenchPage.submittedTasksTheRestWereNotSubmitted", { v0: String(created), v1: String(failure) }));
+        else if (failure) message.error(indices.length > 1 ? translate("ecommerce.workbench.imageWorkbenchPage.thisCouldNotBeSubmitted", { v0: String(unit), v1: String(failure) }) : failure);
     };
 
     const submit = async () => {
@@ -1093,9 +1103,9 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
         markTaskBusy(task.id, true);
         try {
             applyTaskUpdate(await cancelGenerationTask(task.id));
-            if (notify) message.success("任务已取消");
+            if (notify) message.success(translate("canvasPage.taskStatus.canceled"));
         } catch (error) {
-            message.error(errorMessage(error, "取消任务失败"));
+            message.error(errorMessage(error, translate("ecommerce.workbench.imageWorkbenchPage.failedToCancelTask")));
         } finally {
             markTaskBusy(task.id, false);
         }
@@ -1105,11 +1115,11 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
         markTaskBusy(task.id, true);
         try {
             applyTaskUpdate(await retryGenerationTask(task.id));
-            if (notify) message.success("已重新提交");
+            if (notify) message.success(translate("ecommerce.workbench.imageWorkbenchPage.resubmitted"));
             pollKickRef.current();
             return true;
         } catch (error) {
-            message.error(errorMessage(error, "重新生成失败"));
+            message.error(errorMessage(error, translate("ecommerce.workbench.imageWorkbenchPage.regenerationFailed")));
             return false;
         } finally {
             markTaskBusy(task.id, false);
@@ -1125,13 +1135,13 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                 detail = await queryGenerationTask(first.id);
                 setDetails((current) => ({ ...current, [first.id]: detail! }));
             } catch (error) {
-                message.error(errorMessage(error, "参数读取失败"));
+                message.error(errorMessage(error, translate("ecommerce.workbench.imageWorkbenchPage.failedToReadSettings")));
                 return;
             }
         }
         const snapshot = workbenchTaskSnapshot(detail);
         if (!snapshot || snapshot.kind !== kind) {
-            message.warning("这组作品没有可复用的参数");
+            message.warning(translate("ecommerce.workbench.imageWorkbenchPage.thisGroupHasNoReusableSettings"));
             return;
         }
         const restoredTool = snapshot.toolId ? tools.find((item) => item.id === snapshot.toolId) || null : null;
@@ -1191,7 +1201,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
         setSearchParams(params, { replace: true });
         setViewer(null);
         setMobileTab("compose");
-        message.success("参数已载入创作面板，确认后点击生成");
+        message.success(translate("ecommerce.workbench.imageWorkbenchPage.settingsLoadedIntoTheCreationPanelReviewThemAndClick"));
     };
 
     const downloadOutputs = async (items: Array<{ output: WorkbenchOutput; ordinal: number }>, baseName: string) => {
@@ -1206,23 +1216,23 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
         const failures: string[] = [];
         for (const result of resolved) {
             if (result.status === "rejected") {
-                failures.push(errorMessage(result.reason, "下载失败"));
+                failures.push(errorMessage(result.reason, translate("canvasA.assetView.downloadFailed")));
                 continue;
             }
             if (started > 0) await new Promise((resolve) => window.setTimeout(resolve, BATCH_DOWNLOAD_INTERVAL_MS));
             startBrowserDownload(result.value.href, result.value.fileName);
             started += 1;
         }
-        if (!started) message.error(`下载失败：${failures[0] || "没有可下载的作品"}`);
-        else if (failures.length) message.warning(`已开始下载 ${started} 个文件，${failures.length} 个失败：${failures[0]}`);
-        else if (items.length > 1) message.success(`已开始下载 ${started} 个文件`);
+        if (!started) message.error(translate("ecommerce.workbench.imageWorkbenchPage.downloadFailed", { v0: String(failures[0] || translate("ecommerce.workbench.imageWorkbenchPage.noDownloadableWorks")) }));
+        else if (failures.length) message.warning(translate("ecommerce.workbench.imageWorkbenchPage.startedDownloadingFilesFailed", { v0: String(started), v1: String(failures.length), v2: String(failures[0]) }));
+        else if (items.length > 1) message.success(translate("ecommerce.workbench.imageWorkbenchPage.startedDownloadingFiles", { v0: String(started) }));
     };
 
     const useAsReference = async (output: WorkbenchOutput) => {
         if (!output.resourceId) return;
-        const accepted = await addResourceReferences([{ resourceId: output.resourceId, kind: "image", name: "生成结果" }]);
+        const accepted = await addResourceReferences([{ resourceId: output.resourceId, kind: "image", name: translate("library.tasks.detail.generated") }]);
         if (accepted.length) {
-            message.success("已加入商品素材，可继续调整描述再生成");
+            message.success(translate("ecommerce.workbench.imageWorkbenchPage.addedToProductAssetsAdjustTheDescriptionAndGenerateAgain"));
             setViewer(null);
             setMobileTab("compose");
         }
@@ -1236,9 +1246,9 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
     const copyText = async (text: string) => {
         try {
             await navigator.clipboard.writeText(text);
-            message.success("提示词已复制");
+            message.success(translate("ecommerce.workbench.imageWorkbenchPage.promptCopied"));
         } catch {
-            message.error("复制失败，请手动选择文本复制");
+            message.error(translate("ecommerce.workbench.imageWorkbenchPage.copyFailedSelectAndCopyTheTextManually"));
         }
     };
 
@@ -1264,14 +1274,14 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
             const active = batch.tasks.filter(isActiveWorkbenchTask);
             if (!active.length) return;
             modal.confirm({
-                title: `取消这组 ${active.length} 个未完成的任务？`,
-                content: "已完成的作品会保留；未完成的任务停止生成，费用按任务计费规则处理。",
-                okText: "取消任务",
-                cancelText: "返回",
+                title: translate("ecommerce.workbench.imageWorkbenchPage.cancelTheUnfinishedTasksInThisGroup", { v0: String(active.length) }),
+                content: translate("ecommerce.workbench.imageWorkbenchPage.completedWorksWillBeKeptUnfinishedTasksWillStopGenerating"),
+                okText: translate("canvasA.activeTasks.cancel"),
+                cancelText: translate("ecommerce.workbench.imageWorkbenchPage.back"),
                 okButtonProps: { danger: true },
                 onOk: async () => {
                     for (const task of active) await cancelTask(task, false);
-                    message.success("已取消未完成的任务");
+                    message.success(translate("ecommerce.workbench.imageWorkbenchPage.unfinishedTasksCancelled"));
                 },
             });
         },
@@ -1282,7 +1292,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                 if (!(await retryTask(task, false))) break;
                 retried += 1;
             }
-            if (retried) message.success(`已重新提交 ${retried} 个任务`);
+            if (retried) message.success(translate("ecommerce.workbench.imageWorkbenchPage.resubmittedTasks", { v0: String(retried) }));
         },
         resume: (batch) => {
             const local = localBatchesRef.current.find((item) => `batch:${item.id}` === batch.key);
@@ -1326,32 +1336,35 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
     const viewerDetail = viewerOutput ? details[viewerOutput.taskId] : undefined;
 
     // ---------- 文案 ----------
-    const unit = kind === "image" ? "张" : "条";
+    const unit = kind === "image" ? translate("canvasA.characterLibrary.pageItem") : translate("ecommerce.workbench.imageWorkbenchPage.videos");
     const estimateLabel = !creditsEnabled
         ? ""
         : estimate.credits !== null
-          ? `${estimate.estimated || estimate.tone !== "quote" ? "预估" : "预计"} ${estimate.credits.toLocaleString("zh-CN", { maximumFractionDigits: 6 })} 积分`
+          ? translate("ecommerce.workbench.imageWorkbenchPage.credits", {
+                v0: String(estimate.estimated || estimate.tone !== "quote" ? translate("ecommerce.workbench.imageWorkbenchPage.estimated") : translate("ecommerce.workbench.imageWorkbenchPage.estimated2")),
+                v1: String(estimate.credits.toLocaleString(currentLocale(), { maximumFractionDigits: 6 })),
+            })
           : estimate.tone === "loading"
-            ? "正在计算积分"
+            ? translate("ecommerce.workbench.imageWorkbenchPage.calculatingCredits")
             : estimate.tone === "usage"
-              ? "按实际用量结算"
-              : "报价暂不可用";
+              ? translate("ecommerce.workbench.imageWorkbenchPage.chargedByActualUsage")
+              : translate("ecommerce.workbench.imageWorkbenchPage.quoteTemporarilyUnavailable");
     const countHint =
         kind === "image"
             ? plan.length > 1
-                ? `模型单次最多 ${maxOutputsPerTask} 张，将拆成 ${plan.length} 个任务并行生成`
+                ? translate("ecommerce.workbench.imageWorkbenchPage.theModelSupportsImagesPerRequestSplittingIntoParallelTasks", { v0: String(maxOutputsPerTask), v1: String(plan.length) })
                 : requestedCount > 1
-                  ? `一个任务一次出 ${requestedCount} 张`
-                  : `最多 ${batchLimit} 张`
+                  ? translate("ecommerce.workbench.imageWorkbenchPage.oneTaskGeneratesImagesAtOnce", { v0: String(requestedCount) })
+                  : translate("ecommerce.workbench.imageWorkbenchPage.upToImages", { v0: String(batchLimit) })
             : requestedCount > 1
-              ? `并行提交 ${requestedCount} 个任务，每条独立生成`
-              : `最多 ${batchLimit} 条`;
-    const limitHint = requestedCount >= batchLimit && batchLimit < (kind === "image" ? 12 : 8) ? `账号同时最多 ${activeTaskLimit} 个任务` : "";
+              ? translate("ecommerce.workbench.imageWorkbenchPage.submitTasksInParallelEachVideoIsGeneratedIndependently", { v0: String(requestedCount) })
+              : translate("ecommerce.workbench.imageWorkbenchPage.upToVideos", { v0: String(batchLimit) });
+    const limitHint = requestedCount >= batchLimit && batchLimit < (kind === "image" ? 12 : 8) ? translate("ecommerce.workbench.imageWorkbenchPage.upToConcurrentTasksPerAccount", { v0: String(activeTaskLimit) }) : "";
     const durationOptions = videoProfile
         ? (videoProfile.duration.selection === "enum"
               ? videoProfile.duration.values || []
               : Array.from({ length: Math.floor(((videoProfile.duration.max || 15) - (videoProfile.duration.min || 1)) / (videoProfile.duration.step || 1)) + 1 }, (_, index) => (videoProfile.duration.min || 1) + index * (videoProfile.duration.step || 1))
-          ).map((value) => ({ value: String(value), label: `${value} 秒` }))
+          ).map((value) => ({ value: String(value), label: translate("ecommerce.workbench.imageWorkbenchPage.s", { v0: String(value) }) }))
         : [];
     const bothKinds = features.imageWorkbenchEnabled && features.videoWorkbenchEnabled;
     const galleryCount = galleryBatches.reduce((sum, batch) => sum + batch.outputs.length, 0);
@@ -1362,7 +1375,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                 <ImageSizePicker profile={imageProfile} size={ratio} quality={quality} imageResolution={imageResolution} ratioHint={(value) => workbenchRatioUsage("image", value)} onChange={updateImageSettings} />
                 {imageProfile.quality.supported && !imageResolutionUsesQuality(imageProfile) && imageProfile.quality.values.length > 1 ? (
                     <ChoiceChips
-                        label="画质"
+                        label={translate("ecommerce.workbench.imageWorkbenchPage.quality")}
                         value={quality}
                         options={imageProfile.quality.values.map((value) => ({ value, label: imageQualityLabel(value) }))}
                         onChange={(value) => {
@@ -1376,7 +1389,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
             <>
                 {videoProfile.durationSupported !== false && durationOptions.length ? (
                     <ChoiceChips
-                        label="时长"
+                        label={translate("canvasA.assetView.duration")}
                         value={seconds}
                         options={durationOptions}
                         onChange={(value) => {
@@ -1387,7 +1400,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                 ) : null}
                 {videoProfile.ratios.length ? (
                     <ChoiceChips
-                        label="画幅"
+                        label={translate("ecommerce.workbench.imageWorkbenchPage.frameSize")}
                         value={ratio}
                         options={videoRatioOptions(videoProfile.ratios)}
                         columns={videoProfile.ratios.length <= 4 ? videoProfile.ratios.length : 3}
@@ -1399,7 +1412,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                 ) : null}
                 {videoProfile.resolutions.length ? (
                     <ChoiceChips
-                        label="清晰度"
+                        label={translate("ecommerce.workbench.imageWorkbenchPage.sharpness")}
                         value={videoQuality}
                         options={videoProfile.resolutions.map((value) => ({ value: value.replace(/p$/i, ""), label: value }))}
                         onChange={(value) => {
@@ -1411,10 +1424,26 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                 <SwitchRow
                     items={[
                         ...(videoProfile.generateAudio.supported
-                            ? [{ key: "audio", label: "生成音频", detail: "同步生成环境音或配乐", checked: config.videoGenerateAudio === "true", onChange: (value: boolean) => updateConfig("videoGenerateAudio", String(value)) }]
+                            ? [
+                                  {
+                                      key: "audio",
+                                      label: translate("ecommerce.workbench.imageWorkbenchPage.generateAudio"),
+                                      detail: translate("ecommerce.workbench.imageWorkbenchPage.generateAmbientSoundOrMusicAlongsideTheVideo"),
+                                      checked: config.videoGenerateAudio === "true",
+                                      onChange: (value: boolean) => updateConfig("videoGenerateAudio", String(value)),
+                                  },
+                              ]
                             : []),
                         ...(videoProfile.watermark.supported
-                            ? [{ key: "watermark", label: "添加水印", detail: "投放素材建议关闭", checked: config.videoWatermark === "true", onChange: (value: boolean) => updateConfig("videoWatermark", String(value)) }]
+                            ? [
+                                  {
+                                      key: "watermark",
+                                      label: translate("ecommerce.workbench.imageWorkbenchPage.addWatermark"),
+                                      detail: translate("ecommerce.workbench.imageWorkbenchPage.recommendedOffForAdvertisingAssets"),
+                                      checked: config.videoWatermark === "true",
+                                      onChange: (value: boolean) => updateConfig("videoWatermark", String(value)),
+                                  },
+                              ]
                             : []),
                     ]}
                 />
@@ -1427,34 +1456,37 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                 <div className="wb-mobile-tabs">
                     <SegmentedControl<"compose" | "gallery">
                         block
-                        ariaLabel="切换创作面板与作品"
+                        ariaLabel={translate("ecommerce.workbench.imageWorkbenchPage.switchBetweenCreationPanelAndGallery")}
                         value={mobileTab}
                         onChange={setMobileTab}
                         options={[
-                            { value: "compose", label: "创作" },
-                            { value: "gallery", label: galleryCount ? `作品 ${galleryCount}` : "作品" },
+                            { value: "compose", label: translate("nav.tools.create") },
+                            { value: "gallery", label: galleryCount ? translate("ecommerce.workbench.imageWorkbenchPage.works", { v0: String(galleryCount) }) : translate("ecommerce.workbench.imageWorkbenchPage.works2") },
                         ]}
                     />
                 </div>
-                <aside className="wb-composer" aria-label={`${kindLabel}创作面板`} onPasteCapture={handlePaste}>
+                <aside className="wb-composer" aria-label={translate("ecommerce.workbench.imageWorkbenchPage.creationPanel", { v0: String(kindLabel) })} onPasteCapture={handlePaste}>
                     <header className="wb-composer-head">
-                        <h1 className="sr-only">{kindLabel}生成</h1>
+                        <h1 className="sr-only">
+                            {kindLabel}
+                            {translate("account.welcome.chapters.motion.label")}
+                        </h1>
                         {bothKinds ? (
-                            <nav className="wb-kind-switch" aria-label="切换生成类型">
+                            <nav className="wb-kind-switch" aria-label={translate("ecommerce.workbench.imageWorkbenchPage.switchGenerationType")}>
                                 <button type="button" aria-pressed={kind === "image"} className={kind === "image" ? "is-active" : ""} onClick={() => kind !== "image" && navigate("/toolbox/image")}>
                                     <ImageIcon />
-                                    商品图片
+                                    {translate("ecommerce.workbench.imageWorkbenchPage.productImages")}
                                 </button>
                                 <button type="button" aria-pressed={kind === "video"} className={kind === "video" ? "is-active" : ""} onClick={() => kind !== "video" && navigate("/toolbox/video")}>
                                     <Clapperboard />
-                                    商品视频
+                                    {translate("ecommerce.workbench.imageWorkbenchPage.productVideos")}
                                 </button>
                             </nav>
                         ) : (
-                            <strong className="wb-composer-title">{kind === "image" ? "商品图片" : "商品视频"}</strong>
+                            <strong className="wb-composer-title">{kind === "image" ? translate("ecommerce.workbench.imageWorkbenchPage.productImages") : translate("ecommerce.workbench.imageWorkbenchPage.productVideos")}</strong>
                         )}
-                        <Tooltip title="清空场景、素材、描述和参数（作品不受影响）">
-                            <button type="button" className="wb-icon-button" data-icon-only aria-label="重置创作面板" onClick={resetComposer}>
+                        <Tooltip title={translate("ecommerce.workbench.imageWorkbenchPage.clearSceneAssetsDescriptionAndSettingsYourWorksAreUnaffected")}>
+                            <button type="button" className="wb-icon-button" data-icon-only aria-label={translate("ecommerce.workbench.imageWorkbenchPage.resetCreationPanel")} onClick={resetComposer}>
                                 <RotateCcw />
                             </button>
                         </Tooltip>
@@ -1491,7 +1523,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                             }}
                             editor={
                                 <CanvasResourceMentionTextarea
-                                    aria-label="画面描述，可输入 @ 引用素材"
+                                    aria-label={translate("ecommerce.workbench.imageWorkbenchPage.describeTheSceneTypeToReferenceAssets")}
                                     className="wb-prompt-input"
                                     containerClassName="wb-prompt-editor"
                                     value={prompt}
@@ -1500,12 +1532,12 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                                     onSubmit={() => void submit()}
                                     sendOnEnter={false}
                                     style={{ color: "var(--wb-ink)" }}
-                                    placeholder={kind === "image" ? "例如：白色陶瓷马克杯放在浅色原木桌面上，清晨自然窗光，背景简洁，商品居中，保留杯身印花与把手细节" : "例如：镜头从商品正面缓慢推近，柔和光线从左向右扫过瓶身，结尾停在完整包装上 1 秒"}
+                                    placeholder={kind === "image" ? translate("ecommerce.workbench.imageWorkbenchPage.eGAWhiteCeramicMugOnALightWooden") : translate("ecommerce.workbench.imageWorkbenchPage.eGSlowlyPushInFromTheFrontOfThe")}
                                     maxLength={promptMaxChars}
                                 />
                             }
                         />
-                        <ComposerSection title="模型与规格" hint="可选参数随模型变化">
+                        <ComposerSection title={translate("ecommerce.workbench.imageWorkbenchPage.modelAndSpecifications")} hint={translate("ecommerce.workbench.imageWorkbenchPage.availableSettingsVaryByModel")}>
                             {models.length ? (
                                 <ModelPicker
                                     config={config}
@@ -1521,20 +1553,20 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                                         updateConfig(kind === "image" ? "imageModel" : "videoModel", value);
                                         updateConfig("model", value);
                                     }}
-                                    placeholder={`选择${kindLabel}模型`}
+                                    placeholder={translate("ecommerce.workbench.imageWorkbenchPage.selectAModel", { v0: String(kindLabel) })}
                                 />
                             ) : (
                                 <div className="wb-inline-error">
-                                    <span>暂无可用的{kindLabel}模型</span>
+                                    <span>{translate("ecommerce.workbench.imageWorkbenchPage.noModel", { kind: kindLabel })}</span>
                                     <a href="/settings?section=models" target="_blank" rel="noreferrer">
-                                        去模型设置
+                                        {translate("ecommerce.workbench.imageWorkbenchPage.openModelSettings")}
                                     </a>
                                 </div>
                             )}
                             {selectedModel ? specControls : null}
                             {selectedModel ? <p className="wb-muted-note">{WORKBENCH_SPEC_TIPS[kind]}</p> : null}
                         </ComposerSection>
-                        <ComposerSection title="生成数量" hint={limitHint ? `${countHint} · ${limitHint}` : countHint}>
+                        <ComposerSection title={translate("library.tasks.params.count")} hint={limitHint ? `${countHint} · ${limitHint}` : countHint}>
                             <CountStepper kind={kind} value={requestedCount} max={batchLimit} onChange={changeCount} />
                         </ComposerSection>
                     </div>
@@ -1630,22 +1662,22 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
             ) : null}
 
             <AppModal
-                title="描述里已有内容"
+                title={translate("ecommerce.workbench.imageWorkbenchPage.theDescriptionAlreadyHasContent")}
                 open={Boolean(presetPending)}
                 onCancel={() => setPresetPending(null)}
                 footer={[
                     <Button key="cancel" onClick={() => setPresetPending(null)}>
-                        返回
+                        {translate("ecommerce.workbench.imageWorkbenchPage.back")}
                     </Button>,
                     <Button key="append" onClick={() => applyPreset("append")}>
-                        追加到末尾
+                        {translate("ecommerce.workbench.imageWorkbenchPage.appendToTheEnd")}
                     </Button>,
                     <Button key="replace" type="primary" onClick={() => applyPreset("replace")}>
-                        替换
+                        {translate("ecommerce.workbench.imageWorkbenchPage.replace")}
                     </Button>,
                 ]}
             >
-                {presetPending ? <p className="wb-modal-copy">将应用“{presetPending.name}”模板。可以替换当前描述，也可以追加到末尾。</p> : null}
+                {presetPending ? <p className="wb-modal-copy">{translate("ecommerce.workbench.imageWorkbenchPage.currentTemplate", { name: presetPending.name })}</p> : null}
             </AppModal>
         </WorkspacePage>
     );

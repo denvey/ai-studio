@@ -27,5 +27,5 @@ test("password recovery keeps the approved login placement and dedicated route",
     expect(recoverySource).toContain('onViewChange("login")');
     expect(authAPISource).toContain('http.post<{ sent: boolean }>("/auth/password-reset-code"');
     expect(authAPISource).toContain('http.post<{ reset: boolean }>("/auth/password-reset"');
-    expect(emailSettingsSource).toContain("发送注册与密码找回验证码");
+    expect(emailSettingsSource).toContain('translate("admin.emailSettingsPanel.sendRegistrationAndPasswordRecoveryCodes")');
 });

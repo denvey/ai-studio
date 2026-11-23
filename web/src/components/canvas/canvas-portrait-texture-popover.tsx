@@ -39,8 +39,8 @@ export function CanvasPortraitTexturePopover({ value, placement = "topLeft", onC
             <div className="space-y-1">
                 {PORTRAIT_TEXTURE_GROUPS.map((group) => (
                     <div key={group.key} className="grid grid-cols-[60px_minmax(0,1fr)] items-center gap-2 py-1">
-                        <span className="text-[var(--fs-label)]" style={{ color: theme.node.muted }}>{group.label}</span>
-                        <div className="grid min-w-0 grid-cols-3 gap-1" role="radiogroup" aria-label={group.label}>
+                        <span className="text-[var(--fs-label)]" style={{ color: theme.node.muted }}>{t(`canvasTools.portraitTexture.${group.key}.label`)}</span>
+                        <div className="grid min-w-0 grid-cols-3 gap-1" role="radiogroup" aria-label={t(`canvasTools.portraitTexture.${group.key}.label`)}>
                             {group.options.map((option) => {
                                 const selected = settings[group.key] === option.value;
                                 return (
@@ -58,7 +58,7 @@ export function CanvasPortraitTexturePopover({ value, placement = "topLeft", onC
                                         }}
                                         onClick={() => updateSetting(group.key, option.value)}
                                     >
-                                        <span className="block truncate">{option.label}</span>
+                                        <span className="block truncate">{t(`canvasTools.portraitTexture.${group.key}.options.${option.value}`)}</span>
                                     </button>
                                 );
                             })}

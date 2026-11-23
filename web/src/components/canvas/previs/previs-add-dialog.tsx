@@ -25,6 +25,7 @@ import { PREVIS_PROP_LIBRARY, formatPrevisPropSize, type PrevisPropItem } from "
 import { previsVerticalFov } from "@/lib/canvas/previs/previs-optics";
 import type { PrevisCamera, PrevisLight, PrevisObject, PrevisPose, PrevisTransform } from "@/types/previs";
 import { poseOptions } from "./previs-inspectors";
+import { translate } from "@/i18n";
 
 /**
  * 「添加到场景」弹窗：左侧选项、右侧实时 3D 预览，确认后才写入场景。
@@ -36,10 +37,10 @@ export type PrevisAddKind = "actor" | "prop" | "light" | "camera";
 export type PrevisAddResult = { kind: "actor"; objects: PrevisObject[] } | { kind: "prop"; objects: PrevisObject[] } | { kind: "light"; light: PrevisLight } | { kind: "camera"; camera: PrevisCamera };
 
 const TABS: Array<{ kind: PrevisAddKind; label: string; icon: typeof UserRound }> = [
-    { kind: "actor", label: "角色", icon: UserRound },
-    { kind: "prop", label: "道具", icon: Box },
-    { kind: "light", label: "灯光", icon: Lightbulb },
-    { kind: "camera", label: "机位", icon: Camera },
+    { kind: "actor", label: translate("account.welcome.chapters.world.label"), icon: UserRound },
+    { kind: "prop", label: translate("canvasTools.previs.previsAddDialog.props"), icon: Box },
+    { kind: "light", label: translate("canvasTools.previs.previsAddDialog.light"), icon: Lightbulb },
+    { kind: "camera", label: translate("canvasTools.previs.previsAddDialog.cameraPosition"), icon: Camera },
 ];
 
 const ACTOR_SWATCHES = ["#2f7de1", "#d84949", "#dfae3f", "#34a276", "#8b5cf6", "#f97316", "#06b6d4", "#8a93a0"];
@@ -105,13 +106,22 @@ export function PrevisAddDialog({
         else onConfirm({ kind, camera: previewCamera });
     };
 
-    const confirmLabel = kind === "actor" ? (crowd ? "加入 9 个角色" : `加入「${actorTemplate.label}」`) : kind === "prop" ? `加入「${prop.name}」` : kind === "light" ? `加入「${lightPreset.label}」` : `加入「${cameraPreset.label}」机位`;
+    const confirmLabel =
+        kind === "actor"
+            ? crowd
+                ? translate("canvasTools.previs.previsAddDialog.add9Characters")
+                : translate("canvasTools.previs.previsAddDialog.add", { v0: String(actorTemplate.label) })
+            : kind === "prop"
+              ? translate("canvasTools.previs.previsAddDialog.add", { v0: String(prop.name) })
+              : kind === "light"
+                ? translate("canvasTools.previs.previsAddDialog.add", { v0: String(lightPreset.label) })
+                : translate("canvasTools.previs.previsAddDialog.addCamera", { v0: String(cameraPreset.label) });
     const category = PREVIS_PROP_LIBRARY.find((item) => item.id === propCategory) ?? PREVIS_PROP_LIBRARY[0];
 
     return (
-        <Modal open={open} onCancel={onClose} footer={null} width={880} title="添加到场景" destroyOnHidden rootClassName="previs-add-dialog-root" centered>
+        <Modal open={open} onCancel={onClose} footer={null} width={880} title={translate("canvasTools.previs.previsAddDialog.addToScene")} destroyOnHidden rootClassName="previs-add-dialog-root" centered>
             <div className="previs-add-dialog">
-                <div className="previs-add-dialog__tabs" role="tablist" aria-label="添加类型">
+                <div className="previs-add-dialog__tabs" role="tablist" aria-label={translate("canvasTools.previs.previsAddDialog.typeToAdd")}>
                     {TABS.map((tab) => (
                         <button key={tab.kind} type="button" role="tab" aria-selected={kind === tab.kind} className={`previs-add-dialog__tab ${kind === tab.kind ? "is-active" : ""}`} onClick={() => setKind(tab.kind)}>
                             <tab.icon className="size-4" />
@@ -136,10 +146,10 @@ export function PrevisAddDialog({
                                         />
                                     ))}
                                 </OptionGrid>
-                                <OptionSection title="颜色">
+                                <OptionSection title={translate("canvasTools.previs.previsAddDialog.color")}>
                                     <Swatches colors={ACTOR_SWATCHES} value={actorColor} onChange={setActorColor} />
                                 </OptionSection>
-                                <OptionSection title="初始姿势">
+                                <OptionSection title={translate("canvasTools.previs.previsAddDialog.initialPose")}>
                                     <div className="previs-add-dialog__chips">
                                         {poseOptions.slice(0, 12).map((option) => (
                                             <button key={option.value} type="button" className={`previs-add-dialog__chip ${actorPose === option.value ? "is-active" : ""}`} onClick={() => setActorPose(option.value)}>
@@ -151,11 +161,11 @@ export function PrevisAddDialog({
                                 <label className="previs-add-dialog__check">
                                     <input type="checkbox" checked={crowd} onChange={(event) => setCrowd(event.target.checked)} />
                                     <Users className="size-3.5" />
-                                    一次加入 3×3 群众
+                                    {translate("canvasTools.previs.previsAddDialog.addA33CrowdAtOnce")}
                                 </label>
                                 <button type="button" className="previs-add-dialog__link" onClick={onUploadModel}>
                                     <FileUp className="size-3.5" />
-                                    上传自己的角色模型（.glb / .gltf）
+                                    {translate("canvasTools.previs.previsAddDialog.uploadYourCharacterModelGlbGltf")}
                                 </button>
                             </>
                         ) : kind === "prop" ? (
@@ -172,12 +182,12 @@ export function PrevisAddDialog({
                                         <OptionCard key={item.id} active={prop.id === item.id} title={item.name} hint={formatPrevisPropSize(item.size)} thumb={<PrevisPropThumb prop={item} />} onClick={() => setProp(item)} />
                                     ))}
                                 </OptionGrid>
-                                <OptionSection title="颜色">
+                                <OptionSection title={translate("canvasTools.previs.previsAddDialog.color")}>
                                     <Swatches colors={PROP_SWATCHES} value={propColor} onChange={setPropColor} />
                                 </OptionSection>
                                 <button type="button" className="previs-add-dialog__link" onClick={onUploadModel}>
                                     <FileUp className="size-3.5" />
-                                    上传本地模型（.glb / .gltf）
+                                    {translate("canvasTools.previs.previsAddDialog.uploadLocalModelGlbGltf")}
                                 </button>
                             </>
                         ) : kind === "light" ? (
@@ -195,7 +205,13 @@ export function PrevisAddDialog({
                         )}
                     </div>
                     <div className="previs-add-dialog__preview">
-                        <div className="previs-add-dialog__preview-label">{kind === "camera" ? "机位画面预览" : kind === "light" ? "灯光效果预览（参考演员）" : "预览 · 拖动旋转"}</div>
+                        <div className="previs-add-dialog__preview-label">
+                            {kind === "camera"
+                                ? translate("canvasTools.previs.previsAddDialog.cameraViewPreview")
+                                : kind === "light"
+                                  ? translate("canvasTools.previs.previsAddDialog.lightingPreviewReferenceActor")
+                                  : translate("canvasTools.previs.previsAddDialog.previewDragToRotate")}
+                        </div>
                         <Canvas shadows dpr={[1, 1.75]} camera={{ position: [2.6, 1.7, 3.4], fov: 40 }} gl={{ antialias: true, preserveDrawingBuffer: false }}>
                             <color attach="background" args={["#d8dde3"]} />
                             <Suspense fallback={null}>
@@ -205,13 +221,13 @@ export function PrevisAddDialog({
                                 {kind === "camera" ? <CameraPreview camera={previewCamera} /> : null}
                             </Suspense>
                         </Canvas>
-                        {kind === "prop" ? <div className="previs-add-dialog__preview-note">灰色人偶为 1.83m 身高参考</div> : null}
+                        {kind === "prop" ? <div className="previs-add-dialog__preview-note">{translate("canvasTools.previs.previsAddDialog.theGrayMannequinIsA183MHeightReference")}</div> : null}
                     </div>
                 </div>
                 <div className="previs-add-dialog__footer">
-                    <span className="previs-add-dialog__footer-hint">加入后会放在视口中心附近，自动避开已有对象，可再拖动调整。</span>
+                    <span className="previs-add-dialog__footer-hint">{translate("canvasTools.previs.previsAddDialog.objectsArePlacedNearTheCenterOfTheViewportAvoiding")}</span>
                     <button type="button" className="pv-btn" onClick={onClose}>
-                        取消
+                        {translate("common.cancel")}
                     </button>
                     <button type="button" className="pv-btn pv-btn--accent" onClick={confirm}>
                         {confirmLabel}
@@ -275,14 +291,28 @@ function Swatches({ colors, value, onChange }: { colors: string[]; value: string
     return (
         <div className="previs-add-dialog__swatches">
             {colors.map((color) => (
-                <button key={color} type="button" aria-label={`颜色 ${color}`} aria-pressed={value === color} className={`previs-add-dialog__swatch ${value === color ? "is-active" : ""}`} style={{ background: color }} onClick={() => onChange(color)} />
+                <button
+                    key={color}
+                    type="button"
+                    aria-label={translate("canvasTools.previs.previsAddDialog.color2", { v0: String(color) })}
+                    aria-pressed={value === color}
+                    className={`previs-add-dialog__swatch ${value === color ? "is-active" : ""}`}
+                    style={{ background: color }}
+                    onClick={() => onChange(color)}
+                />
             ))}
             <ColorPicker size="small" value={value} disabledAlpha getPopupContainer={(node) => node.parentElement ?? document.body} onChange={(color) => onChange(color.toHexString())}>
-                <button type="button" aria-label="自定义颜色" aria-pressed={custom} className={`previs-add-dialog__swatch previs-add-dialog__swatch--custom ${custom ? "is-active" : ""}`} style={custom ? { background: value } : undefined} />
+                <button
+                    type="button"
+                    aria-label={translate("canvasTools.previs.previsAddDialog.customColor")}
+                    aria-pressed={custom}
+                    className={`previs-add-dialog__swatch previs-add-dialog__swatch--custom ${custom ? "is-active" : ""}`}
+                    style={custom ? { background: value } : undefined}
+                />
             </ColorPicker>
             <input
                 className="previs-add-dialog__hex"
-                aria-label="十六进制颜色"
+                aria-label={translate("canvasTools.previs.previsAddDialog.hexColor")}
                 value={draft}
                 maxLength={7}
                 spellCheck={false}

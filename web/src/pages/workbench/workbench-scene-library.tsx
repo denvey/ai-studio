@@ -10,13 +10,14 @@ import type { WorkbenchKind, WorkbenchTool } from "@/services/api/workbench";
 import { SceneGlyph } from "./workbench-composer";
 import { filterWorkbenchTools, toolMatchesFacet, WORKBENCH_SCENE_FACETS, workbenchPageCategories, workbenchToolSubtitle } from "./workbench-presets";
 
+import { translate } from "@/i18n";
 const FACET_CATEGORIES = new Set(["all", "recommended", "ecommerce", "product"]);
 
 function sceneRequirement(tool: WorkbenchTool) {
     const required = tool.inputContract?.slots.filter((slot) => slot.required || slot.minCount > 0) || [];
-    if (required.length) return `需上传 ${required.map((slot) => slot.name).join("、")}`;
-    if (tool.inputContract?.slots.length) return "素材可选";
-    return "只需描述";
+    if (required.length) return translate("ecommerce.workbench.workbenchSceneLibrary.upload", { v0: String(required.map((slot) => slot.name).join("、")) });
+    if (tool.inputContract?.slots.length) return translate("ecommerce.workbench.workbenchSceneLibrary.assetsOptional");
+    return translate("ecommerce.workbench.workbenchSceneLibrary.descriptionOnly");
 }
 
 export function SceneLibraryModal({
@@ -43,7 +44,7 @@ export function SceneLibraryModal({
     const [query, setQuery] = useState("");
     const [category, setCategory] = useState("all");
     const [facetKey, setFacetKey] = useState("");
-    const categories = useMemo(() => [{ value: "all", label: "全部" }, ...workbenchPageCategories(tools)], [tools]);
+    const categories = useMemo(() => [{ value: "all", label: translate("canvasA.toolPicker.all") }, ...workbenchPageCategories(tools)], [tools]);
     const facets = WORKBENCH_SCENE_FACETS[kind];
     const showFacets = FACET_CATEGORIES.has(category);
     const facet = showFacets ? facets.find((item) => item.key === facetKey) : undefined;
@@ -66,16 +67,28 @@ export function SceneLibraryModal({
             <div className="wb-library">
                 <header className="wb-library-head">
                     <div className="wb-library-title">
-                        <h2>选择出品场景</h2>
-                        <p>{kind === "image" ? "选定后自动套用提示词模板，并提示需要上传的商品素材" : "选定后自动套用镜头模板，并提示首帧等素材要求"}</p>
+                        <h2>{translate("ecommerce.workbench.workbenchSceneLibrary.chooseAnOutputScenario")}</h2>
+                        <p>
+                            {kind === "image"
+                                ? translate("ecommerce.workbench.workbenchSceneLibrary.appliesThePromptTemplateAutomaticallyAndShowsTheRequiredProduct")
+                                : translate("ecommerce.workbench.workbenchSceneLibrary.appliesTheShotTemplateAutomaticallyAndShowsRequirementsSuchAs")}
+                        </p>
                     </div>
-                    <Input className="wb-library-search" aria-label="搜索场景" prefix={<Search className="size-4" />} allowClear value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索场景，如 白底、模特、开箱" />
-                    <button type="button" className="wb-icon-button" data-icon-only aria-label="关闭" onClick={onClose}>
+                    <Input
+                        className="wb-library-search"
+                        aria-label={translate("ecommerce.workbench.workbenchSceneLibrary.searchScenarios")}
+                        prefix={<Search className="size-4" />}
+                        allowClear
+                        value={query}
+                        onChange={(event) => setQuery(event.target.value)}
+                        placeholder={translate("ecommerce.workbench.workbenchSceneLibrary.searchScenariosEGWhiteBackgroundModelUnboxing")}
+                    />
+                    <button type="button" className="wb-icon-button" data-icon-only aria-label={translate("common.close")} onClick={onClose}>
                         <X />
                     </button>
                 </header>
                 <div className="wb-library-body">
-                    <nav className="wb-library-rail" aria-label="场景分类">
+                    <nav className="wb-library-rail" aria-label={translate("ecommerce.workbench.workbenchSceneLibrary.scenarioCategories")}>
                         {categories.map((item) => (
                             <button
                                 key={item.value}
@@ -94,9 +107,9 @@ export function SceneLibraryModal({
                     </nav>
                     <div className="wb-library-main">
                         {showFacets && visibleFacets.length ? (
-                            <div className="wb-library-facets" role="group" aria-label="电商场景细分">
+                            <div className="wb-library-facets" role="group" aria-label={translate("ecommerce.workbench.workbenchSceneLibrary.ecommerceSubcategories")}>
                                 <button type="button" className="wb-chip" aria-pressed={!facet} onClick={() => setFacetKey("")}>
-                                    不限
+                                    {translate("ecommerce.workbench.workbenchSceneLibrary.any")}
                                 </button>
                                 {visibleFacets.map((item) => (
                                     <button key={item.key} type="button" className="wb-chip" aria-pressed={facet?.key === item.key} onClick={() => setFacetKey(facet?.key === item.key ? "" : item.key)}>
@@ -109,7 +122,7 @@ export function SceneLibraryModal({
                             <div className="wb-inline-error" role="alert">
                                 <span>{error}</span>
                                 <Button size="small" onClick={onRetry}>
-                                    重试
+                                    {translate("common.retry")}
                                 </Button>
                             </div>
                         ) : loading ? (
@@ -124,10 +137,10 @@ export function SceneLibraryModal({
                                     <button type="button" className={cn("wb-scene-card", !selectedId && "is-selected")} aria-pressed={!selectedId} onClick={() => onChoose(null)}>
                                         <SceneGlyph tool={null} kind={kind} />
                                         <span className="wb-scene-card-copy">
-                                            <strong>自由创作</strong>
-                                            <small>不套用模板，直接描述想要的画面，适合已有成熟提示词</small>
+                                            <strong>{translate("ecommerce.workbench.workbenchSceneLibrary.freeCreation")}</strong>
+                                            <small>{translate("ecommerce.workbench.workbenchSceneLibrary.describeYourDesiredSceneWithoutATemplateSuitableForA")}</small>
                                         </span>
-                                        <span className="wb-scene-card-meta">只需描述</span>
+                                        <span className="wb-scene-card-meta">{translate("ecommerce.workbench.workbenchSceneLibrary.descriptionOnly")}</span>
                                         {!selectedId ? (
                                             <span className="wb-scene-card-check">
                                                 <Check />
@@ -147,7 +160,7 @@ export function SceneLibraryModal({
                                             </span>
                                             <span className="wb-scene-card-meta">
                                                 {sceneRequirement(tool)}
-                                                {tool.presets.length ? ` · ${tool.presets.length} 个模板` : ""}
+                                                {tool.presets.length ? translate("ecommerce.workbench.workbenchSceneLibrary.templates", { v0: String(tool.presets.length) }) : ""}
                                             </span>
                                             {selected ? (
                                                 <span className="wb-scene-card-check">

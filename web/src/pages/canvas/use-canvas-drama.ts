@@ -33,6 +33,7 @@ import { resourceFileUrl } from "@/services/api/resources";
 import { DRAMA_CANVAS_FOCUS_PARAM, DRAMA_CANVAS_PARAM, ensureDramaCanvasAssets, parseDramaCanvasFocus, type DramaCanvasAssetItem, type DramaCanvasFocus } from "@/services/drama-canvas";
 import { CanvasNodeType, type CanvasConnection, type CanvasDramaRef, type CanvasNodeData, type CanvasNodeMetadata } from "@/types/canvas";
 import type { TimelineProject } from "@/types/timeline";
+import { translate } from "@/i18n";
 
 // 精修画布的短剧模式：画布关联短剧作品时，按需把设定、剧情段、成片投送到画布，
 // 标出短剧侧已更新的节点，并维护“采用到短剧”弹窗。短剧是事实源，这里不做双向自动同步。
@@ -80,7 +81,7 @@ function castRatio(kind: DramaCast["kind"], settings: DramaSettings | undefined)
 }
 
 function segmentLabel(episode: Pick<DramaEpisode, "number">, segment: Pick<DramaSegment, "index">) {
-    return `第 ${episode.number} 集 · 第 ${segment.index + 1} 段`;
+    return translate("canvasTools.useCanvasDrama.episodeSegment", { v0: String(episode.number), v1: String(segment.index + 1) });
 }
 
 function segmentAssetItems(episode: Pick<DramaEpisode, "number">, segment: DramaSegment, takes: DramaTake[]): DramaCanvasAssetItem[] {
@@ -92,9 +93,9 @@ function segmentAssetItems(episode: Pick<DramaEpisode, "number">, segment: Drama
             title: reference.kind === "image" ? reference.name : castTitle({ kind: reference.kind, name: reference.name }),
             category: reference.kind === "image" ? "material" : dramaCastAssetCategory(reference.kind),
         }));
-    if (segment.request.firstFrameResourceId) items.push({ resourceId: segment.request.firstFrameResourceId, title: `${label} · 首帧`, category: "material" });
+    if (segment.request.firstFrameResourceId) items.push({ resourceId: segment.request.firstFrameResourceId, title: translate("canvasTools.useCanvasDrama.firstFrame", { v0: String(label) }), category: "material" });
     for (const resourceId of dramaSegmentResourceIds(segment, takes)) {
-        if (!items.some((item) => item.resourceId === resourceId)) items.push({ resourceId, title: `${label} · 视频`, category: "material" });
+        if (!items.some((item) => item.resourceId === resourceId)) items.push({ resourceId, title: translate("canvasTools.useCanvasDrama.video", { v0: String(label) }), category: "material" });
     }
     return items;
 }
@@ -214,7 +215,7 @@ export function useCanvasDrama(input: UseCanvasDramaInput) {
     const run = useCallback(
         async (key: string, failure: string, task: () => Promise<void>) => {
             if (busyRef.current) {
-                message.info("上一次投送还在进行，请稍候");
+                message.info(translate("canvasTools.useCanvasDrama.thePreviousTransferIsStillRunningPleaseWait"));
                 return;
             }
             busyRef.current = key;
@@ -242,7 +243,7 @@ export function useCanvasDrama(input: UseCanvasDramaInput) {
     const registerMedia = useCallback(
         async (items: DramaCanvasAssetItem[], required: string[]): Promise<DramaProjectionMedia> => {
             const assetIds = await ensureDramaCanvasAssets(dramaId, items);
-            if (required.some((resourceId) => !assetIds.has(resourceId))) throw new Error("部分参考图或视频已不可用（可能已删除），请在制作台检查后再投送");
+            if (required.some((resourceId) => !assetIds.has(resourceId))) throw new Error(translate("canvasTools.useCanvasDrama.someReferenceImagesOrVideosAreUnavailableAndMayHave"));
             return { assetIdOf: (resourceId) => assetIds.get(resourceId), urlOf: resourceFileUrl };
         },
         [dramaId],
@@ -261,10 +262,10 @@ export function useCanvasDrama(input: UseCanvasDramaInput) {
         async (castId: string) => {
             const placed = standaloneCastNode(nodesRef.current, castId);
             if (placed) return focus([placed.id]);
-            await run(`cast:${castId}`, "设定投送失败", async () => {
+            await run(`cast:${castId}`, translate("canvasTools.useCanvasDrama.failedToSendSettings"), async () => {
                 const [allCast, takes] = await Promise.all([fetchCast(), fetchTakes(castId, "cast")]);
                 const cast = allCast.find((item) => item.id === castId);
-                if (!cast) throw new Error("这个设定已被删除");
+                if (!cast) throw new Error(translate("canvasTools.useCanvasDrama.thisSettingHasBeenDeleted"));
                 const items = dramaCastResourceIds(cast, takes).map((resourceId) => ({ resourceId, title: castTitle(cast), category: dramaCastAssetCategory(cast.kind) }));
                 const media = await registerMedia(items, cast.imageResourceId ? [cast.imageResourceId] : []);
                 const existing = standaloneCastNode(nodesRef.current, castId);
@@ -304,10 +305,10 @@ export function useCanvasDrama(input: UseCanvasDramaInput) {
 
     const projectSegment = useCallback(
         (episodeId: string, segmentIndex: number) =>
-            run(`segment:${episodeId}:${segmentIndex}`, "剧情段投送失败", async () => {
+            run(`segment:${episodeId}:${segmentIndex}`, translate("canvasTools.useCanvasDrama.failedToSendStorySegment"), async () => {
                 const detail = await fetchEpisode(episodeId);
                 const segment = detail.segments.find((item) => item.index === segmentIndex);
-                if (!segment) throw new Error("这个剧情段不存在，可能已重新改编");
+                if (!segment) throw new Error(translate("canvasTools.useCanvasDrama.thisStorySegmentNoLongerExistsAndMayHaveBeen"));
                 const existing = findDramaSegmentFrame(nodesRef.current, segment.id);
                 if (existing) return focus([existing.id]);
                 const [allCast, takes] = await Promise.all([fetchCast(), fetchTakes(segment.id, "video")]);
@@ -321,9 +322,9 @@ export function useCanvasDrama(input: UseCanvasDramaInput) {
 
     const projectEpisode = useCallback(
         (episodeId: string) =>
-            run(`episode:${episodeId}`, "整集投送失败", async () => {
+            run(`episode:${episodeId}`, translate("canvasTools.useCanvasDrama.failedToSendEntireEpisode"), async () => {
                 const detail = await fetchEpisode(episodeId);
-                if (!detail.segments.length) throw new Error("这一集还没有剧情段，剧本和分镜完成后再投送");
+                if (!detail.segments.length) throw new Error(translate("canvasTools.useCanvasDrama.thisEpisodeHasNoStorySegmentsYetFinishTheScript"));
                 const ordered = [...detail.segments].sort((left, right) => left.index - right.index);
                 const missing = ordered.filter((segment) => !findDramaSegmentFrame(nodesRef.current, segment.id));
                 if (missing.length) {
@@ -340,7 +341,7 @@ export function useCanvasDrama(input: UseCanvasDramaInput) {
                         allCast,
                         media,
                     );
-                    if (pending.length) message.success(`已投送第 ${detail.episode.number} 集的 ${pending.length} 个剧情段`);
+                    if (pending.length) message.success(translate("canvasTools.useCanvasDrama.sentStorySegmentsFromEpisode", { v0: String(detail.episode.number), v1: String(pending.length) }));
                 }
                 focus(ordered.map((segment) => findDramaSegmentFrame(nodesRef.current, segment.id)?.id).filter((id): id is string => Boolean(id)));
             }),
@@ -351,9 +352,9 @@ export function useCanvasDrama(input: UseCanvasDramaInput) {
     const buildFinal = useCallback(
         async (episodeId: string, requireMedia: boolean) => {
             const { episode } = await fetchEpisode(episodeId);
-            if (requireMedia && !episode.finalResourceId) throw new Error("这一集还没有成片");
+            if (requireMedia && !episode.finalResourceId) throw new Error(translate("canvasTools.useCanvasDrama.thisEpisodeHasNoFinalVideoYet"));
             const takes = episode.finalResourceId ? await fetchTakes(episode.id, "final") : [];
-            const title = `第 ${episode.number} 集成片 · ${episode.title}`;
+            const title = translate("canvasTools.useCanvasDrama.episodeFinalVideo", { v0: String(episode.number), v1: String(episode.title) });
             const media = await registerMedia(
                 dramaFinalResourceIds(episode, takes).map((resourceId) => ({ resourceId, title, category: "material" })),
                 episode.finalResourceId ? [episode.finalResourceId] : [],
@@ -368,7 +369,7 @@ export function useCanvasDrama(input: UseCanvasDramaInput) {
         async (episodeId: string) => {
             const placed = findDramaFinalNode(nodesRef.current, episodeId);
             if (placed) return focus([placed.id]);
-            await run(`final:${episodeId}`, "成片投送失败", async () => {
+            await run(`final:${episodeId}`, translate("canvasTools.useCanvasDrama.failedToSendFinalVideo"), async () => {
                 const node = await buildFinal(episodeId, true);
                 const existing = findDramaFinalNode(nodesRef.current, episodeId);
                 if (existing) return focus([existing.id]);
@@ -382,23 +383,23 @@ export function useCanvasDrama(input: UseCanvasDramaInput) {
     /** 把一集的剧情段视频按成片顺序载入画布时间线，在画布里精剪；时间线只有一条，已有内容需确认后替换。 */
     const openEpisodeCut = useCallback(
         (episodeId: string) =>
-            run(`cut:${episodeId}`, "载入剪辑失败", async () => {
+            run(`cut:${episodeId}`, translate("canvasTools.useCanvasDrama.failedToLoadClipsForEditing"), async () => {
                 const detail = await fetchEpisode(episodeId);
                 const usable = detail.segments.filter((segment) => segment.videoResourceId && (segment.videoStatus === "ready" || segment.videoStatus === "stale"));
-                if (!usable.length) throw new Error("这一集还没有可剪辑的剧情段视频");
+                if (!usable.length) throw new Error(translate("canvasTools.useCanvasDrama.thisEpisodeHasNoStorySegmentVideosAvailableToEdit"));
                 const media = await registerMedia(
-                    usable.map((segment) => ({ resourceId: segment.videoResourceId!, title: `${segmentLabel(detail.episode, segment)} · 视频`, category: "material" })),
+                    usable.map((segment) => ({ resourceId: segment.videoResourceId!, title: translate("canvasTools.useCanvasDrama.video", { v0: String(segmentLabel(detail.episode, segment)) }), category: "material" })),
                     [],
                 );
                 const { timeline, skipped } = buildDramaEpisodeTimeline({ episode: detail.episode, segments: [...detail.segments].sort((left, right) => left.index - right.index), media });
-                if (!timeline.clips.length) throw new Error("这一集的剧情段视频暂时不可用");
+                if (!timeline.clips.length) throw new Error(translate("canvasTools.useCanvasDrama.thisEpisodeSStorySegmentVideosAreTemporarilyUnavailable"));
                 const existingClips = latest.current.input.timeline?.clips.length || 0;
                 if (existingClips) {
                     const confirmed = await modal.confirm({
-                        title: `用第 ${detail.episode.number} 集替换画布时间线？`,
-                        content: `画布时间线里已有 ${existingClips} 个片段，载入后整条时间线会被替换。已导出的视频不受影响。`,
-                        okText: "替换并载入",
-                        cancelText: "保留现有时间线",
+                        title: translate("canvasTools.useCanvasDrama.replaceTheCanvasTimelineWithEpisode", { v0: String(detail.episode.number) }),
+                        content: translate("canvasTools.useCanvasDrama.theCanvasTimelineAlreadyHasClipsLoadingReplacesTheEntire", { v0: String(existingClips) }),
+                        okText: translate("canvasTools.useCanvasDrama.replaceAndLoad"),
+                        cancelText: translate("canvasTools.useCanvasDrama.keepExistingTimeline"),
                     });
                     if (!confirmed) return;
                 }
@@ -410,7 +411,7 @@ export function useCanvasDrama(input: UseCanvasDramaInput) {
                 }
                 latest.current.input.saveTimeline(timeline);
                 latest.current.input.openTimeline(anchor.id);
-                if (skipped.length) message.warning(`第 ${skipped.join("、")} 段还没有可用视频，未放进时间线`);
+                if (skipped.length) message.warning(translate("canvasTools.useCanvasDrama.segmentHasNoUsableVideoAndWasNotAddedTo", { v0: String(skipped.join("、")) }));
             }),
         [buildFinal, fetchEpisode, message, modal, nodesRef, registerMedia, run, setNodes],
     );
@@ -418,22 +419,22 @@ export function useCanvasDrama(input: UseCanvasDramaInput) {
     /** 短剧侧已更新：把节点换成短剧当前的媒体，画布上原来的版本留在版本历史里。 */
     const refreshNode = useCallback(
         (node: CanvasNodeData) =>
-            run(`refresh:${node.id}`, "同步短剧最新版本失败", async () => {
+            run(`refresh:${node.id}`, translate("canvasTools.useCanvasDrama.failedToSyncTheLatestDramaVersion"), async () => {
                 const ref = node.metadata?.dramaRef;
                 if (!ref) return;
                 const now = latest.current.current;
                 const resourceId = ref.kind === "cast" ? now.castImage(ref.id) : ref.kind === "segment" ? now.segmentVideo(ref.id) : now.finalVideo(ref.id);
-                if (!resourceId) throw new Error("短剧侧还没有可同步的媒体");
+                if (!resourceId) throw new Error(translate("canvasTools.useCanvasDrama.theDramaStudioHasNoMediaAvailableToSyncYet"));
                 const block = mediaVersionAdoptBlock(nodesRef.current.find((item) => item.id === node.id));
                 if (block === "missing") return;
-                if (block === "locked") throw new Error("节点已锁定，解锁后再同步");
-                if (block === "loading") throw new Error("节点正在生成或上传，完成后再同步");
+                if (block === "locked") throw new Error(translate("canvasTools.useCanvasDrama.theNodeIsLockedUnlockItBeforeSyncing"));
+                if (block === "loading") throw new Error(translate("canvasTools.useCanvasDrama.theNodeIsGeneratingOrUploadingSyncAfterItFinishes"));
                 const media = await registerMedia([{ resourceId, title: node.title, category: node.metadata?.assetCategory }], [resourceId]);
                 const target = nodesRef.current.find((item) => item.id === node.id);
                 if (!target) return;
                 const next = withDramaMedia(target, resourceId, media.assetIdOf(resourceId)!, { ...ref, baseResourceId: resourceId });
                 setNodes((items) => items.map((item) => (item.id === target.id ? next : item)));
-                message.success("已同步短剧最新版本，原来的画面保留在版本历史里");
+                message.success(translate("canvasTools.useCanvasDrama.syncedTheLatestDramaVersionPreviousImagesRemainInVersion"));
             }),
         [message, nodesRef, registerMedia, run, setNodes],
     );
@@ -492,11 +493,11 @@ export function useCanvasDrama(input: UseCanvasDramaInput) {
             { replace: true },
         );
         if (mismatch) {
-            message.warning("这张画布没有关联这部短剧，已打开画布本身");
+            message.warning(translate("canvasTools.useCanvasDrama.thisCanvasIsNotLinkedToThisDramaOpenedThe"));
             return;
         }
         if (summaryFailed) {
-            message.warning("短剧数据读取失败，可稍后在左侧短剧侧栏重新投送");
+            message.warning(translate("canvasTools.useCanvasDrama.failedToLoadDramaDataTrySendingAgainFromThe"));
             return;
         }
         const focusTarget = parseDramaCanvasFocus(focusParam);

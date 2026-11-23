@@ -1,3 +1,5 @@
+
+import { translate } from "@/i18n";
 export type SkinThemeMode = "light" | "dark";
 export type SkinShadowStyle = "none" | "soft" | "strong";
 
@@ -31,10 +33,10 @@ export const DEFAULT_BUTTON_FILLS: Record<SkinThemeMode, SkinButtonFill> = {
 };
 
 export const SKIN_BUTTON_COLOR_FIELDS = [
-    { key: "start", label: "渐变起色" }, { key: "end", label: "渐变终色" },
-    { key: "hoverStart", label: "悬停起色" }, { key: "hoverEnd", label: "悬停终色" },
-    { key: "activeStart", label: "按下起色" }, { key: "activeEnd", label: "按下终色" },
-    { key: "foreground", label: "渐变按钮文字" },
+    { key: "start", label: translate("shared.skinThemes.gradientStart") }, { key: "end", label: translate("shared.skinThemes.gradientEnd") },
+    { key: "hoverStart", label: translate("shared.skinThemes.hoverStart") }, { key: "hoverEnd", label: translate("shared.skinThemes.hoverEnd") },
+    { key: "activeStart", label: translate("shared.skinThemes.pressedStart") }, { key: "activeEnd", label: translate("shared.skinThemes.pressedEnd") },
+    { key: "foreground", label: translate("shared.skinThemes.gradientButtonText") },
 ] as const;
 
 export type SkinModeTokens = {
@@ -205,97 +207,97 @@ export type SkinComponentNumberField = {
 export const SKIN_COLOR_GROUPS: readonly SkinColorGroup[] = [
     {
         key: "foundation",
-        label: "基础表面与文字",
+        label: translate("shared.skinThemes.baseSurfacesAndText"),
         fields: [
-            { key: "canvas", label: "页面背景", help: "全站页面与画布底色" },
-            { key: "surface", label: "基础表面", help: "卡片、常规容器与输入区" },
-            { key: "surfaceSubtle", label: "次级表面", help: "弱分区、表头与悬停底色" },
-            { key: "surfaceRaised", label: "强调表面", help: "高层级卡片与激活容器" },
-            { key: "overlay", label: "浮层表面", help: "下拉、弹窗和气泡菜单" },
-            { key: "text", label: "主要文字", help: "标题和正文" },
-            { key: "textMuted", label: "次要文字", help: "说明、占位和元数据" },
-            { key: "border", label: "分隔与边界", help: "普通描边和分隔线" },
+            { key: "canvas", label: translate("shared.skinThemes.pageBackground"), help: translate("shared.skinThemes.backgroundOfPagesAndCanvasesThroughoutTheApp") },
+            { key: "surface", label: translate("shared.skinThemes.baseSurface"), help: translate("shared.skinThemes.cardsStandardContainersAndInputAreas") },
+            { key: "surfaceSubtle", label: translate("shared.skinThemes.secondarySurface"), help: translate("shared.skinThemes.subtleSectionsTableHeadersAndHoverBackgrounds") },
+            { key: "surfaceRaised", label: translate("shared.skinThemes.emphasizedSurface"), help: translate("shared.skinThemes.elevatedCardsAndActiveContainers") },
+            { key: "overlay", label: translate("shared.skinThemes.overlaySurface"), help: translate("shared.skinThemes.dropdownsDialogsAndPopoverMenus") },
+            { key: "text", label: translate("shared.skinThemes.primaryText"), help: translate("shared.skinThemes.headingsAndBodyText") },
+            { key: "textMuted", label: translate("shared.skinThemes.secondaryText"), help: translate("shared.skinThemes.descriptionsPlaceholdersAndMetadata") },
+            { key: "border", label: translate("shared.skinThemes.dividersAndBorders"), help: translate("shared.skinThemes.standardOutlinesAndDividers") },
         ],
     },
     {
         key: "controls",
-        label: "控件与交互状态",
+        label: translate("shared.skinThemes.controlsAndInteractionStates"),
         fields: [
-            { key: "control", label: "控件背景", help: "输入框、复选框和普通按钮" },
-            { key: "controlHover", label: "控件悬停", help: "普通控件 hover 背景" },
-            { key: "controlActive", label: "控件按下", help: "普通控件 active 背景" },
-            { key: "controlBorder", label: "控件边框", help: "输入与选择控件边界" },
-            { key: "controlFocus", label: "键盘焦点", help: "focus-visible 与输入焦点" },
-            { key: "controlDisabledBackground", label: "禁用背景", help: "不可操作控件背景" },
-            { key: "controlDisabledForeground", label: "禁用前景", help: "不可操作文字和图标" },
-            { key: "switchChecked", label: "开关开启", help: "Switch 开启轨道，须与关闭态明显区分" },
-            { key: "switchCheckedHover", label: "开启悬停", help: "开启状态 hover 轨道" },
-            { key: "switchCheckedHandle", label: "开启滑块", help: "开启状态圆形滑块" },
-            { key: "switchUnchecked", label: "开关关闭", help: "Switch 关闭轨道" },
-            { key: "switchUncheckedHover", label: "关闭悬停", help: "关闭状态 hover 轨道" },
-            { key: "switchUncheckedHandle", label: "关闭滑块", help: "关闭状态圆形滑块" },
-            { key: "primary", label: "主操作", help: "纯色主按钮与链接；开关使用独立颜色" },
-            { key: "primaryHover", label: "主操作悬停", help: "主要操作 hover" },
-            { key: "primaryActive", label: "主操作按下", help: "主要操作 active" },
-            { key: "primaryForeground", label: "主操作前景", help: "主按钮上的文字和图标" },
-            { key: "selected", label: "选中背景", help: "菜单、单选与分段控件" },
-            { key: "selectedHover", label: "选中悬停", help: "已选项 hover" },
-            { key: "selectedActive", label: "选中按下", help: "已选项 active" },
-            { key: "selectedForeground", label: "选中前景", help: "已选项文字和图标" },
+            { key: "control", label: translate("shared.skinThemes.controlBackground"), help: translate("shared.skinThemes.inputsCheckboxesAndStandardButtons") },
+            { key: "controlHover", label: translate("shared.skinThemes.controlHover"), help: translate("shared.skinThemes.backgroundOfStandardControlsOnHover") },
+            { key: "controlActive", label: translate("shared.skinThemes.controlPressed"), help: translate("shared.skinThemes.backgroundOfStandardControlsWhenPressed") },
+            { key: "controlBorder", label: translate("shared.skinThemes.controlBorder"), help: translate("shared.skinThemes.bordersOfInputAndSelectionControls") },
+            { key: "controlFocus", label: translate("shared.skinThemes.keyboardFocus"), help: translate("shared.skinThemes.visibleKeyboardFocusAndInputFocus") },
+            { key: "controlDisabledBackground", label: translate("shared.skinThemes.disabledBackground"), help: translate("shared.skinThemes.backgroundOfDisabledControls") },
+            { key: "controlDisabledForeground", label: translate("shared.skinThemes.disabledForeground"), help: translate("shared.skinThemes.textAndIconsOfDisabledControls") },
+            { key: "switchChecked", label: translate("shared.skinThemes.switchOn"), help: translate("shared.skinThemes.trackOfAnEnabledSwitchMustBeClearlyDistinctFrom") },
+            { key: "switchCheckedHover", label: translate("shared.skinThemes.onStateHover"), help: translate("shared.skinThemes.switchTrackWhenOnAndHovered") },
+            { key: "switchCheckedHandle", label: translate("shared.skinThemes.onStateHandle"), help: translate("shared.skinThemes.circularSwitchHandleInTheOnState") },
+            { key: "switchUnchecked", label: translate("shared.skinThemes.switchOff"), help: translate("shared.skinThemes.switchTrackInTheOffState") },
+            { key: "switchUncheckedHover", label: translate("shared.skinThemes.offStateHover"), help: translate("shared.skinThemes.switchTrackWhenOffAndHovered") },
+            { key: "switchUncheckedHandle", label: translate("shared.skinThemes.offStateHandle"), help: translate("shared.skinThemes.circularSwitchHandleInTheOffState") },
+            { key: "primary", label: translate("shared.skinThemes.primaryAction"), help: translate("shared.skinThemes.solidPrimaryButtonsAndLinksSwitchesUseSeparateColors") },
+            { key: "primaryHover", label: translate("shared.skinThemes.primaryActionHover"), help: translate("shared.skinThemes.primaryActionsOnHover") },
+            { key: "primaryActive", label: translate("shared.skinThemes.primaryActionPressed"), help: translate("shared.skinThemes.primaryActionsWhenPressed") },
+            { key: "primaryForeground", label: translate("shared.skinThemes.primaryActionForeground"), help: translate("shared.skinThemes.textAndIconsOnPrimaryButtons") },
+            { key: "selected", label: translate("shared.skinThemes.selectionBackground"), help: translate("shared.skinThemes.menusRadioButtonsAndSegmentedControls") },
+            { key: "selectedHover", label: translate("shared.skinThemes.selectionHover"), help: translate("shared.skinThemes.selectedItemsOnHover") },
+            { key: "selectedActive", label: translate("shared.skinThemes.selectionPressed"), help: translate("shared.skinThemes.selectedItemsWhenPressed") },
+            { key: "selectedForeground", label: translate("shared.skinThemes.selectionForeground"), help: translate("shared.skinThemes.textAndIconsOfSelectedItems") },
         ],
     },
     {
         key: "signals",
-        label: "图标与状态",
+        label: translate("shared.skinThemes.iconsAndStatuses"),
         fields: [
-            { key: "icon", label: "普通图标", help: "工具栏和普通功能图标" },
-            { key: "iconMuted", label: "弱化图标", help: "低优先级和占位图标" },
-            { key: "iconActive", label: "激活图标", help: "当前工具和强调图标" },
-            { key: "success", label: "成功", help: "完成与可用状态" },
-            { key: "warning", label: "警告", help: "待处理与风险提示" },
-            { key: "danger", label: "危险", help: "错误、删除与破坏性操作" },
-            { key: "dangerHover", label: "危险悬停", help: "破坏性操作 hover" },
-            { key: "dangerActive", label: "危险按下", help: "破坏性操作 active" },
-            { key: "dangerForeground", label: "危险前景", help: "实心危险按钮文字和图标" },
-            { key: "info", label: "信息", help: "普通说明和处理中状态" },
+            { key: "icon", label: translate("shared.skinThemes.standardIcon"), help: translate("shared.skinThemes.toolbarAndStandardFeatureIcons") },
+            { key: "iconMuted", label: translate("shared.skinThemes.mutedIcon"), help: translate("shared.skinThemes.lowPriorityAndPlaceholderIcons") },
+            { key: "iconActive", label: translate("shared.skinThemes.activeIcon"), help: translate("shared.skinThemes.currentToolAndEmphasizedIcons") },
+            { key: "success", label: translate("shared.skinThemes.success"), help: translate("shared.skinThemes.completeAndAvailableStates") },
+            { key: "warning", label: translate("shared.skinThemes.warning"), help: translate("shared.skinThemes.pendingStatesAndRiskNotices") },
+            { key: "danger", label: translate("shared.skinThemes.danger"), help: translate("shared.skinThemes.errorsDeletionAndDestructiveActions") },
+            { key: "dangerHover", label: translate("shared.skinThemes.dangerHover"), help: translate("shared.skinThemes.destructiveActionsOnHover") },
+            { key: "dangerActive", label: translate("shared.skinThemes.dangerPressed"), help: translate("shared.skinThemes.destructiveActionsWhenPressed") },
+            { key: "dangerForeground", label: translate("shared.skinThemes.dangerForeground"), help: translate("shared.skinThemes.textAndIconsOnSolidDangerButtons") },
+            { key: "info", label: translate("shared.skinThemes.info"), help: translate("shared.skinThemes.generalInformationAndProcessingStates") },
         ],
     },
     {
         key: "scenes",
-        label: "业务场景表面",
+        label: translate("shared.skinThemes.workspaceSurfaces"),
         fields: [
-            { key: "workspace", label: "创作工作区", help: "工作区卡片和画布承载面" },
-            { key: "workspaceGrid", label: "画布网格", help: "画布网格与空间辅助线" },
-            { key: "adminBackground", label: "后台底层", help: "管理后台页面底色" },
-            { key: "adminSurface", label: "后台卡片", help: "管理后台主卡片" },
-            { key: "adminSubtle", label: "后台次级层", help: "后台弱分区" },
-            { key: "adminStrong", label: "后台强调层", help: "后台高对比区块" },
-            { key: "authBackground", label: "登录页背景", help: "登录页整体底色" },
-            { key: "authPanel", label: "登录表单区", help: "登录页右侧表单面板" },
-            { key: "authCard", label: "登录卡片", help: "登录表单卡片" },
-            { key: "authAccent", label: "登录页强调", help: "登录页品牌强调文字" },
-            { key: "authMuted", label: "登录页次要文字", help: "登录页说明和辅助信息" },
+            { key: "workspace", label: translate("shared.skinThemes.creationWorkspace"), help: translate("shared.skinThemes.workspaceCardsAndCanvasSurfaces") },
+            { key: "workspaceGrid", label: translate("shared.skinThemes.canvasGrid"), help: translate("shared.skinThemes.canvasGridAndAlignmentGuides") },
+            { key: "adminBackground", label: translate("shared.skinThemes.adminBackground"), help: translate("shared.skinThemes.backgroundOfAdminPages") },
+            { key: "adminSurface", label: translate("shared.skinThemes.adminCard"), help: translate("shared.skinThemes.mainCardsInTheAdminArea") },
+            { key: "adminSubtle", label: translate("shared.skinThemes.adminSecondarySurface"), help: translate("shared.skinThemes.subtleAdminSections") },
+            { key: "adminStrong", label: translate("shared.skinThemes.adminEmphasizedSurface"), help: translate("shared.skinThemes.highContrastAdminSections") },
+            { key: "authBackground", label: translate("shared.skinThemes.signInBackground"), help: translate("shared.skinThemes.backgroundOfTheSignInPage") },
+            { key: "authPanel", label: translate("shared.skinThemes.signInFormArea"), help: translate("shared.skinThemes.formPanelOnTheRightOfTheSignInPage") },
+            { key: "authCard", label: translate("shared.skinThemes.signInCard"), help: translate("shared.skinThemes.cardContainingTheSignInForm") },
+            { key: "authAccent", label: translate("shared.skinThemes.signInEmphasis"), help: translate("shared.skinThemes.emphasizedBrandTextOnTheSignInPage") },
+            { key: "authMuted", label: translate("shared.skinThemes.signInSecondaryText"), help: translate("shared.skinThemes.descriptionsAndSupportingInformationOnTheSignInPage") },
         ],
     },
 ] as const;
 
 export const SKIN_COMPONENT_NUMBER_FIELDS: readonly SkinComponentNumberField[] = [
-    { key: "buttonRadius", label: "按钮圆角", suffix: "px", min: 0, max: 32 },
-    { key: "inputRadius", label: "输入框圆角", suffix: "px", min: 0, max: 32 },
-    { key: "cardRadius", label: "卡片圆角", suffix: "px", min: 0, max: 40 },
-    { key: "overlayRadius", label: "弹窗与浮层圆角", suffix: "px", min: 0, max: 40 },
-    { key: "menuRadius", label: "菜单圆角", suffix: "px", min: 0, max: 32 },
-    { key: "checkboxRadius", label: "复选框圆角", suffix: "px", min: 0, max: 12 },
-    { key: "controlHeight", label: "标准控件高度", suffix: "px", min: 30, max: 48 },
-    { key: "controlHeightSmall", label: "小号控件高度", suffix: "px", min: 24, max: 40 },
-    { key: "controlHeightLarge", label: "大号控件高度", suffix: "px", min: 36, max: 56 },
-    { key: "borderWidth", label: "控件描边", suffix: "px", min: 1, max: 3 },
-    { key: "focusRingWidth", label: "键盘焦点环", suffix: "px", min: 1, max: 4 },
-    { key: "iconSize", label: "标准图标尺寸", suffix: "px", min: 12, max: 24 },
-    { key: "buttonFontWeight", label: "按钮字重", suffix: "", min: 400, max: 700, step: 50 },
-    { key: "hoverLift", label: "卡片悬停抬升", suffix: "px", min: 0, max: 4 },
-    { key: "motionFast", label: "快速反馈时长", suffix: "ms", min: 0, max: 400, step: 10 },
-    { key: "motionNormal", label: "常规过渡时长", suffix: "ms", min: 0, max: 800, step: 10 },
+    { key: "buttonRadius", label: translate("shared.skinThemes.buttonCornerRadius"), suffix: "px", min: 0, max: 32 },
+    { key: "inputRadius", label: translate("shared.skinThemes.inputCornerRadius"), suffix: "px", min: 0, max: 32 },
+    { key: "cardRadius", label: translate("shared.skinThemes.cardCornerRadius"), suffix: "px", min: 0, max: 40 },
+    { key: "overlayRadius", label: translate("shared.skinThemes.dialogAndOverlayCornerRadius"), suffix: "px", min: 0, max: 40 },
+    { key: "menuRadius", label: translate("shared.skinThemes.menuCornerRadius"), suffix: "px", min: 0, max: 32 },
+    { key: "checkboxRadius", label: translate("shared.skinThemes.checkboxCornerRadius"), suffix: "px", min: 0, max: 12 },
+    { key: "controlHeight", label: translate("shared.skinThemes.standardControlHeight"), suffix: "px", min: 30, max: 48 },
+    { key: "controlHeightSmall", label: translate("shared.skinThemes.smallControlHeight"), suffix: "px", min: 24, max: 40 },
+    { key: "controlHeightLarge", label: translate("shared.skinThemes.largeControlHeight"), suffix: "px", min: 36, max: 56 },
+    { key: "borderWidth", label: translate("shared.skinThemes.controlBorderWidth"), suffix: "px", min: 1, max: 3 },
+    { key: "focusRingWidth", label: translate("shared.skinThemes.keyboardFocusRing"), suffix: "px", min: 1, max: 4 },
+    { key: "iconSize", label: translate("shared.skinThemes.standardIconSize"), suffix: "px", min: 12, max: 24 },
+    { key: "buttonFontWeight", label: translate("shared.skinThemes.buttonFontWeight"), suffix: "", min: 400, max: 700, step: 50 },
+    { key: "hoverLift", label: translate("shared.skinThemes.cardHoverLift"), suffix: "px", min: 0, max: 4 },
+    { key: "motionFast", label: translate("shared.skinThemes.quickFeedbackDuration"), suffix: "ms", min: 0, max: 400, step: 10 },
+    { key: "motionNormal", label: translate("shared.skinThemes.standardTransitionDuration"), suffix: "ms", min: 0, max: 800, step: 10 },
 ] as const;
 
 export const DEFAULT_CLASSIC_SKIN: SkinDefinition = {
@@ -552,6 +554,14 @@ export function normalizeSkinDefinition(value: unknown, fallback: SkinDefinition
 
 export function cloneSkinDefinition(source: SkinDefinition): SkinDefinition {
     return { ...source, tokens: cloneSkinTokens(source.tokens) };
+}
+
+export function skinDisplayName(skin: SkinDefinition) {
+    return skin.id === "classic" && skin.name === DEFAULT_CLASSIC_SKIN.name ? translate("shared.skinThemes.classicName") : skin.name;
+}
+
+export function skinDisplayDescription(skin: SkinDefinition) {
+    return skin.id === "classic" && skin.description === DEFAULT_CLASSIC_SKIN.description ? translate("shared.skinThemes.classicDescription") : skin.description;
 }
 
 export function createSkinThemeID(existingIDs: Iterable<string>) {

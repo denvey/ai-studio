@@ -1,6 +1,7 @@
 import { resetGenerationTaskMetadata } from "@/lib/canvas/canvas-task-state";
 import { batchOutputResultPending } from "@/lib/canvas/canvas-batch-references";
 import { CanvasNodeType, type CanvasNodeData, type CanvasNodeMetadata } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 export type ImageQuarterTurns = 0 | 1 | 2 | 3;
 export type ImageRotationDirection = -1 | 0 | 1;
@@ -45,7 +46,7 @@ export function imageRotationSourceKey(node: CanvasNodeData) {
 /** The new file replaces this node only. Task records and previously generated output nodes remain immutable. */
 export function applyCanvasImageRotation(node: CanvasNodeData, rotation: CanvasImageRotation): CanvasNodeData {
     const image = rotation.quarterTurns === 0 ? rotation.original : rotation.variants?.[rotation.quarterTurns];
-    if (!image) throw new Error("旋转后的图片资源缺失");
+    if (!image) throw new Error(translate("shared.canvas.canvasImageRotation.theRotatedImageResourceIsMissing"));
     const currentTurns = currentImageRotation(node)?.quarterTurns || 0;
     const swapped = (rotation.quarterTurns - currentTurns) % 2 !== 0;
     const width = swapped ? node.height : node.width;

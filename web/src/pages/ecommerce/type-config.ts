@@ -1,6 +1,8 @@
 import type { EcommerceDraft } from "@/services/api/ecommerce";
 import { marketingPlanSlots } from "./marketing-materials";
 
+import { translate } from "@/i18n";
+import { commerceUiText } from "./ui-text";
 export type ProductField = "claims" | "scene" | "audience" | "colors" | "materials" | "specifications" | "dimensions" | "packaging" | "brand" | "pricePosition" | "lockedDetails";
 type TypeConfig = { brief: string; fields: ProductField[]; required?: ProductField[]; defaultCount: number; noText?: boolean };
 
@@ -119,18 +121,19 @@ export function selectedCreationRequirements(draft: EcommerceDraft) {
 }
 export function typeValidation(draft: EcommerceDraft): string | null {
     const type = ecommerceTypeConfig[draft.imageType];
-    if (!type) return "不支持的创作类型，请重新选择";
-    if (draft.imageType === "white" && (draft.modelEnabled || !draft.noText)) return "白底图须关闭模特和画面文字";
-    if (draft.imageType === "single" && draft.count !== 1) return "单图只能生成 1 张";
-    if (draft.imageType === "marketing" && (marketingPlanSlots(draft).length < 1 || marketingPlanSlots(draft).length > 15 || draft.count !== marketingPlanSlots(draft).length)) return "请在物料配置中选择 1 到 15 张，并确认张数一致";
-    if (draft.modelEnabled && draft.imageType === "scene" && draft.typeOptions?.people === "不出现人物") return "已开启模特，请将场景人物改为“人物与商品同框”或关闭模特";
+    if (!type) return translate("ecommerce.typeConfig.unsupportedCreationTypeSelectAnother");
+    if (draft.imageType === "white" && (draft.modelEnabled || !draft.noText)) return translate("ecommerce.typeConfig.whiteBackgroundImagesRequireModelsAndAddedTextToBe");
+    if (draft.imageType === "single" && draft.count !== 1) return translate("ecommerce.typeConfig.singleImageModeGeneratesExactlyOneImage");
+    if (draft.imageType === "marketing" && (marketingPlanSlots(draft).length < 1 || marketingPlanSlots(draft).length > 15 || draft.count !== marketingPlanSlots(draft).length))
+        return translate("ecommerce.typeConfig.select1To15ImagesInMaterialSettingsAndConfirm");
+    if (draft.modelEnabled && draft.imageType === "scene" && draft.typeOptions?.people === "不出现人物") return translate("ecommerce.typeConfig.modelsAreEnabledChoosePersonAndProductTogetherOrDisable");
     const missing = type.required?.find((field) => !draft[field]?.trim());
-    if (missing) return `${fieldLabel[missing]}是当前创作类型的真实资料，请填写后再策划`;
+    if (missing) return translate("ecommerce.typeConfig.isRequiredFactualInformationForThisCreationTypeFillIt", { v0: commerceUiText(fieldLabel[missing]) });
     const specific = creationOptions[draft.imageType] || [];
     for (const [key, value] of Object.entries(draft.typeOptions || {})) {
         const option = specific.find((item) => item.key === key);
-        if ((!option && !(draft.imageType === "marketing" && key === "materialPlan")) || (option?.choices && value && !option.choices.includes(value))) return "创作类型专属参数无效，请重新选择";
+        if ((!option && !(draft.imageType === "marketing" && key === "materialPlan")) || (option?.choices && value && !option.choices.includes(value))) return translate("ecommerce.typeConfig.invalidSettingsForThisCreationTypeSelectThemAgain");
     }
     const missingOption = specific.find((item) => item.required && !draft.typeOptions?.[item.key]?.trim());
-    return missingOption ? `请填写${missingOption.label}后再策划` : null;
+    return missingOption ? translate("ecommerce.typeConfig.fillInBeforePlanning", { v0: commerceUiText(missingOption.label) }) : null;
 }

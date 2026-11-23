@@ -3,6 +3,7 @@ import type { AiConfig } from "@/stores/use-config-store";
 import type { SrtEntry, SubtitleHighlight } from "@/types/timeline";
 import { buildSubtitleHighlightSystemPrompt, buildSubtitleHighlightUserMessage } from "@/lib/prompts";
 import { parseSubtitleHighlightResponse } from "./subtitle-highlight-service";
+import { translate } from "@/i18n";
 
 export interface SubtitleHighlightProgress {
     batchIndex: number;
@@ -94,8 +95,8 @@ export async function generateSubtitleHighlights(entries: SrtEntry[], options: S
         throw new DOMException("Aborted", "AbortError");
     }
     if (firstError.current) {
-        const message = firstError.current instanceof Error ? firstError.current.message : "未知错误";
-        throw new Error(`字幕关键词高亮生成失败：${message}`);
+        const message = firstError.current instanceof Error ? firstError.current.message : translate("canvasPage.common.unknownError");
+        throw new Error(translate("shared.timeline.subtitleHighlightRunner.failedToGenerateSubtitleKeywordHighlights", { v0: String(message) }));
     }
 
     return results.flat();

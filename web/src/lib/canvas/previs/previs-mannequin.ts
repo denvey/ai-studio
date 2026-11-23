@@ -4,6 +4,7 @@ import { GLTFLoader, SkeletonUtils } from "three-stdlib";
 import { previsActorProfileForArchetype } from "@/lib/canvas/previs/previs-scene";
 import { PREVIS_MANNEQUIN_BONES, type PrevisEvaluatedPose, type PrevisMannequinBone } from "@/lib/canvas/previs/previs-motion";
 import type { PrevisActorArchetype, PrevisActorProfile, PrevisRig } from "@/types/previs";
+import { translate } from "@/i18n";
 
 /**
  * 标准人偶：本地打包的 CC0 光滑人体（Quaternius Universal Animation Library 的 Mannequin，
@@ -188,7 +189,7 @@ export function buildPrevisMannequin(input: { template: Object3D; archetype?: Pr
 
     const ual = (name: string) => {
         const found = model.getObjectByName(name);
-        if (!found) throw new Error(`标准人偶缺少骨骼 ${name}`);
+        if (!found) throw new Error(translate("shared.canvas.previs.previsMannequin.theStandardMannequinIsMissingBone", { v0: String(name) }));
         return found;
     };
 

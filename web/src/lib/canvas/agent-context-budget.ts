@@ -1,4 +1,6 @@
 import type { AiTextMessage, ResponseInputMessage, ResponseFunctionTool } from "@/services/api/image-contracts";
+import { translate } from "@/i18n";
+
 
 // Token planning follows the selected provider model capability. The byte count
 // remains a diagnostic guard for pathological payloads, never the model window.
@@ -36,7 +38,7 @@ export function assertAgentExchangeBudget(
     const tokens = estimatedTokens(text);
     if (encoder.encode(text).byteLength > MAX_DIAGNOSTIC_BYTES || tokens > inputBudget(capability)) {
         const budget = inputBudget(capability);
-        throw new Error(`本轮工具结果和上下文已达到模型输入预算（约 ${Math.floor(budget / 1000)}K Token），已完成的操作会保留。请缩小下一步范围后继续；不要重复生成已完成的作品。`);
+        throw new Error(translate("shared.canvas.agentContextBudget.toolResultsAndContextHaveReachedTheModelSInput", { v0: String(Math.floor(budget / 1000)) }));
     }
 }
 
@@ -74,7 +76,7 @@ export function budgetAgentHistory(
     while (true) {
         const noticeCost = omitted ? textCost([omissionNotice(omitted)]) : { bytes: 0, tokens: 0 };
         if (remainingCost.tokens + noticeCost.tokens <= budget) break;
-        if (omitted === groups.length) throw new Error(`当前需求和画布资料较多，暂时无法完整发送（模型输入预算约 ${Math.floor(budget / 1000)}K Token）。请缩小本次处理的范围或减少附带的长文本；已确认的信息和历史记录会保留。`);
+        if (omitted === groups.length) throw new Error(translate("shared.canvas.agentContextBudget.theRequestAndCanvasContentExceedTheModelSInput", { v0: String(Math.floor(budget / 1000)) }));
         const removedCost = textCost(groups[omitted]!);
         remainingCost.bytes -= removedCost.bytes;
         remainingCost.tokens -= removedCost.tokens;

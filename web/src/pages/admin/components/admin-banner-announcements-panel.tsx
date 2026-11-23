@@ -25,6 +25,7 @@ import { AdminDataTable } from "./admin-ui";
 import { BannerNoticeTypeSelector } from "./banner-notice-type-selector";
 import { BannerNoticePreview, BannerTitleEditor } from "./banner-title-editor";
 import { Select } from "@/components/ui/base/select";
+import { translate } from "@/i18n";
 
 type FormValues = {
     noticeType: BannerNoticeType;
@@ -73,7 +74,7 @@ export default function AdminBannerAnnouncementsPanel({
             setBanners(data.banners || []);
             setTotal(data.total || 0);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "读取常驻通知列表失败");
+            message.error(error instanceof Error ? error.message : translate("admin.adminBannerAnnouncementsPanel.failedToLoadPersistentNotices"));
         } finally {
             setLoading(false);
         }
@@ -128,10 +129,10 @@ export default function AdminBannerAnnouncementsPanel({
             return;
         }
         modal.confirm({
-            title: "放弃未保存的修改？",
-            content: "关闭后本次编辑的内容不会保留。",
-            okText: "放弃修改",
-            cancelText: "继续编辑",
+            title: translate("admin.adminBannerAnnouncementsPanel.discardUnsavedChanges"),
+            content: translate("admin.adminBannerAnnouncementsPanel.yourCurrentEditsWillBeDiscardedWhenYouClose"),
+            okText: translate("admin.adminBannerAnnouncementsPanel.discardChanges"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
             okButtonProps: { danger: true },
             onOk: () => setDialog(null),
         });
@@ -140,11 +141,11 @@ export default function AdminBannerAnnouncementsPanel({
     const handleDelete = async (id: string) => {
         try {
             await deleteAdminBanner(id);
-            message.success("常驻通知已删除");
+            message.success(translate("admin.adminBannerAnnouncementsPanel.persistentNoticeDeleted"));
             void queryClient.invalidateQueries({ queryKey: ["active-banner-announcements"] });
             void reload(page, pageSize);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "删除失败");
+            message.error(error instanceof Error ? error.message : translate("library.picker.deleteFailed"));
         }
     };
 
@@ -160,11 +161,11 @@ export default function AdminBannerAnnouncementsPanel({
                 startsAt: banner.startsAt,
                 endsAt: banner.endsAt,
             });
-            message.success(nextStatus ? "常驻通知已启用" : "常驻通知已禁用");
+            message.success(nextStatus ? translate("admin.adminBannerAnnouncementsPanel.persistentNoticeEnabled") : translate("admin.adminBannerAnnouncementsPanel.persistentNoticeDisabled"));
             void queryClient.invalidateQueries({ queryKey: ["active-banner-announcements"] });
             void reload(page, pageSize);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "更新状态失败");
+            message.error(error instanceof Error ? error.message : translate("admin.adminBannerAnnouncementsPanel.failedToUpdateStatus"));
         }
     };
 
@@ -173,11 +174,11 @@ export default function AdminBannerAnnouncementsPanel({
         const runs = normalizeBannerTitleRuns(titleRuns);
         const plain = bannerTitlePlainText(runs).trim();
         if (!plain || !runs.length) {
-            message.error("请填写通知标题");
+            message.error(translate("admin.adminBannerAnnouncementsPanel.enterANoticeTitle"));
             return;
         }
         if (bannerTitleCharCount(runs) > BANNER_TITLE_MAX_CHARS) {
-            message.error(`通知标题不能超过 ${BANNER_TITLE_MAX_CHARS} 个字符`);
+            message.error(translate("admin.adminBannerAnnouncementsPanel.theNoticeTitleMustNotExceedCharacters", { v0: String(BANNER_TITLE_MAX_CHARS) }));
             return;
         }
         setSubmitting(true);
@@ -198,17 +199,17 @@ export default function AdminBannerAnnouncementsPanel({
 
             if (dialog?.mode === "edit") {
                 await updateAdminBanner(dialog.banner.id, payload);
-                message.success("常驻通知已更新");
+                message.success(translate("admin.adminBannerAnnouncementsPanel.persistentNoticeUpdated"));
             } else {
                 await createAdminBanner(payload);
-                message.success("常驻通知已新建");
+                message.success(translate("admin.adminBannerAnnouncementsPanel.persistentNoticeCreated"));
             }
             setDialog(null);
             form.resetFields();
             void queryClient.invalidateQueries({ queryKey: ["active-banner-announcements"] });
             void reload(1, pageSize);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "保存常驻通知失败");
+            message.error(error instanceof Error ? error.message : translate("admin.adminBannerAnnouncementsPanel.failedToSaveThePersistentNotice"));
         } finally {
             setSubmitting(false);
         }
@@ -216,7 +217,7 @@ export default function AdminBannerAnnouncementsPanel({
 
     const columns: ColumnsType<BannerAnnouncement> = [
         {
-            title: "通知标题",
+            title: translate("admin.adminBannerAnnouncementsPanel.noticeTitle"),
             dataIndex: "title",
             key: "title",
             render: (text: string, record) => (
@@ -231,7 +232,7 @@ export default function AdminBannerAnnouncementsPanel({
             ),
         },
         {
-            title: "类型",
+            title: translate("account.settings.runninghub.kind"),
             key: "noticeType",
             width: 92,
             // 用真实底色渲染类型，和前台/预览看到的是同一个 token。
@@ -245,7 +246,7 @@ export default function AdminBannerAnnouncementsPanel({
             ),
         },
         {
-            title: "状态",
+            title: translate("library.tasks.detail.status"),
             dataIndex: "status",
             key: "status",
             width: 110,
@@ -258,42 +259,42 @@ export default function AdminBannerAnnouncementsPanel({
             ),
         },
         {
-            title: "有效期",
+            title: translate("admin.adminBannerAnnouncementsPanel.validity"),
             key: "validity",
             width: 280,
             render: (_, record) => {
                 if (!record.startsAt && !record.endsAt) {
-                    return <span className="text-foreground/45">长期有效</span>;
+                    return <span className="text-foreground/45">{translate("library.ark.expiry.none")}</span>;
                 }
-                const startStr = record.startsAt ? dayjs(record.startsAt).format("YYYY-MM-DD HH:mm") : "不限";
-                const endStr = record.endsAt ? dayjs(record.endsAt).format("YYYY-MM-DD HH:mm") : "不限";
+                const startStr = record.startsAt ? dayjs(record.startsAt).format("YYYY-MM-DD HH:mm") : translate("admin.adminBannerAnnouncementsPanel.noLimit");
+                const endStr = record.endsAt ? dayjs(record.endsAt).format("YYYY-MM-DD HH:mm") : translate("admin.adminBannerAnnouncementsPanel.noLimit");
                 return (
                     <span className="text-xs text-foreground/75 font-mono">
-                        {startStr} 至 {endStr}
+                        {startStr} {translate("admin.adminBannerAnnouncementsPanel.to")} {endStr}
                     </span>
                 );
             },
         },
         {
-            title: "创建时间",
+            title: translate("library.tasks.detail.createdAt"),
             dataIndex: "createdAt",
             key: "createdAt",
             width: 160,
             render: (date: string) => <span className="text-xs text-foreground/60 font-mono">{dayjs(date).format("YYYY-MM-DD HH:mm")}</span>,
         },
         {
-            title: "操作",
+            title: translate("account.settings.runninghub.actions"),
             key: "action",
             width: 120,
             align: "right",
             render: (_, record) => (
                 <div className="flex justify-end gap-1">
                     <Button type="text" size="small" icon={<Edit3 className="size-3.5" />} onClick={() => openEdit(record)}>
-                        编辑
+                        {translate("account.settings.channels.edit")}
                     </Button>
-                    <Popconfirm title="确认删除此常驻通知？" onConfirm={() => void handleDelete(record.id)}>
+                    <Popconfirm title={translate("admin.adminBannerAnnouncementsPanel.deleteThisPersistentNotice")} onConfirm={() => void handleDelete(record.id)}>
                         <Button type="text" size="small" danger icon={<Trash2 className="size-3.5" />}>
-                            删除
+                            {translate("common.delete")}
                         </Button>
                     </Popconfirm>
                 </div>
@@ -311,11 +312,11 @@ export default function AdminBannerAnnouncementsPanel({
                 toolbar={
                     <Input
                         allowClear
-                        aria-label="搜索常驻通知标题"
+                        aria-label={translate("admin.adminBannerAnnouncementsPanel.searchPersistentNoticeTitles")}
                         className="app-list-search"
                         prefix={<Search className="size-4 text-foreground/40" />}
                         value={keyword}
-                        placeholder="搜索常驻通知标题"
+                        placeholder={translate("admin.adminBannerAnnouncementsPanel.searchPersistentNoticeTitles")}
                         onChange={(event) => {
                             setKeyword(event.target.value);
                             setPage(1);
@@ -325,7 +326,7 @@ export default function AdminBannerAnnouncementsPanel({
                 toolbarActive={hasFilters}
                 toolbarFilters={
                     <Select
-                        aria-label="按状态筛选常驻通知"
+                        aria-label={translate("admin.adminBannerAnnouncementsPanel.filterPersistentNoticesByStatus")}
                         className="w-32"
                         value={status}
                         onChange={(value) => {
@@ -333,9 +334,9 @@ export default function AdminBannerAnnouncementsPanel({
                             setPage(1);
                         }}
                         options={[
-                            { label: "全部状态", value: "all" },
-                            { label: "已启用", value: "active" },
-                            { label: "已禁用", value: "disabled" },
+                            { label: translate("library.ark.expiry.all"), value: "all" },
+                            { label: translate("account.layout.oss.enabled"), value: "active" },
+                            { label: translate("admin.adminBannerAnnouncementsPanel.disabled"), value: "disabled" },
                         ]}
                     />
                 }
@@ -364,7 +365,7 @@ export default function AdminBannerAnnouncementsPanel({
             />
 
             <AdminModal
-                title={dialog?.mode === "edit" ? "编辑常驻通知" : "新建常驻通知"}
+                title={dialog?.mode === "edit" ? translate("admin.adminBannerAnnouncementsPanel.editPersistentNotice") : translate("admin.adminBannerAnnouncementsPanel.newPersistentNotice")}
                 open={Boolean(dialog)}
                 onCancel={requestClose}
                 onOk={() => form.submit()}
@@ -381,7 +382,7 @@ export default function AdminBannerAnnouncementsPanel({
                     onFinish={(values) => void handleSubmit(values)}
                     onValuesChange={() => setDirty(true)}
                 >
-                    <Form.Item name="noticeType" label="通知类型" extra="决定通知条底色；浅色 / 深色主题各有一档取值">
+                    <Form.Item name="noticeType" label={translate("admin.adminBannerAnnouncementsPanel.noticeType")} extra={translate("admin.adminBannerAnnouncementsPanel.setsTheNoticeBarBackgroundWithSeparateValuesForLight")}>
                         <BannerNoticeTypeSelector
                             value={noticeType}
                             onChange={(next) => {
@@ -393,15 +394,15 @@ export default function AdminBannerAnnouncementsPanel({
                     </Form.Item>
 
                     <Form.Item
-                        label="通知标题"
+                        label={translate("admin.adminBannerAnnouncementsPanel.noticeTitle")}
                         required
                         validateStatus={titleMissing || titleTooLong ? "error" : undefined}
                         help={
                             titleMissing
-                                ? "请输入常驻通知标题"
+                                ? translate("admin.adminBannerAnnouncementsPanel.enterAPersistentNoticeTitle")
                                 : titleTooLong
-                                  ? `已超出 ${BANNER_TITLE_MAX_CHARS} 个字符上限`
-                                  : "支持按选区设置字号、字重、字体与颜色，用「图标」插入 emoji 素材；标题在通知条内固定单行展示"
+                                  ? translate("admin.adminBannerAnnouncementsPanel.exceededTheCharacterLimit", { v0: String(BANNER_TITLE_MAX_CHARS) })
+                                  : translate("admin.adminBannerAnnouncementsPanel.setTheFontSizeWeightFamilyAndColorForSelected")
                         }
                     >
                         <BannerTitleEditor
@@ -416,27 +417,27 @@ export default function AdminBannerAnnouncementsPanel({
 
                     {/* 预览放在 Form 内但不用 Form.Item：避免 AntD 向非表单控件注入 value/onChange/ref。 */}
                     <div className="mb-6">
-                        <div className="mb-2 text-sm text-foreground/85">前台效果预览</div>
+                        <div className="mb-2 text-sm text-foreground/85">{translate("admin.adminBannerAnnouncementsPanel.userInterfacePreview")}</div>
                         <BannerNoticePreview runs={titleRuns} hasLink={Boolean(linkValue?.trim())} noticeType={noticeType} />
                     </div>
 
                     <Form.Item
                         name="link"
-                        label="跳转链接（可选）"
-                        extra="支持 https:// 外链或以 / 开头的站内路径（如 /projects）；留空表示不可点击"
-                        rules={[{ max: 500, message: "链接最多 500 字符" }]}
+                        label={translate("admin.adminBannerAnnouncementsPanel.destinationLinkOptional")}
+                        extra={translate("admin.adminBannerAnnouncementsPanel.supportsExternalHttpsLinksOrSitePathsStartingWithE")}
+                        rules={[{ max: 500, message: translate("admin.adminBannerAnnouncementsPanel.linksMustNotExceed500Characters") }]}
                     >
-                        <Input maxLength={500} placeholder="https://… 或 /projects" />
+                        <Input maxLength={500} placeholder={translate("admin.adminBannerAnnouncementsPanel.httpsOrProjects")} />
                     </Form.Item>
 
-                    <Form.Item name="status" label="发布状态" valuePropName="checked">
-                        <Switch checkedChildren="启用" unCheckedChildren="禁用" />
+                    <Form.Item name="status" label={translate("admin.adminBannerAnnouncementsPanel.publicationStatus")} valuePropName="checked">
+                        <Switch checkedChildren={translate("account.layout.oss.switchOn")} unCheckedChildren={translate("admin.adminBannerAnnouncementsPanel.disable")} />
                     </Form.Item>
-                    <Form.Item name="sortOrder" label="展示顺序" extra="数字越小越靠前；相同顺序按创建时间倒序">
+                    <Form.Item name="sortOrder" label={translate("admin.adminBannerAnnouncementsPanel.displayOrder")} extra={translate("admin.adminBannerAnnouncementsPanel.lowerNumbersAppearFirstTiesAreOrderedByCreationTime")}>
                         <InputNumber min={0} max={999999} precision={0} className="w-full" />
                     </Form.Item>
 
-                    <Form.Item name="dateRange" label="有效期（可选）" extra="留空表示长期有效；设置时间段后仅在有效期内于前台展示">
+                    <Form.Item name="dateRange" label={translate("admin.adminBannerAnnouncementsPanel.validityPeriodOptional")} extra={translate("admin.adminBannerAnnouncementsPanel.leaveBlankForNoExpirationIfATimeRangeIs")}>
                         <DatePicker.RangePicker showTime format="YYYY-MM-DD HH:mm" className="w-full" />
                     </Form.Item>
                 </Form>

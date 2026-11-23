@@ -14,6 +14,7 @@ import {
     type CommerceKnowledgePage,
     type CommerceKnowledgeStats,
 } from "@/services/api/ecommerce-knowledge";
+import { currentLocale, translate } from "@/i18n";
 
 export default function EcommerceKnowledgePage() {
     const { message } = App.useApp();
@@ -48,7 +49,7 @@ export default function EcommerceKnowledgePage() {
         setSyncing(true);
         try {
             const result = await syncCommerceKnowledge();
-            message.success(`本次新增 ${result.imported} 条，重复 ${result.duplicates} 条，失败 ${result.failed.length} 个文件`);
+            message.success(translate("adminPages.ecommerceKnowledgePage.addedSkippedDuplicatesAndFailedToImportFiles", { v0: String(result.imported), v1: String(result.duplicates), v2: String(result.failed.length) }));
             await refresh();
         } catch (cause) {
             message.error(cause instanceof Error ? cause.message : String(cause));
@@ -74,43 +75,47 @@ export default function EcommerceKnowledgePage() {
     };
     return (
         <EcommerceLibraryPanel
-            description="电商 Agent 策划时检索的视觉规则。来源按固定版本导入，社区文档默认待审核；商品分类来自 Shopify 官方 Release。"
+            description={translate("adminPages.ecommerceKnowledgePage.visualRulesRetrievedDuringECommerceAgentPlanningSourcesAre")}
             actions={
                 <Space>
                     <Button icon={<RefreshCw size={14} />} onClick={() => void refresh()} loading={loading}>
-                        刷新
+                        {translate("common.refresh")}
                     </Button>
                     <Button type="primary" icon={<Database size={14} />} onClick={() => void runSync()} loading={syncing}>
-                        同步固定来源
+                        {translate("adminPages.ecommerceKnowledgePage.syncPinnedSources")}
                     </Button>
                 </Space>
             }
         >
             {error ? <Alert type="error" showIcon message={error} /> : null}
-            <div className="eal-stats" aria-label="知识库概况">
-                <AdminStatTile label="知识条目" value={stats?.entryCount ?? "—"} detail={`来源 ${stats?.sourceCount ?? "—"} 个`} />
-                <AdminStatTile label="有效" value={stats?.approvedCount ?? "—"} detail="已审核且未过期" />
-                <AdminStatTile label="待审核" value={stats?.pendingCount ?? "—"} detail="社区来源默认待审核" />
-                <AdminStatTile label="已拒绝 / 已过期" value={stats ? `${stats.rejectedCount} / ${stats.expiredCount}` : "—"} detail={`最近同步去重 ${stats?.lastSyncDuplicateCount ?? "—"} 条`} />
+            <div className="eal-stats" aria-label={translate("adminPages.ecommerceKnowledgePage.knowledgeOverview")}>
+                <AdminStatTile label={translate("adminPages.ecommerceKnowledgePage.knowledgeEntries")} value={stats?.entryCount ?? "—"} detail={translate("adminPages.ecommerceKnowledgePage.sources", { v0: String(stats?.sourceCount ?? "—") })} />
+                <AdminStatTile label={translate("library.ark.expiry.valid")} value={stats?.approvedCount ?? "—"} detail={translate("adminPages.ecommerceKnowledgePage.reviewedAndUnexpired")} />
+                <AdminStatTile label={translate("adminPages.ecommerceKnowledgePage.inReview")} value={stats?.pendingCount ?? "—"} detail={translate("adminPages.ecommerceKnowledgePage.communitySourcesAwaitReviewByDefault")} />
+                <AdminStatTile
+                    label={translate("adminPages.ecommerceKnowledgePage.rejectedExpired")}
+                    value={stats ? `${stats.rejectedCount} / ${stats.expiredCount}` : "—"}
+                    detail={translate("adminPages.ecommerceKnowledgePage.duplicatesRemovedInTheLatestSync", { v0: String(stats?.lastSyncDuplicateCount ?? "—") })}
+                />
             </div>
             {stats ? (
                 <div className="eal-stack">
                     <Typography.Paragraph type="secondary">
-                        已覆盖分类：
+                        {translate("adminPages.ecommerceKnowledgePage.coveredCategories")}
                         {Object.entries(stats.categoryCoverage || {})
                             .map(([category, count]) => `${category} ${count}`)
-                            .join(" · ") || "暂无"}
-                        。分类数量是知识记录数，不能代表各类目视觉规则已完整覆盖。
+                            .join(" · ") || translate("account.settings.memory.none")}
+                        {translate("adminPages.ecommerceKnowledgePage.theCategoryCountMeasuresKnowledgeRecordsAndDoesNotIndicate")}
                     </Typography.Paragraph>
-                    <section aria-label="知识域覆盖">
+                    <section aria-label={translate("adminPages.ecommerceKnowledgePage.knowledgeDomainCoverage")}>
                         <Typography.Title level={5} style={{ marginTop: 0 }}>
-                            知识域
+                            {translate("adminPages.ecommerceKnowledgePage.knowledgeDomain")}
                         </Typography.Title>
-                        <Typography.Paragraph type="secondary">下方数量只统计已审核且未过期的知识条目；数量不代表该知识域已完整覆盖。</Typography.Paragraph>
+                        <Typography.Paragraph type="secondary">{translate("adminPages.ecommerceKnowledgePage.countsBelowIncludeOnlyApprovedUnexpiredEntriesTheyDoNot")}</Typography.Paragraph>
                         <Space wrap size={[8, 8]}>
                             {commerceKnowledgeDomainRows(stats.domainCoverage).map(({ id, label, count }) => (
                                 <Tag key={id} color={count > 0 ? "blue" : "default"}>
-                                    <strong>{id}</strong> {label} · {count > 0 ? `${count} 条有效知识` : "暂无有效知识"}
+                                    <strong>{id}</strong> {label} · {count > 0 ? translate("adminPages.ecommerceKnowledgePage.activeKnowledgeEntries", { v0: String(count) }) : translate("adminPages.ecommerceKnowledgePage.noActiveKnowledgeEntries")}
                                 </Tag>
                             ))}
                         </Space>
@@ -121,10 +126,17 @@ export default function EcommerceKnowledgePage() {
                 items={[
                     {
                         key: "sources",
-                        label: `知识源 · ${stats?.sourceCount ?? 0}`,
+                        label: translate("adminPages.ecommerceKnowledgePage.knowledgeSources", { v0: String(stats?.sourceCount ?? 0) }),
                         children: (
                             <div className="eal-stack">
-                                <Input allowClear prefix={<Search size={14} />} value={sourceSearch} onChange={(event) => setSourceSearch(event.target.value)} placeholder="搜索知识源名称、仓库、许可或状态" style={{ maxWidth: 430, marginBottom: 14 }} />
+                                <Input
+                                    allowClear
+                                    prefix={<Search size={14} />}
+                                    value={sourceSearch}
+                                    onChange={(event) => setSourceSearch(event.target.value)}
+                                    placeholder={translate("adminPages.ecommerceKnowledgePage.searchSourceNameRepositoryLicenseOrStatus")}
+                                    style={{ maxWidth: 430, marginBottom: 14 }}
+                                />
                                 <Table
                                     rowKey="id"
                                     size="small"
@@ -134,7 +146,7 @@ export default function EcommerceKnowledgePage() {
 
                                     columns={[
                                         {
-                                            title: "知识源",
+                                            title: translate("adminPages.ecommerceKnowledgePage.knowledgeSource"),
                                             dataIndex: "name",
                                             render: (_: unknown, source) =>
                                                 source.repository && source.commit ? (
@@ -145,33 +157,41 @@ export default function EcommerceKnowledgePage() {
                                                     <span>{source.name}</span>
                                                 ),
                                         },
-                                        { title: "固定版本", dataIndex: "commit", render: (value: string) => value.slice(0, 12) },
-                                        { title: "许可", dataIndex: "license" },
-                                        { title: "状态", dataIndex: "status", render: (value: string) => <Tag color={value === "ready" ? "green" : value === "partial" ? "gold" : "default"}>{value}</Tag> },
-                                        { title: "最后同步", dataIndex: "lastSyncedAt", render: (value?: string) => (value ? new Date(value).toLocaleString() : "未同步") },
+                                        { title: translate("adminPages.ecommerceKnowledgePage.pinnedVersion"), dataIndex: "commit", render: (value: string) => value.slice(0, 12) },
+                                        { title: translate("adminPages.ecommerceKnowledgePage.license"), dataIndex: "license" },
+                                        { title: translate("library.tasks.detail.status"), dataIndex: "status", render: (value: string) => <Tag color={value === "ready" ? "green" : value === "partial" ? "gold" : "default"}>{value}</Tag> },
                                         {
-                                            title: "操作",
+                                            title: translate("adminPages.ecommerceKnowledgePage.lastSynced"),
+                                            dataIndex: "lastSyncedAt",
+                                            render: (value?: string) => (value ? new Date(value).toLocaleString(currentLocale()) : translate("adminPages.ecommerceKnowledgePage.notSynced")),
+                                        },
+                                        {
+                                            title: translate("account.settings.runninghub.actions"),
                                             key: "actions",
                                             render: (_: unknown, source) => (
                                                 <Button size="small" onClick={() => void toggleSource(source.id, source.status === "disabled")}>
-                                                    {source.status === "disabled" ? "启用" : "停用"}
+                                                    {source.status === "disabled" ? translate("adminPages.ecommerceKnowledgePage.enable") : translate("adminPages.ecommerceKnowledgePage.disable")}
                                                 </Button>
                                             ),
                                         },
                                     ]}
-                                    expandable={{ expandedRowRender: (source) => <Typography.Paragraph style={{ whiteSpace: "pre-wrap", maxWidth: 760 }}>{source.licenseText || source.errorMessage || "暂无许可证文本"}</Typography.Paragraph> }}
+                                    expandable={{
+                                        expandedRowRender: (source) => (
+                                            <Typography.Paragraph style={{ whiteSpace: "pre-wrap", maxWidth: 760 }}>{source.licenseText || source.errorMessage || translate("adminPages.ecommerceKnowledgePage.noLicenseTextAvailable")}</Typography.Paragraph>
+                                        ),
+                                    }}
                                 />
                             </div>
                         ),
                     },
                     {
                         key: "entries",
-                        label: `知识条目 · ${stats?.entryCount ?? 0}`,
+                        label: translate("adminPages.ecommerceKnowledgePage.knowledgeEntries2", { v0: String(stats?.entryCount ?? 0) }),
                         children: (
                             <div className="eal-stack">
                                 <Space wrap>
                                     <Input.Search
-                                        placeholder="搜索知识标题"
+                                        placeholder={translate("adminPages.ecommerceKnowledgePage.searchKnowledgeTitles")}
                                         allowClear
                                         onSearch={(value) => {
                                             setPage(1);
@@ -186,14 +206,14 @@ export default function EcommerceKnowledgePage() {
                                             setStatus(value);
                                         }}
                                         options={[
-                                            { value: "pending", label: "待审核" },
-                                            { value: "approved", label: "有效" },
-                                            { value: "rejected", label: "已拒绝" },
-                                            { value: "", label: "全部" },
+                                            { value: "pending", label: translate("adminPages.ecommerceKnowledgePage.inReview") },
+                                            { value: "approved", label: translate("library.ark.expiry.valid") },
+                                            { value: "rejected", label: translate("account.settings.memory.statusRejected") },
+                                            { value: "", label: translate("canvasA.toolPicker.all") },
                                         ]}
                                     />
                                 </Space>
-                                {!loading && data?.total === 0 ? <Alert type="info" showIcon message="当前筛选没有匹配条目。可切换为“有效”或“全部”，或清空搜索词查看已有知识。" /> : null}
+                                {!loading && data?.total === 0 ? <Alert type="info" showIcon message={translate("adminPages.ecommerceKnowledgePage.noEntriesMatchTheCurrentFiltersSwitchToActiveOr")} /> : null}
                                 <Table
                                     rowKey="id"
                                     size="small"
@@ -202,7 +222,7 @@ export default function EcommerceKnowledgePage() {
                                     pagination={{ current: page, pageSize: 20, total: data?.total || 0, onChange: setPage }}
                                     columns={[
                                         {
-                                            title: "知识",
+                                            title: translate("adminPages.ecommerceKnowledgePage.knowledge"),
                                             dataIndex: "title",
                                             render: (_: unknown, item) => (
                                                 <div>
@@ -215,7 +235,7 @@ export default function EcommerceKnowledgePage() {
                                             ),
                                         },
                                         {
-                                            title: "来源",
+                                            title: translate("canvasA.assetView.origin"),
                                             dataIndex: "sourceUrl",
                                             render: (value: string, item) => (
                                                 <a href={value} target="_blank" rel="noreferrer">
@@ -223,17 +243,17 @@ export default function EcommerceKnowledgePage() {
                                                 </a>
                                             ),
                                         },
-                                        { title: "状态", dataIndex: "reviewStatus", render: (value: string) => <Tag color={value === "approved" ? "green" : value === "pending" ? "gold" : "default"}>{value}</Tag> },
+                                        { title: translate("library.tasks.detail.status"), dataIndex: "reviewStatus", render: (value: string) => <Tag color={value === "approved" ? "green" : value === "pending" ? "gold" : "default"}>{value}</Tag> },
                                         {
-                                            title: "审核",
+                                            title: translate("adminPages.ecommerceKnowledgePage.review"),
                                             key: "actions",
                                             render: (_: unknown, item) => (
                                                 <Space>
                                                     <Button size="small" onClick={() => void review(item, "approved")}>
-                                                        通过
+                                                        {translate("adminPages.ecommerceKnowledgePage.approve")}
                                                     </Button>
                                                     <Button size="small" danger onClick={() => void review(item, "rejected")}>
-                                                        拒绝
+                                                        {translate("account.settings.memory.reject")}
                                                     </Button>
                                                 </Space>
                                             ),

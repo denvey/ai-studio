@@ -1,4 +1,5 @@
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
+import { translate } from "@/i18n";
 
 export type VideoConcatEngine = Pick<FFmpeg, "writeFile" | "readFile" | "deleteFile" | "exec" | "ffprobe">;
 
@@ -18,7 +19,7 @@ async function probeVideo(ffmpeg: VideoConcatEngine, file: string): Promise<Medi
 }
 
 export async function concatVideoFiles(ffmpeg: VideoConcatEngine, files: string[]): Promise<Uint8Array> {
-    if (files.length < 2) throw new Error("至少选择 2 个视频才能合并");
+    if (files.length < 2) throw new Error(translate("shared.canvas.canvasVideoConcat.selectAtLeast2VideosToMerge"));
     try {
         const inputs = [];
         for (const [index, file] of files.entries()) {
@@ -26,7 +27,7 @@ export async function concatVideoFiles(ffmpeg: VideoConcatEngine, files: string[
             const video = probe.streams?.find((stream) => stream.codec_type === "video");
             const duration = Number(video?.duration ?? probe.format?.duration);
             if (!video?.width || !video.height || !Number.isFinite(duration) || duration <= 0) {
-                throw new Error(`无法读取第 ${index + 1} 个视频的尺寸或时长`);
+                throw new Error(translate("shared.canvas.canvasVideoConcat.unableToReadDimensionsOrDurationOfVideo", { v0: String(index + 1) }));
             }
             const audio = probe.streams?.find((stream) => stream.codec_type === "audio");
             const audioStart = Number(audio?.start_time);
@@ -82,7 +83,7 @@ export async function concatVideoFiles(ffmpeg: VideoConcatEngine, files: string[
             "1",
             "merged.mp4",
         ]);
-        if (exitCode !== 0) throw new Error("视频编码失败，请确认视频编码格式兼容");
+        if (exitCode !== 0) throw new Error(translate("shared.canvas.canvasVideoConcat.videoEncodingFailedCheckThatTheCodecIsCompatible"));
 
         const result = await probeVideo(ffmpeg, "merged.mp4");
         const expectedDuration = inputs.reduce((total, input) => total + input.duration, 0);
@@ -90,7 +91,7 @@ export async function concatVideoFiles(ffmpeg: VideoConcatEngine, files: string[
         for (const kind of ["video", "audio"]) {
             const actualDuration = Number(result.streams?.find((stream) => stream.codec_type === kind)?.duration);
             if (!Number.isFinite(actualDuration) || Math.abs(actualDuration - expectedDuration) > tolerance) {
-                throw new Error("合并后音视频时长校验失败，请重新合并");
+                throw new Error(translate("shared.canvas.canvasVideoConcat.audioVideoDurationValidationFailedAfterMergingMergeAgain"));
             }
         }
         return (await ffmpeg.readFile("merged.mp4")) as Uint8Array;

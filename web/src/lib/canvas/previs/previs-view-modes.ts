@@ -3,6 +3,7 @@ import { Euler, Vector3 } from "three";
 import { interpolatePrevisTransform } from "@/lib/canvas/previs/previs-scene";
 import { resolvePrevisShotFov } from "@/lib/canvas/previs/previs-optics";
 import type { PrevisCamera, PrevisScene, PrevisShot, PrevisTransform, PrevisVec3 } from "@/types/previs";
+import { translate } from "@/i18n";
 
 /**
  * 视口取景模式（3D / CAM / 五个正交轴向：俯视、正视、背视、左视、右视）。
@@ -43,13 +44,13 @@ const CAPABILITIES: Record<PrevisViewMode, PrevisViewModeCapabilities> = {
 };
 
 export const PREVIS_VIEW_MODES: Array<{ mode: PrevisViewMode; label: string; hint: string }> = [
-    { mode: "free", label: "3D", hint: "自由视角：拖拽环绕、滚轮缩放" },
-    { mode: "camera", label: "CAM", hint: "机位视图：按当前镜头的摄影机取景，环绕已锁定" },
-    { mode: "top", label: "TOP", hint: "俯视：从正上方向下看，正交投影，环绕已锁定" },
-    { mode: "front", label: "FRONT", hint: "正视：沿 -Z 方向看向场景，正交投影，环绕已锁定" },
-    { mode: "back", label: "BACK", hint: "背视：沿 +Z 方向看向场景，正交投影，环绕已锁定" },
-    { mode: "left", label: "LEFT", hint: "左视：沿 +X 方向看向场景，正交投影，环绕已锁定" },
-    { mode: "right", label: "RIGHT", hint: "右视：沿 -X 方向看向场景，正交投影，环绕已锁定" },
+    { mode: "free", label: "3D", hint: translate("shared.canvas.previs.previsViewModes.freeViewDragToOrbitScrollToZoom") },
+    { mode: "camera", label: "CAM", hint: translate("shared.canvas.previs.previsViewModes.cameraViewFrameThroughTheCurrentShotSCameraOrbit") },
+    { mode: "top", label: "TOP", hint: translate("shared.canvas.previs.previsViewModes.topViewLookStraightDownWithOrthographicProjectionOrbitLocked") },
+    { mode: "front", label: "FRONT", hint: translate("shared.canvas.previs.previsViewModes.frontViewLookAlongZWithOrthographicProjectionOrbitLocked") },
+    { mode: "back", label: "BACK", hint: translate("shared.canvas.previs.previsViewModes.backViewLookAlongZWithOrthographicProjectionOrbitLocked") },
+    { mode: "left", label: "LEFT", hint: translate("shared.canvas.previs.previsViewModes.leftViewLookAlongXWithOrthographicProjectionOrbitLocked") },
+    { mode: "right", label: "RIGHT", hint: translate("shared.canvas.previs.previsViewModes.rightViewLookAlongXWithOrthographicProjectionOrbitLocked") },
 ];
 
 export const PREVIS_DEFAULT_VIEW_MODE: PrevisViewMode = "free";

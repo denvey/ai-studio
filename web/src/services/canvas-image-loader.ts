@@ -1,4 +1,5 @@
 import { getActiveUserScope } from "@/lib/user-scope";
+import { translate } from "@/i18n";
 
 const MAX_ACTIVE_IMAGE_PREPARATIONS = 4;
 const IMAGE_PREPARATION_TIMEOUT_MS = 60_000;
@@ -167,7 +168,7 @@ function pump() {
         markActiveSource(job.src, 1);
         job.timeout = setTimeout(() => {
             job.image?.removeAttribute("src");
-            settle(job, undefined, new Error("图片加载或解码超时"));
+            settle(job, undefined, new Error(translate("shared.canvasImageLoader.imageLoadingOrDecodingTimedOut")));
         }, job.timeoutMs);
 
         const image = new Image();
@@ -181,7 +182,7 @@ function pump() {
                 (error) => settle(job, undefined, error),
             );
         };
-        image.onerror = () => settle(job, undefined, new Error("图片加载失败"));
+        image.onerror = () => settle(job, undefined, new Error(translate("shared.canvasImageLoader.failedToLoadImage")));
         image.src = job.src;
         if (image.complete && image.naturalWidth > 0) image.onload?.call(image, new Event("load"));
     }
@@ -203,7 +204,7 @@ function settle(job: ImagePreparationJob, image?: HTMLImageElement, error?: unkn
     }
     if (error !== undefined) job.reject(error);
     else if (image) job.resolve(image);
-    else job.reject(new Error("图片准备未完成"));
+    else job.reject(new Error(translate("shared.canvasImageLoader.imagePreparationIncomplete")));
 }
 
 function abortError() {

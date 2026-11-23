@@ -6,6 +6,7 @@ import { canvasConnectionError } from "@/lib/canvas/canvas-connection-policy";
 import { normalizeConnection } from "@/lib/canvas/canvas-project-domain";
 import type { AiConfig } from "@/stores/use-config-store";
 import { CanvasNodeType, type CanvasConnection, type CanvasNodeData, type ConnectionHandle, type Position } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 export type CanvasBatchConnectionPreview = {
     sourceNodeIds: string[];
@@ -81,7 +82,7 @@ export function planBatchConnections({ sourceNodeIds, targetNodeId, targetHandle
 
         const source = nodes.find((node) => node.id === sourceNodeId);
         if (!source) {
-            skipped.push({ nodeId: sourceNodeId, reason: "找不到连接源节点" });
+            skipped.push({ nodeId: sourceNodeId, reason: translate("shared.canvas.canvasBatchConnection.connectionSourceNodeNotFound") });
             return;
         }
         const sourceRestriction = batchSourceRestriction(source);
@@ -90,13 +91,13 @@ export function planBatchConnections({ sourceNodeIds, targetNodeId, targetHandle
             return;
         }
         if (source.id === targetNodeId) {
-            skipped.push({ nodeId: source.id, reason: "目标节点不能连接到自身" });
+            skipped.push({ nodeId: source.id, reason: translate("shared.canvas.canvasBatchConnection.theTargetNodeCannotConnectToItself") });
             return;
         }
 
         const normalized = normalizeConnection(source.id, targetNodeId, nodes, "source");
         if (!normalized) {
-            skipped.push({ nodeId: source.id, reason: "节点之间不能连接" });
+            skipped.push({ nodeId: source.id, reason: translate("shared.canvas.canvasBatchConnection.theseNodesCannotBeConnected") });
             return;
         }
 
@@ -132,10 +133,10 @@ export function planBatchConnections({ sourceNodeIds, targetNodeId, targetHandle
 
 /** 批量连接落到参考格时的判定：一个参考格只放一张图片，其余沿用参考格自身的检查。 */
 export function batchCellSourcesError(nodes: CanvasNodeData[], sourceNodeIds: string[], tableId: string, handleId?: string) {
-    return sourceNodeIds.length !== 1 ? "每个参考格只能连接一张图片" : batchCellConnectionError(nodes, sourceNodeIds[0], tableId, handleId);
+    return sourceNodeIds.length !== 1 ? translate("shared.canvas.canvasBatchConnection.eachReferenceCellAcceptsOnlyOneImage") : batchCellConnectionError(nodes, sourceNodeIds[0], tableId, handleId);
 }
 
-const NO_BATCH_CONNECTION = "没有可建立的连接";
+const NO_BATCH_CONNECTION = translate("canvasPage.connection.noConnections");
 
 /**
  * 批量连接落在连不上的节点上时说明原因。只有分镜脚本、批量创作表没对准端口的两句是新写的，
@@ -158,8 +159,8 @@ export function batchConnectionRejectReason({
     if (!rejectedNodeId) return NO_BATCH_CONNECTION;
     if (parseBatchCellHandle(target.handleId)) return batchCellSourcesError(nodes, sourceNodeIds, rejectedNodeId, target.handleId) || NO_BATCH_CONNECTION;
     const rejected = nodes.find((node) => node.id === rejectedNodeId);
-    if (rejected?.type === CanvasNodeType.Script && !target.handleId) return "请对准分镜脚本的某一行";
-    if (rejected?.type === CanvasNodeType.BatchTable && !target.handleId) return "请对准批量创作表左侧的参考图连接点";
+    if (rejected?.type === CanvasNodeType.Script && !target.handleId) return translate("shared.canvas.canvasBatchConnection.pointToARowInTheStoryboardScript");
+    if (rejected?.type === CanvasNodeType.BatchTable && !target.handleId) return translate("shared.canvas.canvasBatchConnection.pointToAReferenceImageConnectionOnTheLeftOf");
     const plan = planBatchConnections({ sourceNodeIds, targetNodeId: rejectedNodeId, targetHandleId: target.handleId, nodes, connections, config });
     return plan.skipped[0]?.reason || NO_BATCH_CONNECTION;
 }
@@ -185,8 +186,8 @@ export function expandBatchSourceNodeIds(selectedNodeIds: Iterable<string>, node
 }
 
 export function batchSourceRestriction(node: CanvasNodeData) {
-    if (node.type === CanvasNodeType.Frame) return "背板不能作为连接源";
-    if (node.type === CanvasNodeType.Script) return "分镜脚本需要按行连接";
-    if (node.type === CanvasNodeType.Config) return "生成配置不能作为聚合连接源";
+    if (node.type === CanvasNodeType.Frame) return translate("shared.canvas.canvasBatchConnection.backdropsCannotBeConnectionSources");
+    if (node.type === CanvasNodeType.Script) return translate("shared.canvas.canvasBatchConnection.connectStoryboardScriptsByRow");
+    if (node.type === CanvasNodeType.Config) return translate("shared.canvas.canvasBatchConnection.generationSettingsCannotBeAnAggregateConnectionSource");
     return "";
 }

@@ -11,6 +11,8 @@ import { resourceFileUrl } from "@/services/api/resources";
 import { waitForGenerationTask } from "@/services/api/task-center";
 import { createTimelineRenderTask, type TimelineRenderResult } from "@/services/api/timeline-tasks";
 import type { TimelineProject } from "@/types/timeline";
+import { translate } from "@/i18n";
+
 
 type ExportState = {
     phase: "idle" | "running" | "done" | "error";
@@ -52,7 +54,7 @@ export function EditorExport() {
     // 主路径：提交后端渲染任务并轮询（服务端任务上限 60 分钟，前端多留余量）。
     const renderRemote = async () => {
         if (!project || sources.length === 0 || state.phase === "running") return;
-        setState({ phase: "running", mode: "remote", percent: 0, detail: "提交渲染任务…", result: null });
+        setState({ phase: "running", mode: "remote", percent: 0, detail: translate("shared.plugins.builtin.editor.editorExport.submittingRenderTask"), result: null });
         try {
             const created = await createTimelineRenderTask({ projectId, timeline: project });
             const done = await waitForGenerationTask(created.id, {
@@ -65,17 +67,17 @@ export function EditorExport() {
                         percent: task.progress ?? 0,
                         detail: task.stage
                             ? `${task.stage}${task.progress ? ` · ${task.progress}%` : ""}`
-                            : "渲染中…",
+                            : translate("shared.plugins.builtin.editor.editorExport.rendering"),
                         result: null,
                     }),
             });
             const parsed = JSON.parse(done.resultJson ?? "{}") as TimelineRenderResult;
-            if (!parsed.resourceId) throw new Error("渲染任务未返回产物");
+            if (!parsed.resourceId) throw new Error(translate("shared.plugins.builtin.editor.editorExport.theRenderTaskReturnedNoOutput"));
             setState({
                 phase: "done",
                 mode: "remote",
                 percent: 100,
-                detail: `渲染完成：${parsed.fileName ?? "timeline.mp4"}`,
+                detail: translate("shared.plugins.builtin.editor.editorExport.renderingComplete", { v0: String(parsed.fileName ?? "timeline.mp4") }),
                 result: parsed,
             });
         } catch (error) {
@@ -83,7 +85,7 @@ export function EditorExport() {
                 phase: "error",
                 mode: "remote",
                 percent: 0,
-                detail: error instanceof Error ? error.message : "渲染失败",
+                detail: error instanceof Error ? error.message : translate("shared.plugins.builtin.editor.editorExport.renderingFailed"),
                 result: null,
             });
         }
@@ -92,7 +94,7 @@ export function EditorExport() {
     // 降级路径：ffmpeg.wasm 浏览器本地合成（无后端/离线时可用）。
     const exportLocalMp4 = async () => {
         if (!project || sources.length === 0 || state.phase === "running") return;
-        setState({ phase: "running", mode: "local", percent: 0, detail: "准备导出", result: null });
+        setState({ phase: "running", mode: "local", percent: 0, detail: translate("shared.plugins.builtin.editor.editorExport.preparingTheExport"), result: null });
         try {
             const { blob, warnings } = await exportTimelineToMp4(project, sources, {
                 onProgress: (p: TimelineExportProgress) =>
@@ -104,13 +106,13 @@ export function EditorExport() {
             a.download = "timeline-export.mp4";
             a.click();
             URL.revokeObjectURL(url);
-            setState({ phase: "done", mode: "local", percent: 100, detail: warnings.length ? `导出完成，已开始下载；${warnings.join("；")}` : "导出完成，已开始下载", result: null });
+            setState({ phase: "done", mode: "local", percent: 100, detail: warnings.length ? translate("shared.plugins.builtin.editor.editorExport.exportCompleteDownloadStarted", { v0: String(warnings.join("；")) }) : translate("shared.plugins.builtin.editor.editorExport.exportCompleteDownloadStarted2"), result: null });
         } catch (error) {
             setState({
                 phase: "error",
                 mode: "local",
                 percent: 0,
-                detail: error instanceof Error ? error.message : "导出失败",
+                detail: error instanceof Error ? error.message : translate("account.settings.memory.exportFailed"),
                 result: null,
             });
         }
@@ -123,8 +125,8 @@ export function EditorExport() {
             <div className="director-scroll min-h-0 flex-1 overflow-y-auto p-3">
                 <div className="mb-3 rounded-md border border-[var(--previs-sequencer-border)] bg-[var(--previs-control-hover)] p-2">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-[var(--previs-dock-fg-strong)]">渲染计划</span>
-                        <span className="text-[var(--fs-label)] text-[var(--previs-dock-fg)]/60">{plan ? `${plan.steps.length} 步` : "—"}</span>
+                        <span className="text-xs font-medium text-[var(--previs-dock-fg-strong)]">{translate("shared.plugins.builtin.editor.editorExport.renderPlan")}</span>
+                        <span className="text-[var(--fs-label)] text-[var(--previs-dock-fg)]/60">{plan ? translate("shared.plugins.builtin.editor.editorExport.steps", { v0: String(plan.steps.length) }) : "—"}</span>
                     </div>
                     {plan && plan.steps.length > 0 ? (
                         <ul className="mt-2 space-y-1">
@@ -137,20 +139,20 @@ export function EditorExport() {
                                 </li>
                             ))}
                             {plan.steps.length > 8 && (
-                                <li className="pt-0.5 text-[var(--fs-label)] text-[var(--previs-dock-fg)]/50">…共 {plan.steps.length} 步</li>
+                                <li className="pt-0.5 text-[var(--fs-label)] text-[var(--previs-dock-fg)]/50">{translate("shared.plugins.builtin.editor.editorExport.total")} {plan.steps.length} {translate("shared.plugins.builtin.editor.editorExport.steps2")}</li>
                             )}
                         </ul>
                     ) : (
-                        <p className="mt-2 text-[var(--fs-label)] text-[var(--previs-dock-fg)]/55">时间线没有可渲染的视频片段。</p>
+                        <p className="mt-2 text-[var(--fs-label)] text-[var(--previs-dock-fg)]/55">{translate("shared.plugins.builtin.editor.editorExport.thereAreNoVideoClipsToRenderOnTheTimeline")}</p>
                     )}
                 </div>
 
                 <div className="mb-3 flex items-center justify-between rounded-md border border-[var(--previs-sequencer-border)] bg-[var(--previs-control-hover)] px-2 py-2 text-[var(--fs-label)] text-[var(--previs-dock-fg)]/70">
                     <span className="flex items-center gap-2">
                         <PackageOpen className="size-3.5 text-[var(--previs-dock-fg)]/60" />
-                        渲染源
+                        {translate("shared.plugins.builtin.editor.editorExport.renderSource")}
                     </span>
-                    <span className="tabular-nums text-[var(--previs-dock-fg)]/80">{sources.length} 个</span>
+                    <span className="tabular-nums text-[var(--previs-dock-fg)]/80">{sources.length} {translate("shared.plugins.builtin.editor.editorExport.items")}</span>
                 </div>
 
                 <button
@@ -164,7 +166,7 @@ export function EditorExport() {
                     ) : (
                         <Server className="size-3.5" />
                     )}
-                    {state.phase === "running" && state.mode === "remote" ? "渲染中…" : "渲染成片（服务端）"}
+                    {state.phase === "running" && state.mode === "remote" ? translate("shared.plugins.builtin.editor.editorExport.rendering") : translate("shared.plugins.builtin.editor.editorExport.renderVideoServer")}
                 </button>
 
                 <button
@@ -178,7 +180,7 @@ export function EditorExport() {
                     ) : (
                         <Download className="size-3.5" />
                     )}
-                    {state.phase === "running" && state.mode === "local" ? "导出中…" : "本地导出（ffmpeg.wasm）"}
+                    {state.phase === "running" && state.mode === "local" ? translate("shared.plugins.builtin.editor.editorExport.exporting") : translate("shared.plugins.builtin.editor.editorExport.exportLocallyFfmpegWasm")}
                 </button>
 
                 {state.phase === "running" && (
@@ -207,7 +209,7 @@ export function EditorExport() {
                                 className="flex shrink-0 items-center gap-1 text-[var(--previs-accent)] hover:underline"
                             >
                                 <Download className="size-3" />
-                                下载
+                                {translate("canvasA.assetView.download")}
                             </a>
                         </div>
                     </div>
@@ -218,10 +220,10 @@ export function EditorExport() {
                 {state.phase === "error" && <p className="mt-2 text-[var(--fs-label)] text-[var(--previs-danger)]">{state.detail}</p>}
 
                 <p className="mt-3 text-[var(--fs-label)] leading-relaxed text-[var(--previs-dock-fg)]/55">
-                    默认提交服务端渲染任务（异步，产物可直接预览/下载）；本地 ffmpeg.wasm 导出保留为离线兜底。
+                    {translate("shared.plugins.builtin.editor.editorExport.byDefaultAnAsynchronousServerRenderTaskIsSubmittedWith")}
                 </p>
                 {sources.length === 0 && (
-                    <p className="mt-1 text-[var(--fs-label)] text-[var(--previs-dock-fg)]/55">悬空引用片段（节点已删除）按计划跳过，不影响其余片段导出。</p>
+                    <p className="mt-1 text-[var(--fs-label)] text-[var(--previs-dock-fg)]/55">{translate("shared.plugins.builtin.editor.editorExport.clipsReferencingDeletedNodesAreSkippedAsPlannedWithoutAffecting")}</p>
                 )}
             </div>
         </div>

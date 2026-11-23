@@ -3,6 +3,7 @@ import { fetchFile } from "@ffmpeg/util";
 import { getMediaBlob } from "@/services/file-storage";
 import { buildExtractAudioArgs, buildSegmentTrimArgs, hasNoAudioStream, isMp3Bytes, SEGMENT_AUDIO_OUTPUT_NAME, SEGMENT_INPUT_NAME, SEGMENT_OUTPUT_NAME } from "./canvas-video-segment-args";
 import { loadFFmpeg } from "./canvas-video-merge";
+import { translate } from "@/i18n";
 
 export type VideoSegmentRange = {
     startMs: number;
@@ -25,8 +26,8 @@ const OUTPUT_NAME = SEGMENT_OUTPUT_NAME;
 function assertValidRange(range: VideoSegmentRange, durationMs?: number) {
     const startMs = Math.max(0, Math.round(range.startMs));
     const endMs = Math.round(range.endMs);
-    if (endMs <= startMs) throw new Error("片段结束时间必须晚于开始时间");
-    if (durationMs !== undefined && endMs > Math.round(durationMs)) throw new Error("片段结束时间超过视频时长");
+    if (endMs <= startMs) throw new Error(translate("shared.canvas.canvasVideoSegment.theSegmentEndTimeMustBeAfterItsStartTime"));
+    if (durationMs !== undefined && endMs > Math.round(durationMs)) throw new Error(translate("shared.canvas.canvasVideoSegment.theSegmentEndTimeExceedsTheVideoDuration"));
 }
 
 async function readVideoSourceBlob(source: VideoSegmentSource) {
@@ -36,10 +37,10 @@ async function readVideoSourceBlob(source: VideoSegmentSource) {
     }
     if (source.url) {
         const response = await fetch(source.url);
-        if (!response.ok) throw new Error(`视频资源请求失败（${response.status}）`);
+        if (!response.ok) throw new Error(translate("shared.canvas.canvasVideoSegment.videoResourceRequestFailed", { v0: String(response.status) }));
         return response.blob();
     }
-    throw new Error("找不到视频素材，请重新上传后再操作");
+    throw new Error(translate("shared.canvas.canvasVideoSegment.videoAssetNotFoundUploadItAgainBeforeContinuing"));
 }
 
 async function runSegmentJob(
@@ -60,7 +61,7 @@ async function runSegmentJob(
     onProgress?.({ phase: "encoding", progress: 55 });
     try {
         const exitCode = await ffmpeg.exec(["-y", ...buildArgs(startSec, durationSec)]);
-        if (exitCode !== 0) throw new Error("媒体处理失败，请确认视频编码格式兼容");
+        if (exitCode !== 0) throw new Error(translate("shared.canvas.canvasVideoSegment.mediaProcessingFailedCheckThatTheVideoCodecIsSupported"));
         const output = await ffmpeg.readFile(OUTPUT_NAME);
         onProgress?.({ phase: "encoding", progress: 100 });
         return new Blob([output as BlobPart], { type: outputType });
@@ -95,12 +96,12 @@ export async function extractVideoAudio(source: VideoSegmentSource, range: Video
     try {
         const args = (audioCodec: string) => buildExtractAudioArgs(audioCodec, startSec, durationSec);
         let exitCode = await ffmpeg.exec(["-y", ...args("libmp3lame")]);
-        if (exitCode !== 0 && hasNoAudioStream(logs)) throw new Error("音频提取失败：这段视频没有音轨");
+        if (exitCode !== 0 && hasNoAudioStream(logs)) throw new Error(translate("shared.canvas.canvasVideoSegment.audioExtractionFailedThisVideoHasNoAudioTrack"));
         if (exitCode !== 0) exitCode = await ffmpeg.exec(["-y", ...args("mp3")]);
-        if (exitCode !== 0) throw new Error("音频提取失败：当前 FFmpeg 内核不支持 MP3 编码");
+        if (exitCode !== 0) throw new Error(translate("shared.canvas.canvasVideoSegment.audioExtractionFailedTheCurrentFFmpegCoreDoesNotSupport"));
         const output = await ffmpeg.readFile(SEGMENT_AUDIO_OUTPUT_NAME);
         const bytes = typeof output === "string" ? new TextEncoder().encode(output) : output;
-        if (!isMp3Bytes(bytes)) throw new Error("音频提取失败：输出不是 MP3 文件");
+        if (!isMp3Bytes(bytes)) throw new Error(translate("shared.canvas.canvasVideoSegment.audioExtractionFailedTheOutputIsNotAnMP3File"));
         onProgress?.({ phase: "encoding", progress: 100 });
         return new Blob([bytes as BlobPart], { type: "audio/mpeg" });
     } finally {

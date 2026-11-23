@@ -430,7 +430,7 @@ export default function AssetsPage() {
             kind: "model",
             title: file.name.replace(/\.(glb|gltf)$/i, ""),
             coverUrl: "",
-            tags: ["3D模型"],
+            tags: [translate("shared.assets.item3DModel")],
             source: "手动上传",
             data: { url: uploaded.url, storageKey: uploaded.storageKey, bytes: uploaded.bytes, mimeType: uploaded.mimeType, fileName: file.name },
             metadata: { source: "manual" },

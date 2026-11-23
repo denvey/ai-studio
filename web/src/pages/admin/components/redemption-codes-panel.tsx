@@ -11,6 +11,7 @@ import { createAdminRedeemBatch, disableAdminRedeemBatch, listAdminRedeemBatches
 import { AdminDataTable, AdminRowActions, AdminStatusBadge, AdminTableEmpty, type AdminStatusTone } from "./admin-ui";
 import { Select } from "@/components/ui/base/select";
 import { BatchStatusDistribution, CreateRedeemBatchDrawer, GeneratedCodesModal, RedeemBatchCodesModal } from "./redemption-codes-modals";
+import { currentLocale, translate } from "@/i18n";
 
 export type RedeemFormValues = { amount?: number | null; count?: number | null; note?: string; expiresAt?: string };
 export type PendingRedeemBatch = {
@@ -27,11 +28,11 @@ export const MICRO_CREDITS_PER_CREDIT = 1_000_000;
 export const DEFAULT_CREATE_VALUES: RedeemFormValues = { amount: 10, count: 10 };
 export const GENERATED_PREVIEW_LIMIT = 200;
 export const DETAIL_STATUS_LABELS: Record<DetailStatus, string> = {
-    all: "全部状态",
-    available: "可用",
-    redeemed: "已核销",
-    expired: "已过期",
-    disabled: "已禁用",
+    all: translate("library.ark.expiry.all"),
+    available: translate("account.settings.channels.ready"),
+    redeemed: translate("admin.redemptionCodesPanel.redeemed"),
+    expired: translate("library.ark.expiry.expired"),
+    disabled: translate("admin.redemptionCodesPanel.disabled"),
 };
 
 export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, onCreateBlockedChange }: { createOpen: boolean; onCreateOpenChange: (open: boolean) => void; onCreateBlockedChange: (blocked: boolean) => void }) {
@@ -94,7 +95,7 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
             return true;
         } catch (error) {
             if (requestId === listRequestRef.current) {
-                const detail = error instanceof Error ? error.message : "读取兑换码批次失败";
+                const detail = error instanceof Error ? error.message : translate("admin.redemptionCodesPanel.failedToLoadRedemptionCodeBatches");
                 setListError(detail);
                 message.error(detail);
             }
@@ -124,14 +125,14 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
         const amountMicrocredits = Math.round(amount * MICRO_CREDITS_PER_CREDIT);
         const totalMicrocredits = amountMicrocredits * count;
         if (!Number.isFinite(amount) || amount <= 0 || !Number.isSafeInteger(amountMicrocredits) || amountMicrocredits <= 0 || !Number.isInteger(count) || count < 1 || count > 5000 || !Number.isSafeInteger(totalMicrocredits)) {
-            message.error("积分面额或生成数量超出可安全处理的范围");
+            message.error(translate("admin.redemptionCodesPanel.theCreditValueOrCodeCountExceedsTheSafelySupported"));
             return;
         }
         let expiresAt: string | undefined;
         if (values.expiresAt) {
             const timestamp = new Date(values.expiresAt);
             if (Number.isNaN(timestamp.getTime()) || timestamp.getTime() <= Date.now()) {
-                form.setFields([{ name: "expiresAt", errors: ["过期时间必须晚于当前时间"] }]);
+                form.setFields([{ name: "expiresAt", errors: [translate("admin.redemptionCodesPanel.theExpirationTimeMustBeInTheFuture")] }]);
                 return;
             }
             expiresAt = timestamp.toISOString();
@@ -157,9 +158,9 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
             setGeneratedBatchId(result.batch.id);
             setPage(1);
             await reload(1, pageSize);
-            message.success(`已生成 ${result.codes.length} 个兑换码`);
+            message.success(translate("admin.redemptionCodesPanel.generatedRedemptionCodes", { v0: String(result.codes.length) }));
         } catch (error) {
-            const detail = error instanceof Error ? error.message : "生成兑换码失败";
+            const detail = error instanceof Error ? error.message : translate("admin.redemptionCodesPanel.failedToGenerateRedemptionCodes");
             if (isMutationResultUncertain(error)) {
                 setPendingCreate(null);
                 form.resetFields();
@@ -169,8 +170,13 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
                 setKeyword("");
                 setValidity("all");
                 const refreshed = await reload(1, pageSize, { keyword: "", validity: "all" });
-                setUncertainCreateNotice(`上一次生成请求的结果暂时无法确认：${detail}。${refreshed ? "已切换到未筛选的完整列表，请核对最新批次。" : "完整列表刷新失败，请在网络恢复后再次刷新。"} 核对完成前，生成入口已暂停。`);
-                message.warning({ content: "生成结果待核对，系统没有自动重试。请检查完整批次列表后再继续。", duration: 7 });
+                setUncertainCreateNotice(
+                    translate("admin.redemptionCodesPanel.theLastGenerationRequestResultCannotBeConfirmedGenerationIs", {
+                        v0: String(detail),
+                        v1: String(refreshed ? translate("admin.redemptionCodesPanel.theFullUnfilteredListIsDisplayedReviewTheLatestBatches") : translate("admin.redemptionCodesPanel.failedToRefreshTheFullListRefreshAgainAfterThe")),
+                    }),
+                );
+                message.warning({ content: translate("admin.redemptionCodesPanel.theGenerationResultNeedsReviewNoAutomaticRetryWasMade"), duration: 7 });
             } else {
                 setPendingCreate(null);
                 message.error(detail);
@@ -187,10 +193,10 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
         setDisablingBatchIds((current) => new Set(current).add(batch.id));
         try {
             const result = await disableAdminRedeemBatch(batch.id);
-            message.success(`已禁用 ${result.disabledCount} 个兑换码`);
+            message.success(translate("admin.redemptionCodesPanel.disabledRedemptionCodes", { v0: String(result.disabledCount) }));
         } catch (error) {
-            const detail = error instanceof Error ? error.message : "禁用批次失败";
-            if (isMutationResultUncertain(error)) message.warning({ content: `禁用结果暂时无法确认：${detail}。已刷新批次状态，请核对后再操作。`, duration: 6 });
+            const detail = error instanceof Error ? error.message : translate("admin.redemptionCodesPanel.failedToDisableBatch");
+            if (isMutationResultUncertain(error)) message.warning({ content: translate("admin.redemptionCodesPanel.theDisableResultCannotBeConfirmedBatchStatusHasBeen", { v0: String(detail) }), duration: 6 });
             else message.error(detail);
         } finally {
             batchMutationsRef.current.delete(batch.id);
@@ -205,38 +211,47 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
 
     const columns: ColumnsType<RedeemBatch> = [
         {
-            title: "批次",
+            title: translate("admin.redemptionCodesPanel.batch"),
             width: 240,
             render: (_, batch) => (
                 <div className="min-w-0">
-                    <div className="truncate font-medium">{batch.note || "未备注批次"}</div>
+                    <div className="truncate font-medium">{batch.note || translate("admin.redemptionCodesPanel.batchWithoutANote")}</div>
                     <div className="mt-0.5 text-xs text-foreground/45">{formatTime(batch.createdAt)}</div>
                 </div>
             ),
         },
-        { title: "单码积分", dataIndex: "amountMicrocredits", width: 120, align: "center", render: (value) => <span className="font-medium tabular-nums">{formatCredits(value)}</span> },
-        { title: "总数", dataIndex: "count", width: 80, align: "center", render: (value) => <span className="tabular-nums">{value}</span> },
-        { title: "状态分布", width: 300, align: "center", render: (_, batch) => <BatchStatusDistribution batch={batch} /> },
-        { title: "过期时间", dataIndex: "expiresAt", width: 180, align: "center", render: (value) => (value ? formatTime(value) : <AdminStatusBadge label="永久有效" tone="info" />) },
+        { title: translate("admin.redemptionCodesPanel.creditsPerCode"), dataIndex: "amountMicrocredits", width: 120, align: "center", render: (value) => <span className="font-medium tabular-nums">{formatCredits(value)}</span> },
+        { title: translate("admin.redemptionCodesPanel.total"), dataIndex: "count", width: 80, align: "center", render: (value) => <span className="tabular-nums">{value}</span> },
+        { title: translate("admin.redemptionCodesPanel.statusBreakdown"), width: 300, align: "center", render: (_, batch) => <BatchStatusDistribution batch={batch} /> },
         {
-            title: "操作",
+            title: translate("admin.redemptionCodesPanel.expiresAt"),
+            dataIndex: "expiresAt",
+            width: 180,
+            align: "center",
+            render: (value) => (value ? formatTime(value) : <AdminStatusBadge label={translate("admin.redemptionCodesPanel.neverExpires")} tone="info" />),
+        },
+        {
+            title: translate("account.settings.runninghub.actions"),
             width: 220,
             align: "center",
             render: (_, batch) => (
                 <div className="flex justify-center">
                     <AdminRowActions
-                        primary={{ label: "查看明细", icon: <Eye className="size-3.5" />, onClick: () => setSelectedBatch(batch) }}
+                        primary={{ label: translate("admin.redemptionCodesPanel.viewDetails"), icon: <Eye className="size-3.5" />, onClick: () => setSelectedBatch(batch) }}
                         actions={[
                             {
                                 key: "disable",
-                                label: "禁用批次",
+                                label: translate("admin.redemptionCodesPanel.disableBatch"),
                                 icon: <Ban className="size-3.5" />,
                                 danger: true,
                                 disabled: (batch.availableCount ?? 0) <= 0 || disablingBatchIds.has(batch.id),
                                 confirm: {
-                                    title: "禁用该批次的可用兑换码？",
-                                    description: `${batch.note || `批次 ${batch.id.slice(0, 8)}`}：${formatBatchDisableImpact(batch)}；已核销和已过期记录不变，操作不可撤销。`,
-                                    okText: "确认禁用",
+                                    title: translate("admin.redemptionCodesPanel.disableTheUnusedRedemptionCodesInThisBatch"),
+                                    description: translate("admin.redemptionCodesPanel.redeemedAndExpiredRecordsAreUnchangedThisActionCannotBe", {
+                                        v0: String(batch.note || translate("admin.redemptionCodesPanel.batch2", { v0: String(batch.id.slice(0, 8)) })),
+                                        v1: String(formatBatchDisableImpact(batch)),
+                                    }),
+                                    okText: translate("admin.redemptionCodesPanel.confirmDisable"),
                                 },
                                 onClick: () => disableBatch(batch),
                             },
@@ -253,7 +268,7 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
             {uncertainCreateNotice ? (
                 <div className="admin-redemption-uncertain-notice" role="alert">
                     <div>
-                        <strong>生成结果待核对</strong>
+                        <strong>{translate("admin.redemptionCodesPanel.generationResultNeedsReview")}</strong>
                         <p>{uncertainCreateNotice}</p>
                     </div>
                     <Button
@@ -267,24 +282,24 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
                                 if (!refreshed) return;
                                 setUncertainCreateNotice("");
                                 onCreateBlockedChange(false);
-                                message.success("完整批次列表已刷新，请确认没有重复批次后再生成");
+                                message.success(translate("admin.redemptionCodesPanel.theFullBatchListHasBeenRefreshedCheckForDuplicate"));
                             })();
                         }}
                     >
-                        刷新完整列表
+                        {translate("admin.redemptionCodesPanel.refreshCompleteList")}
                     </Button>
                 </div>
             ) : null}
-            <section className="flex min-h-0 flex-1" aria-label="兑换码批次列表">
+            <section className="flex min-h-0 flex-1" aria-label={translate("admin.redemptionCodesPanel.redemptionCodeBatches")}>
                 <AdminDataTable
                     toolbar={
                         <Input
                             allowClear
-                            aria-label="搜索兑换码批次"
+                            aria-label={translate("admin.redemptionCodesPanel.searchRedemptionCodeBatches")}
                             className="app-list-search"
                             prefix={<Search className="size-4 text-foreground/40" />}
                             value={keyword}
-                            placeholder="搜索批次备注、积分或数量"
+                            placeholder={translate("admin.redemptionCodesPanel.searchBatchNotesCreditsOrQuantity")}
                             onChange={(event) => {
                                 setKeyword(event.target.value);
                                 setPage(1);
@@ -294,7 +309,7 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
                     toolbarActive={hasFilters}
                     toolbarFilters={
                         <Select<BatchValidity>
-                            aria-label="按批次到期状态筛选"
+                            aria-label={translate("admin.redemptionCodesPanel.filterByBatchExpirationStatus")}
                             className="w-44"
                             value={validity}
                             onChange={(value) => {
@@ -302,9 +317,9 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
                                 setPage(1);
                             }}
                             options={[
-                                { label: "全部到期状态", value: "all" },
-                                { label: "批次未到期", value: "active" },
-                                { label: "批次已到期", value: "expired" },
+                                { label: translate("admin.redemptionCodesPanel.allExpirationStates"), value: "all" },
+                                { label: translate("admin.redemptionCodesPanel.unexpiredBatches"), value: "active" },
+                                { label: translate("admin.redemptionCodesPanel.expiredBatches"), value: "expired" },
                             ]}
                         />
                     }
@@ -323,19 +338,19 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
                                 void reload();
                             }}
                         >
-                            刷新
+                            {translate("common.refresh")}
                         </Button>
                     }
                     table={{ className: "app-data-table", rowKey: "id", size: "small", loading, pagination: false, columns, dataSource: batches }}
                     empty={
                         <AdminTableEmpty
                             filtered={hasFilters}
-                            title={listError ? "批次读取失败" : !hasFilters ? "暂无兑换码批次" : undefined}
-                            description={listError || (!hasFilters ? "生成后的批次会在这里集中展示和追踪。" : undefined)}
+                            title={listError ? translate("admin.redemptionCodesPanel.failedToLoadBatches") : !hasFilters ? translate("admin.redemptionCodesPanel.noRedemptionCodeBatches") : undefined}
+                            description={listError || (!hasFilters ? translate("admin.redemptionCodesPanel.generatedBatchesAppearHereForTracking") : undefined)}
                             action={
                                 !listError && !hasFilters && !uncertainCreateNotice ? (
                                     <Button type="primary" icon={<TicketCheck className="size-4" />} onClick={() => onCreateOpenChange(true)}>
-                                        生成首个批次
+                                        {translate("admin.redemptionCodesPanel.generateFirstBatch")}
                                     </Button>
                                 ) : undefined
                             }
@@ -397,12 +412,12 @@ export const emptyBatchSummary: RedeemBatch = {
 
 export function renderCodeStatus(status: AdminRedeemCode["status"]) {
     const config: Record<AdminRedeemCode["status"], { label: string; tone: AdminStatusTone }> = {
-        unused: { label: "可用", tone: "success" },
-        redeemed: { label: "已核销", tone: "info" },
-        disabled: { label: "已禁用", tone: "neutral" },
-        expired: { label: "已过期", tone: "warning" },
+        unused: { label: translate("account.settings.channels.ready"), tone: "success" },
+        redeemed: { label: translate("admin.redemptionCodesPanel.redeemed"), tone: "info" },
+        disabled: { label: translate("admin.redemptionCodesPanel.disabled"), tone: "neutral" },
+        expired: { label: translate("library.ark.expiry.expired"), tone: "warning" },
     };
-    const configForStatus = config[status] || { label: "未知状态", tone: "neutral" as const };
+    const configForStatus = config[status] || { label: translate("admin.redemptionCodesPanel.unknownStatus"), tone: "neutral" as const };
     return <AdminStatusBadge label={configForStatus.label} tone={configForStatus.tone} />;
 }
 
@@ -414,10 +429,10 @@ export function isMutationResultUncertain(error: unknown) {
 function formatBatchDisableImpact(batch: RedeemBatch) {
     const availableCount = batch.availableCount ?? 0;
     const affectedMicrocredits = batch.amountMicrocredits * availableCount;
-    const total = Number.isSafeInteger(affectedMicrocredits) ? `，面值合计 ${formatCredits(affectedMicrocredits)} 积分` : "";
-    return `将禁用当前 ${availableCount} 个可用兑换码（单码 ${formatCredits(batch.amountMicrocredits)} 积分${total}）`;
+    const total = Number.isSafeInteger(affectedMicrocredits) ? translate("admin.redemptionCodesPanel.totalValueCredits", { v0: String(formatCredits(affectedMicrocredits)) }) : "";
+    return translate("admin.redemptionCodesPanel.disableCurrentlyAvailableRedemptionCodesCreditsPerCode", { v0: String(availableCount), v1: String(formatCredits(batch.amountMicrocredits)), v2: String(total) });
 }
 
 export function formatTime(value?: string | null) {
-    return value ? new Date(value).toLocaleString("zh-CN", { hour12: false }) : "--";
+    return value ? new Date(value).toLocaleString(currentLocale(), { hour12: false }) : "--";
 }

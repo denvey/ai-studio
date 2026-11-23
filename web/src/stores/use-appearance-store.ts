@@ -6,14 +6,15 @@ import type { PublicAppearance } from "@/services/api/appearance";
 import { composeDocumentTitle } from "@/lib/document-title";
 import { applySkinTheme, DEFAULT_CLASSIC_SKIN, normalizeSkinDefinition } from "@/lib/skin-themes";
 import { useDocumentTitleStore } from "@/stores/use-document-title-store";
+import { translate } from "@/i18n";
 
 export const DEFAULT_PUBLIC_APPEARANCE: PublicAppearance = {
     updates: DEFAULT_UPDATE_ANNOUNCEMENT,
     canvas: DEFAULT_CANVAS_APPEARANCE,
     schemaVersion: 10,
-    brandName: "影策",
+    brandName: translate("shared.appearance.brandName"),
     brandSlug: "open-ai-canvas",
-    authHeroTitle: "让一个故事，\n从文字走向银幕。",
+    authHeroTitle: translate("shared.appearance.authHeroTitle"),
     authHeroDescription: "",
     logoUrl: "/logo.svg",
     darkLogoUrl: "/logo.svg",
@@ -23,10 +24,10 @@ export const DEFAULT_PUBLIC_APPEARANCE: PublicAppearance = {
     authVideoAutoplay: true,
     skinId: "classic",
     activeSkin: DEFAULT_CLASSIC_SKIN,
-    seoTitle: "影策",
-    seoDescription: "影策，面向 AI 影视与短剧创作的工作台。",
+    seoTitle: translate("shared.appearance.brandName"),
+    seoDescription: translate("shared.appearance.seoDescription", { brand: translate("shared.appearance.brandName") }),
     seoKeywords: "",
-    footerCopyright: `© ${new Date().getFullYear()} 影策. All rights reserved.`,
+    footerCopyright: translate("shared.appearance.footerCopyright", { year: new Date().getFullYear() }),
     icpFilingEnabled: false,
     icpFilingNumber: "",
     redeemPurchaseUrl: "",
@@ -65,16 +66,23 @@ useDocumentTitleStore.subscribe(() => {
 export function normalizePublicAppearance(value?: Partial<PublicAppearance> | null): PublicAppearance {
     const brandName = String(value?.brandName || "").trim();
     const brandSlug = normalizeBrandSlug(value?.brandSlug);
-    const authHeroTitle = normalizeAppearanceCopy(value?.authHeroTitle, DEFAULT_PUBLIC_APPEARANCE.authHeroTitle);
+    const authHeroTitle = normalizeAppearanceCopy(!value?.configured && value?.authHeroTitle === "让一个故事，\n从文字走向银幕。" ? undefined : value?.authHeroTitle, DEFAULT_PUBLIC_APPEARANCE.authHeroTitle);
     const authHeroDescription = normalizeAppearanceCopy(value?.authHeroDescription, DEFAULT_PUBLIC_APPEARANCE.authHeroDescription, true);
     const customVideo = Boolean(value?.authVideoConfigured);
     const logoUrl = safeAppearanceURL(value?.logoUrl, DEFAULT_PUBLIC_APPEARANCE.logoUrl);
     const darkLogoUrl = safeAppearanceURL(value?.darkLogoUrl, logoUrl);
-    const resolvedBrandName = brandName || DEFAULT_PUBLIC_APPEARANCE.brandName;
-    const seoTitle = normalizeAppearanceCopy(value?.seoTitle, resolvedBrandName);
-    const seoDescription = normalizeAppearanceCopy(value?.seoDescription, `${resolvedBrandName}，面向 AI 影视与短剧创作的工作台。`, true);
+    const resolvedBrandName = !value?.configured && brandName === "影策" ? DEFAULT_PUBLIC_APPEARANCE.brandName : brandName || DEFAULT_PUBLIC_APPEARANCE.brandName;
+    const seoTitle = normalizeAppearanceCopy(!value?.configured && value?.seoTitle === "影策" ? undefined : value?.seoTitle, resolvedBrandName);
+    const seoDescription = normalizeAppearanceCopy(
+        !value?.configured && value?.seoDescription === "影策，面向 AI 影视与短剧创作的工作台。" ? undefined : value?.seoDescription,
+        translate("shared.appearance.seoDescription", { brand: resolvedBrandName }),
+        true,
+    );
     const seoKeywords = normalizeAppearanceCopy(value?.seoKeywords, "", true);
-    const footerCopyright = normalizeAppearanceCopy(value?.footerCopyright, `© ${new Date().getFullYear()} ${resolvedBrandName}. All rights reserved.`);
+    const footerCopyright = normalizeAppearanceCopy(
+        !value?.configured && /^© \d{4} 影策\. All rights reserved\.$/.test(value?.footerCopyright || "") ? undefined : value?.footerCopyright,
+        `© ${new Date().getFullYear()} ${resolvedBrandName}. All rights reserved.`,
+    );
     const icpFilingNumber = normalizeAppearanceCopy(value?.icpFilingNumber, "", true);
     const redeemPurchaseUrl = typeof value?.redeemPurchaseUrl === "string" ? safeAppearanceURL(value.redeemPurchaseUrl, "") : "";
     return {

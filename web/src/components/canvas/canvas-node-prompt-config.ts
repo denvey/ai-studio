@@ -10,12 +10,13 @@ import { withReferenceImageSize, type ImageDimensions } from "@/lib/canvas/canva
 import { normalizeVideoDuration, normalizeVideoResolution } from "@/lib/video-generation-options";
 import type { CanvasAudioSettingKey } from "./canvas-audio-settings-popover";
 import type { CanvasNodeGenerationMode } from "./canvas-node-prompt-panel";
+import { translate } from "@/i18n";
 
 export function modeDisplayName(mode: CanvasNodeGenerationMode) {
-    if (mode === "image") return "图片";
-    if (mode === "video") return "视频";
-    if (mode === "audio") return "音频";
-    return "文本";
+    if (mode === "image") return translate("account.feedback.image");
+    if (mode === "video") return translate("account.feedback.video");
+    if (mode === "audio") return translate("account.settings.modelConfig.capabilities.audio");
+    return translate("account.settings.modelConfig.capabilities.text");
 }
 
 export function defaultMode(type: CanvasNodeData["type"]): CanvasNodeGenerationMode {
@@ -97,10 +98,10 @@ export function buildNodeConfig(globalConfig: AiConfig, node: CanvasNodeData, mo
 }
 
 export function promptPlaceholder(mode: CanvasNodeGenerationMode, hasImageContent: boolean, hasTextContent: boolean) {
-    if (mode === "video") return "描述要生成的视频内容";
-    if (mode === "audio") return "描述要生成的音频内容";
-    if (mode === "image") return hasImageContent ? "输入新提示词，重新生成当前图片" : "描述要生成的图片内容";
-    return hasTextContent ? "请输入你想要将本段文本修改成什么" : "请输入你想要生成的文本内容";
+    if (mode === "video") return translate("canvasTools.canvasNodePromptConfig.describeTheVideoYouWant");
+    if (mode === "audio") return translate("canvasTools.canvasNodePromptConfig.describeTheAudioYouWant");
+    if (mode === "image") return hasImageContent ? translate("canvasTools.canvasNodePromptConfig.enterANewPromptToRegenerateThisImage") : translate("canvasTools.canvasNodePromptConfig.describeTheImageYouWant");
+    return hasTextContent ? translate("canvasTools.canvasNodePromptConfig.describeWhatYouWantThisTextChangedInto") : translate("canvasTools.canvasNodePromptConfig.describeTheTextYouWantGenerated");
 }
 
 export function videoConfigPatch(key: keyof AiConfig, value: string) {

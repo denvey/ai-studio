@@ -1,3 +1,5 @@
+import { commerceUiText } from "./ui-text";
+import { currentLocale } from "@/i18n";
 export const platforms = [
     ["taobao", "淘宝"],
     ["tmall", "天猫"],
@@ -152,9 +154,10 @@ export const styles = [
     ["minimal", "极简留白"],
 ] as const;
 
-export const options = (items: readonly (readonly [string, string])[]) => items.map(([value, label]) => ({ value, label }));
+export const options = (items: readonly (readonly [string, string])[]) => items.map(([value, label]) => ({ value, label: commerceUiText(label) }));
 export const labelOf = (items: readonly (readonly [string, string])[], value: string) => items.find(([id]) => id === value)?.[1] || value;
-export const formatCommerceCredits = (value: number) => new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 6 }).format(value);
+export const displayLabelOf = (items: readonly (readonly [string, string])[], value: string) => commerceUiText(labelOf(items, value));
+export const formatCommerceCredits = (value: number) => new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 6 }).format(value);
 
 const aspectCandidates = Array.from({ length: 24 }, (_, width) => Array.from({ length: 24 }, (_, height) => ({ width: width + 1, height: height + 1 }))).flat();
 
@@ -212,7 +215,7 @@ export function supportedImageSize(preferred: string, available: string[], curre
 }
 
 export function displayImageSizeChoices(values: string[], current?: string) {
-    return [...new Set(values.map(imageSizeLabel))].map((label) => ({ label, value: supportedImageSize(label, values, current) }));
+    return [...new Set(values.map(imageSizeLabel))].map((label) => ({ label: commerceUiText(label), value: supportedImageSize(label, values, current) }));
 }
 
 /**

@@ -1,4 +1,5 @@
 import type { UserGroup, UserGroupBadgeStyle, UserGroupInput } from "@/services/api/user-groups";
+import { currentLocale } from "@/i18n";
 
 const MICRO = 1_000_000;
 const BPS = 10_000;
@@ -81,5 +82,5 @@ export function userGroupInput(values: UserGroupFormValues): UserGroupInput {
 }
 
 export function formatPoints(microcredits: number) {
-    return (microcredits / MICRO).toLocaleString("zh-CN", { maximumFractionDigits: 6 });
+    return (microcredits / MICRO).toLocaleString(currentLocale(), { maximumFractionDigits: 6 });
 }

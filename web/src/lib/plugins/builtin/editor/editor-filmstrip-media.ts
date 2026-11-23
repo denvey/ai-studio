@@ -2,6 +2,7 @@ import { getResourceAccess, resourceIdFromStorageKey, resolveResourceAccessURL }
 import { resolveMediaUrl } from "@/services/file-storage";
 import { getActiveUserScope } from "@/lib/user-scope";
 import type { TimelineDirectMedia } from "@/types/timeline";
+import { translate } from "@/i18n";
 
 const frames = new Map<string, string>();
 const MAX_CACHED_FRAMES = 640;
@@ -10,7 +11,7 @@ const waiting: (() => void)[] = [];
 
 function abortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
     return new Promise((resolve, reject) => {
-        const abort = () => reject(new DOMException("已取消", "AbortError"));
+        const abort = () => reject(new DOMException(translate("shared.generationTaskDisplay.cancelled"), "AbortError"));
         signal.addEventListener("abort", abort, { once: true });
         promise.then(resolve, reject).finally(() => signal.removeEventListener("abort", abort));
         if (signal.aborted) abort();
@@ -31,7 +32,7 @@ async function takeDecoder(signal: AbortSignal) {
         const cancel = () => {
             const index = waiting.indexOf(enter);
             if (index >= 0) waiting.splice(index, 1);
-            reject(new DOMException("已取消", "AbortError"));
+            reject(new DOMException(translate("shared.generationTaskDisplay.cancelled"), "AbortError"));
         };
         waiting.push(enter);
         signal.addEventListener("abort", cancel, { once: true });
@@ -50,8 +51,8 @@ function waitForFrame(video: HTMLVideoElement, event: "loadeddata" | "seeked", s
             else resolve();
         };
         const ready = () => finish();
-        const failed = () => finish(new Error("无法读取视频缩略图"));
-        const aborted = () => finish(new DOMException("已取消", "AbortError"));
+        const failed = () => finish(new Error(translate("shared.plugins.builtin.editor.editorFilmstripMedia.unableToReadVideoThumbnails")));
+        const aborted = () => finish(new DOMException(translate("shared.generationTaskDisplay.cancelled"), "AbortError"));
         const timer = setTimeout(failed, 12000);
         video.addEventListener(event, ready, { once: true });
         video.addEventListener("error", failed, { once: true });
@@ -65,7 +66,7 @@ export async function readTimelineFrames(media: TimelineDirectMedia, times: numb
     const scope = getActiveUserScope();
     signal.throwIfAborted();
     const source = media.storageKey || media.url || media.dataUrl;
-    if (!source) throw new Error("素材没有可读取的画面");
+    if (!source) throw new Error(translate("shared.plugins.builtin.editor.editorFilmstripMedia.theAssetHasNoReadableFrames"));
     const keyFor = (time: number) => `${scope}:${source}:${time}`;
     const missing: number[] = [];
     for (const time of times) {
@@ -87,7 +88,7 @@ export async function readTimelineFrames(media: TimelineDirectMedia, times: numb
         const access = resourceId ? await abortable(getResourceAccess(media.storageKey, "browser-process", "playback"), signal) : null;
         const url = access ? resolveResourceAccessURL(access.url) : media.storageKey ? await abortable(resolveMediaUrl(media.storageKey, media.url || media.dataUrl || ""), signal) : media.url || media.dataUrl;
         signal.throwIfAborted();
-        if (!url) throw new Error("素材画面不可用");
+        if (!url) throw new Error(translate("shared.plugins.builtin.editor.editorFilmstripMedia.assetFramesUnavailable"));
         video = document.createElement("video");
         video.crossOrigin = access?.delivery === "platform-local" || access?.delivery === "platform-proxy" ? "use-credentials" : "anonymous";
         video.muted = true;
@@ -97,16 +98,16 @@ export async function readTimelineFrames(media: TimelineDirectMedia, times: numb
         video.src = url;
         video.load();
         await loaded;
-        if (!video.videoWidth || !video.videoHeight || !Number.isFinite(video.duration)) throw new Error("无法读取视频画面尺寸");
+        if (!video.videoWidth || !video.videoHeight || !Number.isFinite(video.duration)) throw new Error(translate("shared.plugins.builtin.editor.editorFilmstripMedia.couldNotReadTheVideoSFrameDimensions"));
         const canvas = document.createElement("canvas");
         const ratio = Math.min(128 / video.videoWidth, 96 / video.videoHeight);
         canvas.width = Math.max(1, Math.round(video.videoWidth * ratio));
         canvas.height = Math.max(1, Math.round(video.videoHeight * ratio));
         const context = canvas.getContext("2d");
-        if (!context) throw new Error("浏览器无法生成缩略图");
+        if (!context) throw new Error(translate("shared.plugins.builtin.editor.editorFilmstripMedia.theBrowserCannotGenerateThumbnails"));
         for (const time of missing) {
             signal.throwIfAborted();
-            if (getActiveUserScope() !== scope) throw new DOMException("账号已切换", "AbortError");
+            if (getActiveUserScope() !== scope) throw new DOMException(translate("shared.plugins.builtin.editor.editorFilmstripMedia.accountSwitched"), "AbortError");
             const target = Math.max(0, Math.min(time / 1000, video.duration - 0.001));
             if (Math.abs(video.currentTime - target) > 0.0005) {
                 const seeked = waitForFrame(video, "seeked", signal);
@@ -114,7 +115,7 @@ export async function readTimelineFrames(media: TimelineDirectMedia, times: numb
                 await seeked;
             }
             signal.throwIfAborted();
-            if (getActiveUserScope() !== scope) throw new DOMException("账号已切换", "AbortError");
+            if (getActiveUserScope() !== scope) throw new DOMException(translate("shared.plugins.builtin.editor.editorFilmstripMedia.accountSwitched"), "AbortError");
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             const frame = canvas.toDataURL("image/jpeg", 0.65);
             frames.set(keyFor(time), frame);

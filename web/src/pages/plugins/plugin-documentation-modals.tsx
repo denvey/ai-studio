@@ -8,6 +8,7 @@ import pluginDevelopmentGuideMarkdown from "./plugin-development-guide.md?raw";
 import { getPluginDocumentation } from "./plugin-documentation";
 import { PluginMarkdown } from "./plugin-markdown";
 import "./plugins.css";
+import { translate } from "@/i18n";
 
 type UploadPluginModalProps = {
     open: boolean;
@@ -65,7 +66,7 @@ export function UploadPluginModal({ open, onClose, onUpload }: UploadPluginModal
         try {
             await onUpload(file);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "安装插件失败");
+            message.error(error instanceof Error ? error.message : translate("shared.plugins.pluginDocumentationModals.failedToInstallPlugin"));
         } finally {
             uploadInFlight.current = false;
             setUploading(false);
@@ -74,14 +75,14 @@ export function UploadPluginModal({ open, onClose, onUpload }: UploadPluginModal
 
     const copySnippet = async () => {
         try {
-            if (!MANIFEST_EXAMPLE) throw new Error("开发规范中缺少清单示例");
-            if (!navigator.clipboard) throw new Error("当前环境不支持剪贴板，请从开发规范中手动复制");
+            if (!MANIFEST_EXAMPLE) throw new Error(translate("shared.plugins.pluginDocumentationModals.theDeveloperGuideIsMissingAManifestExample"));
+            if (!navigator.clipboard) throw new Error(translate("shared.plugins.pluginDocumentationModals.clipboardAccessIsUnavailableCopyManuallyFromTheDeveloperGuide"));
             await navigator.clipboard.writeText(MANIFEST_EXAMPLE);
             setCopied(true);
             clearTimeout(copyTimer.current);
             copyTimer.current = setTimeout(() => setCopied(false), 2000);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "复制失败，请手动复制");
+            message.error(error instanceof Error ? error.message : translate("shared.plugins.pluginDocumentationModals.copyFailedCopyManually"));
         }
     };
 
@@ -90,7 +91,7 @@ export function UploadPluginModal({ open, onClose, onUpload }: UploadPluginModal
     return (
         <Modal
             className={`workspace-modal plugin-upload-modal ${isCompact ? "plugin-upload-modal-compact" : "workspace-modal-wide"}`}
-            title="上传插件"
+            title={translate("shared.plugins.pluginDocumentationModals.uploadPlugin")}
             open={open}
             centered
             footer={null}
@@ -104,21 +105,21 @@ export function UploadPluginModal({ open, onClose, onUpload }: UploadPluginModal
                 <div className="plugin-upload-tabs-nav">
                     <button type="button" className={`plugin-upload-tab-btn ${activeTab === "install" ? "is-active" : ""}`} aria-pressed={activeTab === "install"} onClick={() => setActiveTab("install")}>
                         <CloudUpload className="size-4" />
-                        <span>安装插件包</span>
+                        <span>{translate("shared.plugins.pluginDocumentationModals.installPluginPackage")}</span>
                     </button>
                     <button type="button" className={`plugin-upload-tab-btn ${activeTab === "guide" ? "is-active" : ""}`} aria-pressed={activeTab === "guide"} onClick={() => setActiveTab("guide")}>
                         <FileText className="size-4" />
-                        <span>开发规范与示例</span>
+                        <span>{translate("shared.plugins.pluginDocumentationModals.developerGuideAndExamples")}</span>
                     </button>
                 </div>
                 {activeTab === "guide" ? (
-                    <button type="button" className="plugin-upload-copy-btn" onClick={() => void copySnippet()} title="复制开发规范中的 manifest.json 配置示例">
-                        <span>{copied ? "已复制清单" : "复制清单示例"}</span>
+                    <button type="button" className="plugin-upload-copy-btn" onClick={() => void copySnippet()} title={translate("shared.plugins.pluginDocumentationModals.copyTheManifestJsonExampleFromTheDeveloperGuide")}>
+                        <span>{copied ? translate("shared.plugins.pluginDocumentationModals.manifestCopied") : translate("shared.plugins.pluginDocumentationModals.copyManifestExample")}</span>
                     </button>
                 ) : (
                     <div className="plugin-upload-badge">
                         <ShieldCheck className="size-3.5 text-status-success" />
-                        <span>沙箱受控隔离</span>
+                        <span>{translate("shared.plugins.pluginDocumentationModals.controlledSandboxIsolation")}</span>
                     </div>
                 )}
             </div>
@@ -130,8 +131,8 @@ export function UploadPluginModal({ open, onClose, onUpload }: UploadPluginModal
                             <CloudUpload className="size-5" />
                         </span>
                         <div>
-                            <h2>安装插件包</h2>
-                            <p>选择统一站点插件包，安装后会立即进入插件中心。</p>
+                            <h2>{translate("shared.plugins.pluginDocumentationModals.installPluginPackage")}</h2>
+                            <p>{translate("shared.plugins.pluginDocumentationModals.selectASitePluginPackageItAppearsInThePlugin")}</p>
                         </div>
                     </div>
 
@@ -156,14 +157,16 @@ export function UploadPluginModal({ open, onClose, onUpload }: UploadPluginModal
                             {uploading ? (
                                 <div className="py-6 flex flex-col items-center justify-center gap-3">
                                     <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                                    <p className="ant-upload-text">正在安装插件包，请稍候...</p>
-                                    <p className="ant-upload-hint">正在解压、校验清单合法性与版本声明</p>
+                                    <p className="ant-upload-text">{translate("shared.plugins.pluginDocumentationModals.installingPluginPackagePleaseWait")}</p>
+                                    <p className="ant-upload-hint">{translate("shared.plugins.pluginDocumentationModals.extractingAndValidatingTheManifestAndVersionDeclaration")}</p>
                                 </div>
                             ) : (
                                 <>
                                     <CloudUpload className="plugin-upload-dropzone-icon" />
-                                    <p className="ant-upload-text">{isDraggingPlugin ? "释放文件以上传插件" : "点击选择插件文件，也可拖拽到此处"}</p>
-                                    <p className="ant-upload-hint">支持 .yingce-plugin 包 · 大小不超过 48 MiB</p>
+                                    <p className="ant-upload-text">
+                                        {isDraggingPlugin ? translate("shared.plugins.pluginDocumentationModals.dropTheFileToUploadThePlugin") : translate("shared.plugins.pluginDocumentationModals.clickToSelectAPluginFileOrDragItHere")}
+                                    </p>
+                                    <p className="ant-upload-hint">{translate("shared.plugins.pluginDocumentationModals.supportsYingcePluginPackagesUpTo48MiB")}</p>
                                 </>
                             )}
                         </Upload.Dragger>
@@ -171,13 +174,13 @@ export function UploadPluginModal({ open, onClose, onUpload }: UploadPluginModal
 
                     <div className="plugin-upload-notice">
                         <ShieldCheck className="size-4 shrink-0 text-status-success" />
-                        <span>上传前请确认插件来源可信。Web 入口只能进入声明的隔离运行时，不会获得主页面权限；密钥也不会从清单读取。</span>
+                        <span>{translate("shared.plugins.pluginDocumentationModals.confirmThePluginComesFromATrustedSourceBeforeUploading")}</span>
                     </div>
 
                     <div className="plugin-upload-switch-guide-hint">
-                        <span>初次制作插件？</span>
+                        <span>{translate("shared.plugins.pluginDocumentationModals.makingYourFirstPlugin")}</span>
                         <button type="button" onClick={() => setActiveTab("guide")} className="plugin-upload-link-btn">
-                            查看《开发与打包规范说明》
+                            {translate("shared.plugins.pluginDocumentationModals.viewTheDevelopmentAndPackagingGuide")}
                         </button>
                     </div>
                 </div>
@@ -185,7 +188,7 @@ export function UploadPluginModal({ open, onClose, onUpload }: UploadPluginModal
                 <div className="plugin-upload-guide-view">
                     <div className="plugin-upload-guide-banner">
                         <ShieldCheck className="size-4 shrink-0 text-primary" />
-                        <span>以下为开发者技术规范与清单编写参考（只读文档）。安装插件请切换至「安装插件包」。</span>
+                        <span>{translate("shared.plugins.pluginDocumentationModals.belowIsAReadOnlyTechnicalGuideAndManifestReference")}</span>
                     </div>
                     <section className="plugin-upload-guide">
                         <PluginMarkdown source={pluginDevelopmentGuideMarkdown} />

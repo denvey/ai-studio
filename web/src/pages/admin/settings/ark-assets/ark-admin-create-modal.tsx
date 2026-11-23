@@ -10,6 +10,7 @@ import { AdminModal } from "../../ui/overlays";
 import { AdminSegmented, Callout, Switch } from "../../ui/controls";
 import { ARK_KIND_LABEL, formatArkAdminDate } from "./ark-admin-shared";
 import { ArkGrantUsersField } from "./ark-grant-users-field";
+import { translate } from "@/i18n";
 
 type CreateMode = "create" | "register" | "liveness";
 type CreateForm = { name: string; description?: string; groupId?: string };
@@ -60,12 +61,12 @@ export function ArkAdminCreateModal({ open, resume, onClose, onCreated }: { open
         if (settled.current) return;
         if (latest.status === "verified") {
             settled.current = true;
-            message.success(`「${latest.name}」真人认证完成，已建立平台真人素材组`);
+            message.success(translate("adminPages.settings.arkAssets.arkAdminCreateModal.identityVerificationCompletedForAPlatformHumanAssetGroupHas", { v0: String(latest.name) }));
             onCreated(latest.groupId);
             return;
         }
         if (latest.status === "failed" || latest.status === "expired" || latest.status === "cancelled") {
-            message.warning(latest.error || "认证未完成，请重新发起");
+            message.warning(latest.error || translate("adminPages.settings.arkAssets.arkAdminCreateModal.verificationIncompletePleaseStartAgain"));
             setSession(null);
             onCreated();
             return;
@@ -78,7 +79,7 @@ export function ArkAdminCreateModal({ open, resume, onClose, onCreated }: { open
         try {
             await action();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "操作失败");
+            message.error(error instanceof Error ? error.message : translate("library.tasks.page.actionFailed"));
         } finally {
             setWorking("");
         }
@@ -96,7 +97,7 @@ export function ArkAdminCreateModal({ open, resume, onClose, onCreated }: { open
         }
         await run("create", async () => {
             const result = await createAdminArkGroup({ kind, name: values.name.trim(), description: values.description?.trim(), groupId: mode === "register" ? values.groupId?.trim() : undefined, grantAll, grantUserIds: grantAll ? [] : grantUserIds });
-            message.success(mode === "register" ? "素材组已登记" : "素材组已在方舟创建");
+            message.success(mode === "register" ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.assetGroupRegistered") : translate("adminPages.settings.arkAssets.arkAdminCreateModal.assetGroupCreatedInArk"));
             onCreated(result.group.groupId);
         });
     };
@@ -111,19 +112,19 @@ export function ArkAdminCreateModal({ open, resume, onClose, onCreated }: { open
     const modeOptions: Array<{ value: CreateMode; label: string }> =
         kind === "real"
             ? [
-                  { value: "liveness", label: "真人 H5 认证" },
-                  { value: "register", label: "登记已有素材组" },
+                  { value: "liveness", label: translate("adminPages.settings.arkAssets.arkAdminCreateModal.mobileIdentityVerification") },
+                  { value: "register", label: translate("adminPages.settings.arkAssets.arkAdminCreateModal.registerExistingAssetGroup") },
               ]
             : [
-                  { value: "create", label: "在方舟新建" },
-                  { value: "register", label: "登记已有素材组" },
+                  { value: "create", label: translate("adminPages.settings.arkAssets.arkAdminCreateModal.createInArk") },
+                  { value: "register", label: translate("adminPages.settings.arkAssets.arkAdminCreateModal.registerExistingAssetGroup") },
               ];
 
     return (
         <AdminModal
             open={open}
             width={640}
-            title={session ? "平台真人认证" : "新建平台素材组"}
+            title={session ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.platformIdentityVerification") : translate("adminPages.settings.arkAssets.arkAdminCreateModal.createPlatformAssetGroup")}
             onCancel={() => {
                 if (!working) onClose();
             }}
@@ -132,20 +133,24 @@ export function ArkAdminCreateModal({ open, resume, onClose, onCreated }: { open
                 session ? (
                     <div className="flex flex-wrap justify-end gap-2">
                         <Button danger loading={working === "cancel"} onClick={() => void cancelSession()}>
-                            取消认证
+                            {translate("library.ark.realFlow.cancel")}
                         </Button>
-                        <Button onClick={onClose}>稍后继续</Button>
+                        <Button onClick={onClose}>{translate("adminPages.settings.arkAssets.arkAdminCreateModal.continueLater")}</Button>
                         <Button type="primary" icon={<CheckCircle2 className="size-4" />} loading={working === "check"} onClick={() => void run("check", async () => settle((await checkArkPortraitSession(session.id)).session))}>
-                            我已完成认证
+                            {translate("adminPages.settings.arkAssets.arkAdminCreateModal.iHaveCompletedVerification")}
                         </Button>
                     </div>
                 ) : (
                     <div className="flex justify-end gap-2">
                         <Button disabled={Boolean(working)} onClick={onClose}>
-                            取消
+                            {translate("common.cancel")}
                         </Button>
                         <Button type="primary" loading={working === "create" || working === "start"} onClick={() => void submit()}>
-                            {mode === "liveness" ? "发起真人认证" : mode === "register" ? "登记素材组" : "创建素材组"}
+                            {mode === "liveness"
+                                ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.startIdentityVerification")
+                                : mode === "register"
+                                  ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.registerAssetGroup")
+                                  : translate("adminPages.settings.arkAssets.arkAdminCreateModal.createAssetGroup")}
                         </Button>
                     </div>
                 )
@@ -155,27 +160,30 @@ export function ArkAdminCreateModal({ open, resume, onClose, onCreated }: { open
                 <div className="admin-ark-session">
                     {session.h5Link ? <PaymentCheckoutCode value={session.h5Link} /> : null}
                     <div className="admin-ark-session-copy">
-                        <strong>请「{session.name}」本人完成认证</strong>
-                        <p>用手机扫码，或在本机打开认证页。完成后这里会自动刷新；如未刷新，点击「我已完成认证」。链接 {formatArkAdminDate(session.expiresAt, true)} 前有效，不要转发给无关人员。</p>
+                        <strong>{translate("adminPages.settings.arkAssets.arkAdminCreateModal.personMustVerify", { name: session.name })}</strong>
+                        <p>
+                            {translate("adminPages.settings.arkAssets.arkAdminCreateModal.scanTheCodeWithAPhoneOrOpenTheVerification")} {formatArkAdminDate(session.expiresAt, true)}{" "}
+                            {translate("adminPages.settings.arkAssets.arkAdminCreateModal.doNotShareItWithUnrelatedPeople")}
+                        </p>
                         {session.h5Link ? (
                             <div className="flex flex-wrap gap-2">
                                 <Button icon={<ExternalLink className="size-4" />} href={session.h5Link} target="_blank" rel="noopener noreferrer">
-                                    在本机打开认证页
+                                    {translate("adminPages.settings.arkAssets.arkAdminCreateModal.openVerificationOnThisDevice")}
                                 </Button>
-                                <Button icon={<Copy className="size-4" />} onClick={() => copyText(session.h5Link || "", "认证链接已复制")}>
-                                    复制认证链接
+                                <Button icon={<Copy className="size-4" />} onClick={() => copyText(session.h5Link || "", translate("library.ark.realFlow.linkCopied"))}>
+                                    {translate("adminPages.settings.arkAssets.arkAdminCreateModal.copyVerificationLink")}
                                 </Button>
                             </div>
                         ) : (
-                            <Callout tone="info">认证链接只在发起时返回。若已在手机上完成认证，点击「我已完成认证」查询结果。</Callout>
+                            <Callout tone="info">{translate("adminPages.settings.arkAssets.arkAdminCreateModal.theVerificationLinkIsReturnedOnlyWhenVerificationStartsIf")}</Callout>
                         )}
                     </div>
                 </div>
             ) : (
                 <Form form={form} layout="vertical" requiredMark={false} className="pt-2">
-                    <Form.Item label="素材组类型">
+                    <Form.Item label={translate("adminPages.settings.arkAssets.arkAdminCreateModal.assetGroupType")}>
                         <AdminSegmented<ArkGroupKind>
-                            ariaLabel="素材组类型"
+                            ariaLabel={translate("adminPages.settings.arkAssets.arkAdminCreateModal.assetGroupType")}
                             value={kind}
                             onChange={(next) => {
                                 setKind(next);
@@ -184,35 +192,43 @@ export function ArkAdminCreateModal({ open, resume, onClose, onCreated }: { open
                             options={(["virtual", "ip", "real"] as const).map((value) => ({ value, label: ARK_KIND_LABEL[value] }))}
                         />
                     </Form.Item>
-                    <Form.Item label="创建方式">
-                        <AdminSegmented<CreateMode> ariaLabel="创建方式" value={mode} onChange={setMode} options={modeOptions} />
+                    <Form.Item label={translate("adminPages.settings.arkAssets.arkAdminCreateModal.creationMethod")}>
+                        <AdminSegmented<CreateMode> ariaLabel={translate("adminPages.settings.arkAssets.arkAdminCreateModal.creationMethod")} value={mode} onChange={setMode} options={modeOptions} />
                     </Form.Item>
-                    {mode === "liveness" ? <Callout tone="info">平台真人素材组不收费，认证完成后在素材组详情里设置授权用户。只能为本人或已取得肖像授权的真人发起。</Callout> : null}
-                    <Form.Item name="name" label={mode === "liveness" ? "真人姓名" : "素材组名称"} rules={[{ required: true, whitespace: true, message: mode === "liveness" ? "请填写真人姓名" : "请填写素材组名称" }]} className="mt-4">
-                        <Input maxLength={40} placeholder={mode === "liveness" ? "例如：签约演员 张三" : "例如：品牌吉祥物"} />
+                    {mode === "liveness" ? <Callout tone="info">{translate("adminPages.settings.arkAssets.arkAdminCreateModal.platformHumanAssetGroupsAreFreeAfterVerificationConfigureAuthorized")}</Callout> : null}
+                    <Form.Item
+                        name="name"
+                        label={mode === "liveness" ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.personSName") : translate("adminPages.settings.arkAssets.arkAdminCreateModal.assetGroupName")}
+                        rules={[{ required: true, whitespace: true, message: mode === "liveness" ? translate("library.ark.realFlow.nameRequired") : translate("adminPages.settings.arkAssets.arkAdminCreateModal.pleaseEnterAnAssetGroupName") }]}
+                        className="mt-4"
+                    >
+                        <Input
+                            maxLength={40}
+                            placeholder={mode === "liveness" ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.forExampleContractActorZhangSan") : translate("adminPages.settings.arkAssets.arkAdminCreateModal.forExampleBrandMascot")}
+                        />
                     </Form.Item>
-                    <Form.Item name="description" label="说明">
-                        <Input.TextArea maxLength={200} autoSize={{ minRows: 2, maxRows: 4 }} placeholder="可选，便于区分不同素材组" />
+                    <Form.Item name="description" label={translate("library.ark.virtualFlow.descriptionLabel")}>
+                        <Input.TextArea maxLength={200} autoSize={{ minRows: 2, maxRows: 4 }} placeholder={translate("adminPages.settings.arkAssets.arkAdminCreateModal.optionalHelpsDistinguishAssetGroups")} />
                     </Form.Item>
                     {mode === "register" ? (
                         <Form.Item
                             name="groupId"
-                            label="方舟素材组 ID"
-                            extra={kind === "real" ? "真人素材组需为控制台扫码授权得到的 LivenessFace 组。" : undefined}
+                            label={translate("adminPages.settings.arkAssets.arkAdminCreateModal.arkAssetGroupID")}
+                            extra={kind === "real" ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.aHumanAssetGroupMustBeALivenessFaceGroupObtained") : undefined}
                             rules={[
-                                { required: true, message: "请填写方舟素材组 ID" },
-                                { pattern: GROUP_ID_PATTERN, message: "请输入 group- 开头的方舟素材组 ID" },
+                                { required: true, message: translate("adminPages.settings.arkAssets.arkAdminCreateModal.pleaseEnterAnArkAssetGroupID") },
+                                { pattern: GROUP_ID_PATTERN, message: translate("adminPages.settings.arkAssets.arkAdminCreateModal.enterAnArkAssetGroupIDStartingWithGroup") },
                             ]}
                         >
                             <Input autoComplete="off" placeholder="group-…" />
                         </Form.Item>
                     ) : null}
                     {mode !== "liveness" ? (
-                        <Form.Item label="授权使用" extra="被授权的用户可在设置页看到该素材组，并手动加入素材库使用。">
+                        <Form.Item label={translate("adminPages.settings.arkAssets.arkAdminCreateModal.usageAuthorization")} extra={translate("adminPages.settings.arkAssets.arkAdminCreateModal.authorizedUsersCanSeeThisGroupInSettingsAndManually")}>
                             <div className="flex flex-col gap-3">
                                 <label className="flex items-center gap-2 text-sm">
-                                    <Switch checked={grantAll} onChange={setGrantAll} aria-label="授权给全部用户" />
-                                    授权给全部用户
+                                    <Switch checked={grantAll} onChange={setGrantAll} aria-label={translate("adminPages.settings.arkAssets.arkAdminCreateModal.authorizeAllUsers")} />
+                                    {translate("adminPages.settings.arkAssets.arkAdminCreateModal.authorizeAllUsers")}
                                 </label>
                                 {grantAll ? null : <ArkGrantUsersField value={grantUserIds} onChange={setGrantUserIds} />}
                             </div>

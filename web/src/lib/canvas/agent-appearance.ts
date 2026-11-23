@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 export type CanvasAppearance = {
     agentName: string;
     launcherLabel: string;
@@ -15,14 +16,14 @@ export type CanvasAppearance = {
 
 export type AgentAvatarState = "idle" | "queued" | "running" | "waiting_approval" | "completed" | "failed" | "cancelled" | "rejected";
 export const AGENT_AVATAR_STATES: { id: AgentAvatarState; label: string }[] = [
-    { id: "idle", label: "待命" },
-    { id: "queued", label: "排队中" },
-    { id: "running", label: "运行中" },
-    { id: "waiting_approval", label: "等待审批" },
-    { id: "completed", label: "已完成" },
-    { id: "failed", label: "异常" },
-    { id: "cancelled", label: "已停止" },
-    { id: "rejected", label: "已拒绝" },
+    { id: "idle", label: translate("shared.canvas.agentAppearance.ready") },
+    { id: "queued", label: translate("canvasPage.taskStatus.queued") },
+    { id: "running", label: translate("library.tasks.filter.active") },
+    { id: "waiting_approval", label: translate("shared.canvas.agentAppearance.awaitingApproval") },
+    { id: "completed", label: translate("library.tasks.filter.succeeded") },
+    { id: "failed", label: translate("shared.canvas.agentAppearance.error") },
+    { id: "cancelled", label: translate("create.status.stopped") },
+    { id: "rejected", label: translate("account.settings.memory.statusRejected") },
 ];
 
 export type AgentAvatarBundleManifest = {

@@ -10,6 +10,7 @@ import { generateSkillDraft } from "@/lib/canvas/skill-drafting";
 import { navigateToSettings } from "@/lib/settings-navigation";
 import { useConfigStore, useEffectiveConfig } from "@/stores/use-config-store";
 import { createSkill, updateSkill, type Skill, type SkillMutationInput, type SkillShowcaseMedia } from "@/services/api/skills";
+import { translate } from "@/i18n";
 
 type SkillFormValues = Omit<SkillMutationInput, "isPrivate"> & { is_public: boolean };
 
@@ -47,8 +48,8 @@ export function SkillEditorDrawer({
     const initialMarkdownUrl = skill?.markdownUrl || skill?.sourceUrl || "";
     // 内置技能的 markdownUrl 是包内相对路径；后台未改动时原样保留，不按外链校验。
     const markdownUrlRules = admin
-        ? [{ validator: (_: unknown, value?: string) => (!value || value === initialMarkdownUrl || HTTP_URL_PATTERN.test(value) ? Promise.resolve() : Promise.reject(new Error("请输入有效的 HTTP(S) 链接"))) }]
-        : [{ type: "url" as const, message: "请输入有效的 HTTP(S) 链接" }];
+        ? [{ validator: (_: unknown, value?: string) => (!value || value === initialMarkdownUrl || HTTP_URL_PATTERN.test(value) ? Promise.resolve() : Promise.reject(new Error(translate("shared.skills.skillEditorDrawer.enterAValidHTTPSLink")))) }]
+        : [{ type: "url" as const, message: translate("shared.skills.skillEditorDrawer.enterAValidHTTPSLink") }];
 
     useEffect(() => {
         if (!open) return;
@@ -70,7 +71,14 @@ export function SkillEditorDrawer({
             onClose();
             return;
         }
-        modal.confirm({ title: "放弃未保存的修改？", content: "当前填写内容不会保留。", okText: "放弃修改", okButtonProps: { danger: true }, cancelText: "继续编辑", onOk: onClose });
+        modal.confirm({
+            title: translate("shared.skills.skillEditorDrawer.discardUnsavedChanges"),
+            content: translate("shared.skills.skillEditorDrawer.whatYouHaveEnteredWillNotBeKept"),
+            okText: translate("shared.skills.skillEditorDrawer.discardChanges"),
+            okButtonProps: { danger: true },
+            cancelText: translate("account.settings.prompts.switchCancel"),
+            onOk: onClose,
+        });
     };
 
     const submit = async (values: SkillFormValues) => {
@@ -93,10 +101,10 @@ export function SkillEditorDrawer({
                       ? await updateSkill(skill.skillId, input)
                       : await createSkill(input);
             setDirty(false);
-            message.success(skill ? "技能已更新" : "技能已创建");
+            message.success(skill ? translate("shared.skills.skillEditorDrawer.skillUpdated") : translate("shared.skills.skillEditorDrawer.skillCreated"));
             onSaved(result.skill);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "技能保存失败");
+            message.error(error instanceof Error ? error.message : translate("shared.skills.skillEditorDrawer.failedToSaveSkill"));
         } finally {
             setSaving(false);
         }
@@ -105,11 +113,11 @@ export function SkillEditorDrawer({
     const draftFromIdea = async () => {
         const idea = draftIdea.trim();
         if (!idea) {
-            message.warning("请先描述你想沉淀的技能");
+            message.warning(translate("shared.skills.skillEditorDrawer.describeTheSkillYouWantToCaptureFirst"));
             return;
         }
         if (!useConfigStore.getState().isAiConfigReady(effectiveConfig, effectiveConfig.model)) {
-            message.info("尚未配置可用的文本模型，请先到设置页配置");
+            message.info(translate("shared.skills.skillEditorDrawer.noTextModelConfiguredAddOneInSettingsFirst"));
             navigateToSettings({ section: "models", continueCreation: true });
             return;
         }
@@ -123,9 +131,9 @@ export function SkillEditorDrawer({
                 ...(draft.tag ? { tag: draft.tag } : {}),
             });
             setDirty(true);
-            message.success("草稿已生成，请检查并调整后保存");
+            message.success(translate("shared.skills.skillEditorDrawer.draftGeneratedReviewAndAdjustItBeforeSaving"));
         } catch (error) {
-            message.error(error instanceof Error ? `起草失败：${error.message}` : "起草失败");
+            message.error(error instanceof Error ? translate("shared.skills.skillEditorDrawer.draftingFailed", { v0: String(error.message) }) : translate("shared.skills.skillEditorDrawer.draftingFailed2"));
         } finally {
             setDrafting(false);
         }
@@ -138,11 +146,11 @@ export function SkillEditorDrawer({
             open={open}
             size={720}
             mask={{ closable: !dirty }}
-            title={admin ? "编辑技能信息" : skill ? "编辑技能" : "创建技能"}
+            title={admin ? translate("shared.skills.skillEditorDrawer.editSkillInformation") : skill ? translate("shared.skills.skillEditorDrawer.editSkill") : translate("shared.skills.skillEditorDrawer.createSkill")}
             onClose={requestClose}
             extra={
                 <Button type="primary" loading={saving} icon={<Save className="size-4" />} onClick={() => form.submit()}>
-                    保存技能
+                    {translate("shared.skills.skillEditorDrawer.saveSkill")}
                 </Button>
             }
         >
@@ -152,8 +160,8 @@ export function SkillEditorDrawer({
                 <div className="mb-4 rounded-xl border bg-foreground/[.02] p-3">
                     <div className="mb-2 flex items-center gap-2 text-sm font-medium">
                         <PenLine className="size-4" />
-                        AI 起草
-                        <span className="font-normal text-foreground/45">描述想法，一键生成名称、简介与指令草稿（可再编辑）</span>
+                        {translate("shared.skills.skillEditorDrawer.draftWithAI")}
+                        <span className="font-normal text-foreground/45">{translate("shared.skills.skillEditorDrawer.describeYourIdeaToGenerateAnEditableDraftNameSummary")}</span>
                     </div>
                     <Input.TextArea
                         value={draftIdea}
@@ -162,69 +170,73 @@ export function SkillEditorDrawer({
                         maxLength={2000}
                         showCount
                         disabled={drafting}
-                        placeholder="例如：我要一个竖屏短剧分镜技能——输入剧本段落，输出按景别排列的分镜表，每个镜头包含画面、台词、时长与转场…"
+                        placeholder={translate("shared.skills.skillEditorDrawer.forExampleIWantAPortraitDramaStoryboardingSkillInput")}
                     />
                     <div className="mt-2 flex items-center justify-between gap-2">
-                        <span className="text-xs text-foreground/45">将使用你的文本模型生成一次草稿</span>
+                        <span className="text-xs text-foreground/45">{translate("shared.skills.skillEditorDrawer.yourTextModelWillBeUsedToGenerateOneDraft")}</span>
                         <Button type="primary" loading={drafting} disabled={!draftIdea.trim()} icon={<PenLine className="size-4" />} onClick={() => void draftFromIdea()}>
-                            生成草稿
+                            {translate("shared.skills.skillEditorDrawer.generateDraft")}
                         </Button>
                     </div>
                 </div>
             ) : (
-                <div className="mb-4 rounded-xl border bg-foreground/[.02] p-3 text-sm leading-6 text-foreground/58">
-                    这是多文件技能包。这里仅编辑名称、简介、分类和展示信息；正文与附属文件请在技能卡片的“编辑”工作台中修改，GitHub 技能请在仓库修改后执行同步。
-                </div>
+                <div className="mb-4 rounded-xl border bg-foreground/[.02] p-3 text-sm leading-6 text-foreground/58">{translate("shared.skills.skillEditorDrawer.thisIsASkillPackageWithMultipleFilesEditOnly")}</div>
             )}
             <Form form={form} layout="vertical" requiredMark="optional" onFinish={submit} onValuesChange={() => setDirty(true)}>
                 <div className="grid gap-x-4 sm:grid-cols-2">
                     <Form.Item
                         name="skillName"
-                        label="技能名称"
+                        label={translate("shared.skills.skillEditorDrawer.skillName")}
                         rules={[
-                            { required: true, message: "请填写技能名称" },
-                            { max: 80, message: "最多 80 个字符" },
+                            { required: true, message: translate("shared.skills.skillEditorDrawer.enterASkillName") },
+                            { max: 80, message: translate("shared.skills.skillEditorDrawer.upTo80Characters") },
                         ]}
                     >
-                        <Input maxLength={80} showCount placeholder="例如：短剧导演分镜" autoComplete="off" />
+                        <Input maxLength={80} showCount placeholder={translate("shared.skills.skillEditorDrawer.eGShortDramaDirectorStoryboard")} autoComplete="off" />
                     </Form.Item>
-                    <Form.Item name="tag" label="技能分类" rules={[{ required: true, message: "请选择技能分类" }]}>
+                    <Form.Item name="tag" label={translate("shared.skills.skillEditorDrawer.skillCategory")} rules={[{ required: true, message: translate("shared.skills.skillEditorDrawer.selectASkillCategory") }]}>
                         <Select options={fallbackSkillCategories.map(({ value, label }) => ({ value, label }))} />
                     </Form.Item>
                 </div>
 
                 <Form.Item
                     name="description"
-                    label="技能简介"
+                    label={translate("shared.skills.skillEditorDrawer.skillSummary")}
                     rules={[
-                        { required: true, message: "请填写技能简介" },
-                        { max: 500, message: "最多 500 个字符" },
+                        { required: true, message: translate("shared.skills.skillEditorDrawer.enterASkillSummary") },
+                        { max: 500, message: translate("shared.skills.skillEditorDrawer.upTo500Characters") },
                     ]}
                 >
-                    <Input.TextArea autoSize={{ minRows: 3, maxRows: 6 }} maxLength={500} showCount placeholder="说明适用场景、输入条件和最终产出" />
+                    <Input.TextArea autoSize={{ minRows: 3, maxRows: 6 }} maxLength={500} showCount placeholder={translate("shared.skills.skillEditorDrawer.describeWhenToUseItWhatItNeedsAndWhat")} />
                 </Form.Item>
 
                 {!isPackageSkill && !infoOnly ? (
                     <Form.Item
                         name="instruction"
-                        label="技能指令"
+                        label={translate("shared.skills.skillEditorDrawer.skillInstructions")}
                         rules={[
-                            { required: true, message: "请填写技能指令" },
-                            { max: 100000, message: "最多 100000 个字符" },
+                            { required: true, message: translate("shared.skills.skillEditorDrawer.enterTheSkillInstructions") },
+                            { max: 100000, message: translate("shared.skills.skillEditorDrawer.upTo100000Characters") },
                         ]}
-                        extra="单文件技能会作为 SKILL.md 安装，Agent 按任务需要读取。"
+                        extra={translate("shared.skills.skillEditorDrawer.singleFileSkillsAreInstalledAsSKILLMdAndRead")}
                     >
-                        <Input.TextArea className="font-mono text-xs leading-5" autoSize={{ minRows: 14, maxRows: 28 }} maxLength={100000} showCount placeholder="使用 Markdown 编写角色、约束、流程、检查清单和输出格式" />
+                        <Input.TextArea
+                            className="font-mono text-xs leading-5"
+                            autoSize={{ minRows: 14, maxRows: 28 }}
+                            maxLength={100000}
+                            showCount
+                            placeholder={translate("shared.skills.skillEditorDrawer.useMarkdownToWriteRolesConstraintsWorkflowsChecklistsAndOutput")}
+                        />
                     </Form.Item>
                 ) : null}
 
                 <div className={infoOnly ? "grid gap-x-4" : "grid gap-x-4 sm:grid-cols-[minmax(0,1fr)_180px]"}>
-                    <Form.Item name="markdownUrl" label={isPackageSkill ? "来源地址" : "Markdown 地址"} rules={markdownUrlRules}>
+                    <Form.Item name="markdownUrl" label={isPackageSkill ? translate("shared.skills.skillEditorDrawer.sourceURL") : translate("shared.skills.skillEditorDrawer.markdownURL")} rules={markdownUrlRules}>
                         <Input type="url" inputMode="url" spellCheck={false} placeholder="https://example.com/SKILL.md" />
                     </Form.Item>
                     {!infoOnly ? (
-                        <Form.Item name="is_public" label="公开状态" valuePropName="checked" extra="公开后其他用户可以加入使用。">
-                            <Switch checkedChildren="公开" unCheckedChildren="私有" />
+                        <Form.Item name="is_public" label={translate("shared.skills.skillEditorDrawer.visibility")} valuePropName="checked" extra={translate("shared.skills.skillEditorDrawer.oncePublicOtherUsersCanJoinAndUseIt")}>
+                            <Switch checkedChildren={translate("shared.skills.skillDetailDrawer.public")} unCheckedChildren={translate("shared.skills.skillEditorDrawer.private")} />
                         </Form.Item>
                     ) : null}
                 </div>
@@ -235,22 +247,22 @@ export function SkillEditorDrawer({
                             <div className="mb-3 flex items-center justify-between">
                                 <div>
                                     <h3 id="skill-media-title" className="text-sm font-medium">
-                                        展示媒体
+                                        {translate("shared.skills.skillEditorDrawer.showcaseMedia")}
                                     </h3>
-                                    <p className="mt-1 text-xs text-foreground/50">可选，最多 8 个公开图片或视频链接。</p>
+                                    <p className="mt-1 text-xs text-foreground/50">{translate("shared.skills.skillEditorDrawer.optionalUpTo8PublicImageOrVideoLinks")}</p>
                                 </div>
                                 <Button disabled={fields.length >= 8} icon={<Plus className="size-4" />} onClick={() => add(emptyMedia())}>
-                                    添加媒体
+                                    {translate("shared.skills.skillEditorDrawer.addMedia")}
                                 </Button>
                             </div>
                             <div className="space-y-2">
                                 {fields.map((field) => (
                                     <div key={field.key} className="grid grid-cols-[112px_minmax(0,1fr)_36px] gap-2">
-                                        <Form.Item {...field} name={[field.name, "type"]} className="mb-0" rules={[{ required: true, message: "选择类型" }]}>
+                                        <Form.Item {...field} name={[field.name, "type"]} className="mb-0" rules={[{ required: true, message: translate("shared.skills.skillEditorDrawer.selectType") }]}>
                                             <Select
                                                 options={[
-                                                    { value: "image", label: "图片" },
-                                                    { value: "video", label: "视频" },
+                                                    { value: "image", label: translate("account.feedback.image") },
+                                                    { value: "video", label: translate("account.feedback.video") },
                                                 ]}
                                             />
                                         </Form.Item>
@@ -259,13 +271,18 @@ export function SkillEditorDrawer({
                                             name={[field.name, "showcaseUrl"]}
                                             className="mb-0"
                                             rules={[
-                                                { required: true, message: "请填写媒体链接" },
-                                                { type: "url", message: "链接格式无效" },
+                                                { required: true, message: translate("shared.skills.skillEditorDrawer.enterAMediaLink") },
+                                                { type: "url", message: translate("shared.skills.skillEditorDrawer.invalidLinkFormat") },
                                             ]}
                                         >
                                             <Input type="url" inputMode="url" spellCheck={false} placeholder="https://example.com/media" />
                                         </Form.Item>
-                                        <Button aria-label="移除媒体" title="移除媒体" icon={<Minus className="size-4" />} onClick={() => remove(field.name)} />
+                                        <Button
+                                            aria-label={translate("shared.skills.skillEditorDrawer.removeMedia")}
+                                            title={translate("shared.skills.skillEditorDrawer.removeMedia")}
+                                            icon={<Minus className="size-4" />}
+                                            onClick={() => remove(field.name)}
+                                        />
                                         <Form.Item {...field} name={[field.name, "showcaseUri"]} hidden>
                                             <Input />
                                         </Form.Item>
@@ -276,8 +293,8 @@ export function SkillEditorDrawer({
                     )}
                 </Form.List>
 
-                <Form.Item name="extraInfo" label="补充信息" className="mt-5" rules={[{ max: 2000, message: "最多 2000 个字符" }]}>
-                    <Input.TextArea autoSize={{ minRows: 2, maxRows: 5 }} maxLength={2000} showCount placeholder="版本说明、依赖工具或使用注意事项" />
+                <Form.Item name="extraInfo" label={translate("shared.skills.skillEditorDrawer.additionalInformation")} className="mt-5" rules={[{ max: 2000, message: translate("shared.skills.skillEditorDrawer.upTo2000Characters") }]}>
+                    <Input.TextArea autoSize={{ minRows: 2, maxRows: 5 }} maxLength={2000} showCount placeholder={translate("shared.skills.skillEditorDrawer.releaseNotesRequiredToolsOrUsageCaveats")} />
                 </Form.Item>
             </Form>
         </AppDrawer>
@@ -285,9 +302,9 @@ export function SkillEditorDrawer({
 }
 
 function adminInfoNotice(skill: Skill | null) {
-    const base = "这里只修改名称、简介、分类和展示信息；正文与附属文件请在技能工作台中编辑。公开状态由作者决定，不在后台修改。";
-    if (skill?.sourceType === "builtin") return `${base}保存后，系统升级时不再用内置版本覆盖这些信息。`;
-    if (skill?.sourceType === "github") return `${base}保存后，GitHub 同步不再覆盖名称和简介，文件内容仍以仓库为准。`;
+    const base = translate("shared.skills.skillEditorDrawer.onlyEditTheNameSummaryCategoryAndDisplayInformationHere");
+    if (skill?.sourceType === "builtin") return translate("shared.skills.skillEditorDrawer.afterSavingSystemUpgradesWillNoLongerOverwriteThisInformation", { v0: String(base) });
+    if (skill?.sourceType === "github") return translate("shared.skills.skillEditorDrawer.afterSavingGitHubSyncWillNoLongerOverwriteTheName", { v0: String(base) });
     return base;
 }
 

@@ -1,6 +1,7 @@
 import type { ImageCapabilityConfig } from "@/lib/model-capabilities";
 import type { CapabilitySpec, OptionConstraint } from "@/services/api/logical-models";
 import { DEFAULT_IMAGE_RATIOS, imagePresetForRatio, imageSizeConfigWithPresets } from "./image-size-presets";
+import { translate } from "@/i18n";
 
 export type ImageParameterValue = string | number | boolean;
 export type ImageParameter = {
@@ -75,11 +76,12 @@ export function imageParameterRequest(profile: ImageCapabilityConfig, config: { 
         try {
             parsed = JSON.parse(config.imageParameters);
         } catch {
-            throw new Error("图片扩展参数格式无效，请重新设置");
+            throw new Error(translate("shared.imageParameters.invalidImageExtensionParameterFormatConfigureItAgain"));
         }
-        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("图片扩展参数必须是对象");
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error(translate("shared.imageParameters.imageExtensionParametersMustBeAnObject"));
         for (const field of profile.parameters) {
-            if (field.enabled !== false && !imageHostControls.has(field.name) && Object.hasOwn(parsed, field.name) && !imageParameterAccepts(field, (parsed as Record<string, unknown>)[field.name])) throw new Error(`${field.label}超出模型支持范围`);
+            if (field.enabled !== false && !imageHostControls.has(field.name) && Object.hasOwn(parsed, field.name) && !imageParameterAccepts(field, (parsed as Record<string, unknown>)[field.name]))
+                throw new Error(translate("shared.imageParameters.isOutsideTheModelSSupportedRange", { v0: String(field.label) }));
         }
     }
     const values = parseImageParameters(config.imageParameters);
@@ -98,7 +100,8 @@ export function imageParameterRequest(profile: ImageCapabilityConfig, config: { 
         for (const field of profile.parameters) {
             if (field.enabled === false) continue;
             const value = values[field.name] ?? field.default;
-            if ((value !== undefined && !imageParameterAccepts(field, value)) || (field.required && (value === undefined || value === ""))) throw new Error(`${field.label}超出模型支持范围或尚未填写`);
+            if ((value !== undefined && !imageParameterAccepts(field, value)) || (field.required && (value === undefined || value === "")))
+                throw new Error(translate("shared.imageParameters.isOutsideTheModelSSupportedRangeOrHasNot", { v0: String(field.label) }));
         }
     }
     return normalizeImageParameters(profile.parameters, values);

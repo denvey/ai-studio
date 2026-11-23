@@ -1,3 +1,4 @@
+import { translate } from "@/i18n";
 export type OSSProvider = "aliyun" | "tencent" | "qiniu" | "volcengine" | "s3";
 
 export type S3Preset = "aws" | "r2" | "b2" | "rustfs" | "custom";
@@ -32,34 +33,34 @@ export const S3_PRESET_OPTIONS: Array<{ label: string; value: S3Preset }> = [
     { label: "Cloudflare R2", value: "r2" },
     { label: "Backblaze B2", value: "b2" },
     { label: "RustFS", value: "rustfs" },
-    { label: "自定义", value: "custom" },
+    { label: translate("account.settings.models.scopeCustom"), value: "custom" },
 ];
 
 const S3_PRESET_HINTS: Record<S3Preset, { region: string; endpoint: string; help: string }> = {
     aws: {
         region: "us-east-1",
         endpoint: "https://s3.us-east-1.amazonaws.com",
-        help: "填写 AWS 区域对应的 S3 服务根 URL。",
+        help: translate("shared.ossSettings.enterTheS3ServiceRootURLForYourAWSRegion"),
     },
     r2: {
         region: "auto",
         endpoint: "https://<account-id>.r2.cloudflarestorage.com",
-        help: "Endpoint 使用 R2 控制台提供的账户级 S3 API 根 URL。",
+        help: translate("shared.ossSettings.useTheAccountLevelS3APIRootURLProvidedIn"),
     },
     b2: {
         region: "us-west-004",
         endpoint: "https://s3.us-west-004.backblazeb2.com",
-        help: "Region 和 Endpoint 应与 Backblaze B2 Bucket 所在区域一致。",
+        help: translate("shared.ossSettings.theRegionAndEndpointMustMatchTheLocationOfYour"),
     },
     rustfs: {
         region: "us-east-1",
         endpoint: "http://127.0.0.1:9000",
-        help: "填写后端可访问的 RustFS S3 服务根 URL。",
+        help: translate("shared.ossSettings.enterTheRustFSS3ServiceRootURLAccessibleToThe"),
     },
     custom: {
         region: "us-east-1",
         endpoint: "https://s3.example.com",
-        help: "填写兼容 S3 API 的服务根 URL，不要包含 Bucket 或对象路径。",
+        help: translate("shared.ossSettings.enterTheS3CompatibleServiceRootURLWithoutABucket"),
     },
 };
 
@@ -73,14 +74,14 @@ const VOLCENGINE_TOS_REGION_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)+$/;
 
 /** 与后端 ValidateVolcengineTOSLocation 一致：只接受官方 tos-s3 域名和形如 cn-beijing 的地域。 */
 export function volcengineTOSLocationError(region: string, endpoint: string) {
-    if (region && !VOLCENGINE_TOS_REGION_PATTERN.test(region)) return "火山引擎 TOS Region 格式不正确，例如 cn-beijing";
+    if (region && !VOLCENGINE_TOS_REGION_PATTERN.test(region)) return translate("shared.ossSettings.invalidVolcengineTOSRegionFormatExampleCnBeijing");
     let hostname = "";
     try {
         hostname = new URL(endpoint).hostname;
     } catch {
-        return "火山引擎 TOS Endpoint 格式不正确";
+        return translate("shared.ossSettings.invalidVolcengineTOSEndpointFormat");
     }
-    if (!VOLCENGINE_TOS_HOST_PATTERN.test(hostname)) return "火山引擎 TOS 仅支持官方 Endpoint（tos-s3-<地域>.volces.com），其他服务请选择 S3 兼容存储";
+    if (!VOLCENGINE_TOS_HOST_PATTERN.test(hostname)) return translate("shared.ossSettings.volcengineTOSRequiresAnOfficialEndpointTosS3RegionVolces");
     return "";
 }
 
@@ -116,7 +117,7 @@ export function changesRequireOSSRetest(changedValues: Record<string, unknown>) 
 }
 
 export function validateOSSConnectionDraft(input: OSSConnectionTestDraft) {
-    if (!trimConnectionValue(input.bucket)) return "请填写对象存储 Bucket";
+    if (!trimConnectionValue(input.bucket)) return translate("shared.ossSettings.enterAnObjectStorageBucket");
     return "";
 }
 

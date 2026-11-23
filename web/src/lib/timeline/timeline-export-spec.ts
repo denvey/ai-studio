@@ -1,6 +1,7 @@
 // 时间线导出规格：目标宽高的预设与默认值、片段适配方式汇总。纯函数，供导出弹窗与单测使用。
 
 import { evenDimension, timelineClipFitMode, type TimelineFitMode } from "./timeline-to-ffmpeg";
+import { translate } from "@/i18n";
 
 export type TimelineExportSize = { width: number; height: number };
 export type TimelineExportPreset = "first" | "drama" | "9:16" | "16:9" | "1:1";
@@ -52,10 +53,16 @@ export function timelineExportPresetOptions(options: { firstClipSize?: { width?:
     const first = resolveTimelineExportSize("first", options);
     const known = Boolean(normalizeTimelineSourceSize(options.firstClipSize?.width, options.firstClipSize?.height));
     const sizeLabel = (size: TimelineExportSize) => `${size.width}×${size.height}`;
-    const items: TimelineExportPresetOption[] = [{ value: "first", label: known ? `跟随首个片段 ${sizeLabel(first)}` : `跟随首个片段（尺寸未知，${sizeLabel(first)}）`, size: first }];
+    const items: TimelineExportPresetOption[] = [
+        {
+            value: "first",
+            label: known ? translate("shared.timeline.timelineExportSpec.matchFirstClip", { v0: String(sizeLabel(first)) }) : translate("shared.timeline.timelineExportSpec.matchFirstClipSizeUnknown", { v0: String(sizeLabel(first)) }),
+            size: first,
+        },
+    ];
     if (options.dramaAspectRatio) {
         const drama = dramaRenderSize(options.dramaAspectRatio);
-        items.push({ value: "drama", label: `短剧画幅 ${options.dramaAspectRatio} ${sizeLabel(drama)}`, size: drama });
+        items.push({ value: "drama", label: translate("shared.timeline.timelineExportSpec.dramaAspectRatio", { v0: String(options.dramaAspectRatio), v1: String(sizeLabel(drama)) }), size: drama });
     }
     for (const value of ["9:16", "16:9", "1:1"] as const) items.push({ value, label: `${value} ${sizeLabel(FIXED_PRESET_SIZES[value])}`, size: FIXED_PRESET_SIZES[value] });
     return items;
@@ -69,8 +76,8 @@ export function summarizeTimelineFitModes(sources: Array<{ width?: number; heigh
 }
 
 export function timelineFitModeLabel(mode: TimelineFitMode | "mixed" | null): string {
-    if (mode === "crop") return "裁切填满";
-    if (mode === "pad") return "补黑边";
-    if (mode === "mixed") return "混合（按片段）";
+    if (mode === "crop") return translate("shared.timeline.timelineExportSpec.cropToFill");
+    if (mode === "pad") return translate("shared.timeline.timelineExportSpec.padWithBlackBars");
+    if (mode === "mixed") return translate("shared.timeline.timelineExportSpec.mixedPerClip");
     return "";
 }

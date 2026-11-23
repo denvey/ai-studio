@@ -44,6 +44,7 @@ import { CanvasAgentVideoApprovalSettings } from "./canvas-agent-video-approval-
 import { markdownPlainText } from "@/lib/markdown-plain-text";
 import { extractAgentReplyOptions, type AgentReplyOptions } from "@/lib/canvas/agent-reply-options";
 import type { ApprovalState } from "./canvas-cloud-agent-events";
+import { translate } from "@/i18n";
 
 // hidden 为 true 时入口保持挂载但不显示：Live2D 模型加载开销大，面板开合不能卸载它，
 // 否则每次重新挂载都要重新下载模型并重建渲染上下文。隐藏期间形象动画暂停。
@@ -81,9 +82,9 @@ export const AgentLauncher = memo(function AgentLauncher({
         void (async () => {
             try {
                 const response = await fetch(bundleManifestURL, { credentials: "include", signal: controller.signal });
-                if (!response.ok) throw new Error(`无法读取 Agent 动画包（HTTP ${response.status}）`);
+                if (!response.ok) throw new Error(translate("canvasTools.canvasCloudAgentPanelParts.unableToReadTheAgentAnimationPackageHTTP", { v0: String(response.status) }));
                 const manifest: unknown = await response.json();
-                if (!isAgentAvatarBundleManifest(manifest)) throw new Error("avatar.json 格式无效");
+                if (!isAgentAvatarBundleManifest(manifest)) throw new Error(translate("canvasTools.canvasCloudAgentPanelParts.invalidAvatarJsonFormat"));
                 setBundleManifestState({ url: bundleManifestURL, manifest });
             } catch {
                 if (!controller.signal.aborted) setBundleManifestState({ url: bundleManifestURL, manifest: null });
@@ -136,8 +137,14 @@ export const AgentLauncher = memo(function AgentLauncher({
         <>
             <motion.button
                 type="button"
-                aria-label={`打开${appearance.agentName}`}
-                title={live && live2DError ? live2DError : `${approvalPending ? "Agent 等待你的审批" : "打开 Agent 助手"} · 拖动可调整位置，聚焦后可用方向键移动`}
+                aria-label={translate("canvasTools.canvasCloudAgentPanelParts.open", { v0: String(appearance.agentName) })}
+                title={
+                    live && live2DError
+                        ? live2DError
+                        : translate("canvasTools.canvasCloudAgentPanelParts.dragToRepositionUseTheArrowKeysWhenFocused", {
+                              v0: String(approvalPending ? translate("canvasTools.canvasCloudAgentPanelParts.agentIsWaitingForYourApproval") : translate("canvasTools.canvasCloudAgentPanelParts.openAgentAssistant")),
+                          })
+                }
                 className={cn(
                     "canvas-agent-launcher fixed z-[var(--z-panel-floating)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/35",
                     dragging && "is-dragging",
@@ -177,7 +184,7 @@ export const AgentLauncher = memo(function AgentLauncher({
                 ) : bundleManifestLoading || !appearanceResolved ? (
                     <span role="status" aria-busy="true">
                         <LoaderCircle className={reducedMotion ? "size-6" : "size-6 motion-safe:animate-spin"} aria-hidden="true" />
-                        <span className="sr-only">正在加载助手形象</span>
+                        <span className="sr-only">{translate("canvasTools.canvasCloudAgentPanelParts.loadingAssistantAvatar")}</span>
                     </span>
                 ) : (
                     <FluidOrb size={60} color="#7164f6" />
@@ -189,7 +196,7 @@ export const AgentLauncher = memo(function AgentLauncher({
                     </span>
                 ) : null}
                 <span className={cn("canvas-agent-launcher-status", approvalPending && "is-pending")} style={{ "--canvas-agent-status-color": statusColor } as CSSProperties} />
-                {approvalPending ? <span className="canvas-agent-launcher-badge">待审批</span> : null}
+                {approvalPending ? <span className="canvas-agent-launcher-badge">{translate("canvasTools.canvasCloudAgentPanelParts.awaitingApproval")}</span> : null}
             </motion.button>
             {showToggle ? (
                 <button
@@ -197,9 +204,9 @@ export const AgentLauncher = memo(function AgentLauncher({
                     className="canvas-agent-launcher-toggle fixed z-[calc(var(--z-panel-floating)+1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/35"
                     // 只有身体热区可点时，按钮贴在热区左上角，而不是悬在透明外框的角上。
                     style={{ right: position.right + width * (1 - (hitInset?.side ?? 0)) - 14, bottom: position.bottom + height * (1 - (hitInset?.top ?? 0)) - 14, color: theme.node.text } as CSSProperties}
-                    aria-label={collapsed ? `展开${appearance.agentName}形象` : `收起${appearance.agentName}形象`}
+                    aria-label={collapsed ? translate("canvasTools.canvasCloudAgentPanelParts.expandAvatar", { v0: String(appearance.agentName) }) : translate("canvasTools.canvasCloudAgentPanelParts.collapseAvatar", { v0: String(appearance.agentName) })}
                     aria-pressed={collapsed}
-                    title={collapsed ? "展开形象" : "收起形象，只保留小入口"}
+                    title={collapsed ? translate("canvasTools.canvasCloudAgentPanelParts.expandAvatar2") : translate("canvasTools.canvasCloudAgentPanelParts.collapseAvatarToASmallLauncher")}
                     data-canvas-no-zoom
                     onPointerDown={(event) => event.stopPropagation()}
                     onClick={(event) => {
@@ -266,22 +273,33 @@ export function AgentHeader({
     const modifierJ = agentModifierShortcut("J");
     const modifierEnter = agentModifierShortcut("Enter");
     const moreItems = [
-        { key: "settings", icon: <Settings2 className="size-3.5" />, label: "Agent 设置", onClick: onSettings },
-        { key: "layout", icon: <Scaling className="size-3.5" />, label: docked ? "恢复默认宽度" : "恢复默认大小和位置", onClick: onResetLayout },
-        { key: "export", icon: <Download className="size-3.5" />, label: exporting ? "正在导出调试记录…" : "导出调试记录（分享前请检查隐私）", disabled: exporting, onClick: onExport },
+        { key: "settings", icon: <Settings2 className="size-3.5" />, label: translate("canvasTools.canvasCloudAgentPanelParts.agentSettings"), onClick: onSettings },
+        {
+            key: "layout",
+            icon: <Scaling className="size-3.5" />,
+            label: docked ? translate("canvasTools.canvasCloudAgentPanelParts.restoreDefaultWidth") : translate("canvasTools.canvasCloudAgentPanelParts.restoreDefaultSizeAndPosition"),
+            onClick: onResetLayout,
+        },
+        {
+            key: "export",
+            icon: <Download className="size-3.5" />,
+            label: exporting ? translate("canvasTools.canvasCloudAgentPanelParts.exportingDebugRecords") : translate("canvasTools.canvasCloudAgentPanelParts.exportDebugRecordsCheckForPrivateInformationBeforeSharing"),
+            disabled: exporting,
+            onClick: onExport,
+        },
         { type: "divider" as const },
         {
             key: "shortcuts",
             type: "group" as const,
-            label: "快捷键",
+            label: translate("canvasTools.canvasCloudAgentPanelParts.shortcuts"),
             // 只是说明，不可点：左边是动作，右边是按键。
             children: [
-                ["toggle", "打开或收起 Agent", [modifierJ]],
-                ["send", "发送", ["Enter"]],
-                ["newline", "换行", ["Shift+Enter"]],
-                ["queue", "运行中排队", ["Enter"]],
-                ["interject", "运行中插话", [modifierEnter]],
-                ["stop", "停止本轮", ["Esc", "Esc"]],
+                ["toggle", translate("canvasTools.canvasCloudAgentPanelParts.openOrCollapseAgent"), [modifierJ]],
+                ["send", translate("canvasTools.canvasCloudAgentPanelParts.send"), ["Enter"]],
+                ["newline", translate("canvasTools.canvasCloudAgentPanelParts.newLine"), ["Shift+Enter"]],
+                ["queue", translate("canvasTools.canvasCloudAgentPanelParts.queueWhileRunning"), ["Enter"]],
+                ["interject", translate("canvasTools.canvasCloudAgentPanelParts.interjectWhileRunning"), [modifierEnter]],
+                ["stop", translate("canvasTools.canvasCloudAgentPanelParts.stopThisRun"), ["Esc", "Esc"]],
             ].map(([key, action, keys]) => ({
                 key: `shortcut-${key as string}`,
                 disabled: true,
@@ -304,7 +322,7 @@ export function AgentHeader({
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="agent-panel-title">
                         {agentCopy(appearance.panelTitle, appearance.agentName)}
-                        {hasMessages ? "" : " · 新对话"}
+                        {hasMessages ? "" : " " + translate("canvasTools.canvasCloudAgentPanelParts.newConversation")}
                     </span>
                     {/* 状态用圆点表示：运行中缓慢呼吸，减少动效时静止；颜色只是辅助，文字始终在。 */}
                     <span className="agent-panel-status flex items-center gap-1.5" style={{ color: statusColor }} role="status">
@@ -313,7 +331,8 @@ export function AgentHeader({
                     </span>
                 </div>
                 <div className="agent-panel-context">
-                    {appearance.agentName} · {nodeCount === null ? "未在画布中，可对话；进入画布后自动关联" : `当前画布 ${nodeCount} 个节点`}
+                    {appearance.agentName} ·{" "}
+                    {nodeCount === null ? translate("canvasTools.canvasCloudAgentPanelParts.youCanChatOutsideACanvasACanvasIsLinked") : translate("canvasTools.canvasCloudAgentPanelParts.nodesOnTheCurrentCanvas", { v0: String(nodeCount) })}
                 </div>
             </div>
             <div className="agent-header-actions flex items-center gap-0.5" style={{ color: theme.node.muted }}>
@@ -324,30 +343,57 @@ export function AgentHeader({
                         icon={docked ? <PictureInPicture2 className="size-4" /> : <PanelRight className="size-4" />}
                         onClick={onToggleDock}
                         aria-pressed={docked}
-                        aria-label={docked ? "改为浮动窗口" : "停靠到画布右侧"}
-                        title={docked ? "改为浮动窗口" : "停靠到画布右侧，画布让出位置不被遮挡"}
+                        aria-label={docked ? translate("canvasTools.canvasCloudAgentPanelParts.switchToAFloatingWindow") : translate("canvasTools.canvasCloudAgentPanelParts.dockToTheRightOfTheCanvas")}
+                        title={docked ? translate("canvasTools.canvasCloudAgentPanelParts.switchToAFloatingWindow") : translate("canvasTools.canvasCloudAgentPanelParts.dockToTheRightAndResizeTheCanvasToKeep")}
                     />
                 ) : null}
-                <Button type="text" shape="circle" icon={<History className="size-4" />} onClick={onHistory} aria-label="历史对话" title="历史对话" />
-                <Button type="text" shape="circle" icon={<MessageSquarePlus className="size-4" />} onClick={onNew} aria-label="新建对话" title="新建对话" />
+                <Button
+                    type="text"
+                    shape="circle"
+                    icon={<History className="size-4" />}
+                    onClick={onHistory}
+                    aria-label={translate("canvasTools.canvasCloudAgentPanelParts.conversationHistory")}
+                    title={translate("canvasTools.canvasCloudAgentPanelParts.conversationHistory")}
+                />
+                <Button
+                    type="text"
+                    shape="circle"
+                    icon={<MessageSquarePlus className="size-4" />}
+                    onClick={onNew}
+                    aria-label={translate("canvasTools.canvasCloudAgentPanelParts.newConversation2")}
+                    title={translate("canvasTools.canvasCloudAgentPanelParts.newConversation2")}
+                />
                 {/* 不常用的入口收进「更多」：设置、恢复默认大小、导出调试记录，以及快捷键说明。 */}
                 <Dropdown trigger={["click"]} placement="bottomRight" menu={{ items: moreItems }}>
-                    <Button type="text" shape="circle" icon={exporting ? <LoaderCircle className="size-4 animate-spin" /> : <Ellipsis className="size-4" />} aria-label="更多" title="更多：Agent 设置、恢复默认大小、导出调试记录、快捷键" />
+                    <Button
+                        type="text"
+                        shape="circle"
+                        icon={exporting ? <LoaderCircle className="size-4 animate-spin" /> : <Ellipsis className="size-4" />}
+                        aria-label={translate("canvasA.creative.more")}
+                        title={translate("canvasTools.canvasCloudAgentPanelParts.moreAgentSettingsResetSizeExportDebugRecordsAndKeyboard")}
+                    />
                 </Dropdown>
-                <Button type="text" shape="circle" icon={<X className="size-4" />} onClick={onCollapse} aria-label="收起 Agent" title={`收起（${modifierJ}）`} />
+                <Button
+                    type="text"
+                    shape="circle"
+                    icon={<X className="size-4" />}
+                    onClick={onCollapse}
+                    aria-label={translate("canvasTools.canvasCloudAgentPanelParts.collapseTheAgent")}
+                    title={translate("canvasTools.canvasCloudAgentPanelParts.collapse", { v0: String(modifierJ) })}
+                />
             </div>
         </header>
     );
 }
 
 export const CONTEXT_PHASE_LABEL: Record<AgentContextPhase, string> = {
-    idle: "尚未测量",
-    unknown: "窗口未知",
-    ok: "上下文充足",
-    watch: "接近压缩",
-    compress: "即将压缩",
-    compacting: "正在压缩",
-    stale: "压缩后待刷新",
+    idle: translate("canvasTools.canvasCloudAgentPanelParts.notMeasuredYet"),
+    unknown: translate("canvasTools.canvasCloudAgentPanelParts.unknownWindowSize"),
+    ok: translate("canvasTools.canvasCloudAgentPanelParts.enoughContextAvailable"),
+    watch: translate("canvasTools.canvasCloudAgentPanelParts.approachingCompaction"),
+    compress: translate("canvasTools.canvasCloudAgentPanelParts.compactionImminent"),
+    compacting: translate("canvasTools.canvasCloudAgentPanelParts.compacting"),
+    stale: translate("canvasTools.canvasCloudAgentPanelParts.awaitingRefreshAfterCompaction"),
 };
 
 export function formatContextCount(tokens: number | undefined) {
@@ -361,7 +407,7 @@ export function formatContextBytes(bytes: number | undefined) {
     if (bytes === undefined) return "—";
     if (bytes >= 1_000_000) return `${Math.round(bytes / 100_000) / 10} MB`;
     if (bytes >= 1_000) return `${Math.round(bytes / 100) / 10} KB`;
-    return `${Math.round(bytes).toLocaleString("zh-CN")} 字节`;
+    return translate("canvasTools.canvasCloudAgentPanelParts.bytes", { v0: String(Math.round(bytes).toLocaleString("zh-CN")) });
 }
 
 export function AgentContextRing({ view, theme }: { view: AgentContextUsageView; theme: CanvasTheme }) {
@@ -376,8 +422,15 @@ export function AgentContextRing({ view, theme }: { view: AgentContextUsageView;
     const protocolBytes = formatContextBytes(view.protocolBytes);
     const usedRatio = view.ratio === undefined ? 0 : Math.max(0, Math.min(1, view.ratio));
     const phaseLabel = CONTEXT_PHASE_LABEL[view.phase];
-    const sourceLabel = view.tokenSource === "pi" ? "Pi 会话估算" : "未测量";
-    const usageHeading = view.ratio !== undefined ? `上下文已用 ${percent}` : view.phase === "idle" ? "上下文用量" : view.phase === "unknown" ? "上下文窗口未知" : `上下文${view.label}`;
+    const sourceLabel = view.tokenSource === "pi" ? translate("canvasTools.canvasCloudAgentPanelParts.piSessionEstimate") : translate("canvasTools.canvasCloudAgentPanelParts.notMeasured");
+    const usageHeading =
+        view.ratio !== undefined
+            ? translate("canvasTools.canvasCloudAgentPanelParts.contextUsed", { v0: String(percent) })
+            : view.phase === "idle"
+              ? translate("canvasTools.canvasCloudAgentPanelParts.contextUsage")
+              : view.phase === "unknown"
+                ? translate("canvasTools.canvasCloudAgentPanelParts.unknownContextWindow")
+                : translate("canvasTools.canvasCloudAgentPanelParts.context", { v0: String(view.label) });
 
     return (
         <Popover
@@ -394,7 +447,7 @@ export function AgentContextRing({ view, theme }: { view: AgentContextUsageView;
             styles={{ root: { "--agent-surface-base": theme.node.panel, "--agent-ink": theme.node.text, "--agent-accent": theme.accent.primary } as CSSProperties }}
             content={
                 <div className="agent-context-panel" data-phase={view.phase}>
-                    <span className="agent-context-eyebrow">下一次请求 · 上下文窗口占用</span>
+                    <span className="agent-context-eyebrow">{translate("canvasTools.canvasCloudAgentPanelParts.nextRequestContextWindowUsage")}</span>
                     <div className="agent-context-panel-head">
                         <strong>{usageHeading}</strong>
                         {view.phase !== "ok" ? <span className={`agent-context-phase is-${view.phase}`}>{phaseLabel}</span> : null}
@@ -404,7 +457,7 @@ export function AgentContextRing({ view, theme }: { view: AgentContextUsageView;
                             <>
                                 <strong>{used}</strong>
                                 <span>/ {budget} Token</span>
-                                <em>剩余 {remaining}</em>
+                                <em>{translate("canvasTools.inline.canvasCloudAgentPanelParts.remaining", { v0: String(remaining) })}</em>
                             </>
                         ) : (
                             <>
@@ -414,10 +467,17 @@ export function AgentContextRing({ view, theme }: { view: AgentContextUsageView;
                         )}
                     </div>
                     <div className="agent-context-progress-head">
-                        <span>上下文窗口占用</span>
+                        <span>{translate("canvasTools.canvasCloudAgentPanelParts.contextWindowUsage")}</span>
                         <strong>{percent}</strong>
                     </div>
-                    <div className="agent-context-progress" role="progressbar" aria-label={`上下文已用 ${percent}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={view.ratio === undefined ? undefined : Math.round(view.ratio * 100)}>
+                    <div
+                        className="agent-context-progress"
+                        role="progressbar"
+                        aria-label={translate("canvasTools.canvasCloudAgentPanelParts.contextUsed", { v0: String(percent) })}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={view.ratio === undefined ? undefined : Math.round(view.ratio * 100)}
+                    >
                         <span style={{ width: `${usedRatio * 100}%` }} />
                         {marker ? <i style={{ left: `${marker * 100}%` }} aria-hidden="true" /> : null}
                     </div>
@@ -434,14 +494,14 @@ export function AgentContextRing({ view, theme }: { view: AgentContextUsageView;
                             {view.protocolBytes !== undefined ? (
                                 <li className="is-secondary">
                                     <span className="agent-context-breakdown-dot" aria-hidden="true" />
-                                    <span className="agent-context-breakdown-label">协议外壳</span>
+                                    <span className="agent-context-breakdown-label">{translate("canvasTools.canvasCloudAgentPanelParts.protocolOverhead")}</span>
                                     <span className="agent-context-breakdown-value">{protocolBytes}</span>
                                 </li>
                             ) : null}
                             {view.remainingTokens !== undefined ? (
                                 <li className="is-muted">
                                     <span className="agent-context-breakdown-dot" aria-hidden="true" />
-                                    <span className="agent-context-breakdown-label">未使用</span>
+                                    <span className="agent-context-breakdown-label">{translate("canvasTools.canvasCloudAgentPanelParts.unused")}</span>
                                     <span className="agent-context-breakdown-value">{remaining}</span>
                                 </li>
                             ) : null}
@@ -450,21 +510,28 @@ export function AgentContextRing({ view, theme }: { view: AgentContextUsageView;
                     <div className="agent-context-panel-foot">
                         <span>
                             {sourceLabel}
-                            {view.tokenSource === "pi" ? " · 不是计费 Token" : ""}
+                            {view.tokenSource === "pi" ? " " + translate("canvasTools.canvasCloudAgentPanelParts.notBillableTokens") : ""}
                         </span>
-                        {view.compactAtTokens ? <span>压缩线 {formatContextCount(view.compactAtTokens)}</span> : null}
+                        {view.compactAtTokens ? <span>{translate("canvasTools.inline.canvasCloudAgentPanelParts.compactionThreshold", { v0: String(formatContextCount(view.compactAtTokens)) })}</span> : null}
                     </div>
                     {view.compactionError ? (
                         <p className="agent-context-note" role="status">
                             {view.compactionError}
                         </p>
                     ) : view.lastCompaction ? (
-                        <p className="agent-context-note">本轮已完成一次上下文压缩，下一次读数会刷新。</p>
+                        <p className="agent-context-note">{translate("canvasTools.canvasCloudAgentPanelParts.theContextWasCompactedOnceDuringThisRunTheReading")}</p>
                     ) : null}
                 </div>
             }
         >
-            <button type="button" className={`agent-context-ring is-${view.phase}`} aria-label={`${usageHeading}，${phaseLabel}。点击查看明细`} aria-expanded={open} title="查看上下文用量" onPointerDown={(event) => event.stopPropagation()}>
+            <button
+                type="button"
+                className={`agent-context-ring is-${view.phase}`}
+                aria-label={translate("canvasTools.canvasCloudAgentPanelParts.clickForDetails", { v0: String(usageHeading), v1: String(phaseLabel) })}
+                aria-expanded={open}
+                title={translate("canvasTools.canvasCloudAgentPanelParts.viewContextUsage")}
+                onPointerDown={(event) => event.stopPropagation()}
+            >
                 <span
                     className="agent-context-ring-visual"
                     aria-hidden="true"
@@ -516,25 +583,44 @@ export function AgentHistory({
     return (
         <div className="canvas-agent-history-root flex min-h-0 min-w-0 flex-1 flex-col">
             <header data-agent-drag-handle className="agent-panel-header flex shrink-0 items-center gap-2">
-                <Button type="text" shape="circle" icon={<ArrowLeft className="size-4" />} onClick={onBack} aria-label="返回对话" />
+                <Button type="text" shape="circle" icon={<ArrowLeft className="size-4" />} onClick={onBack} aria-label={translate("canvasTools.canvasCloudAgentPanelParts.backToConversation")} />
                 <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold">历史对话</div>
-                    <div className="mt-0.5 text-[var(--fs-label)] opacity-40">当前画布云端对话与本机历史</div>
+                    <div className="text-sm font-semibold">{translate("canvasTools.canvasCloudAgentPanelParts.conversationHistory")}</div>
+                    <div className="mt-0.5 text-[var(--fs-label)] opacity-40">{translate("canvasTools.canvasCloudAgentPanelParts.cloudConversationsAndLocalHistoryForThisCanvas")}</div>
                 </div>
-                {onRefresh ? <Button type="text" shape="circle" loading={loading} icon={<RefreshCw className="size-4" />} onClick={onRefresh} aria-label="刷新云端对话" title="刷新云端对话" /> : null}
-                <Button type="text" shape="circle" icon={<MessageSquarePlus className="size-4" />} onClick={onNew} aria-label="新建对话" title="新建对话" />
-                {onCollapse ? <Button type="text" shape="circle" icon={<X className="size-4" />} onClick={onCollapse} aria-label="收起 Agent" title="收起" /> : null}
+                {onRefresh ? (
+                    <Button
+                        type="text"
+                        shape="circle"
+                        loading={loading}
+                        icon={<RefreshCw className="size-4" />}
+                        onClick={onRefresh}
+                        aria-label={translate("canvasTools.canvasCloudAgentPanelParts.refreshCloudConversations")}
+                        title={translate("canvasTools.canvasCloudAgentPanelParts.refreshCloudConversations")}
+                    />
+                ) : null}
+                <Button
+                    type="text"
+                    shape="circle"
+                    icon={<MessageSquarePlus className="size-4" />}
+                    onClick={onNew}
+                    aria-label={translate("canvasTools.canvasCloudAgentPanelParts.newConversation2")}
+                    title={translate("canvasTools.canvasCloudAgentPanelParts.newConversation2")}
+                />
+                {onCollapse ? (
+                    <Button type="text" shape="circle" icon={<X className="size-4" />} onClick={onCollapse} aria-label={translate("canvasTools.canvasCloudAgentPanelParts.collapseTheAgent")} title={translate("account.feedback.collapse")} />
+                ) : null}
             </header>
             <div className="canvas-agent-history-scroll thin-scrollbar min-h-0 min-w-0 flex-1 overflow-y-auto px-3 py-3">
                 {error ? (
                     <div role="status" className="px-3 py-2 text-xs opacity-60">
-                        云端对话暂时未同步，本机历史已保留；可点击刷新重试。
+                        {translate("canvasTools.canvasCloudAgentPanelParts.cloudConversationsHaveNotSyncedYetLocalHistoryIsRetained")}
                     </div>
                 ) : null}
                 {conversations.length ? (
                     <div className="space-y-1">
                         {conversations.map((conversation) => {
-                            const preview = truncateConversationPreview(conversation.messages.at(-1)?.text || "尚未发送消息");
+                            const preview = truncateConversationPreview(conversation.messages.at(-1)?.text || translate("canvasTools.canvasCloudAgentPanelParts.noMessagesSentYet"));
                             const active = conversation.id === activeConversationId;
                             return (
                                 <div
@@ -549,7 +635,7 @@ export function AgentHistory({
                                         <span className="canvas-agent-history-text min-w-0 flex-1">
                                             <span className="canvas-agent-history-title block truncate text-[var(--fs-ui)] font-medium">{conversation.title}</span>
                                             <span className="canvas-agent-history-preview mt-0.5 block text-[var(--fs-label)] opacity-40" title={preview}>
-                                                {cloudAgentConversationServerId(conversation) ? "云端 · " : "本机 · "}
+                                                {cloudAgentConversationServerId(conversation) ? translate("canvasTools.canvasCloudAgentPanelParts.cloud") + " " : translate("canvasTools.canvasCloudAgentPanelParts.local") + " "}
                                                 {preview}
                                             </span>
                                         </span>
@@ -563,10 +649,10 @@ export function AgentHistory({
                                             className="canvas-agent-history-delete !h-7 !px-2 !text-xs !opacity-80"
                                             icon={<Trash2 className="size-3.5" />}
                                             onClick={() => onDelete(conversation.id)}
-                                            aria-label={`删除对话 ${conversation.title}`}
-                                            title="删除对话"
+                                            aria-label={translate("canvasTools.canvasCloudAgentPanelParts.deleteConversation", { v0: String(conversation.title) })}
+                                            title={translate("create.history.delete")}
                                         >
-                                            删除
+                                            {translate("common.delete")}
                                         </Button>
                                     ) : null}
                                 </div>
@@ -576,8 +662,8 @@ export function AgentHistory({
                 ) : (
                     <div className="flex h-full min-h-72 flex-col items-center justify-center text-center">
                         <History className="size-5 opacity-30" />
-                        <div className="mt-3 text-sm font-medium">还没有历史对话</div>
-                        <div className="mt-1 text-xs opacity-40">发送第一条消息后会自动保存</div>
+                        <div className="mt-3 text-sm font-medium">{translate("canvasTools.canvasCloudAgentPanelParts.noConversationHistoryYet")}</div>
+                        <div className="mt-1 text-xs opacity-40">{translate("canvasTools.canvasCloudAgentPanelParts.historyIsSavedAutomaticallyAfterTheFirstMessage")}</div>
                     </div>
                 )}
             </div>
@@ -779,7 +865,7 @@ export function AgentConversation({
                 <div ref={contentRef} className="agent-conversation-messages">
                     {startIndex > 0 ? (
                         <button type="button" className="agent-load-earlier" onClick={() => setVisibleCount((count) => count + 80)}>
-                            加载更早的 80 条消息
+                            {translate("canvasTools.canvasCloudAgentPanelParts.load80EarlierMessages")}
                         </button>
                     ) : null}
                     {segments.slice(startIndex).map((segment, offset) => {
@@ -843,16 +929,21 @@ export function AgentConversation({
                                 exit={{ height: 0, opacity: 0 }}
                                 transition={{ duration: reducedMotion ? 0 : 0.2, ease: "easeOut" }}
                             >
-                                <AgentWorkingMessage theme={theme} label="正在思考" />
+                                <AgentWorkingMessage theme={theme} label={translate("canvasTools.canvasCloudAgentPanelParts.thinking")} />
                             </motion.div>
                         ) : null}
                     </AnimatePresence>
                 </div>
             </div>
             {awayFromBottom ? (
-                <button type="button" className="agent-scroll-latest" onClick={scrollToLatest} aria-label={unseenCount > 0 ? `有 ${unseenCount} 条新消息，回到底部` : "回到底部"}>
+                <button
+                    type="button"
+                    className="agent-scroll-latest"
+                    onClick={scrollToLatest}
+                    aria-label={unseenCount > 0 ? translate("canvasTools.canvasCloudAgentPanelParts.newMessagesJumpToTheBottom", { v0: String(unseenCount) }) : translate("canvasTools.canvasCloudAgentPanelParts.jumpToBottom")}
+                >
                     <ArrowDown className="size-3.5" aria-hidden="true" />
-                    {unseenCount > 0 ? `${unseenCount} 条新消息` : "回到底部"}
+                    {unseenCount > 0 ? translate("canvasTools.canvasCloudAgentPanelParts.newMessages", { v0: String(unseenCount) }) : translate("canvasTools.canvasCloudAgentPanelParts.jumpToBottom")}
                 </button>
             ) : null}
         </div>
@@ -888,7 +979,7 @@ export function ComposerControls({
     const thinkingAnchor = usePopoverAnchorAlign(thinkingOpen);
     const thinking = modelCapabilityConfigFor(config, selectedModel).text?.thinking || LEGACY_TEXT_THINKING_CONFIG;
     const levels = thinkingLevelsFor(thinking);
-    const thinkingLabel = reasoningMode === "auto" ? "默认" : reasoningMode === "deep" ? "深入" : THINKING_LEVEL_LABELS[reasoningMode];
+    const thinkingLabel = reasoningMode === "auto" ? translate("canvasB.common.default") : reasoningMode === "deep" ? translate("canvasTools.canvasCloudAgentPanelParts.deep") : THINKING_LEVEL_LABELS[reasoningMode];
     const permissionVisual = agentPermissionVisual(permissionMode);
     const PermissionIcon = permissionVisual.icon;
     return (
@@ -904,7 +995,7 @@ export function ComposerControls({
                 popoverClassName="agent-model-picker-popover"
                 showSelectedPrice={false}
                 showOptionPrices
-                placeholder="选择文本模型"
+                placeholder={translate("canvasTools.canvasCloudAgentPanelParts.chooseATextModel")}
             />
             {levels.length ? (
                 <Popover
@@ -920,7 +1011,13 @@ export function ComposerControls({
                         </div>
                     }
                 >
-                    <button type="button" className="agent-thinking-trigger" aria-label={`选择推理强度：${thinkingLabel}`} aria-expanded={thinkingOpen} onPointerDown={(event) => event.stopPropagation()}>
+                    <button
+                        type="button"
+                        className="agent-thinking-trigger"
+                        aria-label={translate("canvasTools.canvasCloudAgentPanelParts.chooseReasoningLevel", { v0: String(thinkingLabel) })}
+                        aria-expanded={thinkingOpen}
+                        onPointerDown={(event) => event.stopPropagation()}
+                    >
                         <span>{thinkingLabel}</span>
                         <ChevronDown className="size-3" aria-hidden="true" />
                     </button>
@@ -932,8 +1029,8 @@ export function ComposerControls({
                     type="button"
                     className="agent-permission-trigger"
                     style={{ "--agent-permission-color": permissionVisual.color } as CSSProperties}
-                    aria-label={`执行权限：${agentPermissionLabel(permissionMode)}，点击切换`}
-                    title={`执行权限：${agentPermissionLabel(permissionMode)}，点击切换`}
+                    aria-label={translate("canvasTools.canvasCloudAgentPanelParts.executionPermissionsClickToChange", { v0: String(agentPermissionLabel(permissionMode)) })}
+                    title={translate("canvasTools.canvasCloudAgentPanelParts.executionPermissionsClickToChange", { v0: String(agentPermissionLabel(permissionMode)) })}
                 >
                     <PermissionIcon className="size-3.5 shrink-0" aria-hidden="true" />
                     <span className="agent-permission-label">{agentPermissionShortLabel(permissionMode)}</span>
@@ -943,15 +1040,21 @@ export function ComposerControls({
                 type="button"
                 className="flex h-8 shrink-0 items-center gap-1 rounded-md px-2 text-[var(--fs-label)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/25"
                 style={{ color: selectedSkillCount ? theme.accent.primary : theme.node.muted, background: skillsOpen ? theme.node.fill : "transparent" }}
-                aria-label={`打开 Skills 技能库${selectedSkillCount ? `，本对话已固定 ${selectedSkillCount} 个` : ""}`}
+                aria-label={translate("canvasTools.canvasCloudAgentPanelParts.openTheSkillsLibrary", {
+                    v0: String(selectedSkillCount ? translate("canvasTools.canvasCloudAgentPanelParts.pinnedInThisConversation", { v0: String(selectedSkillCount) }) : ""),
+                })}
                 aria-expanded={skillsOpen}
                 aria-haspopup="dialog"
-                title={selectedSkillCount ? `本对话已固定 ${selectedSkillCount} 个技能；其他已安装技能 Agent 会按任务自动查找` : "已安装的技能 Agent 会按任务自动查找"}
+                title={
+                    selectedSkillCount
+                        ? translate("canvasTools.canvasCloudAgentPanelParts.skillsArePinnedToThisConversationTheAgentFindsOther", { v0: String(selectedSkillCount) })
+                        : translate("canvasTools.canvasCloudAgentPanelParts.theAgentFindsInstalledSkillsAsNeededForEachTask")
+                }
                 onClick={() => onSkillsOpenChange(true)}
             >
                 <Blocks className="size-3.5" aria-hidden="true" />
                 {/* 面板窄时只留图标和数量，把位置让给模型名。 */}
-                <span className="agent-skills-label">技能</span>
+                <span className="agent-skills-label">{translate("nav.sidebar.skills")}</span>
                 {selectedSkillCount ? <span className="tabular-nums">{selectedSkillCount}</span> : null}
             </button>
         </div>
@@ -994,13 +1097,13 @@ export function ApprovalCard({
                     <ShieldCheck className="size-4" />
                 </span>
                 <h3>{action.title}</h3>
-                <span className="canvas-agent-approval-badge">{targetGenerating ? "已在节点中生成" : "等待你的确认"}</span>
+                <span className="canvas-agent-approval-badge">{targetGenerating ? translate("canvasTools.canvasCloudAgentPanelParts.generationSubmittedFromTheNode") : translate("canvasTools.canvasCloudAgentPanelParts.waitingForYourConfirmation")}</span>
             </div>
             <p className="canvas-agent-approval-description" style={{ color: theme.node.muted }}>
                 {action.description}
             </p>
             {action.items.length ? (
-                <div className="canvas-agent-approval-items" aria-label="涉及节点">
+                <div className="canvas-agent-approval-items" aria-label={translate("canvasTools.canvasCloudAgentPanelParts.affectedNodes")}>
                     {action.items.map((item, index) => (
                         <ApprovalPreviewItemView
                             key={`${item.operation}-${item.nodeId || item.nodeTitle || index}-${index}`}
@@ -1012,7 +1115,7 @@ export function ApprovalCard({
                 </div>
             ) : (
                 <div className="canvas-agent-approval-empty" style={{ color: theme.node.muted }}>
-                    无法确认具体目标，继续前请重新读取画布。
+                    {translate("canvasTools.canvasCloudAgentPanelParts.theTargetCouldNotBeIdentifiedReadTheCanvasAgain")}
                 </div>
             )}
             {imageApproval ? (
@@ -1022,18 +1125,18 @@ export function ApprovalCard({
             ) : null}
             {(imageApproval || videoApproval) && action.kind === "media_batch" ? (
                 <p className="canvas-agent-approval-description" style={{ color: theme.node.muted }}>
-                    模型与规格修改应用于本批次全部项目；修改视频时长会统一各项时长，提交前会重新校验模型能力与费用。
+                    {translate("canvasTools.canvasCloudAgentPanelParts.modelAndSpecificationChangesApplyToEveryItemInThis")}
                 </p>
             ) : null}
             <button type="button" className="canvas-agent-approval-reason-toggle" aria-expanded={showReason} onClick={() => setShowReason((value) => !value)} disabled={submitting}>
-                {showReason ? "收起拒绝理由" : "填写拒绝理由（可选）"}
+                {showReason ? translate("canvasTools.canvasCloudAgentPanelParts.hideRejectionReason") : translate("canvasTools.canvasCloudAgentPanelParts.addARejectionReasonOptional")}
             </button>
             {showReason ? (
                 <Input.TextArea
                     className="canvas-agent-approval-reason"
                     value={approval.reason}
                     onChange={(event) => onReasonChange(event.target.value)}
-                    placeholder="告诉 Agent 为什么暂不执行"
+                    placeholder={translate("canvasTools.canvasCloudAgentPanelParts.tellTheAgentWhyThisShouldNotRunYet")}
                     autoSize={{ minRows: 2, maxRows: 3 }}
                     maxLength={2000}
                     disabled={submitting}
@@ -1041,7 +1144,7 @@ export function ApprovalCard({
             ) : null}
             {targetGenerating ? (
                 <p className="canvas-agent-approval-description" role="status" style={{ color: theme.node.muted }}>
-                    你已在节点《{targetGenerating.title || "未命名节点"}》上直接提交了生成，Agent 不会重复提交；本次审批会自动关闭。
+                    {translate("canvasTools.inline.canvasCloudAgentPanelParts.youSubmittedGenerationDirectlyFromTheNodeAgentWillNot", { v0: String(targetGenerating.title || translate("canvasTools.canvasCloudAgentPanelParts.untitledNode")) })}
                 </p>
             ) : blockedReason && !submitting ? (
                 <p className="canvas-agent-approval-description" role="status" style={{ color: theme.node.muted }}>
@@ -1050,11 +1153,15 @@ export function ApprovalCard({
             ) : null}
             <div className="canvas-agent-approval-actions">
                 <button type="button" className="canvas-agent-approval-reject" disabled={submitting || Boolean(blockedReason)} onClick={onReject}>
-                    暂不执行
+                    {translate("canvasTools.canvasCloudAgentPanelParts.doNotExecuteYet")}
                 </button>
                 <button type="button" className="canvas-agent-approval-approve" disabled={submitting || Boolean(blockedReason) || Boolean(targetGenerating)} onClick={() => onApprove(mediaSettings)}>
                     {submitting ? <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Check className="size-4" aria-hidden="true" />}
-                    {submitting ? "正在提交" : targetGenerating ? "已在节点中生成" : "同意执行"}
+                    {submitting
+                        ? translate("canvasTools.canvasCloudAgentPanelParts.submitting")
+                        : targetGenerating
+                          ? translate("canvasTools.canvasCloudAgentPanelParts.generationSubmittedFromTheNode")
+                          : translate("canvasTools.canvasCloudAgentPanelParts.approveExecution")}
                 </button>
             </div>
         </section>
@@ -1064,26 +1171,26 @@ export function ApprovalCard({
 export function ApprovalPreviewItemView({ item, theme, onFocusNode }: { item: ReturnType<typeof agentApprovalPresentation>["items"][number]; theme: CanvasTheme; onFocusNode?: (nodeId: string) => void }) {
     const operationLabel =
         item.operation === "add_node"
-            ? "新增"
+            ? translate("account.settings.memory.changes.add")
             : item.operation === "update_node"
-              ? "修改"
+              ? translate("canvasA.creative.modify")
               : item.operation === "connect_nodes"
-                ? "连线"
+                ? translate("canvasTools.canvasCloudAgentPanelParts.connections")
                 : item.operation === "arrange_nodes"
-                  ? "整理"
+                  ? translate("canvasTools.canvasCloudAgentPanelParts.organize")
                   : item.operation === "create_storyboard"
-                    ? "创建分镜"
+                    ? translate("canvasTools.canvasCloudAgentPanelParts.createStoryboard")
                     : item.operation === "edit_storyboard"
-                      ? "修改分镜"
+                      ? translate("canvasTools.canvasCloudAgentPanelParts.editStoryboard")
                       : item.operation === "create_character"
-                        ? "创建角色卡"
+                        ? translate("canvasTools.canvasCloudAgentPanelParts.createCharacterCard")
                         : item.operation === "plan_step"
-                          ? "计划"
+                          ? translate("canvasTools.canvasCloudAgentPanelParts.plan")
                           : item.operation === "adopt_drama_media"
-                            ? "采用到短剧"
+                            ? translate("canvasA.dramaAdopt.title")
                             : item.operation === "build_board"
-                              ? "搭建看板"
-                              : "生成";
+                              ? translate("canvasTools.canvasCloudAgentPanelParts.buildBoard")
+                              : translate("account.welcome.chapters.motion.label");
     const renderNode = (title: string | undefined, id: string | undefined, typeLabel: string | undefined, role: "source" | "target" | "node") => {
         if (!title) return null;
         const content = (
@@ -1093,7 +1200,7 @@ export function ApprovalPreviewItemView({ item, theme, onFocusNode }: { item: Re
             </>
         );
         return id && onFocusNode ? (
-            <button type="button" className="canvas-agent-approval-node canvas-agent-approval-node-button" onClick={() => onFocusNode(id)} title="定位到画布节点">
+            <button type="button" className="canvas-agent-approval-node canvas-agent-approval-node-button" onClick={() => onFocusNode(id)} title={translate("canvasTools.canvasCloudAgentPanelParts.locateTheCanvasNode")}>
                 {content}
             </button>
         ) : (
@@ -1118,7 +1225,7 @@ export function ApprovalPreviewItemView({ item, theme, onFocusNode }: { item: Re
                         {item.resultTitle ? (
                             <>
                                 <span className="canvas-agent-approval-change-arrow" aria-hidden="true">
-                                    改为
+                                    {translate("canvasTools.canvasCloudAgentPanelParts.changeTo")}
                                 </span>
                                 <span className="canvas-agent-approval-result-title">《{item.resultTitle}》</span>
                             </>
@@ -1128,7 +1235,7 @@ export function ApprovalPreviewItemView({ item, theme, onFocusNode }: { item: Re
             </div>
             {item.fields?.length ? (
                 <div className="canvas-agent-approval-field-list">
-                    {item.operation === "add_node" ? "包含：" : "修改："}
+                    {item.operation === "add_node" ? translate("canvasTools.canvasCloudAgentPanelParts.includes") : translate("canvasTools.canvasCloudAgentPanelParts.changes")}
                     {item.fields.map((field) => (
                         <span key={field}>{field}</span>
                     ))}
@@ -1148,7 +1255,7 @@ export function ApprovalPreviewItemView({ item, theme, onFocusNode }: { item: Re
 
 export function truncateConversationPreview(value: string, max = 96) {
     const compact = markdownPlainText(value);
-    return compact.length > max ? `${compact.slice(0, max)}…` : compact || "尚未发送消息";
+    return compact.length > max ? `${compact.slice(0, max)}…` : compact || translate("canvasTools.canvasCloudAgentPanelParts.noMessagesSentYet");
 }
 
 export function formatConversationTime(value: string) {

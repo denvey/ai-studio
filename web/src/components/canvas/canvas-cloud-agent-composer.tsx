@@ -39,6 +39,7 @@ import { buildSkillMentionReferences } from "@/services/skill-runtime";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CanvasResourceMentionTextarea } from "./canvas-resource-mention-textarea";
 import { agentAttachmentReferences, type CloudAgentChatAttachment } from "./canvas-cloud-agent-attachments";
+import { translate } from "@/i18n";
 
 export const MIN_AGENT_PROMPT_HEIGHT = 60;
 
@@ -65,12 +66,12 @@ export type AgentSceneBucket = {
 
 /** 场景分类：与 presets.json 的 scene 字段、技能的 tag 字段共用同一套 key。 */
 export const AGENT_SCENE_DEFS: Array<{ key: string; label: string; icon: typeof Blocks }> = [
-    { key: "frequent", label: "我的常用", icon: Bookmark },
-    { key: "drama", label: "短剧故事", icon: Clapperboard },
-    { key: "ecommerce", label: "广告电商", icon: ShoppingBag },
-    { key: "creative", label: "视觉创意", icon: Palette },
-    { key: "social", label: "传播社媒", icon: Share2 },
-    { key: "others", label: "其他", icon: Shapes },
+    { key: "frequent", label: translate("canvasTools.canvasCloudAgentComposer.frequentlyUsed"), icon: Bookmark },
+    { key: "drama", label: translate("canvasTools.canvasCloudAgentComposer.shortDramaStories"), icon: Clapperboard },
+    { key: "ecommerce", label: translate("canvasTools.canvasCloudAgentComposer.advertisingAndEcommerce"), icon: ShoppingBag },
+    { key: "creative", label: translate("canvasTools.canvasCloudAgentComposer.visualCreativity"), icon: Palette },
+    { key: "social", label: translate("canvasTools.canvasCloudAgentComposer.socialMedia"), icon: Share2 },
+    { key: "others", label: translate("canvasA.skillLibrary.other"), icon: Shapes },
 ];
 
 export function AgentSceneCapsules({
@@ -102,7 +103,7 @@ export function AgentSceneCapsules({
         <div className="agent-scene-capsules mx-3 mb-2 min-w-0" style={{ color: theme.node.text }}>
             <div className="agent-scene-capsules-heading">
                 <Blocks aria-hidden="true" />
-                <span>{active ? active.label : "技能组合推荐"}</span>
+                <span>{active ? active.label : translate("canvasTools.canvasCloudAgentComposer.recommendedSkillSets")}</span>
             </div>
             <div className="agent-scene-capsules-scroll thin-scrollbar flex gap-2 overflow-x-auto px-1 py-2">
                 {active ? (
@@ -110,7 +111,7 @@ export function AgentSceneCapsules({
                         <button
                             type="button"
                             disabled={disabled}
-                            title="返回全部场景"
+                            title={translate("canvasTools.canvasCloudAgentComposer.backToAllScenes")}
                             className={capsuleClass}
                             data-scene="back"
                             {...stop}
@@ -120,7 +121,7 @@ export function AgentSceneCapsules({
                             }}
                         >
                             <ArrowLeft aria-hidden="true" />
-                            <span>全部场景</span>
+                            <span>{translate("canvasTools.canvasCloudAgentComposer.allScenes")}</span>
                         </button>
                         {active.presets.map((preset) => {
                             const missing = preset.skillIds.filter((id) => !installedIds.has(id)).length;
@@ -140,12 +141,22 @@ export function AgentSceneCapsules({
                                 >
                                     <Layers3 aria-hidden="true" />
                                     <span className="agent-scene-capsule-label">{preset.name}</span>
-                                    <span className="agent-scene-capsule-meta">{missing > 0 ? `${preset.skillIds.length} 技能 · ${missing} 待装` : `${preset.skillIds.length} 技能`}</span>
+                                    <span className="agent-scene-capsule-meta">
+                                        {missing > 0
+                                            ? translate("canvasTools.canvasCloudAgentComposer.skillsToInstall", { v0: String(preset.skillIds.length), v1: String(missing) })
+                                            : translate("canvasTools.canvasCloudAgentComposer.skills", { v0: String(preset.skillIds.length) })}
+                                    </span>
                                 </button>
                             );
                         })}
                         {active.skills.map((skill) => {
-                            const owned = skill.isOwner ? "自建" : skill.isLike ? "已收藏" : installedIds.has(skill.skillId) ? "已装" : "待装";
+                            const owned = skill.isOwner
+                                ? translate("canvasTools.canvasCloudAgentComposer.custom")
+                                : skill.isLike
+                                  ? translate("canvasTools.canvasCloudAgentComposer.favorited")
+                                  : installedIds.has(skill.skillId)
+                                    ? translate("canvasTools.canvasCloudAgentComposer.installed")
+                                    : translate("canvasTools.canvasCloudAgentComposer.notInstalled");
                             return (
                                 <button
                                     key={skill.skillId}
@@ -176,7 +187,7 @@ export function AgentSceneCapsules({
                                 key={bucket.key}
                                 type="button"
                                 disabled={disabled}
-                                title={`查看「${bucket.label}」下的技能组合`}
+                                title={translate("canvasTools.canvasCloudAgentComposer.viewSkillSetsIn", { v0: String(bucket.label) })}
                                 className={capsuleClass}
                                 data-scene={bucket.key}
                                 {...stop}
@@ -187,13 +198,13 @@ export function AgentSceneCapsules({
                             >
                                 <Icon aria-hidden="true" />
                                 <span className="agent-scene-capsule-label">{bucket.label}</span>
-                                <span className="agent-scene-capsule-meta">{count} 项</span>
+                                <span className="agent-scene-capsule-meta">{translate("canvasTools.inline.canvasCloudAgentComposer.items", { v0: String(count) })}</span>
                             </button>
                         );
                     })
                 )}
             </div>
-            <p className="agent-scene-capsules-note">仅本会话生效 · 缺失技能将加入技能库 · Agent 按任务调用</p>
+            <p className="agent-scene-capsules-note">{translate("canvasTools.canvasCloudAgentComposer.thisConversationOnlyMissingSkillsAreAddedToYourLibrary")}</p>
         </div>
     );
 }
@@ -317,7 +328,9 @@ export function AgentChatComposer({
     const textLength = agentTextLength(prompt);
     const overLimit = Boolean(charLimit && textLength > charLimit);
     const showCount = Boolean(charLimit && textLength > charLimit * 0.8);
-    const blockedReason = overLimit ? `超过 ${charLimit!.toLocaleString()} 字，请删减${onLongTextPaste ? "，或把长文本转成画布文本节点" : ""}` : blockReason || null;
+    const blockedReason = overLimit
+        ? translate("canvasTools.canvasCloudAgentComposer.exceedsCharactersRemove", { v0: String(charLimit!.toLocaleString()), v1: String(onLongTextPaste ? translate("canvasTools.canvasCloudAgentComposer.orConvertLongTextIntoACanvasTextNode") : "") })
+        : blockReason || null;
     // 请求在路上只拦「发送」：排队与保存不发请求，运行中照样可用。
     const canSubmit = !disabled && !submitDisabled && !blockedReason && !(sending && submitMode === "send") && Boolean(prompt.trim() || attachments.length);
     const canPrimary = canSubmit && !primaryDisabled;
@@ -325,16 +338,23 @@ export function AgentChatComposer({
     const wrapped = Boolean(footer || tray);
     const reducedMotion = useReducedMotion();
     const submitState = submitMode === "send" && sending ? "sending" : submitMode;
-    const submitLabel = submitMode === "save" ? "保存" : submitMode === "queue" ? "排队" : sending ? "发送中" : "发送";
+    const submitLabel =
+        submitMode === "save"
+            ? translate("common.save")
+            : submitMode === "queue"
+              ? translate("canvasTools.canvasCloudAgentComposer.queued")
+              : sending
+                ? translate("canvasTools.canvasCloudAgentComposer.sending")
+                : translate("canvasTools.canvasCloudAgentComposer.send");
     const submitTitle =
         blockedReason ||
         (submitMode === "save"
-            ? "保存修改 · Enter（Esc 取消）"
+            ? translate("canvasTools.canvasCloudAgentComposer.saveChangesEnterEscToCancel")
             : submitMode === "queue"
               ? primaryDisabled
-                  ? `排队已满，先移出一条；${modifierEnter} 仍可直接插话`
-                  : `排队：本轮结束后依次发送 · Enter；${modifierEnter} 直接插话`
-              : "发送：Enter 或 ⌘/Ctrl+Enter 发送，Shift+Enter 换行");
+                  ? translate("canvasTools.canvasCloudAgentComposer.queueIsFullRemoveOneItemFirstCanStillSend", { v0: String(modifierEnter) })
+                  : translate("canvasTools.canvasCloudAgentComposer.queueSendInOrderAfterThisTurnEnterToInterject", { v0: String(modifierEnter) })
+              : translate("canvasTools.canvasCloudAgentComposer.sendEnterOrCtrlEnterShiftEnterForANew"));
     const activeSlashIndex = Math.min(Math.max(slashIndex, 0), Math.max(slashCandidates.length - 1, 0));
 
     const handlePromptContentSizeChange = useCallback((naturalHeight: number) => {
@@ -452,9 +472,18 @@ export function AgentChatComposer({
     const addItems = addMenu?.disabledReason
         ? [{ key: "reason", disabled: true, label: addMenu.disabledReason }]
         : [
-              { key: "upload", icon: <ImagePlus className="size-3.5" />, label: "上传图片", onClick: () => fileInputRef.current?.click() },
-              ...(addMenu?.onPickAssets ? [{ key: "assets", icon: <FolderOpen className="size-3.5" />, label: "从素材库选择", onClick: addMenu.onPickAssets }] : []),
-              ...(addMenu?.onReferenceSelection && addMenu.selectionCount ? [{ key: "selection", icon: <SquareDashedMousePointer className="size-3.5" />, label: `引用选中的 ${addMenu.selectionCount} 个节点`, onClick: addMenu.onReferenceSelection }] : []),
+              { key: "upload", icon: <ImagePlus className="size-3.5" />, label: translate("account.settings.profile.upload"), onClick: () => fileInputRef.current?.click() },
+              ...(addMenu?.onPickAssets ? [{ key: "assets", icon: <FolderOpen className="size-3.5" />, label: translate("library.ark.group.fromLibrary"), onClick: addMenu.onPickAssets }] : []),
+              ...(addMenu?.onReferenceSelection && addMenu.selectionCount
+                  ? [
+                        {
+                            key: "selection",
+                            icon: <SquareDashedMousePointer className="size-3.5" />,
+                            label: translate("canvasTools.canvasCloudAgentComposer.referenceSelectedNodes", { v0: String(addMenu.selectionCount) }),
+                            onClick: addMenu.onReferenceSelection,
+                        },
+                    ]
+                  : []),
           ];
 
     return (
@@ -486,7 +515,7 @@ export function AgentChatComposer({
                         type="button"
                         role="separator"
                         aria-orientation="horizontal"
-                        aria-label="调整提示词面板高度"
+                        aria-label={translate("canvasTools.canvasCloudAgentComposer.adjustThePromptPanelHeight")}
                         aria-valuemin={MIN_AGENT_PROMPT_HEIGHT}
                         aria-valuemax={MAX_AGENT_PROMPT_HEIGHT}
                         aria-valuenow={promptHeight}
@@ -502,31 +531,39 @@ export function AgentChatComposer({
                     </button>
                     {contextBar ? <div className="agent-composer-context">{contextBar}</div> : null}
                     {attachments.length ? (
-                        <div className="agent-attachments thin-scrollbar" role="list" aria-label={`附件 ${attachments.length} 个`}>
+                        <div className="agent-attachments thin-scrollbar" role="list" aria-label={translate("canvasTools.canvasCloudAgentComposer.attachments", { v0: String(attachments.length) })}>
                             {attachments.map((item, index) => {
                                 const status = item.status ?? "ready";
                                 const busy = status === "uploading" || status === "pending";
                                 const failed = status === "error" || status === "local_only" || status === "missing";
-                                const name = item.nodeId ? item.name || (item.kind === "text" ? "文本" : `图片${index + 1}`) : `图片${index + 1}`;
+                                const name = item.nodeId
+                                    ? item.name || (item.kind === "text" ? translate("account.settings.modelConfig.capabilities.text") : translate("canvasTools.canvasCloudAgentComposer.image", { v0: String(index + 1) }))
+                                    : translate("canvasTools.canvasCloudAgentComposer.image", { v0: String(index + 1) });
                                 // 卡片上只放名字主体；扩展名和完整名字在悬停提示里。
                                 const label = name.replace(/\.(png|jpe?g|webp|gif|heic|heif)$/iu, "") || name;
                                 const statusText =
                                     status === "uploading"
                                         ? item.progress !== undefined
                                             ? `${item.progress}%`
-                                            : "上传中"
+                                            : translate("canvasTools.canvasCloudAgentComposer.uploading")
                                         : status === "pending"
-                                          ? "准备中"
+                                          ? translate("canvasA.fileUpload.preparingShort")
                                           : status === "error"
-                                            ? item.error || "上传失败"
+                                            ? item.error || translate("library.assets.batch.uploadFailed")
                                             : status === "local_only"
-                                              ? "只存在本机，Agent 看不到"
+                                              ? translate("canvasTools.canvasCloudAgentComposer.onlyOnThisDeviceAgentCannotAccessIt")
                                               : status === "missing"
-                                                ? "已从画布删除"
+                                                ? translate("canvasTools.canvasCloudAgentComposer.deletedFromCanvas")
                                                 : "";
                                 return (
                                     <div key={item.id} role="listitem" className={`agent-attachment${failed ? " is-failed" : ""}`} aria-label={failed || busy ? `${name}：${statusText}` : name}>
-                                        <button type="button" className="agent-attachment-thumb" title={item.url ? `${name} · 点击放大预览` : name} aria-label={`预览 ${name}`} onClick={() => (item.url ? setPreviewAttachment(item) : undefined)}>
+                                        <button
+                                            type="button"
+                                            className="agent-attachment-thumb"
+                                            title={item.url ? translate("canvasTools.canvasCloudAgentComposer.clickForALargerPreview", { v0: String(name) }) : name}
+                                            aria-label={translate("canvasTools.canvasCloudAgentComposer.preview", { v0: String(name) })}
+                                            onClick={() => (item.url ? setPreviewAttachment(item) : undefined)}
+                                        >
                                             {item.url ? (
                                                 <img src={item.url} alt="" className="size-full object-cover" />
                                             ) : (
@@ -547,13 +584,13 @@ export function AgentChatComposer({
                                                 type="button"
                                                 className="agent-attachment-remove"
                                                 onClick={() => onRemoveAttachment(item.id)}
-                                                aria-label={`移除 ${name}`}
-                                                title={item.nodeId ? "移除：这次放到画布、还没连线的节点会一起删除（可撤销）" : "移除"}
+                                                aria-label={translate("canvasTools.canvasCloudAgentComposer.remove", { v0: String(name) })}
+                                                title={item.nodeId ? translate("canvasTools.canvasCloudAgentComposer.removeNodesAddedToTheCanvasForThisMessageThat") : translate("canvasB.common.remove")}
                                             >
                                                 <X className="size-3" aria-hidden="true" />
                                             </button>
                                         ) : null}
-                                        <button type="button" className="agent-attachment-label" title={`在输入框里插入 @${name}`} onClick={() => insertAttachmentMention(item)}>
+                                        <button type="button" className="agent-attachment-label" title={translate("canvasTools.canvasCloudAgentComposer.insertInTheInput", { v0: String(name) })} onClick={() => insertAttachmentMention(item)}>
                                             <AtSign className="size-2.5 shrink-0" aria-hidden="true" />
                                             <span className="truncate">{label}</span>
                                         </button>
@@ -562,7 +599,7 @@ export function AgentChatComposer({
                                                 <span>{statusText}</span>
                                                 {item.retryable && onRetryAttachment ? (
                                                     <button type="button" className="agent-attachment-retry" onClick={() => onRetryAttachment(item.id)}>
-                                                        重试
+                                                        {translate("common.retry")}
                                                     </button>
                                                 ) : null}
                                             </div>
@@ -573,7 +610,7 @@ export function AgentChatComposer({
                         </div>
                     ) : null}
                     <div className="relative" onKeyDownCapture={handleSlashKeyCapture} onPasteCapture={handlePasteCapture}>
-                        <div className="agent-composer-prompt-scroll" style={{ height: promptHeight }}>
+                        <div className="agent-composer-prompt-scroll" data-agent-composer-input style={{ height: promptHeight }}>
                             <CanvasResourceMentionTextarea
                                 value={prompt}
                                 references={composerReferences}
@@ -594,7 +631,7 @@ export function AgentChatComposer({
                                 containerClassName="min-h-[60px] h-full"
                                 style={{ color: theme.node.text }}
                                 placeholder={placeholder}
-                                aria-label="Agent 输入"
+                                aria-label={translate("canvasTools.canvasCloudAgentComposer.agentInput")}
                             />
                         </div>
                         {slash && slashCandidates.length ? (
@@ -638,7 +675,13 @@ export function AgentChatComposer({
                                     />
                                     {/* 「+」固定在最左：上传图片、从素材库选择、引用选中节点。 */}
                                     <Dropdown trigger={["click"]} placement="topLeft" menu={{ items: addItems }}>
-                                        <button type="button" className="agent-composer-add" disabled={disabled} aria-label="添加图片、素材或引用" title={addMenu?.disabledReason || "添加：上传图片、从素材库选择、引用选中节点（也可以直接粘贴或拖入图片）"}>
+                                        <button
+                                            type="button"
+                                            className="agent-composer-add"
+                                            disabled={disabled}
+                                            aria-label={translate("canvasTools.canvasCloudAgentComposer.addImagesAssetsOrReferences")}
+                                            title={addMenu?.disabledReason || translate("canvasTools.canvasCloudAgentComposer.addUploadAnImageSelectFromTheLibraryOrReference")}
+                                        >
                                             <Plus className="size-4" aria-hidden="true" />
                                         </button>
                                     </Dropdown>
@@ -648,7 +691,10 @@ export function AgentChatComposer({
                         </div>
                         <div className="agent-composer-submit flex items-center gap-2">
                             {showCount ? (
-                                <span className={`agent-composer-count${overLimit ? " is-over" : ""}`} title={overLimit ? (blockedReason ?? undefined) : `单条消息最多 ${charLimit!.toLocaleString()} 字`}>
+                                <span
+                                    className={`agent-composer-count${overLimit ? " is-over" : ""}`}
+                                    title={overLimit ? (blockedReason ?? undefined) : translate("canvasTools.canvasCloudAgentComposer.upToCharactersPerMessage", { v0: String(charLimit!.toLocaleString()) })}
+                                >
                                     {textLength.toLocaleString()} / {charLimit!.toLocaleString()}
                                 </span>
                             ) : null}
@@ -660,8 +706,8 @@ export function AgentChatComposer({
                                             key="stop"
                                             type="button"
                                             disabled={stopping}
-                                            aria-label="停止本轮"
-                                            title={stopping ? "正在停止本轮" : "停止本轮（输入框里连按两次 Esc 也可以）：Agent 不再继续操作；已提交的生成任务会继续完成"}
+                                            aria-label={translate("canvasTools.canvasCloudAgentComposer.stopThisRun")}
+                                            title={stopping ? translate("canvasTools.canvasCloudAgentComposer.stoppingThisRun") : translate("canvasTools.canvasCloudAgentComposer.stopThisRunOrPressEscTwiceInTheInput")}
                                             onClick={() => void onStop?.()}
                                             data-icon-only
                                             className="agent-composer-stop grid size-7 shrink-0 place-items-center rounded-full p-0 disabled:cursor-not-allowed"
@@ -678,7 +724,7 @@ export function AgentChatComposer({
                             <button
                                 type="button"
                                 disabled={!canPrimary}
-                                aria-label={submitMode === "save" ? "保存修改" : submitLabel}
+                                aria-label={submitMode === "save" ? translate("canvasTools.canvasCloudAgentComposer.saveChanges") : submitLabel}
                                 aria-busy={submitState === "sending"}
                                 title={submitTitle}
                                 onClick={() => onSubmit({ alternate: false })}
@@ -699,7 +745,7 @@ export function AgentChatComposer({
                                         ) : (
                                             <ArrowUp className="size-3.5" />
                                         )}
-                                        <span>{submitMode === "save" ? "保存" : submitMode === "queue" ? "排队" : "发送"}</span>
+                                        <span>{submitMode === "save" ? translate("common.save") : submitMode === "queue" ? translate("canvasTools.canvasCloudAgentComposer.queued") : translate("canvasTools.canvasCloudAgentComposer.send")}</span>
                                     </motion.span>
                                 </AnimatePresence>
                             </button>
@@ -717,7 +763,7 @@ export function AgentImagePreview({ attachment, onClose }: { attachment: CloudAg
     return (
         <div className="fixed inset-0 z-[var(--z-dialog-popover)] grid place-items-center bg-black/80 p-6" role="dialog" aria-label={attachment.name} onClick={onClose}>
             <img src={attachment.url} alt={attachment.name} className="max-h-[90vh] max-w-[92vw] rounded-xl object-contain shadow-2xl" onClick={(event) => event.stopPropagation()} />
-            <button type="button" className="absolute right-5 top-5 rounded-full bg-black/60 p-2 text-white" onClick={onClose} aria-label="关闭图片预览">
+            <button type="button" className="absolute right-5 top-5 rounded-full bg-black/60 p-2 text-white" onClick={onClose} aria-label={translate("canvasB.mention.closeImagePreview")}>
                 <X className="size-5" />
             </button>
         </div>

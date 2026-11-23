@@ -6,13 +6,22 @@ import { resourceStorageKey } from "@/services/api/resources";
 import { CachedResourceImage } from "@/components/cached-resource-image";
 import { COMMERCE_IMAGE_ACCEPT, mightContainCommerceImage, readCommerceImageTransfer, type CommerceImageTransfer } from "./image-transfer";
 
+import { translate } from "@/i18n";
 const modeOptions: Array<{ value: EcommerceReferenceMode; label: string; description: string }> = [
-    { value: "product", label: "商品自主策划", description: "根据商品图和已确认资料，自主设计卖点、场景、文案与画面。" },
-    { value: "style", label: "参考风格与排版", description: "借鉴下方图片的色彩、构图与排版，用上方自己的商品和已核实资料重新策划。" },
-    { value: "detail", label: "长图详情页逐屏参考", description: "按上传顺序识别每张长图中每一屏的内容、排版与画面，逐屏策划生成。" },
+    { value: "product", label: translate("ecommerce.referenceModePanel.independentProductPlanning"), description: translate("ecommerce.referenceModePanel.designSellingPointsScenesCopyAndVisualsFromYourProduct") },
+    { value: "style", label: translate("ecommerce.referenceModePanel.referenceStyleAndLayout"), description: translate("ecommerce.referenceModePanel.useTheColorsCompositionAndLayoutOfTheImagesBelow") },
+    { value: "detail", label: translate("ecommerce.referenceModePanel.screenByScreenDetailPageReference"), description: translate("ecommerce.referenceModePanel.identifyContentLayoutAndVisualsOnEveryScreenOfThe") },
 ];
-const uploadLabels: Record<EcommerceReferenceMode, string> = { product: "商品图", style: "风格与排版参考图", detail: "逐屏参考长图" };
-const fallbackNames: Record<EcommerceReferenceMode, string> = { product: "商品参考图", style: "风格参考图", detail: "详情长图" };
+const uploadLabels: Record<EcommerceReferenceMode, string> = {
+    product: translate("ecommerce.referenceModePanel.productImages"),
+    style: translate("ecommerce.referenceModePanel.styleAndLayoutReferences"),
+    detail: translate("ecommerce.referenceModePanel.screenByScreenLongImageReference"),
+};
+const fallbackNames: Record<EcommerceReferenceMode, string> = {
+    product: translate("ecommerce.referenceModePanel.productReferenceImage"),
+    style: translate("ecommerce.referenceModePanel.styleReferenceImage"),
+    detail: translate("ecommerce.referenceModePanel.longDetailImage"),
+};
 
 function referenceName(reference: EcommerceReference, mode: EcommerceReferenceMode, index?: number) {
     const name = reference.name?.trim() || "";
@@ -31,12 +40,12 @@ function ReferenceThumbnail({ reference, name }: { reference: EcommerceReference
             loading="lazy"
             decoding="async"
             fallback={
-                <span className="ecommerce-reference-thumbnail-empty" aria-label="图片暂不可用">
+                <span className="ecommerce-reference-thumbnail-empty" aria-label={translate("ecommerce.referenceModePanel.imageTemporarilyUnavailable")}>
                     <Images size={22} />
                 </span>
             }
             loadingFallback={
-                <span className="ecommerce-reference-thumbnail-empty" aria-label="正在读取图片">
+                <span className="ecommerce-reference-thumbnail-empty" aria-label={translate("ecommerce.referenceModePanel.readingImage")}>
                     <LoaderCircle size={18} />
                 </span>
             }
@@ -94,7 +103,7 @@ export function ReferenceModePanel({
         if (!mounted.current || uploading || lock.current) return;
         if (!source.files.length && !source.resourceId && !source.url) {
             lastUpload.current = undefined;
-            setError("没有读取到图片，请选择图片文件或复制图片后粘贴");
+            setError(translate("ecommerce.referenceModePanel.noImageFoundChooseAnImageFileOrCopyAnd"));
             return;
         }
         lock.current = true;
@@ -108,19 +117,25 @@ export function ReferenceModePanel({
             for (const [index, item] of items.entries()) {
                 if (!mounted.current) return;
                 const name = item.files[0]?.name || item.name || uploadLabels[uploadMode];
-                setBatchProgress(`正在添加 ${index + 1}/${items.length} · ${name}`);
+                setBatchProgress(translate("ecommerce.referenceModePanel.adding", { v0: String(index + 1), v1: String(items.length), v2: String(name) }));
                 try {
                     await onUpload(item, uploadMode);
                 } catch (cause) {
                     if (!mounted.current) return;
                     failed.push(item);
-                    messages.push(`${name}：${cause instanceof Error ? cause.message : "图片上传失败，请重试"}`);
+                    messages.push(`${name}：${cause instanceof Error ? cause.message : translate("ecommerce.referenceModePanel.imageUploadFailedRetry")}`);
                 }
                 if (!mounted.current) return;
             }
             if (failed.length) {
                 lastUpload.current = { source: source.files.length ? { files: failed.flatMap((item) => item.files) } : source, mode: uploadMode };
-                setError(`${items.length - failed.length ? `已添加 ${items.length - failed.length} 张，` : ""}${failed.length} 张图片未添加。${messages.join("；")}`);
+                setError(
+                    translate("ecommerce.referenceModePanel.imagesWereNotAdded", {
+                        v0: String(items.length - failed.length ? translate("ecommerce.referenceModePanel.addedImages", { v0: String(items.length - failed.length) }) : ""),
+                        v1: String(failed.length),
+                        v2: String(messages.join("；")),
+                    }),
+                );
             }
         } finally {
             lock.current = false;
@@ -131,17 +146,24 @@ export function ReferenceModePanel({
         }
     };
     return (
-        <section className="ecommerce-reference-mode" aria-label="参考方式设置">
-            <Select<EcommerceReferenceMode> variant="filled" aria-label="参考方式" value={mode.value} options={modeOptions.map(({ value, label }) => ({ value, label }))} onChange={chooseMode} disabled={busy} />
+        <section className="ecommerce-reference-mode" aria-label={translate("ecommerce.referenceModePanel.referenceModeSettings")}>
+            <Select<EcommerceReferenceMode>
+                variant="filled"
+                aria-label={translate("ecommerce.referenceModePanel.referenceMode")}
+                value={mode.value}
+                options={modeOptions.map(({ value, label }) => ({ value, label }))}
+                onChange={chooseMode}
+                disabled={busy}
+            />
             {mode.value === "product" ? (
-                <p className="ecommerce-reference-mode-description">使用上方“自己的商品图”自主策划卖点、场景与文案，无需上传借鉴图片。</p>
+                <p className="ecommerce-reference-mode-description">{translate("ecommerce.referenceModePanel.useYourOwnProductImagesAboveToPlanSellingPoints")}</p>
             ) : (
                 <>
                     <p className="ecommerce-reference-mode-description">{mode.description}</p>
                     <div
                         className={`ecommerce-reference-upload${dragging ? " is-dragging" : ""}`}
                         role="group"
-                        aria-label={`${label}上传区`}
+                        aria-label={translate("ecommerce.referenceModePanel.uploadArea", { v0: String(label) })}
                         aria-busy={busy}
                         aria-describedby={helpId}
                         tabIndex={0}
@@ -177,7 +199,7 @@ export function ReferenceModePanel({
                         }}
                     >
                         {references.length ? (
-                            <ol className="ecommerce-reference-gallery" aria-label="已上传借鉴图片">
+                            <ol className="ecommerce-reference-gallery" aria-label={translate("ecommerce.referenceModePanel.uploadedInspirationImages")}>
                                 {references.map((reference, index) => {
                                     const name = referenceName(reference, mode.value, index);
                                     return (
@@ -187,7 +209,13 @@ export function ReferenceModePanel({
                                                 <small>{index + 1}</small>
                                                 {name}
                                             </span>
-                                            <button type="button" aria-label={`移除${name}`} title={`移除${name}`} disabled={busy} onClick={() => removeReference(index)}>
+                                            <button
+                                                type="button"
+                                                aria-label={translate("ecommerce.referenceModePanel.remove", { v0: String(name) })}
+                                                title={translate("ecommerce.referenceModePanel.remove", { v0: String(name) })}
+                                                disabled={busy}
+                                                onClick={() => removeReference(index)}
+                                            >
                                                 <X size={13} aria-hidden="true" />
                                             </button>
                                         </li>
@@ -195,11 +223,13 @@ export function ReferenceModePanel({
                                 })}
                             </ol>
                         ) : null}
-                        <button type="button" className="ecommerce-reference-upload-button" disabled={busy} aria-label={`上传${label}`} onClick={() => fileInput.current?.click()}>
+                        <button type="button" className="ecommerce-reference-upload-button" disabled={busy} aria-label={translate("ecommerce.referenceModePanel.upload", { v0: String(label) })} onClick={() => fileInput.current?.click()}>
                             <Upload size={25} strokeWidth={1.5} aria-hidden="true" />
                             <span>
-                                <strong>{references.length ? `继续添加${label}` : `点击上传${label}`}</strong>
-                                <small>{busy ? "正在上传…" : dragging ? "松开添加图片" : "支持多张 · 也可拖入或粘贴图片"}</small>
+                                <strong>{references.length ? translate("ecommerce.referenceModePanel.addMore", { v0: String(label) }) : translate("ecommerce.referenceModePanel.clickToUpload", { v0: String(label) })}</strong>
+                                <small>
+                                    {busy ? translate("ecommerce.referenceModePanel.uploading") : dragging ? translate("ecommerce.referenceModePanel.dropToAddImages") : translate("ecommerce.referenceModePanel.multipleImagesSupportedDragOrPasteImagesToo")}
+                                </small>
                             </span>
                         </button>
                         <input
@@ -207,7 +237,7 @@ export function ReferenceModePanel({
                             type="file"
                             multiple
                             hidden
-                            aria-label={`上传${label}文件`}
+                            aria-label={translate("ecommerce.referenceModePanel.uploadFiles", { v0: String(label) })}
                             accept={COMMERCE_IMAGE_ACCEPT}
                             disabled={busy}
                             onChange={(event) => {
@@ -218,12 +248,12 @@ export function ReferenceModePanel({
                         />
                     </div>
                     <p id={helpId} className="ecommerce-reference-upload-help">
-                        只放需要借鉴的图片，全部按上传顺序使用；参考图中未经核实的规格、性能与承诺不会移用。
+                        {translate("ecommerce.referenceModePanel.onlyUploadImagesYouWantToReferenceAllAreUsed")}
                     </p>
                     {busy ? (
                         <p className="ecommerce-reference-upload-status" role="status">
                             <LoaderCircle size={13} className="commerce-planning-spin" />
-                            {batchProgress || uploadProgress || "正在添加图片…"}
+                            {batchProgress || uploadProgress || translate("ecommerce.referenceModePanel.addingImages")}
                         </p>
                     ) : null}
                     {error ? (
@@ -237,14 +267,14 @@ export function ReferenceModePanel({
                                         if (lastUpload.current) void upload(lastUpload.current.source, lastUpload.current.mode);
                                     }}
                                 >
-                                    重试上传
+                                    {translate("ecommerce.referenceModePanel.retryUpload")}
                                 </button>
                             ) : null}
                         </div>
                     ) : null}
                     {!references.length ? (
                         <p className="sr-only" role="status">
-                            请在这里上传需要借鉴的图片；自己的商品图请放在上方。
+                            {translate("ecommerce.referenceModePanel.uploadInspirationImagesHerePlaceYourOwnProductImagesAbove")}
                         </p>
                     ) : null}
                 </>
@@ -256,23 +286,23 @@ export function ReferenceModePanel({
 export function ReferenceScreenSummary({ screen }: { screen?: EcommerceReferenceScreen }) {
     if (!screen) return null;
     return (
-        <div className="ecommerce-reference-screen-summary" aria-label={`原长图第 ${screen.screenIndex} 屏识别`}>
-            <strong>原长图 · 第 {screen.screenIndex} 屏</strong>
+        <div className="ecommerce-reference-screen-summary" aria-label={translate("ecommerce.referenceModePanel.originalLongImageScreenAnalysis", { v0: String(screen.screenIndex) })}>
+            <strong>{translate("ecommerce.referenceModePanel.originalScreen", { count: screen.screenIndex })}</strong>
             {screen.resourceId ? (
                 <CachedResourceImage
                     className="ecommerce-reference-screen-preview"
                     storageKey={resourceStorageKey(screen.resourceId)}
                     variant="thumbnail"
-                    alt={`原长图第 ${screen.screenIndex} 屏参考`}
+                    alt={translate("ecommerce.referenceModePanel.originalLongImageScreenReference", { v0: String(screen.screenIndex) })}
                     loading="lazy"
                     decoding="async"
                     fallback={
-                        <span className="ecommerce-reference-thumbnail-empty" aria-label="图片暂不可用">
+                        <span className="ecommerce-reference-thumbnail-empty" aria-label={translate("ecommerce.referenceModePanel.imageTemporarilyUnavailable")}>
                             <Images size={22} />
                         </span>
                     }
                     loadingFallback={
-                        <span className="ecommerce-reference-thumbnail-empty" aria-label="正在读取图片">
+                        <span className="ecommerce-reference-thumbnail-empty" aria-label={translate("ecommerce.referenceModePanel.readingImage")}>
                             <LoaderCircle size={18} />
                         </span>
                     }
@@ -280,21 +310,21 @@ export function ReferenceScreenSummary({ screen }: { screen?: EcommerceReference
             ) : null}
             <dl>
                 <div>
-                    <dt>内容</dt>
+                    <dt>{translate("ecommerce.referenceModePanel.content")}</dt>
                     <dd>{screen.content}</dd>
                 </div>
                 <div>
-                    <dt>排版</dt>
+                    <dt>{translate("ecommerce.referenceModePanel.layout")}</dt>
                     <dd>{screen.layout}</dd>
                 </div>
                 <div>
-                    <dt>画面</dt>
+                    <dt>{translate("ecommerce.referenceModePanel.visuals")}</dt>
                     <dd>{screen.visual}</dd>
                 </div>
             </dl>
             {screen.sourceCopy ? (
                 <details>
-                    <summary>查看原图文字</summary>
+                    <summary>{translate("ecommerce.referenceModePanel.viewTextFromTheOriginalImage")}</summary>
                     <p>{screen.sourceCopy}</p>
                 </details>
             ) : null}

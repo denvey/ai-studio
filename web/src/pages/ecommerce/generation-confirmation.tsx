@@ -4,6 +4,7 @@ import type { EcommerceDraft, EcommercePlan } from "@/services/api/ecommerce";
 import { assertCommerceClaimsGrounded, assertCommercePlanCurrent, excludeCommerceFacts } from "./planner";
 import { CommerceFactReview } from "./fact-review";
 
+import { translate } from "@/i18n";
 export function GenerationConfirmation({
     plan,
     draft,
@@ -37,7 +38,7 @@ export function GenerationConfirmation({
             await onConfirm(reviewed);
             setOpen(false);
         } catch (cause) {
-            setError(cause instanceof Error ? cause.message : "提交失败，请检查方案后重试");
+            setError(cause instanceof Error ? cause.message : translate("ecommerce.generationConfirmation.submissionFailedCheckThePlanAndRetry"));
         } finally {
             locked.current = false;
             setConfirming(false);
@@ -50,7 +51,11 @@ export function GenerationConfirmation({
                     {error}
                 </p>
             ) : null}
-            {!completed && plan.uncertainFacts.length ? <p className="ecommerce-confirmation-note">有 {plan.uncertainFacts.length} 项商品信息待核实。点击下方按钮，可补充资料或明确排除未核实内容后继续。</p> : null}
+            {!completed && plan.uncertainFacts.length ? (
+                <p className="ecommerce-confirmation-note">
+                    {translate("ecommerce.generationConfirmation.thereAre")} {plan.uncertainFacts.length} {translate("ecommerce.generationConfirmation.productDetailsToVerifyUseTheButtonBelowToAdd")}
+                </p>
+            ) : null}
             <Button
                 type="primary"
                 block
@@ -68,10 +73,15 @@ export function GenerationConfirmation({
                     else void submit(plan);
                 }}
             >
-                {label || (completed ? "图片任务已提交" : remaining < plan.images.length ? `继续生成剩余 ${remaining} 张` : `确认并生成 ${plan.images.length} 张`)}
+                {label ||
+                    (completed
+                        ? translate("ecommerce.generationConfirmation.imageTasksSubmitted")
+                        : remaining < plan.images.length
+                          ? translate("ecommerce.generationConfirmation.generateTheRemainingImages", { v0: String(remaining) })
+                          : translate("ecommerce.generationConfirmation.confirmAndGenerateImages", { v0: String(plan.images.length) }))}
             </Button>
             <Modal
-                title="生成前，核对商品信息"
+                title={translate("ecommerce.generationConfirmation.reviewProductInformationBeforeGenerating")}
                 open={open}
                 footer={null}
                 onCancel={() => {
@@ -80,7 +90,7 @@ export function GenerationConfirmation({
                 closable={!confirming}
                 maskClosable={!confirming}
             >
-                <p>以下内容尚未核实，不会自动成为商品事实。你可以补充真实资料后重新策划，或将这些内容作为禁止主张逐张提交。</p>
+                <p>{translate("ecommerce.generationConfirmation.theFollowingDetailsAreUnverifiedAndWillNotAutomaticallyBecome")}</p>
                 {error ? (
                     <p className="ecommerce-confirmation-note" role="alert">
                         {error}
@@ -94,10 +104,10 @@ export function GenerationConfirmation({
                             setOpen(false);
                         }}
                         onExclude={() => void submit(excludeCommerceFacts(plan))}
-                        excludeLabel="排除未核实主张并开始生成"
+                        excludeLabel={translate("ecommerce.generationConfirmation.excludeUnverifiedClaimsAndStartGenerating")}
                     />
                 </div>
-                {confirming ? <p role="status">正在保存已审阅方案并提交图片任务…</p> : null}
+                {confirming ? <p role="status">{translate("ecommerce.generationConfirmation.savingTheReviewedPlanAndSubmittingImageTasks")}</p> : null}
             </Modal>
         </>
     );

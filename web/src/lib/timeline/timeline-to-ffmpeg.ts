@@ -6,6 +6,7 @@
 import { nanoid } from "nanoid";
 
 import type { TimelineClip, TimelineProject } from "@/types/timeline";
+import { translate } from "@/i18n";
 
 export type TimelineRenderSource = {
     nodeId: string;
@@ -216,7 +217,7 @@ export function buildTimelineRenderPlan(timeline: TimelineProject, sources: Time
                     "-shortest",
                     output,
                 ],
-                description: `补黑场 ${(gapMs / 1000).toFixed(2)}s`,
+                description: translate("shared.timeline.timelineToFfmpeg.insertingSOfBlackVideo", { v0: String((gapMs / 1000).toFixed(2)) }),
             });
             concatEntries.push(output);
         }
@@ -255,7 +256,7 @@ export function buildTimelineRenderPlan(timeline: TimelineProject, sources: Time
                 "128k",
                 output,
             ],
-            description: `裁切片段 ${index + 1}（${clip.title || clip.nodeId}）`,
+            description: translate("shared.timeline.timelineToFfmpeg.trimmingClip", { v0: String(index + 1), v1: String(clip.title || clip.nodeId) }),
         });
         concatEntries.push(output);
         cursorMs = clip.startMs + clip.durationMs;
@@ -268,7 +269,7 @@ export function buildTimelineRenderPlan(timeline: TimelineProject, sources: Time
             kind: "concat",
             output: concatOutput,
             args: ["-f", "concat", "-safe", "0", "-i", "concat.txt", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-c:a", "aac", concatOutput],
-            description: "拼接视频轨",
+            description: translate("shared.timeline.timelineToFfmpeg.joiningTheVideoTrack"),
         });
     }
 
@@ -279,7 +280,7 @@ export function buildTimelineRenderPlan(timeline: TimelineProject, sources: Time
             kind: "subtitle",
             output: SUBTITLE_FILE,
             args: [],
-            description: "生成字幕 SRT",
+            description: translate("shared.timeline.timelineToFfmpeg.generatingSubtitleSRT"),
         });
     }
 
@@ -294,16 +295,16 @@ export function buildTimelineRenderPlan(timeline: TimelineProject, sources: Time
             kind: "burn",
             output: finalOutput,
             ...burnOutput,
-            description: "烧录字幕并输出",
+            description: translate("shared.timeline.timelineToFfmpeg.burningInSubtitlesAndExporting"),
             requiresLibass: true,
-            fallback: { ...copyOutput, description: "输出成片（字幕烧录不可用）" },
+            fallback: { ...copyOutput, description: translate("shared.timeline.timelineToFfmpeg.exportingVideoSubtitleBurnInUnavailable") },
         });
     } else if (concatEntries.length) {
         steps.push({
             kind: "concat",
             output: finalOutput,
             ...copyOutput,
-            description: "输出成片（无字幕）",
+            description: translate("shared.timeline.timelineToFfmpeg.exportingVideoNoSubtitles"),
         });
     }
 

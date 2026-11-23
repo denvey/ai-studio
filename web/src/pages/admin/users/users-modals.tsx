@@ -5,11 +5,12 @@ import { useEffect, useState } from "react";
 
 import { createAdminUser, updateAdminUser, type AdminUser, type LocalUser } from "@/services/api/auth";
 import { DEFAULT_USER_GROUP_CODE, formatRatioBasisPoints, userGroupCode, type UserGroup } from "@/services/api/user-groups";
+import { translate } from "@/i18n";
 
 type UserFormValues = Pick<LocalUser, "displayName" | "email" | "role" | "status"> & { password?: string; isPromoter: boolean; userGroup: string };
 
 function userGroupOptions(groups: UserGroup[]) {
-    return groups.map((group) => ({ value: group.code, label: `${group.name}（倍率 ${formatRatioBasisPoints(group.ratioBasisPoints)}）` }));
+    return groups.map((group) => ({ value: group.code, label: translate("adminPages.users.usersModals.multiplier", { v0: String(group.name), v1: String(formatRatioBasisPoints(group.ratioBasisPoints)) }) }));
 }
 
 export function AdminUserEditModal({ user, actorId, groups, onClose, onSaved }: { user: AdminUser | null; actorId?: string; groups: UserGroup[]; onClose: () => void; onSaved: (user: LocalUser) => void }) {
@@ -38,10 +39,10 @@ export function AdminUserEditModal({ user, actorId, groups, onClose, onSaved }: 
             return;
         }
         modal.confirm({
-            title: "放弃用户修改？",
-            content: "尚未保存的账号、角色或状态修改将丢失。",
-            okText: "放弃修改",
-            cancelText: "继续编辑",
+            title: translate("adminPages.users.usersModals.discardUserChanges"),
+            content: translate("adminPages.users.usersModals.unsavedAccountRoleOrStatusChangesWillBeLost"),
+            okText: translate("adminPages.users.usersModals.discardChanges"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
             okButtonProps: { danger: true },
             onOk: onClose,
         });
@@ -64,9 +65,9 @@ export function AdminUserEditModal({ user, actorId, groups, onClose, onSaved }: 
             onSaved(result.user);
             form.resetFields();
             onClose();
-            message.success("用户信息已保存");
+            message.success(translate("adminPages.users.usersModals.userInformationSaved"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "保存用户失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.users.usersModals.failedToSaveUser"));
         } finally {
             setSaving(false);
         }
@@ -74,7 +75,7 @@ export function AdminUserEditModal({ user, actorId, groups, onClose, onSaved }: 
 
     return (
         <AdminModal
-            title={user ? `编辑用户 · ${user.displayName || user.username}` : "编辑用户"}
+            title={user ? translate("adminPages.users.usersModals.editUser", { v0: String(user.displayName || user.username) }) : translate("adminPages.users.usersModals.editUser2")}
             open={Boolean(user)}
             width={640}
             onCancel={close}
@@ -83,49 +84,63 @@ export function AdminUserEditModal({ user, actorId, groups, onClose, onSaved }: 
             footer={
                 <div className="flex justify-end gap-2">
                     <Button disabled={saving} onClick={close}>
-                        取消
+                        {translate("common.cancel")}
                     </Button>
                     <Button type="primary" loading={saving} onClick={() => void save()}>
-                        保存
+                        {translate("common.save")}
                     </Button>
                 </div>
             }
         >
             <Form form={form} layout="vertical" requiredMark={false} className="admin-user-form-grid">
-                <Form.Item label="用户名">
+                <Form.Item label={translate("auth.register.username")}>
                     <Input value={user ? `@${user.username}` : ""} disabled />
                 </Form.Item>
-                <Form.Item name="displayName" label="显示名称" rules={[{ required: true, whitespace: true, message: "请填写显示名称" }]}>
-                    <Input placeholder="用户在产品内显示的名称" />
+                <Form.Item name="displayName" label={translate("auth.register.displayName")} rules={[{ required: true, whitespace: true, message: translate("adminPages.users.usersModals.enterADisplayName") }]}>
+                    <Input placeholder={translate("adminPages.users.usersModals.theNameShownForThisUserInTheProduct")} />
                 </Form.Item>
-                <Form.Item name="email" label="邮箱" rules={[{ type: "email", message: "请输入有效邮箱" }]}>
+                <Form.Item name="email" label={translate("auth.verification.email")} rules={[{ type: "email", message: translate("adminPages.users.usersModals.enterAValidEmail") }]}>
                     <Input placeholder="name@example.com" />
                 </Form.Item>
-                <Form.Item className="is-wide" name="password" label="重置密码" extra="留空表示不修改；保存后该用户已有登录会话会失效。" rules={[{ min: 8, message: "密码至少 8 位" }]}>
-                    <Input.Password placeholder="输入新密码以手动重置" autoComplete="new-password" />
+                <Form.Item
+                    className="is-wide"
+                    name="password"
+                    label={translate("auth.recovery.submit")}
+                    extra={translate("adminPages.users.usersModals.leaveBlankToKeepThePasswordSavingInvalidatesThisUser")}
+                    rules={[{ min: 8, message: translate("adminPages.users.usersModals.passwordMustBeAtLeast8Characters") }]}
+                >
+                    <Input.Password placeholder={translate("adminPages.users.usersModals.enterANewPasswordToResetManually")} autoComplete="new-password" />
                 </Form.Item>
-                <Form.Item name="role" label="角色" extra={editingSelf ? "不能在此修改当前管理员自己的角色。" : "角色变更会立即影响后台访问权限。"}>
+                <Form.Item
+                    name="role"
+                    label={translate("account.welcome.chapters.world.label")}
+                    extra={editingSelf ? translate("adminPages.users.usersModals.youCannotChangeYourOwnAdminRoleHere") : translate("adminPages.users.usersModals.roleChangesTakeEffectOnAdminAccessImmediately")}
+                >
                     <Select
                         disabled={editingSelf}
                         options={[
-                            { label: "管理员", value: "admin" },
-                            { label: "普通用户", value: "user" },
+                            { label: translate("shell.account.admin"), value: "admin" },
+                            { label: translate("adminPages.users.usersModals.regularUser"), value: "user" },
                         ]}
                     />
                 </Form.Item>
-                <Form.Item name="status" label="账号状态" extra={editingSelf ? "不能停用当前登录账号。" : "停用后会清除登录态，但保留身份、任务和积分流水。"}>
+                <Form.Item
+                    name="status"
+                    label={translate("adminPages.users.usersModals.accountStatus")}
+                    extra={editingSelf ? translate("adminPages.users.usersModals.youCannotDeactivateTheAccountYouAreSignedInWith") : translate("adminPages.users.usersModals.deactivatingClearsTheSignInSessionButKeepsTheIdentity")}
+                >
                     <Select
                         disabled={editingSelf}
                         options={[
-                            { label: "已启用", value: "active" },
-                            { label: "已停用", value: "disabled" },
+                            { label: translate("account.layout.oss.enabled"), value: "active" },
+                            { label: translate("adminPages.users.usersModals.disabled"), value: "disabled" },
                         ]}
                     />
                 </Form.Item>
-                <Form.Item className="is-wide" name="userGroup" label="用户分组" extra="分组决定可见的系统渠道与模型、统一折扣和货币兑换比例；用户下次刷新工作台后生效。">
+                <Form.Item className="is-wide" name="userGroup" label={translate("adminPages.users.usersModals.userGroups")} extra={translate("adminPages.users.usersModals.theGroupDeterminesVisibleSystemChannelsAndModelsSharedDiscounts")}>
                     <Select options={userGroupOptions(groups)} />
                 </Form.Item>
-                <Form.Item className="is-wide" name="isPromoter" label="推广人" valuePropName="checked" extra="推广中心设为「指定推广人」时，只有推广人能看到推广中心并获得返佣；全民推广时此标记不影响资格。">
+                <Form.Item className="is-wide" name="isPromoter" label={translate("adminPages.users.usersModals.referrer")} valuePropName="checked" extra={translate("adminPages.users.usersModals.inDesignatedReferrerModeOnlyReferrersCanSeeTheReferral")}>
                     <Switch />
                 </Form.Item>
             </Form>
@@ -161,10 +176,10 @@ export function AdminUserCreateModal({ open, groups, onClose, onCreated }: { ope
             return;
         }
         modal.confirm({
-            title: "\u653e\u5f03\u6dfb\u52a0\u7528\u6237\uff1f",
-            content: "\u5c1a\u672a\u4fdd\u5b58\u7684\u7528\u6237\u4fe1\u606f\u5c06\u4e22\u5931\u3002",
-            okText: "\u653e\u5f03\u5e76\u5173\u95ed",
-            cancelText: "\u7ee7\u7eed\u7f16\u8f91",
+            title: translate("adminPages.users.usersModals.discardTheNewUser"),
+            content: translate("adminPages.users.usersModals.unsavedUserInformationWillBeLost"),
+            okText: translate("adminPages.users.usersModals.discardAndClose"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
             okButtonProps: { danger: true },
             onOk: onClose,
         });
@@ -186,9 +201,9 @@ export function AdminUserCreateModal({ open, groups, onClose, onCreated }: { ope
             onCreated(result.user);
             form.resetFields();
             onClose();
-            message.success("\u7528\u6237\u5df2\u521b\u5efa");
+            message.success(translate("adminPages.users.usersModals.userCreated"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "\u521b\u5efa\u7528\u6237\u5931\u8d25");
+            message.error(error instanceof Error ? error.message : translate("adminPages.users.usersModals.failedToCreateUser"));
         } finally {
             setSaving(false);
         }
@@ -196,7 +211,7 @@ export function AdminUserCreateModal({ open, groups, onClose, onCreated }: { ope
 
     return (
         <AdminModal
-            title="添加用户"
+            title={translate("adminPages.users.usersModals.addUser")}
             open={open}
             width={640}
             onCancel={close}
@@ -205,44 +220,44 @@ export function AdminUserCreateModal({ open, groups, onClose, onCreated }: { ope
             footer={
                 <div className="flex justify-end gap-2">
                     <Button disabled={saving} onClick={close}>
-                        取消
+                        {translate("common.cancel")}
                     </Button>
                     <Button type="primary" loading={saving} onClick={() => void save()}>
-                        创建用户
+                        {translate("adminPages.users.usersModals.createUser")}
                     </Button>
                 </div>
             }
         >
             <Form form={form} layout="vertical" requiredMark={false} className="admin-user-form-grid">
-                <Form.Item name="username" label={"\u7528\u6237\u540d"} rules={[{ required: true, whitespace: true, message: "\u8bf7\u8f93\u5165\u7528\u6237\u540d" }]}>
-                    <Input placeholder={"3-32 \u4f4d\u5b57\u6bcd\u3001\u6570\u5b57\u3001\u4e0b\u5212\u7ebf\u6216\u8fde\u5b57\u7b26"} />
+                <Form.Item name="username" label={translate("auth.register.username")} rules={[{ required: true, whitespace: true, message: translate("adminPages.users.usersModals.enterAUsername") }]}>
+                    <Input placeholder={translate("adminPages.users.usersModals.item332LettersDigitsUnderscoresOrHyphens")} />
                 </Form.Item>
-                <Form.Item name="displayName" label={"\u663e\u793a\u540d\u79f0"} rules={[{ required: true, whitespace: true, message: "\u8bf7\u586b\u5199\u663e\u793a\u540d\u79f0" }]}>
-                    <Input placeholder={"\u7528\u6237\u5728\u4ea7\u54c1\u5185\u663e\u793a\u7684\u540d\u79f0"} />
+                <Form.Item name="displayName" label={translate("auth.register.displayName")} rules={[{ required: true, whitespace: true, message: translate("adminPages.users.usersModals.enterADisplayName") }]}>
+                    <Input placeholder={translate("adminPages.users.usersModals.theNameShownForThisUserInTheProduct")} />
                 </Form.Item>
-                <Form.Item name="email" label={"\u90ae\u7bb1"} rules={[{ type: "email", message: "\u8bf7\u8f93\u5165\u6709\u6548\u90ae\u7bb1" }]}>
+                <Form.Item name="email" label={translate("auth.verification.email")} rules={[{ type: "email", message: translate("adminPages.users.usersModals.enterAValidEmail") }]}>
                     <Input placeholder="name@example.com" />
                 </Form.Item>
-                <Form.Item name="password" label={"\u521d\u59cb\u5bc6\u7801"} rules={[{ required: true, message: "\u8bf7\u8bbe\u7f6e\u521d\u59cb\u5bc6\u7801" }]}>
-                    <Input.Password placeholder={"\u81f3\u5c11 8 \u4f4d"} />
+                <Form.Item name="password" label={translate("adminPages.users.usersModals.initialPassword")} rules={[{ required: true, message: translate("adminPages.users.usersModals.setAnInitialPassword") }]}>
+                    <Input.Password placeholder={translate("adminPages.users.usersModals.atLeast8Characters")} />
                 </Form.Item>
-                <Form.Item name="role" label={"\u89d2\u8272"}>
+                <Form.Item name="role" label={translate("account.welcome.chapters.world.label")}>
                     <Select
                         options={[
-                            { label: "\u7ba1\u7406\u5458", value: "admin" },
-                            { label: "\u666e\u901a\u7528\u6237", value: "user" },
+                            { label: translate("shell.account.admin"), value: "admin" },
+                            { label: translate("adminPages.users.usersModals.regularUser"), value: "user" },
                         ]}
                     />
                 </Form.Item>
-                <Form.Item name="status" label={"\u8d26\u53f7\u72b6\u6001"}>
+                <Form.Item name="status" label={translate("adminPages.users.usersModals.accountStatus")}>
                     <Select
                         options={[
-                            { label: "\u5df2\u542f\u7528", value: "active" },
-                            { label: "\u5df2\u505c\u7528", value: "disabled" },
+                            { label: translate("account.layout.oss.enabled"), value: "active" },
+                            { label: translate("adminPages.users.usersModals.disabled"), value: "disabled" },
                         ]}
                     />
                 </Form.Item>
-                <Form.Item name="userGroup" label="用户分组">
+                <Form.Item name="userGroup" label={translate("adminPages.users.usersModals.userGroups")}>
                     <Select options={userGroupOptions(groups)} />
                 </Form.Item>
             </Form>

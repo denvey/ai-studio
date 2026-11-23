@@ -1,3 +1,4 @@
+import { currentLocale } from "@/i18n";
 import { http } from "./request";
 
 export type ReferralMode = "all" | "assigned";
@@ -72,13 +73,13 @@ export function referralLink(code: string, origin = window.location.origin) {
 }
 
 export function formatReferralRate(basisPoints: number) {
-    return `${(basisPoints / 100).toLocaleString("zh-CN", { maximumFractionDigits: 2 })}%`;
+    return `${(basisPoints / 100).toLocaleString(currentLocale(), { maximumFractionDigits: 2 })}%`;
 }
 
 export function formatReferralCredits(microcredits: number) {
-    return (microcredits / 1_000_000).toLocaleString("zh-CN", { maximumFractionDigits: 2 });
+    return (microcredits / 1_000_000).toLocaleString(currentLocale(), { maximumFractionDigits: 2 });
 }
 
 export function formatReferralYuan(fen: number) {
-    return `¥${(fen / 100).toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `¥${(fen / 100).toLocaleString(currentLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }

@@ -11,6 +11,7 @@ import type {
     PromptOptimizerProvider,
     RegisteredPlugin,
 } from "../plugin-types";
+import { translate } from "@/i18n";
 
 export const PROMPT_OPTIMIZER_PLUGIN_ID = "prompt-optimizer";
 
@@ -57,11 +58,11 @@ const optimizerTool: PluginTextTool = {
 
 const manifest: PluginManifest = {
     id: PROMPT_OPTIMIZER_PLUGIN_ID,
-    name: "AI 提示词优化器",
+    name: translate("shared.plugins.builtin.promptOptimizer.aIPromptOptimizer"),
     version: "0.3.0",
     apiVersion: "yingce.plugin/v1",
-    description: "把模糊的生图想法整理成可执行、可比较、适配当前模型的提示词。",
-    author: "内置工具",
+    description: translate("shared.plugins.builtin.promptOptimizer.turnRoughImageIdeasIntoActionableComparablePromptsSuitedTo"),
+    author: translate("shared.plugins.builtin.promptOptimizer.builtInTools"),
     permissions: ["canvas.read", "canvas.write", "ai.text"],
     trusted: true,
     runtime: { web: "trusted-backend" },
@@ -318,13 +319,13 @@ function normalizeResult(value: Record<string, unknown> | null, sourcePrompt: st
         changes: stringArray(value?.changes),
         assumptions: stringArray(value?.assumptions),
         variants: variants(value?.variants),
-        modelProfile: modelProfile ? { id: modelProfile.id, label: modelProfile.label } : undefined,
+        modelProfile: modelProfile ? { id: modelProfile.id, label: translate(`shared.plugins.builtin.promptOptimizer.profileLabels.${modelProfile.id}`) } : undefined,
     };
 }
 
 function createPromptOptimizer(context: Parameters<NonNullable<RegisteredPlugin["createPromptOptimizer"]>>[0]): PromptOptimizerProvider {
     const textService = context.services?.ai?.text;
-    if (!textService) throw new Error("提示词优化器暂未获得文本模型服务");
+    if (!textService) throw new Error(translate("shared.plugins.builtin.promptOptimizer.thePromptOptimizerDoesNotHaveAccessToAText"));
 
     return {
         optimize: async (input, options) => {

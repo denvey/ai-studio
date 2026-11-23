@@ -6,6 +6,7 @@ import { formatTapNowBatchTime, parseTapNowShareID } from "@/lib/canvas/tapnow-i
 import { importTapNowCanvas, type TapNowImportResult } from "@/services/api/tapnow";
 import { CanvasNodeType, type CanvasConnection, type CanvasNodeData, type ViewportTransform } from "@/types/canvas";
 import type { CanvasImportSaveStatus } from "../canvas-import-save";
+import { translate } from "@/i18n";
 
 type Props = {
     open: boolean;
@@ -79,14 +80,14 @@ export function TapNowImportDialog({ open, projectId, viewport, viewportSize, on
 
     const load = async () => {
         if (!shareID) {
-            message.error("请填写有效的 TapNow 画布分享链接或分享 ID");
+            message.error(translate("canvasTools.tapnowImportDialog.enterAValidTapNowCanvasShareLinkOrShareID"));
             return;
         }
         setLoading(true);
         try {
             setResult(await importTapNowCanvas(projectId, shareID));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "读取 TapNow 画布失败");
+            message.error(error instanceof Error ? error.message : translate("canvasTools.tapnowImportDialog.failedToLoadTapNowCanvas"));
         } finally {
             setLoading(false);
         }
@@ -101,11 +102,11 @@ export function TapNowImportDialog({ open, projectId, viewport, viewportSize, on
             const status = await onApply(buildCanvasNodes(result, viewport, viewportSize), result.connections);
             reset();
             onClose();
-            const summary = `${result.importedNodeCount} 个节点和 ${result.importedConnectionCount} 条连接`;
-            if (status === "pending") message.warning(`已在本机保存 ${summary}，正在后台同步`);
-            else message.success(`已导入 ${summary}并保存到云端`);
+            const summary = translate("canvasTools.tapnowImportDialog.nodesAndConnections", { v0: String(result.importedNodeCount), v1: String(result.importedConnectionCount) });
+            if (status === "pending") message.warning(translate("canvasTools.tapnowImportDialog.savedLocallySyncingInTheBackground", { v0: String(summary) }));
+            else message.success(translate("canvasTools.tapnowImportDialog.importedAndSavedToTheCloud", { v0: String(summary) }));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "保存导入结果失败");
+            message.error(error instanceof Error ? error.message : translate("canvasTools.tapnowImportDialog.failedToSaveImportResults"));
         } finally {
             applyingRef.current = false;
             setLoading(false);
@@ -119,32 +120,32 @@ export function TapNowImportDialog({ open, projectId, viewport, viewportSize, on
             className="workspace-modal"
             open={open}
             onCancel={close}
-            title="导入 TapNow 画布"
+            title={translate("canvasTools.tapnowImportDialog.importTapNowCanvas")}
             width={620}
             footer={
                 result ? (
                     [
                         <Button key="close" onClick={close}>
-                            关闭
+                            {translate("common.close")}
                         </Button>,
                         <Button key="apply" type="primary" icon={<Import className="size-4" />} loading={loading} onClick={() => void apply()}>
-                            {saveStarted ? "重试保存" : "确认导入"}
+                            {saveStarted ? translate("library.tasks.row.retrySave") : translate("canvasTools.tapnowImportDialog.confirmImport")}
                         </Button>,
                     ]
                 ) : (
                     <Button type="primary" loading={loading} onClick={() => void load()}>
-                        读取画布
+                        {translate("canvasTools.tapnowImportDialog.readCanvas")}
                     </Button>
                 )
             }
         >
             <div className="space-y-4">
                 <div>
-                    <label className="mb-2 block text-sm font-medium">TapNow 画布分享链接或分享 ID</label>
+                    <label className="mb-2 block text-sm font-medium">{translate("canvasTools.tapnowImportDialog.tapNowCanvasShareLinkOrShareID")}</label>
                     <Input
                         value={value}
                         onChange={(event) => changeValue(event.target.value)}
-                        placeholder="粘贴 https://app.tapnow.media/tapflow/view/…"
+                        placeholder={translate("canvasTools.tapnowImportDialog.pasteHttpsAppTapnowMediaTapflowView")}
                         disabled={loading}
                         suffix={shareID && value !== shareID ? <ExternalLink className="size-4 text-foreground/35" /> : null}
                     />
@@ -152,7 +153,7 @@ export function TapNowImportDialog({ open, projectId, viewport, viewportSize, on
                 {loading && !result ? (
                     <div className="flex items-center gap-2 text-sm text-foreground/55">
                         <LoaderCircle className="size-4 animate-spin" />
-                        正在读取 TapNow 画布…
+                        {translate("canvasTools.tapnowImportDialog.loadingTapNowCanvas")}
                     </div>
                 ) : null}
                 {result ? (
@@ -160,24 +161,26 @@ export function TapNowImportDialog({ open, projectId, viewport, viewportSize, on
                         <div className="rounded-xl p-4" style={{ background: "var(--library-surface)" }}>
                             <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div>
-                                    <div className="text-sm font-semibold">{result.projectName || "TapNow 画布"}</div>
+                                    <div className="text-sm font-semibold">{result.projectName || translate("canvasTools.tapnowImportDialog.tapNowCanvas")}</div>
                                     <div className="mt-1 text-sm text-foreground/60">
-                                        可导入 {result.importedNodeCount} 个节点 · {result.importedConnectionCount} 条连线
+                                        {translate("canvasTools.inline.tapnowImportDialog.availableToImportNodesConnections", { v0: String(result.importedNodeCount), v1: String(result.importedConnectionCount) })}
                                     </div>
                                 </div>
-                                <Tag color="blue">批次：{formatTapNowBatchTime(result.batchCreatedAt)}</Tag>
+                                <Tag color="blue">{translate("canvasTools.inline.tapnowImportDialog.batch", { v0: String(formatTapNowBatchTime(result.batchCreatedAt)) })}</Tag>
                             </div>
-                            <div className="mt-3 text-xs leading-5 text-foreground/50">支持图片、视频、音频和文本节点；节点会保留相对位置，并整体放到当前可视区域中心。</div>
+                            <div className="mt-3 text-xs leading-5 text-foreground/50">{translate("canvasTools.tapnowImportDialog.supportsImageVideoAudioAndTextNodesNodesKeepTheir")}</div>
                         </div>
                         {hasWarnings ? (
                             <div className="flex items-start gap-2 rounded-lg px-3 py-2 text-xs leading-5 text-foreground/60" style={{ background: "var(--surface-hover)" }}>
                                 <CircleAlert className="mt-0.5 size-4 shrink-0" />
                                 <div>
-                                    {result.skippedNodes.length ? <div>{result.skippedNodes.length} 个暂不支持的节点未导入，相关连线已自动忽略。</div> : null}
-                                    {!result.skippedNodes.length && result.skippedConnections.length ? <div>{result.skippedConnections.length} 条无效连线已自动忽略。</div> : null}
-                                    {result.reusedFailedNodeCount ? <div>{result.reusedFailedNodeCount} 个最近任务失败但仍有历史结果的节点已保留。</div> : null}
-                                    {result.placeholderNodeCount ? <div>{result.placeholderNodeCount} 个尚未生成结果的节点已作为占位节点保留。</div> : null}
-                                    {result.multiResultNodeCount ? <div>{result.multiResultNodeCount} 个多结果节点已使用首个结果。</div> : null}
+                                    {result.skippedNodes.length ? <div>{translate("canvasTools.inline.tapnowImportDialog.unsupportedNodesWereNotImportedTheirConnectionsWereIgnoredAutomatically", { v0: String(result.skippedNodes.length) })}</div> : null}
+                                    {!result.skippedNodes.length && result.skippedConnections.length ? (
+                                        <div>{translate("canvasTools.inline.tapnowImportDialog.invalidConnectionsWereIgnoredAutomatically", { v0: String(result.skippedConnections.length) })}</div>
+                                    ) : null}
+                                    {result.reusedFailedNodeCount ? <div>{translate("canvasTools.inline.tapnowImportDialog.nodesWithFailedRecentTasksButPreviousResultsWereRetained", { v0: String(result.reusedFailedNodeCount) })}</div> : null}
+                                    {result.placeholderNodeCount ? <div>{translate("canvasTools.inline.tapnowImportDialog.nodesWithoutGeneratedResultsWereRetainedAsPlaceholders", { v0: String(result.placeholderNodeCount) })}</div> : null}
+                                    {result.multiResultNodeCount ? <div>{translate("canvasTools.inline.tapnowImportDialog.nodesWithMultipleResultsUseTheirFirstResult", { v0: String(result.multiResultNodeCount) })}</div> : null}
                                     {result.warnings.map((warning, index) => (
                                         <div key={`${warning.id || "warning"}-${index}`}>{warning.message}</div>
                                     ))}
@@ -185,7 +188,7 @@ export function TapNowImportDialog({ open, projectId, viewport, viewportSize, on
                             </div>
                         ) : null}
                         <div className="flex flex-wrap gap-2">
-                            <Tag>{saveStarted ? "保存未完成，导入内容仍保留" : "等待确认导入"}</Tag>
+                            <Tag>{saveStarted ? translate("canvasTools.tapnowImportDialog.saveIncompleteImportedContentIsRetained") : translate("canvasTools.tapnowImportDialog.awaitingImportConfirmation")}</Tag>
                         </div>
                     </div>
                 ) : null}

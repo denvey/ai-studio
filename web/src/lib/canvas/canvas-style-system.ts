@@ -1,4 +1,6 @@
 import type { StyleProfileSnapshot } from "@/lib/canvas/style-profile";
+import { translate } from "@/i18n";
+
 
 export type ProjectStyleWorldId = "xianxia" | "urban" | "historical" | "suspense" | "science-fiction" | "pastoral";
 export type ProjectStyleToneId = "epic" | "dark" | "light-comedy" | "romantic" | "healing";
@@ -347,6 +349,6 @@ function stylePreviewImage(selection: ProjectStyleSelection) {
 
 function requiredOption<T extends string>(options: Array<StyleOption<T>>, id: T) {
     const option = options.find((item) => item.id === id);
-    if (!option) throw new Error(`未知项目画风选项：${id}`);
+    if (!option) throw new Error(translate("shared.canvas.canvasStyleSystem.unknownProjectVisualStyleOption", { v0: String(id) }));
     return option;
 }

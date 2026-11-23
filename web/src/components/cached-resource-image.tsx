@@ -4,6 +4,8 @@ import { getResourceAccess, resolveResourceAccessURL, resourceIdFromStorageKey, 
 import { getActiveUserScope } from "@/lib/user-scope";
 import { resolveImageUrl } from "@/services/image-storage";
 import { prepareCanvasImage } from "@/services/canvas-image-loader";
+import { translate } from "@/i18n";
+
 
 type CachedResourceImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> & {
     storageKey?: string;
@@ -75,7 +77,7 @@ export function CachedResourceImage({ storageKey, src = "", fallback = null, loa
             } else if (localImageResource && storageKey) {
                 candidate = (await resolveImageUrl(storageKey, src)) || src;
             }
-            if (!candidate) throw new Error("图片地址为空");
+            if (!candidate) throw new Error(translate("shared.cachedResourceImage.theImageURLIsEmpty"));
             try {
                 await prepareCanvasImage(candidate, controller.signal);
             } catch (error) {

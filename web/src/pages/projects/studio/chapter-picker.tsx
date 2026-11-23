@@ -11,6 +11,7 @@ import { getDramaChapter, listDramaChapters, produceDramaChapters, type DramaCha
 
 import { ChapterPickList, type ChapterPickItem } from "../chapter-pick-list";
 import { formatCount } from "../drama-shared";
+import { translate } from "@/i18n";
 
 const MAX_CHAPTERS_PER_EPISODE = 12;
 
@@ -58,7 +59,7 @@ export function ChapterPickerModal({
                 words: chapter.wordCount,
                 warn: chapter.reserved && chapter.wordCount > EPISODE_SOURCE_CHARS,
                 disabled: !chapter.reserved,
-                note: chapter.reserved ? undefined : chapter.episodeNumber ? `第 ${chapter.episodeNumber} 集` : "已加入",
+                note: chapter.reserved ? undefined : chapter.episodeNumber ? translate("drama.studio.chapterPicker.episode2", { v0: String(chapter.episodeNumber) }) : translate("drama.studio.chapterPicker.joined"),
             })),
         [chapters],
     );
@@ -77,44 +78,51 @@ export function ChapterPickerModal({
     const problem = blockedReason
         ? blockedReason
         : longChapters
-          ? `选中的 ${longChapters} 章原文超过 ${EPISODE_SOURCE_CHARS / 10_000} 万字，请先在该集的原文里拆开或取消选中`
+          ? translate("drama.studio.chapterPicker.selectedChaptersExceed10000CharactersEachSplitTheirSource", { v0: String(longChapters), v1: String(EPISODE_SOURCE_CHARS / 10_000) })
           : oversized
-            ? `${oversized.label}合计 ${formatCount(oversized.chars)} 字，每集原文不超过 ${formatCount(EPISODE_GROUP_CHARS)} 字，请减少每集章数`
+            ? translate("drama.studio.chapterPicker.totalsCharactersEachEpisodeSSourceIsLimitedToCharacters", { v0: String(oversized.label), v1: String(formatCount(oversized.chars)), v2: String(formatCount(EPISODE_GROUP_CHARS)) })
             : "";
 
     const produce = useMutation({
         mutationFn: () => produceDramaChapters(projectId, { chapterIds: chosen.map((index) => chapters[index].id), chaptersPerEpisode: size }),
         onSuccess: (result) => {
-            message.success(`已加入 ${chosen.length} 章，新建 ${result.episodeIds.length} 集，开始改编`);
+            message.success(translate("drama.studio.chapterPicker.addedChaptersAndCreatedEpisodesAdaptationStarted", { v0: String(chosen.length), v1: String(result.episodeIds.length) }));
             setPicked(null);
             onProduced(result.episodeIds);
         },
-        onError: (error) => message.error(error instanceof Error ? error.message : "加入制作失败"),
+        onError: (error) => message.error(error instanceof Error ? error.message : translate("drama.studio.chapterPicker.failedToAddToProduction")),
     });
 
     return (
-        <AppModal open={open} onCancel={onClose} footer={null} title={null} closable={false} flush centered width="min(1120px, calc(100vw - 48px))" rootClassName="drama-root" aria-label="原著章节">
+        <AppModal open={open} onCancel={onClose} footer={null} title={null} closable={false} flush centered width="min(1120px, calc(100vw - 48px))" rootClassName="drama-root" aria-label={translate("drama.studio.chapterPicker.originalChapters")}>
             <div className="drama-composer">
                 <header className="drama-composer-head">
                     <div className="min-w-0">
-                        <strong>原著章节</strong>
-                        <span>勾选导入时未加入制作的章节，按章节顺序建成新的集追加在末尾；已做好的集不受影响</span>
+                        <strong>{translate("drama.studio.chapterPicker.originalChapters")}</strong>
+                        <span>{translate("drama.studio.chapterPicker.selectChaptersOmittedDuringImportToAppendNewEpisodesIn")}</span>
                     </div>
-                    <Button type="text" icon={<X className="size-4" />} aria-label="关闭" onClick={onClose} />
+                    <Button type="text" icon={<X className="size-4" />} aria-label={translate("common.close")} onClick={onClose} />
                 </header>
                 <div className="drama-composer-body drama-chapter-picker-body">
                     <aside className="drama-chapter-picker-side">
                         {chaptersQuery.isLoading ? (
-                            <div className="drama-empty is-compact">正在读取原著目录…</div>
+                            <div className="drama-empty is-compact">{translate("drama.studio.chapterPicker.loadingOriginalChapterList")}</div>
                         ) : chaptersQuery.isError ? (
                             <div className="drama-empty is-compact">
-                                原著目录读取失败
+                                {translate("drama.studio.chapterPicker.failedToLoadTheOriginalChapterList")}
                                 <Button size="small" onClick={() => void chaptersQuery.refetch()}>
-                                    重试
+                                    {translate("common.retry")}
                                 </Button>
                             </div>
                         ) : (
-                            <ChapterPickList items={items} selected={selection} onChange={(next) => setPicked({ source: chapters, chapters: next })} previewIndex={previewIndex ?? firstReserved} onPreview={setPreviewIndex} quickLabel="接下来" />
+                            <ChapterPickList
+                                items={items}
+                                selected={selection}
+                                onChange={(next) => setPicked({ source: chapters, chapters: next })}
+                                previewIndex={previewIndex ?? firstReserved}
+                                onPreview={setPreviewIndex}
+                                quickLabel={translate("drama.studio.chapterPicker.next")}
+                            />
                         )}
                     </aside>
                     <section className="drama-composer-editor">
@@ -124,33 +132,45 @@ export function ChapterPickerModal({
                                 {problem}
                             </div>
                         ) : null}
-                        <div className="drama-chapter-picker-preview thin-scrollbar" aria-label="原文预览">
+                        <div className="drama-chapter-picker-preview thin-scrollbar" aria-label={translate("drama.studio.chapterPicker.sourcePreview")}>
                             {preview ? (
                                 <>
                                     <h3>
                                         {preview.title}
                                         <small>
-                                            {formatCount(preview.wordCount)} 字{preview.reserved ? " · 未加入制作" : preview.episodeNumber ? ` · 第 ${preview.episodeNumber} 集` : ""}
+                                            {formatCount(preview.wordCount)} {translate("drama.studio.chapterPicker.characters")}
+                                            {preview.reserved ? " " + translate("drama.studio.chapterPicker.notInProduction") : preview.episodeNumber ? translate("drama.studio.chapterPicker.episode", { v0: String(preview.episodeNumber) }) : ""}
                                         </small>
                                     </h3>
-                                    <p>{previewQuery.isLoading ? "正在读取原文…" : previewQuery.isError ? "原文读取失败" : (previewQuery.data?.chapter.sourceText || "").slice(0, 8000)}</p>
+                                    <p>
+                                        {previewQuery.isLoading
+                                            ? translate("drama.studio.chapterPicker.loadingSourceText")
+                                            : previewQuery.isError
+                                              ? translate("drama.studio.chapterPicker.failedToLoadSourceText")
+                                              : (previewQuery.data?.chapter.sourceText || "").slice(0, 8000)}
+                                    </p>
                                 </>
                             ) : (
-                                <p>没有原著章节</p>
+                                <p>{translate("drama.studio.chapterPicker.noOriginalChapters")}</p>
                             )}
                         </div>
                     </section>
                 </div>
                 <footer className="drama-composer-foot">
                     <span className="drama-chapter-picker-size">
-                        每集
-                        <InputNumber size="small" min={1} max={MAX_CHAPTERS_PER_EPISODE} precision={0} value={size} onChange={(value) => setPerEpisode(value || 1)} aria-label="每集章数" />章
+                        {translate("drama.studio.chapterPicker.perEpisode")}
+                        <InputNumber size="small" min={1} max={MAX_CHAPTERS_PER_EPISODE} precision={0} value={size} onChange={(value) => setPerEpisode(value || 1)} aria-label={translate("drama.studio.chapterPicker.chaptersPerEpisode")} />
+                        {translate("drama.studio.chapterPicker.chapters")}
                     </span>
-                    <span className="drama-composer-count">{reservedCount ? `未加入制作 ${formatCount(reservedCount)} 章 · 选中 ${formatCount(chosen.length)} 章将建成 ${formatCount(groups.length)} 集` : "原著章节已全部加入制作"}</span>
+                    <span className="drama-composer-count">
+                        {reservedCount
+                            ? translate("drama.studio.chapterPicker.chaptersNotInProductionSelectedChaptersWillCreateEpisodes", { v0: String(formatCount(reservedCount)), v1: String(formatCount(chosen.length)), v2: String(formatCount(groups.length)) })
+                            : translate("drama.studio.chapterPicker.allOriginalChaptersAreInProduction")}
+                    </span>
                     <span className="flex-1" />
-                    <Button onClick={onClose}>取消</Button>
+                    <Button onClick={onClose}>{translate("common.cancel")}</Button>
                     <Button type="primary" disabled={!chosen.length || Boolean(problem)} loading={produce.isPending} onClick={() => produce.mutate()}>
-                        加入制作
+                        {translate("drama.studio.chapterPicker.addToProduction")}
                     </Button>
                 </footer>
             </div>

@@ -5,6 +5,7 @@ import { useUpstreamNodes } from "@/components/canvas/canvas-node-graph-context"
 import { getNodeResourceKind } from "@/lib/canvas/node-registry";
 import type { CanvasTheme } from "@/lib/canvas-theme";
 import type { CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 type CompareNodeContentProps = {
     node: CanvasNodeData;
@@ -32,7 +33,7 @@ export function CompareNodeContent({ node, theme }: CompareNodeContentProps) {
         return (
             <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-4 text-center" style={{ color: theme.node.muted }}>
                 <Columns2 className="size-5 opacity-60" />
-                <span style={{ fontSize: "var(--fs-label)" }}>{images.length === 1 ? "再连一张图片即可对比" : "连接两张图片进行对比"}</span>
+                <span style={{ fontSize: "var(--fs-label)" }}>{images.length === 1 ? translate("canvasTools.nodes.compareNode.connectAnotherImageToCompare") : translate("canvasTools.nodes.compareNode.connectTwoImagesToCompare")}</span>
             </div>
         );
     }

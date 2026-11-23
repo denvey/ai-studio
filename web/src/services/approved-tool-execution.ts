@@ -5,6 +5,8 @@ import { waitForGenerationTask } from "./api/task-center";
 import type { CreativeQuote } from "@/lib/creation/creative-agent-contract";
 import { getActiveUserScope } from "@/lib/user-scope";
 import { logicalModelIDForConfig, resolveModelRequestConfig } from "@/stores/use-config-store";
+import { translate } from "@/i18n";
+
 
 type Request = Parameters<typeof runBackendToolGenerationTask>[0];
 type Pending = { submission: CreationSubmission; externalBilling: boolean; resolve: () => void; reject: (error: Error) => void };
@@ -41,13 +43,13 @@ export class ApprovedToolExecution {
             this.assertLive();
             const detail = this.options.runId ? await this.api.get(this.options.runId, this.controller.signal) : await this.api.create({ clientKey: this.options.clientKey, state: this.options.identity }, this.controller.signal);
             this.assertLive();
-            if (Object.entries(this.options.identity).some(([key, value]) => detail.run.state[key] !== value)) throw new Error("原分析的图片、节点或模型已变化，请开始新的分析");
+            if (Object.entries(this.options.identity).some(([key, value]) => detail.run.state[key] !== value)) throw new Error(translate("shared.approvedToolExecution.theOriginalAnalysisImageNodeOrModelHasChangedStart"));
             this.run = await this.api.claim(detail.run.id, { expectedEpoch: detail.run.executionEpoch, owner: this.owner }, this.controller.signal);
             this.assertLive();
             this.options.onRun(this.run.id);
             this.heartbeat = setInterval(() => {
                 if (this.disposed) return;
-                void (async () => { this.assertLive(); await this.api.heartbeat(this.run!.id, this.guard(), this.controller.signal); })().catch(() => this.abort(new Error("分析连接已中断，请重新打开后继续")));
+                void (async () => { this.assertLive(); await this.api.heartbeat(this.run!.id, this.guard(), this.controller.signal); })().catch(() => this.abort(new Error(translate("shared.approvedToolExecution.analysisConnectionInterruptedReopenItToContinue"))));
             }, 15_000);
         })();
     }
@@ -71,13 +73,13 @@ export class ApprovedToolExecution {
         await this.initialize();
         this.assertLive();
         const stage = request.metadata?.stage;
-        if (!stage) throw new Error("分析阶段缺少稳定标识");
+        if (!stage) throw new Error(translate("shared.approvedToolExecution.theAnalysisStageIsMissingAStableIdentifier"));
         let submission = await this.api.prepare(this.run!.id, { ...this.guard(), itemKey: `stage:${stage}`, request: prepareBackendToolGenerationTask(request) }, this.controller.signal);
         this.assertLive();
         if (submission.revokedAt) {
             const detail = await this.api.get(this.run!.id, this.controller.signal);
             submission = detail.submissions.find((item) => item.requestHash === submission.requestHash && !item.revokedAt) || submission;
-            if (submission.revokedAt) throw new Error("原报价已失效，无法恢复此阶段");
+            if (submission.revokedAt) throw new Error(translate("shared.approvedToolExecution.theOriginalQuoteHasExpiredThisStageCannotBeResumed"));
         }
         if (!submission.taskId && Date.parse(submission.quote.expiresAt) <= Date.now()) submission = await this.api.refreshQuote(this.run!.id, { ...this.guard(), submissionId: submission.id }, this.controller.signal);
         this.assertLive();
@@ -99,7 +101,7 @@ export class ApprovedToolExecution {
         if (this.busy || this.disposed || this.controller.signal.aborted) return;
         const ids = new Set(submissionIds);
         const batch = [...this.pending.values()].filter((item) => ids.has(item.submission.id) && !item.submission.approvedAt);
-        if (batch.length !== ids.size) { this.error = "报价已变化，请核对当前费用卡后确认"; this.emit(); return; }
+        if (batch.length !== ids.size) { this.error = translate("shared.approvedToolExecution.theQuoteHasChangedReviewTheCurrentFeeCardBefore"); this.emit(); return; }
         if (!batch.length) return;
         this.busy = true; this.error = undefined; this.emit();
         try {
@@ -107,17 +109,17 @@ export class ApprovedToolExecution {
             const result = await this.api.approve(this.run!.id, { ...this.guard(), submissionIds: batch.map((item) => item.submission.id) }, this.controller.signal);
             this.assertLive();
             if (batch.some((item) => !result.submissions.some((candidate) => candidate.id === item.submission.id && candidate.approvedAt))) {
-                const error = new Error("费用确认回执不完整，请继续上次分析以读取实际状态");
+                const error = new Error(translate("shared.approvedToolExecution.theCostConfirmationReceiptIsIncompleteResumeThePreviousAnalysis"));
                 this.abort(error);
                 throw error;
             }
             for (const item of batch) {
                 const approved = result.submissions.find((candidate) => candidate.id === item.submission.id && candidate.approvedAt);
-                if (!approved) throw new Error("费用确认结果不完整，请重新核对");
+                if (!approved) throw new Error(translate("shared.approvedToolExecution.theCostConfirmationResultIsIncompleteCheckAgain"));
                 item.submission = approved;
             }
             batch.forEach((item) => item.resolve());
-        } catch (error) { this.error = error instanceof Error ? error.message : "费用确认失败"; }
+        } catch (error) { this.error = error instanceof Error ? error.message : translate("shared.approvedToolExecution.failedToConfirmFees"); }
         finally { this.busy = false; this.emit(); }
     }
 
@@ -131,7 +133,7 @@ export class ApprovedToolExecution {
                 item.submission = await this.api.refreshQuote(this.run!.id, { ...this.guard(), submissionId: item.submission.id }, this.controller.signal);
                 this.assertLive();
             }
-        } catch (error) { this.error = error instanceof Error ? error.message : "报价刷新失败"; }
+        } catch (error) { this.error = error instanceof Error ? error.message : translate("shared.approvedToolExecution.failedToRefreshTheQuote"); }
         finally { this.busy = false; this.emit(); }
     }
 
@@ -141,11 +143,11 @@ export class ApprovedToolExecution {
         const externalBilling = [...this.pending.values()].some((item) => !item.submission.approvedAt && item.externalBilling);
         const estimated = items.some((item) => item.quote.estimated);
         this.options.onState({ busy: this.busy, error: this.error, quote: items.length ? {
-            id: items.map((item) => item.id).join(":"), title: "确认本批分析费用",
-            items: items.map((item) => ({ id: item.id, label: stageLabel(item.stage), model: item.quote.model, quantity: item.quote.quantity, specification: `${item.quote.estimated ? "预计" : ""} ${item.quote.amountMicrocredits / 1_000_000} 积分` })),
-            amountLabel: `${externalBilling ? "平台 " : ""}${estimated ? "预计 " : ""}${items.reduce((sum, item) => sum + item.quote.amountMicrocredits, 0) / 1_000_000} 积分${externalBilling ? " + 外部渠道费用" : ""}`,
+            id: items.map((item) => item.id).join(":"), title: translate("shared.approvedToolExecution.confirmThisAnalysisBatchSCost"),
+            items: items.map((item) => ({ id: item.id, label: stageLabel(item.stage), model: item.quote.model, quantity: item.quote.quantity, specification: translate("shared.generationTaskBilling.credits", { v0: String(item.quote.estimated ? translate("shared.modelPricing.estimated") : ""), v1: String(item.quote.amountMicrocredits / 1_000_000) }) })),
+            amountLabel: translate("shared.approvedToolExecution.credits", { v0: String(externalBilling ? (translate("auth.register.platform") + " ") : ""), v1: String(estimated ? (translate("shared.modelPricing.estimated") + " ") : ""), v2: String(items.reduce((sum, item) => sum + item.quote.amountMicrocredits, 0) / 1_000_000), v3: String(externalBilling ? (" " + translate("shared.approvedToolExecution.externalChannelFees")) : "") }),
             externalBilling,
-            basis: "仅批准本批列出的模型调用；按用量计费时按实际结算，估算不是费用上限。后续阶段根据分析结果另行报价。",
+            basis: translate("shared.approvedToolExecution.approveOnlyTheModelRequestsListedInThisBatchUsage"),
             expiresAt: items.map((item) => item.quote.expiresAt).sort()[0],
         } : undefined });
     }
@@ -165,5 +167,5 @@ export class ApprovedToolExecution {
 }
 
 function stageLabel(key: string) {
-    return ({ analyze_art_scene: "理解画面", review_art_composition: "分析构图", review_art_color: "分析色彩", review_art_lighting: "分析光线", review_art_structure: "分析结构", aggregate_art_critique: "整理问题", ground_art_critique_issues: "定位问题", verify_art_critique: "复核结论", generate_art_edit_prompts: "编写修改建议" } as Record<string, string>)[key.replace(/^stage:/, "")] || "分析阶段";
+    return ({ analyze_art_scene: translate("shared.approvedToolExecution.understandImage"), review_art_composition: translate("shared.approvedToolExecution.analyzeComposition"), review_art_color: translate("shared.approvedToolExecution.analyzeColors"), review_art_lighting: translate("shared.approvedToolExecution.analyzeLighting"), review_art_structure: translate("shared.approvedToolExecution.analyzeStructure"), aggregate_art_critique: translate("shared.approvedToolExecution.organizeIssues"), ground_art_critique_issues: translate("shared.approvedToolExecution.locateIssues"), verify_art_critique: translate("shared.approvedToolExecution.reviewConclusions"), generate_art_edit_prompts: translate("shared.approvedToolExecution.writeEditSuggestions") } as Record<string, string>)[key.replace(/^stage:/, "")] || translate("shared.approvedToolExecution.analysisStage");
 }

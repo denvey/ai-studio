@@ -10,16 +10,17 @@ import { EditorTranscription } from "./editor-transcription";
 import { EditorExport } from "./editor-export";
 import { EditorAiAssistant } from "./editor-ai-assistant";
 import "./editor-shell.css";
+import { translate } from "@/i18n";
 
 export const EDITOR_SHELL_PLUGIN_ID = "editor-shell";
 
 const manifest: PluginManifestV2 = {
     apiVersion: "yingce.plugin/v2",
     id: EDITOR_SHELL_PLUGIN_ID,
-    name: "剪辑工作台",
+    name: translate("shared.plugins.builtin.editor.editorShell.editingWorkbench"),
     version: "0.1.0",
-    description: "注册时间线、预览、检查器、素材、字幕、转写、导出和 AI 编辑八个工作台插槽。",
-    author: "影策团队",
+    description: translate("shared.plugins.builtin.editor.editorShell.registersEightWorkbenchSlotsTimelinePreviewInspectorAssetsSubtitlesTranscription"),
+    author: translate("shared.plugins.builtin.editor.editorShell.yingceTeam"),
     surfaces: ["fullscreen"],
     permissions: ["timeline.read", "timeline.command", "export.run"],
     trusted: true,

@@ -6,8 +6,17 @@ import { priceCurrencyUnit } from "@/services/api/user-groups";
 import type { ChannelModelFormValues as FormValues } from "./channel-model-editor-form";
 import { validateTokenPriceRules } from "./channel-model-editor-form";
 import { defaultTokenPriceRule, tokenRuleClockMinutes, tokenRulesMatchingNow, type PriceTierFormValues, type TokenPriceRuleFormValues } from "./channel-model-price-tier-form";
+import { currentLocale, translate } from "@/i18n";
 
-const weekdayOptions = ["一", "二", "三", "四", "五", "六", "日"].map((label, index) => ({ label, value: index + 1 }));
+const weekdayOptions = [
+    translate("admin.channelModelTokenRules.mon"),
+    translate("admin.channelModelTokenRules.tue"),
+    translate("admin.channelModelTokenRules.wed"),
+    translate("admin.channelModelTokenRules.thu"),
+    translate("admin.channelModelTokenRules.fri"),
+    translate("admin.channelModelTokenRules.sat"),
+    translate("admin.channelModelTokenRules.sun"),
+].map((label, index) => ({ label, value: index + 1 }));
 
 /**
  * 文本 Token 价格档的分时与上下文价格。规则挂在某个 Token 价格档上：时段按任务创建时的上海时间锁定，
@@ -24,18 +33,22 @@ export function TokenPriceRulesSection({ form, onDirty }: { form: FormInstance<F
     if (tierIndex === undefined) return null;
     const tier = tiers[tierIndex];
     const matching = tokenRulesMatchingNow(rules);
-    const statusLabel = !enabled ? "未启用，全部按基础价" : matching.length ? `当前时段命中第 ${matching.map((index) => index + 1).join("、")} 条` : "当前时段未命中，按基础价";
+    const statusLabel = !enabled
+        ? translate("admin.channelModelTokenRules.disabledAllRequestsUseTheBasePrice")
+        : matching.length
+          ? translate("admin.channelModelTokenRules.currentTimeSlotMatchesRules", { v0: String(matching.map((index) => index + 1).join("、")) })
+          : translate("admin.channelModelTokenRules.noCurrentTimeSlotMatchUsingTheBasePrice");
     return (
-        <section className="admin-model-editor-section" aria-label="分时与上下文价格">
+        <section className="admin-model-editor-section" aria-label={translate("admin.channelModelTokenRules.timeAndContextPricing")}>
             <div className="admin-token-rules-header">
                 <header className="admin-model-editor-section-heading">
-                    <h2>分时与上下文价格</h2>
-                    <p>按上海时间的时段和输入 Token 区间设置独立 Token 价格；任务创建时锁定时段，结算时按上游真实输入 Token 选档，都未命中时使用基础价格。</p>
+                    <h2>{translate("admin.channelModelTokenRules.timeAndContextPricing")}</h2>
+                    <p>{translate("admin.channelModelTokenRules.setSeparateTokenPricesByShanghaiTimeSlotAndInput")}</p>
                 </header>
                 <div className="admin-price-tier-toggle">
-                    <span>启用扩展</span>
+                    <span>{translate("admin.channelModelTokenRules.enableExtension")}</span>
                     <Form.Item noStyle name={["priceTiers", tierIndex, "tokenRulesEnabled"]} valuePropName="checked">
-                        <Switch aria-label="启用分时与上下文价格" onChange={onDirty} />
+                        <Switch aria-label={translate("admin.channelModelTokenRules.enableTimeAndContextPricing")} onChange={onDirty} />
                     </Form.Item>
                 </div>
             </div>
@@ -43,11 +56,14 @@ export function TokenPriceRulesSection({ form, onDirty }: { form: FormInstance<F
                 <div className="admin-token-rules-toolbar">
                     {tokenTierIndexes.length > 1 ? (
                         <label className="admin-token-rules-tier-picker">
-                            <span>Token 基础价格档</span>
+                            <span>{translate("admin.channelModelTokenRules.baseTokenPriceTier")}</span>
                             <Select value={tierIndex} onChange={(value) => setPreferredTier(Number(value))} options={tokenTierIndexes.map((index) => ({ value: index, label: tierLabel(tiers[index], index) }))} />
                         </label>
                     ) : (
-                        <span className="admin-token-rules-tier-name">基础价格档：{tierLabel(tier, tierIndex)}</span>
+                        <span className="admin-token-rules-tier-name">
+                            {translate("admin.channelModelTokenRules.basePriceTier")}
+                            {tierLabel(tier, tierIndex)}
+                        </span>
                     )}
                     <span className="admin-price-tier-cost-badge" role="status">
                         {statusLabel}
@@ -66,7 +82,7 @@ export function TokenPriceRulesSection({ form, onDirty }: { form: FormInstance<F
                     {(fields, { add, remove }, { errors }) => (
                         <div className="admin-price-tier-list-shell">
                             {fields.length ? (
-                                <div className="admin-price-tier-list" aria-label="分时与上下文价格规则">
+                                <div className="admin-price-tier-list" aria-label={translate("admin.channelModelTokenRules.timeAndContextPricingRules")}>
                                     {fields.map((field, ordinal) => (
                                         <TokenPriceRuleCard
                                             key={field.key}
@@ -84,7 +100,7 @@ export function TokenPriceRulesSection({ form, onDirty }: { form: FormInstance<F
                                     ))}
                                 </div>
                             ) : (
-                                <p className="admin-token-rules-empty">还没有规则。添加后可按星期、时段和输入上下文长度设置不同单价，例如夜间优惠价或长上下文加价。</p>
+                                <p className="admin-token-rules-empty">{translate("admin.channelModelTokenRules.noRulesYetAddRulesToSetDifferentUnitPrices")}</p>
                             )}
                             <div className="admin-price-tier-list-footer">
                                 <Button
@@ -97,7 +113,7 @@ export function TokenPriceRulesSection({ form, onDirty }: { form: FormInstance<F
                                         add(defaultTokenPriceRule(tier));
                                     }}
                                 >
-                                    添加时段档位
+                                    {translate("admin.channelModelTokenRules.addTimeSlotTier")}
                                 </Button>
                                 <Form.ErrorList errors={errors} />
                             </div>
@@ -110,7 +126,7 @@ export function TokenPriceRulesSection({ form, onDirty }: { form: FormInstance<F
 }
 
 function tierLabel(tier: PriceTierFormValues | undefined, index: number) {
-    return `${String(index + 1).padStart(2, "0")} · ${tier?.matchMode === "default" ? "默认 Token 价格档" : "规格 Token 价格档"}`;
+    return `${String(index + 1).padStart(2, "0")} · ${tier?.matchMode === "default" ? translate("admin.channelModelTokenRules.defaultTokenPriceTier") : translate("admin.channelModelTokenRules.specificationTokenPriceTier")}`;
 }
 
 function TokenPriceRuleCard({ form, path, name, ordinal, priceUnit, onDirty, onRemove }: { form: FormInstance<FormValues>; path: (string | number)[]; name: number; ordinal: number; priceUnit: string; onDirty: () => void; onRemove: () => void }) {
@@ -118,53 +134,68 @@ function TokenPriceRuleCard({ form, path, name, ordinal, priceUnit, onDirty, onR
     const enabled = rule?.enabled !== false;
     const min = rule?.minInputTokens || 0;
     const max = rule?.maxInputTokens || 0;
-    const summary = max > 0 ? `输入 ${min.toLocaleString("zh-CN")} – ${max.toLocaleString("zh-CN")} Token` : `输入 ${min.toLocaleString("zh-CN")} Token 以上`;
+    const summary =
+        max > 0
+            ? translate("admin.channelModelTokenRules.inputTokens", { v0: String(min.toLocaleString(currentLocale())), v1: String(max.toLocaleString(currentLocale())) })
+            : translate("admin.channelModelTokenRules.inputTokensOrMore", { v0: String(min.toLocaleString(currentLocale())) });
     return (
         <article className="admin-price-tier-card">
             <header className="admin-price-tier-card-header">
                 <div className="admin-price-tier-card-heading">
                     <span className="admin-price-tier-card-index">{String(ordinal).padStart(2, "0")}</span>
                     <div className="admin-price-tier-card-heading-copy">
-                        <div className="admin-price-tier-card-title">{enabled ? "参与计费" : "不参与计费"}</div>
+                        <div className="admin-price-tier-card-title">{enabled ? translate("admin.channelModelTokenRules.includedInBilling") : translate("admin.channelModelTokenRules.excludedFromBilling")}</div>
                         <div className="admin-price-tier-card-summary">{summary}</div>
                     </div>
                 </div>
                 <div className="admin-price-tier-card-actions">
                     <Form.Item noStyle name={[name, "enabled"]} valuePropName="checked">
-                        <Switch aria-label={`规则 ${ordinal} 参与计费`} onChange={onDirty} />
+                        <Switch aria-label={translate("admin.channelModelTokenRules.includeRuleInBilling", { v0: String(ordinal) })} onChange={onDirty} />
                     </Form.Item>
-                    <Button type="text" danger aria-label={`删除规则 ${ordinal}`} icon={<Trash2 className="size-3.5" />} onClick={onRemove}>
-                        删除
+                    <Button type="text" danger aria-label={translate("admin.channelModelTokenRules.deleteRule", { v0: String(ordinal) })} icon={<Trash2 className="size-3.5" />} onClick={onRemove}>
+                        {translate("common.delete")}
                     </Button>
                 </div>
             </header>
             <div className="admin-token-rule-body">
                 <div className="admin-token-rule-column">
-                    <Form.Item className="mb-0" name={[name, "weekdays"]} label="星期" rules={[{ required: true, type: "array", min: 1, message: "请至少选择一天" }]}>
+                    <Form.Item
+                        className="mb-0"
+                        name={[name, "weekdays"]}
+                        label={translate("admin.channelModelTokenRules.daysOfWeek")}
+                        rules={[{ required: true, type: "array", min: 1, message: translate("admin.channelModelTokenRules.selectAtLeastOneDay") }]}
+                    >
                         <Checkbox.Group options={weekdayOptions} />
                     </Form.Item>
                     <div className="admin-token-rule-pair">
-                        <Form.Item className="mb-0" name={[name, "start"]} label="开始" rules={[{ validator: async (_, value) => clockRule(value, false) }]}>
+                        <Form.Item className="mb-0" name={[name, "start"]} label={translate("admin.channelModelTokenRules.start")} rules={[{ validator: async (_, value) => clockRule(value, false) }]}>
                             <Input inputMode="numeric" maxLength={5} placeholder="00:00" />
                         </Form.Item>
-                        <Form.Item className="mb-0" name={[name, "end"]} label="结束" rules={[{ validator: async (_, value) => clockRule(value, true) }]}>
+                        <Form.Item className="mb-0" name={[name, "end"]} label={translate("admin.channelModelTokenRules.end")} rules={[{ validator: async (_, value) => clockRule(value, true) }]}>
                             <Input inputMode="numeric" maxLength={5} placeholder="24:00" />
                         </Form.Item>
                     </div>
                 </div>
                 <div className="admin-token-rule-column">
-                    <span className="admin-token-rule-label">输入上下文</span>
+                    <span className="admin-token-rule-label">{translate("admin.channelModelTokenRules.inputContext")}</span>
                     <div className="admin-token-rule-range">
                         <span aria-hidden>≥</span>
                         <Form.Item noStyle name={[name, "minInputTokens"]}>
-                            <InputNumber aria-label="输入上下文下限（含）" className="w-full" min={0} precision={0} step={1000} />
+                            <InputNumber aria-label={translate("admin.channelModelTokenRules.minimumInputContextInclusive")} className="w-full" min={0} precision={0} step={1000} />
                         </Form.Item>
                         <span>Token</span>
                     </div>
                     <div className="admin-token-rule-range">
                         <span aria-hidden>&lt;</span>
                         <Form.Item noStyle name={[name, "maxInputTokens"]}>
-                            <InputNumber aria-label="输入上下文上限（不含），留空不限" className="w-full" min={1} precision={0} step={1000} placeholder="不限制" />
+                            <InputNumber
+                                aria-label={translate("admin.channelModelTokenRules.maximumInputContextExclusiveLeaveBlankForNoLimit")}
+                                className="w-full"
+                                min={1}
+                                precision={0}
+                                step={1000}
+                                placeholder={translate("admin.channelModelTokenRules.noLimit")}
+                            />
                         </Form.Item>
                         <span>Token</span>
                     </div>
@@ -172,13 +203,19 @@ function TokenPriceRuleCard({ form, path, name, ordinal, priceUnit, onDirty, onR
                 <div className="admin-token-rule-prices">
                     {(
                         [
-                            ["inputTokenPrice", "输入"],
-                            ["outputTokenPrice", "输出"],
-                            ["cachedTokenPrice", "缓存读取"],
-                            ["cacheWriteTokenPrice", "缓存写入"],
+                            ["inputTokenPrice", translate("admin.channelModelTokenRules.input")],
+                            ["outputTokenPrice", translate("admin.channelModelTokenRules.output")],
+                            ["cachedTokenPrice", translate("admin.channelModelTokenRules.cacheRead")],
+                            ["cacheWriteTokenPrice", translate("admin.channelModelTokenRules.cacheWrite")],
                         ] as const
                     ).map(([field, label]) => (
-                        <Form.Item key={field} className="admin-price-tier-unit-price mb-0" name={[name, field]} label={`${label} ${priceUnit} / 百万 Token`} rules={[{ required: true, message: `请输入${label}价格` }]}>
+                        <Form.Item
+                            key={field}
+                            className="admin-price-tier-unit-price mb-0"
+                            name={[name, field]}
+                            label={translate("admin.channelModelTokenRules.millionTokens", { v0: String(label), v1: String(priceUnit) })}
+                            rules={[{ required: true, message: translate("admin.channelModelTokenRules.enterThePrice", { v0: String(label) }) }]}
+                        >
                             <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                         </Form.Item>
                     ))}
@@ -189,5 +226,5 @@ function TokenPriceRuleCard({ form, path, name, ordinal, priceUnit, onDirty, onR
 }
 
 function clockRule(value: unknown, end: boolean) {
-    if (tokenRuleClockMinutes(String(value ?? ""), end) === null) throw new Error(end ? "格式 HH:MM，最晚 24:00" : "格式 HH:MM，00:00–23:59");
+    if (tokenRuleClockMinutes(String(value ?? ""), end) === null) throw new Error(end ? translate("admin.channelModelTokenRules.useHHMMFormatNoLaterThan2400") : translate("admin.channelModelTokenRules.useHHMMFormat00002359"));
 }

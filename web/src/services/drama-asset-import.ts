@@ -1,6 +1,7 @@
 import { listZipEntries, readZipEntry, type ZipEntry } from "@/lib/zip-entries";
 import { getDrama, getDramaEpisode, listDramaCast, setDramaCastImage, updateDramaCast, updateDramaCastLook, updateDramaSegment, updateDramaShot, type DramaCast, type DramaCastKind, type DramaShotPatch } from "@/services/api/drama";
 import { uploadResourceFile } from "@/services/api/resources";
+import { translate } from "@/i18n";
 
 // 资产包导入：浏览器按 ZIP 中央目录只读取清单与要用的图片，按设定类型与名称、集号与段号
 // 套用到当前作品。全部写入都走现有的短剧接口，归属与校验由后端负责；视频与声音样本不导入。
@@ -60,17 +61,17 @@ export type DramaAssetImportPlan = { operations: DramaAssetImportOperation[]; sk
 export async function openDramaAssetPackage(file: Blob): Promise<DramaAssetPackage> {
     const entries = await listZipEntries(file);
     const manifestEntry = entries.filter((item) => item.name === MANIFEST_FILE || item.name.endsWith(`/${MANIFEST_FILE}`)).sort((left, right) => left.name.length - right.name.length)[0];
-    if (!manifestEntry) throw new Error(`压缩包里没有「${MANIFEST_FILE}」，请选择影策导出的短剧资产包`);
-    if (manifestEntry.size > MAX_MANIFEST_BYTES) throw new Error("资产清单过大，无法读取");
+    if (!manifestEntry) throw new Error(translate("shared.dramaAssetImport.theArchiveDoesNotContainSelectADramaAssetPackage", { v0: String(MANIFEST_FILE) }));
+    if (manifestEntry.size > MAX_MANIFEST_BYTES) throw new Error(translate("shared.dramaAssetImport.theAssetManifestIsTooLargeToRead"));
     let manifest: DramaAssetManifest;
     try {
         manifest = JSON.parse(await (await readZipEntry(file, manifestEntry)).text()) as DramaAssetManifest;
     } catch {
-        throw new Error("资产清单不是有效的 JSON，压缩包可能已损坏");
+        throw new Error(translate("shared.dramaAssetImport.theAssetManifestIsNotValidJSONTheArchiveMay"));
     }
-    if (manifest?.format !== DRAMA_ASSET_PACKAGE_FORMAT || typeof manifest.version !== "number") throw new Error("不是影策短剧资产包");
-    if (manifest.version > 1) throw new Error("资产包来自更新版本的影策，请升级后再导入");
-    if (!Array.isArray(manifest.cast) || !Array.isArray(manifest.episodes)) throw new Error("资产清单缺少设定或剧集列表");
+    if (manifest?.format !== DRAMA_ASSET_PACKAGE_FORMAT || typeof manifest.version !== "number") throw new Error(translate("shared.dramaAssetImport.notAYingceDramaAssetPackage"));
+    if (manifest.version > 1) throw new Error(translate("shared.dramaAssetImport.theAssetPackageIsFromANewerVersionOfYingce"));
+    if (!Array.isArray(manifest.cast) || !Array.isArray(manifest.episodes)) throw new Error(translate("shared.dramaAssetImport.theAssetManifestIsMissingSettingsOrTheEpisodeList"));
     const byName = new Map(entries.map((item) => [item.name, item]));
     const prefix = manifestEntry.name.slice(0, manifestEntry.name.length - MANIFEST_FILE.length);
     return {
@@ -92,7 +93,7 @@ function castKey(kind: string, name: string, look = "") {
 }
 
 function castLabel(item: Pick<DramaAssetManifestCast, "kind" | "name" | "lookName">) {
-    const kind = { character: "角色", scene: "场景", prop: "道具" }[item.kind] || "设定";
+    const kind = { character: translate("library.picker.kind.character"), scene: translate("shared.assetCategory.scene"), prop: translate("shared.drama.dramaFormat.prop") }[item.kind] || translate("shared.dramaAssetImport.design");
     return `${kind}「${item.name}${item.lookName ? ` · ${item.lookName}` : ""}」`;
 }
 
@@ -109,44 +110,53 @@ export async function planDramaAssetImport(projectId: string, pkg: DramaAssetPac
             const label = castLabel(item);
             const target = current.get(castKey(item.kind, item.name, item.lookName));
             if (!target) {
-                skipped.push(`${label}：当前作品没有同名设定`);
+                skipped.push(translate("shared.dramaAssetImport.thisProductionHasNoDesignWithTheSameName", { v0: String(label) }));
                 continue;
             }
             if (options.castImages && item.image) {
                 const entry = pkg.entry(item.image);
                 const extension = item.image.split(".").pop()?.toLowerCase() || "";
-                if (!entry) skipped.push(`${label}：压缩包里缺少参考图文件`);
-                else if (!IMAGE_MIME[extension]) skipped.push(`${label}：参考图格式不支持`);
-                else operations.push({ kind: "cast-image", label: `${label} 参考图`, castId: target.id, entry, fileName: item.image.split("/").pop() || `cast.${extension}`, mime: IMAGE_MIME[extension] });
+                if (!entry) skipped.push(translate("shared.dramaAssetImport.theReferenceImageIsMissingFromTheArchive", { v0: String(label) }));
+                else if (!IMAGE_MIME[extension]) skipped.push(translate("shared.dramaAssetImport.theReferenceImageFormatIsNotSupported", { v0: String(label) }));
+                else
+                    operations.push({
+                        kind: "cast-image",
+                        label: translate("shared.dramaAssetImport.referenceImage", { v0: String(label) }),
+                        castId: target.id,
+                        entry,
+                        fileName: item.image.split("/").pop() || `cast.${extension}`,
+                        mime: IMAGE_MIME[extension],
+                    });
             }
             if (options.castText) {
                 const appearance = item.appearance?.trim() && item.appearance.trim() !== target.appearance.trim() ? item.appearance.trim() : undefined;
                 const description = !target.parentId && item.description?.trim() && item.description.trim() !== target.description.trim() ? item.description.trim() : undefined;
-                if (appearance || description) operations.push({ kind: "cast-text", label: `${label} 外观与简介`, castId: target.id, look: Boolean(target.parentId), appearance, description });
+                if (appearance || description) operations.push({ kind: "cast-text", label: translate("shared.dramaAssetImport.appearanceAndDescription", { v0: String(label) }), castId: target.id, look: Boolean(target.parentId), appearance, description });
             }
         }
     }
     if (options.segmentPrompts || options.shotPrompts) {
-        if (!pkg.manifest.includes?.prompts) skipped.push("资产包导出时未包含提示词，跳过提示词导入");
+        if (!pkg.manifest.includes?.prompts) skipped.push(translate("shared.dramaAssetImport.theAssetPackageWasExportedWithoutPromptsPromptImportWas"));
         else {
             const summary = await getDrama(projectId);
             const episodes = new Map(summary.episodes.map((item) => [item.number, item]));
             for (const source of pkg.manifest.episodes) {
                 const row = episodes.get(source.number);
                 if (!row) {
-                    skipped.push(`第 ${source.number} 集：当前作品没有这一集`);
+                    skipped.push(translate("shared.dramaAssetImport.episodeThisEpisodeDoesNotExistInTheCurrentProduction", { v0: String(source.number) }));
                     continue;
                 }
                 const detail = await getDramaEpisode(projectId, row.id);
                 if (options.shotPrompts) {
-                    if (detail.shots.length !== source.shots.length) skipped.push(`第 ${source.number} 集镜头提示词：分镜数量不一致（资产包 ${source.shots.length} 镜，当前 ${detail.shots.length} 镜）`);
+                    if (detail.shots.length !== source.shots.length)
+                        skipped.push(translate("shared.dramaAssetImport.episodeShotPromptsShotCountsDoNotMatchInThe", { v0: String(source.number), v1: String(source.shots.length), v2: String(detail.shots.length) }));
                     else
                         source.shots.forEach((shot, index) => {
                             const target = detail.shots[index];
                             const patch: DramaShotPatch = {};
                             if (shot.imagePrompt?.trim() && shot.imagePrompt.trim() !== target.imagePrompt.trim()) patch.imagePrompt = shot.imagePrompt.trim();
                             if (shot.videoPrompt?.trim() && shot.videoPrompt.trim() !== target.videoPrompt.trim()) patch.videoPrompt = shot.videoPrompt.trim();
-                            if (Object.keys(patch).length) operations.push({ kind: "shot-prompt", label: `第 ${source.number} 集第 ${index + 1} 镜提示词`, shotId: target.id, patch });
+                            if (Object.keys(patch).length) operations.push({ kind: "shot-prompt", label: translate("shared.dramaAssetImport.episodeShotPrompts", { v0: String(source.number), v1: String(index + 1) }), shotId: target.id, patch });
                         });
                 }
                 if (options.segmentPrompts) {
@@ -155,8 +165,9 @@ export async function planDramaAssetImport(projectId: string, pkg: DramaAssetPac
                         const prompt = segment.videoPrompt?.trim();
                         if (!prompt) continue;
                         const target = segments.get(segment.index);
-                        if (!target) skipped.push(`第 ${source.number} 集第 ${segment.index + 1} 段：当前这一集没有该剧情段`);
-                        else if (prompt !== target.videoPrompt.trim()) operations.push({ kind: "segment-prompt", label: `第 ${source.number} 集第 ${segment.index + 1} 段视频提示词`, episodeId: row.id, index: segment.index, prompt });
+                        if (!target) skipped.push(translate("shared.dramaAssetImport.episodeSegmentThisSegmentDoesNotExistInTheCurrent", { v0: String(source.number), v1: String(segment.index + 1) }));
+                        else if (prompt !== target.videoPrompt.trim())
+                            operations.push({ kind: "segment-prompt", label: translate("shared.dramaAssetImport.episodeSegmentVideoPrompt", { v0: String(source.number), v1: String(segment.index + 1) }), episodeId: row.id, index: segment.index, prompt });
                     }
                 }
             }
@@ -190,7 +201,7 @@ export async function applyDramaAssetImport(projectId: string, pkg: DramaAssetPa
             }
             result.succeeded++;
         } catch (error) {
-            result.failed.push({ label: operation.label, message: error instanceof Error ? error.message : "写入失败" });
+            result.failed.push({ label: operation.label, message: error instanceof Error ? error.message : translate("shared.dramaAssetImport.failedToSave") });
         }
         done++;
         onProgress?.(done, plan.operations.length);

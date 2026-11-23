@@ -1,5 +1,7 @@
 import { getCachedResourceBlob } from "@/services/resource-blob-cache";
 import { resolveAudioSource, type CanvasAudioSource } from "@/services/canvas-audio-playback";
+import { translate } from "@/i18n";
+
 
 const waveformMemoryCache = new Map<string, number[]>();
 const waveformInFlight = new Map<string, Promise<number[]>>();
@@ -78,16 +80,16 @@ export async function loadAudioWaveform(source: CanvasAudioSource, barCount = AU
         }
         if (!arrayBuffer) {
             const url = await resolveAudioSource(source);
-            if (!url) throw new Error("缺少音频播放地址");
+            if (!url) throw new Error(translate("shared.canvas.canvasAudioWaveform.missingAudioPlaybackURL"));
             const response = await fetch(url, { credentials: "include" });
-            if (!response.ok) throw new Error(`音频读取失败 (${response.status})`);
+            if (!response.ok) throw new Error(translate("shared.canvas.canvasAudioWaveform.failedToLoadAudio", { v0: String(response.status) }));
             arrayBuffer = await response.arrayBuffer();
         }
 
         const AudioContextClass = typeof window !== "undefined"
             ? (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)
             : undefined;
-        if (!AudioContextClass) throw new Error("当前环境不支持 Web Audio API");
+        if (!AudioContextClass) throw new Error(translate("shared.canvas.canvasAudioWaveform.webAudioAPIIsNotSupportedInThisEnvironment"));
         const ctx = new AudioContextClass();
         let buffer: AudioBuffer;
         try {

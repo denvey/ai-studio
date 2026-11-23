@@ -2,6 +2,8 @@ import type { CanvasNodeData, CanvasNodeTypeId } from "@/types/canvas";
 import type { PluginCanvasNodeContribution } from "@/lib/plugins/plugin-types";
 
 import { canvasNodeDefinitionFromPlugin, type CanvasNodeDefinition } from "./node-definition";
+import { translate } from "@/i18n";
+
 
 /** 模块级注册表 */
 const definitions = new Map<CanvasNodeTypeId, CanvasNodeDefinition>();
@@ -16,7 +18,7 @@ export function registerNodeDefinitions(defs: CanvasNodeDefinition[], ownerId = 
     const ids = new Set<string>();
     for (const def of defs) {
         const owner = ownerByType.get(def.type);
-        if (ids.has(def.type) || (owner && owner !== ownerId)) throw new Error(`节点类型重复或归属冲突：${def.type}`);
+        if (ids.has(def.type) || (owner && owner !== ownerId)) throw new Error(translate("shared.canvas.nodeRegistry.nodeRegistry.duplicateNodeTypeOrOwnershipConflict", { v0: String(def.type) }));
         ids.add(def.type);
     }
     for (const def of defs) {
@@ -61,14 +63,14 @@ export function listCreatableNodeDefinitions() {
 
 /** UI 短标签 */
 export function getNodeLabel(type: CanvasNodeTypeId) {
-    return definitions.get(type)?.label || "未知节点";
+    return definitions.get(type)?.label || translate("shared.canvas.nodeRegistry.nodeRegistry.unknownNode");
 }
 
 /** 列表/搜索标签，缺省派生自 label */
 export function getNodeListLabel(type: CanvasNodeTypeId) {
     const def = definitions.get(type);
-    if (!def) return "未知节点";
-    return def.listLabel || `${def.label}节点`;
+    if (!def) return translate("shared.canvas.nodeRegistry.nodeRegistry.unknownNode");
+    return def.listLabel || translate("shared.canvas.nodeRegistry.nodeRegistry.node", { v0: String(def.label) });
 }
 
 export function getNodeIcon(type: CanvasNodeTypeId) {

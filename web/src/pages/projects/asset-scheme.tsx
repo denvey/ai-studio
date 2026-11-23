@@ -9,11 +9,25 @@ import { CHARACTER_VARIABLES, renderAssetPrompt, SCENE_VARIABLES, unknownAssetVa
 import { cn } from "@/lib/utils";
 import { getDramaAssetSchemes, type DramaAssetMode, type DramaAssetSchemeCatalog, type DramaAssetSettings, type DramaModelOption } from "@/services/api/drama";
 import { getSkillFile, listAddedSkills, listSkillFiles } from "@/services/api/skills";
+import { currentLocale, translate } from "@/i18n";
 
 // 角色/场景参考图方案：开工前选定，设置页可改。保存的是全文提示词，预览就是实际发送的内容。
 
 const PROMPT_LIMIT = 4000;
 const CUSTOM_RATIOS = ["16:9", "4:3", "1:1", "3:4", "9:16"];
+const ASSET_SCHEME_COPY: Partial<Record<DramaAssetMode, { name: string; description: string; frameHint: string }>> = {
+    portrait: { name: translate("drama.assetSchemes.portrait.name"), description: translate("drama.assetSchemes.portrait.description"), frameHint: translate("drama.assetSchemes.portrait.frameHint") },
+    turnaround: { name: translate("drama.assetSchemes.turnaround.name"), description: translate("drama.assetSchemes.turnaround.description"), frameHint: translate("drama.assetSchemes.turnaround.frameHint") },
+    fourview: { name: translate("drama.assetSchemes.fourview.name"), description: translate("drama.assetSchemes.fourview.description"), frameHint: translate("drama.assetSchemes.fourview.frameHint") },
+};
+const ASSET_VARIABLE_LABEL: Record<string, string> = {
+    角色名称: translate("drama.assetVariables.characterName"),
+    角色设定: translate("drama.assetVariables.characterDesign"),
+    场景名称: translate("drama.assetVariables.sceneName"),
+    场景设定: translate("drama.assetVariables.sceneDesign"),
+    项目画风: translate("drama.assetVariables.style"),
+    画面规则: translate("drama.assetVariables.rules"),
+};
 
 export function useAssetSchemes() {
     return useQuery({ queryKey: ["drama-asset-schemes"], queryFn: getDramaAssetSchemes, staleTime: 10 * 60_000 });
@@ -27,7 +41,14 @@ export function defaultAssetSettings(catalog?: DramaAssetSchemeCatalog): DramaAs
 
 export type AssetPreviewSample = { characterName: string; characterAppearance: string; sceneName: string; sceneAppearance: string; style: string; rules: string };
 
-const FALLBACK_SAMPLE: AssetPreviewSample = { characterName: "主角", characterAppearance: "（作品圣经建立后自动填入角色外貌）", sceneName: "主场景", sceneAppearance: "（作品圣经建立后自动填入环境描述）", style: "写实电影感", rules: "" };
+const FALLBACK_SAMPLE: AssetPreviewSample = {
+    characterName: translate("drama.assetScheme.protagonist"),
+    characterAppearance: translate("drama.assetScheme.characterAppearanceIsFilledInAfterTheStoryBibleIs"),
+    sceneName: translate("drama.assetScheme.mainScene"),
+    sceneAppearance: translate("drama.assetScheme.environmentDescriptionIsFilledInAfterTheStoryBibleIs"),
+    style: translate("drama.assetScheme.realisticCinematicLook"),
+    rules: "",
+};
 
 /** 方案示意：用色块画出版式，比文字更快看懂差别。 */
 function SchemeGlyph({ mode }: { mode: DramaAssetMode }) {
@@ -85,7 +106,7 @@ export function AssetSchemePicker({
     const [importOpen, setImportOpen] = useState(false);
     const editorRef = useRef<TextAreaRef>(null);
     const preview = { ...FALLBACK_SAMPLE, ...Object.fromEntries(Object.entries(sample || {}).filter(([, item]) => item)) } as AssetPreviewSample;
-    if (!catalog || !value) return <div className="drama-assets is-loading">正在读取参考图方案…</div>;
+    if (!catalog || !value) return <div className="drama-assets is-loading">{translate("drama.assetScheme.loadingReferenceImagePresets")}</div>;
     // imageModel 是角色参考图实际使用的图片模型；能力未知（模型列表未加载）时不做限制，交给服务端保存时校验。
     // 道具与场景固定 16:9，能列入短剧模型目录的图片模型都给得出。
     const ratios = imageModel?.imageRatios;
@@ -118,7 +139,14 @@ export function AssetSchemePicker({
             });
         const characterModified = scheme ? value.characterPrompt.trim() !== scheme.characterPrompt.trim() : true;
         if (target && characterModified) {
-            modal.confirm({ title: `切换为「${target.name}」？`, content: "当前角色提示词有修改，切换后会替换为该方案的默认提示词。", okText: "切换", cancelText: "保留当前", centered: true, onOk: apply });
+            modal.confirm({
+                title: translate("drama.assetScheme.switchTo", { v0: ASSET_SCHEME_COPY[target.mode]?.name || target.name }),
+                content: translate("drama.assetScheme.theCharacterPromptHasBeenEditedSwitchingWillReplaceIt"),
+                okText: translate("canvasB.mediaVersion.switch"),
+                cancelText: translate("drama.assetScheme.keepCurrent"),
+                centered: true,
+                onOk: apply,
+            });
             return;
         }
         apply();
@@ -135,13 +163,18 @@ export function AssetSchemePicker({
     };
 
     const schemes: Array<{ mode: DramaAssetMode; name: string; description: string; ratio: string }> = [
-        ...catalog.schemes,
-        { mode: "custom", name: "自定义", description: "自己写约束或从技能导入，例如团队的资产卡规范；可自选参考图画幅。", ratio: value.mode === "custom" ? value.characterRatio : "自选" },
+        ...catalog.schemes.map((item) => ({ ...item, ...ASSET_SCHEME_COPY[item.mode] })),
+        {
+            mode: "custom",
+            name: translate("account.settings.models.scopeCustom"),
+            description: translate("drama.assetScheme.writeYourOwnRequirementsOrImportThemFromASkill"),
+            ratio: value.mode === "custom" ? value.characterRatio : translate("drama.assetScheme.chooseRatio"),
+        },
     ];
 
     return (
-        <section className={cn("drama-assets", layout === "compact" && "is-compact")} aria-label="参考图方案">
-            <div className="drama-assets-schemes" role="radiogroup" aria-label="角色参考图方案">
+        <section className={cn("drama-assets", layout === "compact" && "is-compact")} aria-label={translate("drama.assetScheme.referenceImagePreset")}>
+            <div className="drama-assets-schemes" role="radiogroup" aria-label={translate("drama.assetScheme.characterReferencePreset")}>
                 {schemes.map((item) => (
                     <button key={item.mode} type="button" role="radio" aria-checked={value.mode === item.mode} className="drama-assets-scheme" onClick={() => chooseMode(item.mode)}>
                         <SchemeGlyph mode={item.mode} />
@@ -162,8 +195,8 @@ export function AssetSchemePicker({
             </div>
             {value.mode === "custom" ? (
                 <div className="drama-assets-ratio">
-                    <span>角色参考图画幅</span>
-                    <div className="drama-tabs" role="radiogroup" aria-label="角色参考图画幅">
+                    <span>{translate("drama.assetScheme.characterReferenceAspectRatio")}</span>
+                    <div className="drama-tabs" role="radiogroup" aria-label={translate("drama.assetScheme.characterReferenceAspectRatio")}>
                         {CUSTOM_RATIOS.map((ratio) => {
                             const unsupported = Boolean(ratios && !ratios.includes(ratio));
                             return (
@@ -174,7 +207,7 @@ export function AssetSchemePicker({
                                     className="drama-tab"
                                     aria-checked={value.characterRatio === ratio}
                                     disabled={unsupported && value.characterRatio !== ratio}
-                                    title={unsupported ? "所选图片模型没有接近这个画幅的尺寸" : undefined}
+                                    title={unsupported ? translate("drama.assetScheme.theSelectedImageModelHasNoSizeCloseToThis") : undefined}
                                     onClick={() => onChange({ ...value, characterRatio: ratio })}
                                 >
                                     {ratio}
@@ -182,41 +215,41 @@ export function AssetSchemePicker({
                             );
                         })}
                     </div>
-                    <small>画幅通过尺寸参数发给图片模型；模型给不出接近的尺寸时不能选择</small>
+                    <small>{translate("drama.assetScheme.theAspectRatioIsSentThroughTheImageSizeParameter")}</small>
                 </div>
             ) : null}
             {ratioProblems.length ? (
                 <p className="drama-assets-warning" role="alert">
                     <TriangleAlert className="size-3.5" />
-                    角色参考图所用的图片模型给不出 {ratioProblems.join("、")} 画幅，保存时会被拒绝。请在上方换用能指定这个尺寸的角色图片模型{value.mode === "custom" ? "，或改角色参考图画幅" : ""}。
+                    {translate(value.mode === "custom" ? "drama.sentences.assetRatioIssueCustom" : "drama.sentences.assetRatioIssue", { ratios: ratioProblems.join(", ") })}
                 </p>
             ) : null}
 
             <div className="drama-assets-editor">
                 <div className="drama-assets-editor-head">
-                    <div className="drama-tabs" role="tablist" aria-label="提示词对象">
+                    <div className="drama-tabs" role="tablist" aria-label={translate("drama.assetScheme.promptTarget")}>
                         <button type="button" role="tab" className="drama-tab" aria-selected={tab === "character"} onClick={() => setTab("character")}>
-                            角色提示词
+                            {translate("drama.assetScheme.characterPrompt")}
                         </button>
                         <button type="button" role="tab" className="drama-tab" aria-selected={tab === "scene"} onClick={() => setTab("scene")}>
-                            场景提示词
+                            {translate("drama.assetScheme.scenePrompt")}
                         </button>
                     </div>
-                    {modified ? <span className="drama-assets-badge">已修改</span> : <span className="drama-assets-badge is-muted">默认</span>}
+                    {modified ? <span className="drama-assets-badge">{translate("drama.assetScheme.modified")}</span> : <span className="drama-assets-badge is-muted">{translate("canvasB.common.default")}</span>}
                     <div className="ml-auto flex gap-2">
                         <Button size="small" type="text" icon={<BookMarked className="size-3.5" />} onClick={() => setImportOpen(true)}>
-                            从技能导入
+                            {translate("drama.assetScheme.importFromSkill")}
                         </Button>
                         <Button size="small" type="text" icon={<RotateCcw className="size-3.5" />} disabled={!modified} onClick={() => setPrompt(defaultPrompt)}>
-                            恢复默认
+                            {translate("drama.assetScheme.resetToDefaults")}
                         </Button>
                     </div>
                 </div>
-                <div className="drama-assets-variables" aria-label="插入变量">
-                    <span>插入变量</span>
+                <div className="drama-assets-variables" aria-label={translate("drama.assetScheme.insertVariable")}>
+                    <span>{translate("drama.assetScheme.insertVariable")}</span>
                     {variables.map((variable) => (
                         <button key={variable} type="button" onClick={() => insertVariable(variable)}>
-                            {variable.slice(2, -2)}
+                            {ASSET_VARIABLE_LABEL[variable.slice(2, -2)] || variable.slice(2, -2)}
                         </button>
                     ))}
                 </div>
@@ -227,28 +260,37 @@ export function AssetSchemePicker({
                     showCount
                     autoSize={{ minRows: layout === "compact" ? 5 : 6, maxRows: 16 }}
                     onChange={(event) => setPrompt(event.target.value)}
-                    aria-label={tab === "character" ? "角色参考图提示词" : "场景参考图提示词"}
+                    aria-label={tab === "character" ? translate("drama.assetScheme.characterReferencePrompt") : translate("drama.assetScheme.sceneReferencePrompt")}
                     status={unknown.length ? "error" : undefined}
                 />
                 {unknown.length ? (
                     <p className="drama-assets-warning">
                         <TriangleAlert className="size-3.5" />
-                        不支持的变量：{unknown.join("、")}。保存时会被拒绝，可用变量见上方。
+                        {translate("drama.assetScheme.unsupportedVariables")}
+                        {unknown.join("、")}
+                        {translate("drama.assetScheme.savingWillBeRejectedSeeTheSupportedVariablesAbove")}
                     </p>
                 ) : null}
                 {tab === "character" && value.sourceSkillName ? (
                     <p className="drama-assets-source">
                         <Blocks className="size-3.5" />
-                        约束来自技能「{value.sourceSkillName}」{value.sourcePath ? ` · ${value.sourcePath}` : ""}
+                        {translate("drama.sentences.importedSkill", { name: value.sourceSkillName })}
+                        {value.sourcePath ? ` · ${value.sourcePath}` : ""}
                     </p>
                 ) : null}
                 <div className="drama-assets-preview">
                     <div className="drama-assets-preview-head">
                         <Eye className="size-3.5" />
-                        实际发送预览<span>以「{tab === "character" ? preview.characterName : preview.sceneName}」为例</span>
+                        {translate("drama.assetScheme.previewSubmittedPrompt")}
+                        <span>{translate("drama.sentences.previewExample", { name: tab === "character" ? preview.characterName : preview.sceneName })}</span>
                     </div>
                     <p>{rendered}</p>
-                    {tab === "character" && scheme ? <small>参考图版式说明：{scheme.frameHint}</small> : null}
+                    {tab === "character" && scheme ? (
+                        <small>
+                            {translate("drama.assetScheme.referenceLayoutInstructions")}
+                            {ASSET_SCHEME_COPY[scheme.mode]?.frameHint || scheme.frameHint}
+                        </small>
+                    ) : null}
                 </div>
             </div>
             <SkillPromptImportModal
@@ -285,10 +327,10 @@ function SkillPromptImportModal({ open, onClose, onImport }: { open: boolean; on
         const selected = selection && contentRef.current && contentRef.current.contains(selection.anchorNode) ? selection.toString() : "";
         const text = whole ? content : selected;
         if (!text.trim()) {
-            message.info("先在右侧原文中选中要导入的段落");
+            message.info(translate("drama.assetScheme.selectThePassagesToImportFromTheSourceTextOn"));
             return;
         }
-        if (text.length > PROMPT_LIMIT) message.warning(`内容超过 ${PROMPT_LIMIT} 字，已截断；建议只选中资产卡相关的段落`);
+        if (text.length > PROMPT_LIMIT) message.warning(translate("drama.assetScheme.contentExceededCharactersAndWasTruncatedSelectOnlyPassagesRelevant", { v0: String(PROMPT_LIMIT) }));
         onImport({ text: text.slice(0, PROMPT_LIMIT), skillId, skillName: skill?.skillName || "", path });
     };
 
@@ -297,13 +339,13 @@ function SkillPromptImportModal({ open, onClose, onImport }: { open: boolean; on
             <div className="drama-skill-import">
                 <header className="drama-skill-import-head">
                     <div>
-                        <strong>从技能导入参考图约束</strong>
-                        <span>选择技能里的规范文档，选中资产卡相关段落导入；导入后仍可编辑。</span>
+                        <strong>{translate("drama.assetScheme.importReferenceRequirementsFromASkill")}</strong>
+                        <span>{translate("drama.assetScheme.chooseAGuidelineDocumentFromASkillAndSelectThe")}</span>
                     </div>
                 </header>
                 <div className="drama-skill-import-body">
                     <aside>
-                        <Input size="small" prefix={<Search className="size-3.5" />} allowClear placeholder="搜索已添加的技能" value={keyword} onChange={(event) => setKeyword(event.target.value)} />
+                        <Input size="small" prefix={<Search className="size-3.5" />} allowClear placeholder={translate("drama.assetScheme.searchAddedSkills")} value={keyword} onChange={(event) => setKeyword(event.target.value)} />
                         <div className="drama-skill-import-list thin-scrollbar">
                             {skills.map((item) => (
                                 <button
@@ -319,11 +361,11 @@ function SkillPromptImportModal({ open, onClose, onImport }: { open: boolean; on
                                     <span>{item.description || "—"}</span>
                                 </button>
                             ))}
-                            {!skillsQuery.isLoading && !skills.length ? <ImportEmpty>还没有添加技能，可在「技能」页面添加后再导入。</ImportEmpty> : null}
+                            {!skillsQuery.isLoading && !skills.length ? <ImportEmpty>{translate("drama.assetScheme.noSkillsAddedYetAddOneOnTheSkillsPage")}</ImportEmpty> : null}
                         </div>
                     </aside>
                     <aside>
-                        <div className="drama-skill-import-caption">{skill ? `${skill.skillName} · ${files.length} 份文本` : "文件"}</div>
+                        <div className="drama-skill-import-caption">{skill ? translate("drama.assetScheme.textFiles", { v0: String(skill.skillName), v1: String(files.length) }) : translate("drama.assetScheme.file")}</div>
                         <div className="drama-skill-import-list thin-scrollbar">
                             {files.map((file) => (
                                 <button key={file.path} type="button" className="is-file" aria-pressed={file.path === path} onClick={() => setPath(file.path)}>
@@ -331,30 +373,34 @@ function SkillPromptImportModal({ open, onClose, onImport }: { open: boolean; on
                                     <span title={file.path}>{file.path}</span>
                                 </button>
                             ))}
-                            {skillId && !filesQuery.isLoading && !files.length ? <ImportEmpty>这个技能没有可导入的文本文件。</ImportEmpty> : null}
-                            {!skillId ? <ImportEmpty>先在左侧选择技能</ImportEmpty> : null}
+                            {skillId && !filesQuery.isLoading && !files.length ? <ImportEmpty>{translate("drama.assetScheme.thisSkillHasNoTextFilesAvailableToImport")}</ImportEmpty> : null}
+                            {!skillId ? <ImportEmpty>{translate("drama.assetScheme.selectASkillOnTheLeftFirst")}</ImportEmpty> : null}
                         </div>
                     </aside>
                     <section>
                         <div className="drama-skill-import-caption">
-                            {path || "原文"}
-                            {content ? <span>{content.length.toLocaleString("zh-CN")} 字</span> : null}
+                            {path || translate("drama.assetScheme.sourceText")}
+                            {content ? (
+                                <span>
+                                    {content.length.toLocaleString(currentLocale())} {translate("drama.assetScheme.characters")}
+                                </span>
+                            ) : null}
                         </div>
                         <pre ref={contentRef} className="drama-skill-import-content thin-scrollbar">
-                            {fileQuery.isLoading ? "正在读取…" : content || "选择文件后在这里查看原文，用鼠标选中需要的段落。"}
+                            {fileQuery.isLoading ? translate("drama.assetScheme.loading") : content || translate("drama.assetScheme.selectAFileToViewItsSourceTextHereThen")}
                         </pre>
                     </section>
                 </div>
                 <footer className="drama-skill-import-foot">
                     <span>
-                        未包含 {"{{角色名称}}"} / {"{{角色设定}}"} 时，导入后会在末尾自动补上本角色信息。
+                        {translate("drama.assetScheme.ifTheContentDoesNotInclude")} {"{{角色名称}}"} / {"{{角色设定}}"} {translate("drama.assetScheme.thisCharacterSInformationIsAutomaticallyAppendedAfterImport")}
                     </span>
-                    <Button onClick={onClose}>取消</Button>
+                    <Button onClick={onClose}>{translate("common.cancel")}</Button>
                     <Button disabled={!content} onClick={() => importText(true)}>
-                        导入整份文件
+                        {translate("drama.assetScheme.importEntireFile")}
                     </Button>
                     <Button type="primary" disabled={!content} onClick={() => importText(false)}>
-                        导入选中内容
+                        {translate("drama.assetScheme.importSelection")}
                     </Button>
                 </footer>
             </div>

@@ -1,3 +1,4 @@
+import { currentLocale } from "@/i18n";
 import { useLayoutEffect, useRef, useState } from "react";
 
 import "./rolling-credit-text.css";
@@ -56,5 +57,5 @@ export function RollingCreditText({ text }: { text: string | null }) {
 }
 
 export function RollingCreditAmount({ value, maximumFractionDigits = 6 }: { value: number | null; maximumFractionDigits?: number }) {
-    return <RollingCreditText text={value === null ? null : value.toLocaleString("zh-CN", { maximumFractionDigits })} />;
+    return <RollingCreditText text={value === null ? null : value.toLocaleString(currentLocale(), { maximumFractionDigits })} />;
 }

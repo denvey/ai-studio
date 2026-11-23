@@ -1,4 +1,6 @@
 import { CanvasNodeType, type CanvasConnection, type CanvasNodeData, type StoryboardRow } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 export type StoryboardPipelineItemState = "missing" | "idle" | "loading" | "success" | "error";
 
@@ -102,10 +104,10 @@ function summarizeFinalStage(nodes: CanvasNodeData[], enabled: boolean): Storybo
 }
 
 export function pipelineStatusLabel(stage: StoryboardPipelineStage) {
-    if (!stage.total) return "待开始";
-    if (stage.success >= stage.total) return "已完成";
-    if (stage.loading) return `${stage.success}/${stage.total} · 进行中`;
-    if (stage.failed) return `${stage.success}/${stage.total} · 失败 ${stage.failed}`;
-    if (stage.created) return `${stage.success}/${stage.total} · 已创建 ${stage.created}`;
+    if (!stage.total) return translate("shared.canvas.canvasStoryboardProgress.notStarted");
+    if (stage.success >= stage.total) return translate("library.tasks.filter.succeeded");
+    if (stage.loading) return translate("shared.canvas.canvasStoryboardProgress.inProgress", { v0: String(stage.success), v1: String(stage.total) });
+    if (stage.failed) return translate("shared.canvas.canvasStoryboardProgress.failed", { v0: String(stage.success), v1: String(stage.total), v2: String(stage.failed) });
+    if (stage.created) return translate("shared.canvas.canvasStoryboardProgress.created", { v0: String(stage.success), v1: String(stage.total), v2: String(stage.created) });
     return `0/${stage.total}`;
 }

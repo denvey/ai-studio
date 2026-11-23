@@ -1,5 +1,6 @@
 import { agentToolCategory, agentToolName, agentToolRetryLabel, agentToolStatus, friendlyAgentToolSummary } from "./agent-tool-presentation";
 import { agentToolRetry } from "./agent-tool-retry";
+import { translate } from "@/i18n";
 
 /**
  * Agent 的"操作信息"（工具调用记录）在消息流里是一条条 `role === "tool"` 的消息。一轮运行动辄
@@ -51,22 +52,22 @@ export function isAgentReasoningRecord(item: AgentFeedRecord): boolean {
 
 /** 折叠行上报的那一步：最新一条操作记录的友好摘要（等待执行时用"准备…"口径）。 */
 export function agentOperationLabel(item: AgentFeedRecord): string {
-    const name = agentToolName(item.title || "工具执行", item.detail);
+    const name = agentToolName(item.title || translate("shared.canvas.agentOperationFeed.toolExecution"), item.detail);
     const retry = agentToolRetry(item.detail);
     // 自动纠正分组在卡片里只显示纠正记录，折叠行跟上同一口径，否则会报一个"已完成"的假象。
-    if (retry) return `${agentToolRetryLabel(retry)} · ${retry.attempt}/${retry.maxAttempts} 次尝试`;
+    if (retry) return translate("shared.canvas.agentOperationFeed.attempt", { v0: String(agentToolRetryLabel(retry)), v1: String(retry.attempt), v2: String(retry.maxAttempts) });
     return friendlyAgentToolSummary(name, item.text, item.detail, agentToolStatus(name, item.text, item.detail) === "pending");
 }
 
 /** 失败/被拒的操作在摘要中明确标记，详情仍由用户展开。 */
 export function agentOperationFailed(item: AgentFeedRecord): boolean {
-    const status = agentToolStatus(agentToolName(item.title || "工具执行", item.detail), item.text, item.detail);
+    const status = agentToolStatus(agentToolName(item.title || translate("shared.canvas.agentOperationFeed.toolExecution"), item.detail), item.text, item.detail);
     return status === "failed" || status === "rejected";
 }
 
 /** 一条操作记录的类别（折叠行徽标用它）：按工具契约判定，不看文案。 */
 export function agentOperationCategory(item: AgentFeedRecord) {
-    return agentToolCategory(agentToolName(item.title || "工具执行", item.detail), item.detail);
+    return agentToolCategory(agentToolName(item.title || translate("shared.canvas.agentOperationFeed.toolExecution"), item.detail), item.detail);
 }
 
 /**
@@ -98,7 +99,7 @@ export function agentOperationSegmentLabel(items: readonly AgentFeedRecord[]): s
         }
     }
     if (!viewed.size) return agentOperationLabel(latest);
-    return `查看了 ${viewed.size} 张画面${latestTitle ? ` · 最新《${latestTitle}》` : ""}`;
+    return translate("shared.canvas.agentOperationFeed.viewedImages", { v0: String(viewed.size), v1: String(latestTitle ? translate("shared.canvas.agentOperationFeed.latest", { v0: String(latestTitle) }) : "") });
 }
 
 /**

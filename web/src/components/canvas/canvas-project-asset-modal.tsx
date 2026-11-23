@@ -9,12 +9,15 @@ import { resourceFileUrl, resourceIdFromStorageKey } from "@/services/api/resour
 import type { ProjectAsset, ProjectDetail } from "@/services/api/projects";
 import { getRemoteAsset } from "@/services/api/user-data";
 import { useAssetStore, type Asset } from "@/stores/use-asset-store";
+import { translate } from "@/i18n";
 
-const categoryLabels: Record<string, string> = { all: "全部资产", ...ASSET_CATEGORY_LABELS };
+const categoryLabels: Record<string, string> = { all: translate("canvasTools.canvasProjectAssetModal.allAssets"), ...ASSET_CATEGORY_LABELS };
 
 /** 弹窗标题与底部说明：未关联项目的自由画布展示的是个人素材库，标题不能写成“项目资产”。 */
 export function projectAssetModalCopy(linkedToProject: boolean) {
-    return linkedToProject ? { title: "项目资产", note: "角色引用会在生成时解析当前角色版本" } : { title: "我的素材", note: "当前画布未关联项目，以下为你的全部素材" };
+    return linkedToProject
+        ? { title: translate("canvasTools.canvasProjectAssetModal.projectAssets"), note: translate("canvasTools.canvasProjectAssetModal.characterReferencesResolveToTheCurrentVersionAtGenerationTime") }
+        : { title: translate("canvasTools.canvasProjectAssetModal.myAssets"), note: translate("canvasTools.canvasProjectAssetModal.thisCanvasIsNotLinkedToAProjectAllYour") };
 }
 
 type ProjectPickerItem = { id: string; category: string; folderId?: string; project?: ProjectAsset; character?: ProjectAsset; media?: Asset };
@@ -65,16 +68,26 @@ export function CanvasProjectAssetModal({
                 const mediaKind = character ? undefined : pickerMediaKind(media?.kind || project?.mediaType);
                 return {
                     id: item.id,
-                    title: character?.title || project?.title || media?.title || "未命名资产",
+                    title: character?.title || project?.title || media?.title || translate("canvasTools.canvasProjectAssetModal.untitledAsset"),
                     category: item.category,
                     folderId: item.folderId,
-                    kindLabel: character ? "角色卡" : mediaKind === "video" ? "视频" : mediaKind === "audio" ? "音频" : mediaKind === "text" ? "文本" : "图片",
+                    kindLabel: character
+                        ? translate("canvasA.characterNode.card")
+                        : mediaKind === "video"
+                          ? translate("account.feedback.video")
+                          : mediaKind === "audio"
+                            ? translate("account.settings.modelConfig.capabilities.audio")
+                            : mediaKind === "text"
+                              ? translate("account.settings.modelConfig.capabilities.text")
+                              : translate("account.feedback.image"),
                     mediaKind,
                     asset: media,
                     imageUrl: coverRepresentation ? resourceFileUrl(coverRepresentation.resourceId) : project?.mediaType === "image" && remoteResourceId ? resourceFileUrl(remoteResourceId) : undefined,
                     imageStorageKey: coverRepresentation ? `resource:${coverRepresentation.resourceId}` : remoteResourceId ? `resource:${remoteResourceId}` : undefined,
                     imageFit: character ? "contain" : "cover",
-                    description: character ? `${character.character?.visualStatus === "ready" ? "形象就绪" : "形象待完善"} · ${character.character?.voiceStatus === "ready" ? "声音已绑定" : "声音未绑定"}` : project?.previewText,
+                    description: character
+                        ? `${character.character?.visualStatus === "ready" ? translate("canvasA.characterLibrary.visualReady") : translate("canvasA.characterNode.visualPending")} · ${character.character?.voiceStatus === "ready" ? translate("canvasA.characterLibrary.voiceBound") : translate("canvasA.characterNode.voiceUnbound")}`
+                        : project?.previewText,
                     searchText: [media?.tags?.join(" ") || "", project?.previewText || ""].join(" "),
                 };
             }),
@@ -97,9 +110,9 @@ export function CanvasProjectAssetModal({
             folders={externalAssetSources.folders}
             folderActionSource="local"
             title={copy.title}
-            confirmLabel={(count) => `引入已选资产${count ? `（${count}）` : ""}`}
-            emptyTitle="此分类没有可引用资产"
-            emptyDescription={detail ? "先在项目角色与资产中完成角色确认或素材关联。" : "当前为自由画布，可先在素材库添加内容。"}
+            confirmLabel={(count) => translate("canvasTools.canvasProjectAssetModal.addSelectedAssets", { v0: String(count ? `（${count}）` : "") })}
+            emptyTitle={translate("canvasTools.canvasProjectAssetModal.noReferenceableAssetsInThisCategory")}
+            emptyDescription={detail ? translate("canvasTools.canvasProjectAssetModal.confirmCharactersOrLinkAssetsUnderProjectCharactersAndAssets") : translate("canvasTools.canvasProjectAssetModal.thisIsAFreeformCanvasAddContentInTheAsset")}
             footerNote={externalAssetSources.error || copy.note}
             onFolderAction={
                 onInsertFolder
@@ -120,7 +133,7 @@ export function CanvasProjectAssetModal({
                             const { asset } = await getRemoteAsset(id);
                             return toInsertPayload({ id, category: normalizeAssetCategory(asset.category), media: asset });
                         }
-                        if (!item) throw new Error("所选资产已不存在，请重新选择");
+                        if (!item) throw new Error(translate("canvasTools.canvasProjectAssetModal.theSelectedAssetNoLongerExistsSelectAnotherOne"));
                         if (!item.project?.visual && (item.media || item.character || !item.project)) return toInsertPayload(item);
                         const { asset } = await getRemoteAsset(item.project.id);
                         return toInsertPayload({ ...item, media: asset });
@@ -168,9 +181,9 @@ export function toInsertPayload(item: ProjectPickerItem): InsertAssetPayload {
             };
         if (project.mediaType === "image" && remoteUrl)
             return { ...(asset?.kind === "image" && asset.data.storageKey === project.storageKey ? asset.data : {}), kind: "image", dataUrl: remoteUrl, storageKey: project.storageKey, title: project.title, assetId: project.id };
-        throw new Error(`“${project.title}”缺少可读取的内容`);
+        throw new Error(translate("canvasTools.canvasProjectAssetModal.hasNoReadableContent", { v0: String(project.title) }));
     }
-    if (!asset) throw new Error("项目资产不可用");
+    if (!asset) throw new Error(translate("canvasTools.canvasProjectAssetModal.theProjectAssetIsUnavailable"));
     if (asset.kind === "text") return { kind: "text", content: asset.data.content, title: asset.title, assetId: asset.id };
     if (asset.kind === "video")
         return {
@@ -197,7 +210,7 @@ export function toInsertPayload(item: ProjectPickerItem): InsertAssetPayload {
             assetId: asset.id,
         };
     if (asset.kind === "image") return { kind: "image", dataUrl: projectAssetMediaUrl(asset.data.storageKey, asset.data.dataUrl), storageKey: asset.data.storageKey, title: asset.title, assetId: asset.id };
-    throw new Error("当前项目资产不能直接插入画布");
+    throw new Error(translate("canvasTools.canvasProjectAssetModal.thisProjectAssetCannotBeInsertedDirectlyOntoTheCanvas"));
 }
 
 function projectAssetMediaUrl(storageKey?: string, fallback = "") {
@@ -206,7 +219,7 @@ function projectAssetMediaUrl(storageKey?: string, fallback = "") {
 }
 
 export function projectCharacterToInsertPayload(asset: ProjectAsset): InsertAssetPayload {
-    if (!asset.character) throw new Error("项目角色信息不完整");
+    if (!asset.character) throw new Error(translate("canvasTools.canvasProjectAssetModal.theProjectCharacterDataIsIncomplete"));
     const card = asset.character;
     const definition = card.definition;
     const cover =

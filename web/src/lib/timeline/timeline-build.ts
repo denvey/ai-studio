@@ -5,6 +5,7 @@ import type { CanvasNodeData } from "@/types/canvas";
 import type { SrtEntry, TimelineClip, TimelineProject } from "@/types/timeline";
 import { DEFAULT_AUDIO_TRACK_ID, DEFAULT_SUBTITLE_TRACK_ID, DEFAULT_VIDEO_TRACK_ID, createDefaultTracks } from "./timeline-tracks";
 import { getTimelineVisualEndMs } from "./timeline-view";
+import { translate } from "@/i18n";
 
 function nodeDurationMs(node: CanvasNodeData, fallbackMs = 4_000): number {
     const durationMs = node.metadata?.durationMs;
@@ -75,7 +76,7 @@ export function summarizeTimelineSource(timeline: TimelineProject): TimelineSour
 
 /** 「来源：当前视频 · 1 段 · 3.0s · 字幕 0 条」 */
 export function formatTimelineSourceSummary(sourceLabel: string, summary: TimelineSourceSummary): string {
-    return `来源：${sourceLabel} · ${summary.videoCount} 段 · ${(summary.durationMs / 1000).toFixed(1)}s · 字幕 ${summary.subtitleCount} 条`;
+    return translate("shared.timeline.timelineBuild.sourceClipsSSubtitles", { v0: String(sourceLabel), v1: String(summary.videoCount), v2: String((summary.durationMs / 1000).toFixed(1)), v3: String(summary.subtitleCount) });
 }
 
 /**

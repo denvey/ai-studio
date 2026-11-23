@@ -4,6 +4,7 @@ import { imagePriceSelector, normalizeImagePriceSelector } from "@/lib/image-pri
 import { modelCapabilityConfigFor } from "@/lib/model-capabilities";
 import type { LogicalModelQuote, ModelQuoteRequest, ModelRequestIntent } from "@/services/api/logical-models";
 import { modelOptionName, resolveModelChannel, type AiConfig, type ModelCapability } from "@/stores/use-config-store";
+import { currentLocale, translate } from "@/i18n";
 
 export type ModelPriceTier = NonNullable<NonNullable<AiConfig["channels"][number]["modelCosts"]>[number]["logicalPriceTiers"]>[number];
 
@@ -70,47 +71,67 @@ export function priceTierSummaryLabel(tiers: ModelPriceTier[], capability?: Mode
     const timeBased = tokenTiers.some((tier) => tier.tokenPriceRules?.length);
     return (
         [
-            fixedRequestValues.length ? formatPriceRange(fixedRequestValues, "积分") : "",
-            perSecondValues.length ? formatPriceRange(perSecondValues, "积分/秒") : "",
-            tokenValues.length ? `${capability === "video" ? "" : "输出 "}${formatPriceRange(tokenValues, capability === "video" ? "积分/百万视频 Token" : "积分/百万 Token")}${timeBased ? " · 分时" : ""}` : "",
+            fixedRequestValues.length ? formatPriceRange(fixedRequestValues, translate("shell.credits")) : "",
+            perSecondValues.length ? formatPriceRange(perSecondValues, translate("shared.modelPricing.creditsSecond")) : "",
+            tokenValues.length
+                ? `${capability === "video" ? "" : translate("shared.videoSettingsPanel.output") + " "}${formatPriceRange(tokenValues, capability === "video" ? translate("shared.modelPicker.creditsMillionVideoTokens") : translate("shared.modelPricing.creditsMillionTokens"))}${timeBased ? " " + translate("shared.modelPricing.timeBased") : ""}`
+                : "",
         ]
             .filter(Boolean)
-            .join(" · ") || "未配置"
+            .join(" · ") || translate("account.layout.oss.cdnAuthNone")
     );
 }
 
-const WEEKDAY_LABELS = ["", "一", "二", "三", "四", "五", "六", "日"];
+function weekdayLabel(day: number) {
+    return new Intl.DateTimeFormat(currentLocale(), { weekday: "short", timeZone: "UTC" }).format(new Date(Date.UTC(2024, 0, day)));
+}
 
 /** 一条分时与上下文规则的用户可读说明，例如「周一至周五 00:30–08:30 · 输入 ≥ 32,000 Token：输入 1 / 输出 2 积分/百万 Token」。 */
 export function tokenPriceRuleDescription(rule: NonNullable<ModelPriceTier["tokenPriceRules"]>[number]) {
     const days = [...(rule.weekdays || [])].sort((a, b) => a - b);
     const contiguous = days.length > 2 && days.every((day, index) => index === 0 || day === days[index - 1] + 1);
-    const dayLabel = days.length === 7 ? "每天" : contiguous ? `周${WEEKDAY_LABELS[days[0]]}至周${WEEKDAY_LABELS[days[days.length - 1]]}` : days.map((day) => `周${WEEKDAY_LABELS[day]}`).join("、");
-    const format = (value: number) => value.toLocaleString("zh-CN");
-    const context = rule.maxInputTokens > 0 ? `输入 ${format(rule.minInputTokens)}–${format(rule.maxInputTokens)} Token` : rule.minInputTokens > 0 ? `输入 ≥ ${format(rule.minInputTokens)} Token` : "";
-    const price = (value: number) => (value / 1_000_000).toLocaleString("zh-CN", { maximumFractionDigits: 6 });
-    return `${[`${dayLabel} ${rule.start}–${rule.end}`, context].filter(Boolean).join(" · ")}：输入 ${price(rule.inputTokenPriceMicrocredits)} / 输出 ${price(rule.outputTokenPriceMicrocredits)} / 缓存读取 ${price(rule.cachedTokenPriceMicrocredits)} 积分/百万 Token`;
+    const dayLabel =
+        days.length === 7 ? translate("shared.modelPricing.everyDay") : contiguous ? translate("shared.modelPricing.weekdayRange", { first: weekdayLabel(days[0]), last: weekdayLabel(days[days.length - 1]) }) : days.map(weekdayLabel).join(", ");
+    const format = (value: number) => value.toLocaleString(currentLocale());
+    const context =
+        rule.maxInputTokens > 0
+            ? translate("shared.modelPricing.inputTokens", { v0: String(format(rule.minInputTokens)), v1: String(format(rule.maxInputTokens)) })
+            : rule.minInputTokens > 0
+              ? translate("shared.modelPricing.inputTokens2", { v0: String(format(rule.minInputTokens)) })
+              : "";
+    const price = (value: number) => (value / 1_000_000).toLocaleString(currentLocale(), { maximumFractionDigits: 6 });
+    return translate("shared.modelPricing.inputOutputCachedInputCreditsMillionTokens", {
+        v0: String([`${dayLabel} ${rule.start}–${rule.end}`, context].filter(Boolean).join(" · ")),
+        v1: String(price(rule.inputTokenPriceMicrocredits)),
+        v2: String(price(rule.outputTokenPriceMicrocredits)),
+        v3: String(price(rule.cachedTokenPriceMicrocredits)),
+    });
 }
 
 export function formatPriceRange(values: number[], suffix: string) {
     const unique = Array.from(new Set(values)).sort((left, right) => left - right);
-    const format = (value: number) => value.toLocaleString("zh-CN", { maximumFractionDigits: 6 });
+    const format = (value: number) => value.toLocaleString(currentLocale(), { maximumFractionDigits: 6 });
     return unique.length === 1 ? `${format(unique[0])} ${suffix}` : `${format(unique[0])}-${format(unique[unique.length - 1])} ${suffix}`;
 }
 
 export function modelQuoteDescription(quote: LogicalModelQuote) {
-    const amount = (quote.amountMicrocredits / 1_000_000).toLocaleString("zh-CN", { maximumFractionDigits: 6 });
-    const descriptions = [`${quote.estimated ? "预计" : "本次"}消耗 ${amount} 积分`];
+    const amount = (quote.amountMicrocredits / 1_000_000).toLocaleString(currentLocale(), { maximumFractionDigits: 6 });
+    const descriptions = [translate("shared.modelPricing.costCredits", { v0: String(quote.estimated ? translate("shared.modelPricing.estimated") : translate("shared.modelPricing.current")), v1: String(amount) })];
     const breakdown = referenceVideoQuoteBreakdown(quote.referenceVideo);
     if (breakdown) descriptions.push(breakdown);
     const estimate = quote.videoTokenEstimate;
     if (estimate) {
-        descriptions.push(`公式预估 ${estimate.formulaTokens.toLocaleString("zh-CN")} 视频 Token，平台额外预留 ${estimate.reservationMarginPercent}%（共 ${estimate.reservedTokens.toLocaleString("zh-CN")} Token）`);
-        if (estimate.referenceDurationEstimated && !breakdown) descriptions.push("未知的参考视频时长按 15 秒估算");
-        if (estimate.dimensionsEstimated) descriptions.push("实际画幅尚未确定，尺寸按当前参数估算");
+        descriptions.push(
+            translate("shared.modelPricing.formulaEstimateVideoTokensWithAnExtraReservedByThe", {
+                v0: String(estimate.formulaTokens.toLocaleString(currentLocale())),
+                v1: String(estimate.reservationMarginPercent),
+                v2: String(estimate.reservedTokens.toLocaleString(currentLocale())),
+            }),
+        );
+        if (estimate.referenceDurationEstimated && !breakdown) descriptions.push(translate("shared.modelPricing.unknownReferenceVideoDurationIsEstimatedAt15Seconds"));
+        if (estimate.dimensionsEstimated) descriptions.push(translate("shared.modelPricing.actualAspectRatioIsNotYetKnownDimensionsAreEstimated"));
     }
-    if (quote.billingMode === "token")
-        descriptions.push(estimate ? "预估金额并非费用上限，成功任务优先按有效的实际用量结算；未返回用量时按火山引擎公式结算，额外预留不计入公式结算，可能补扣或退回差额" : "预估金额并非费用上限，最终以成功任务返回的实际用量结算，可能补扣或退回差额");
+    if (quote.billingMode === "token") descriptions.push(estimate ? translate("shared.modelPricing.theEstimateIsNotACostCapSuccessfulTasksAre") : translate("shared.modelPricing.theEstimateIsNotACostCapFinalBillingUses"));
     return descriptions.join("；");
 }
 
@@ -173,20 +194,24 @@ type ReferenceVideoBillingCost = { capability?: ModelCapability; referenceVideoB
 export function referenceVideoBillingLabel(cost: ReferenceVideoBillingCost | undefined) {
     if (!cost || cost.capability !== "video") return "";
     const billed = cost.referenceVideoBilling === true && (cost.logicalPriceTiers || []).some((tier) => (tier.referenceVideoUnitPriceMicrocredits || 0) > 0 || (tier.referenceVideoOutputTokenPriceMicrocredits || 0) > 0);
-    return billed ? "参考视频另计费" : "参考视频不计费";
+    return billed ? translate("shared.modelPricing.referenceVideosBilledSeparately") : translate("shared.modelPricing.referenceVideosFreeOfCharge");
 }
 
 function formatSeconds(value: number) {
-    return value.toLocaleString("zh-CN", { maximumFractionDigits: 1 });
+    return value.toLocaleString(currentLocale(), { maximumFractionDigits: 1 });
 }
 
 /** 报价构成，例如“生成 5 秒 + 参考视频 8 秒（参考视频另计费）”。 */
 export function referenceVideoQuoteBreakdown(reference: LogicalModelQuote["referenceVideo"]) {
     if (!reference || reference.count <= 0) return "";
     const seconds = reference.billedSeconds > 0 ? reference.billedSeconds : reference.referenceSeconds;
-    const referenceText = seconds > 0 ? `参考视频 ${formatSeconds(seconds)} 秒` : `参考视频 ${reference.count} 个`;
-    const status = reference.billed ? (reference.estimated ? "参考视频另计费，时长未知按 15 秒预估" : "参考视频另计费") : "参考视频不计费";
-    return `生成 ${formatSeconds(reference.generatedSeconds)} 秒 + ${referenceText}（${status}）`;
+    const referenceText = seconds > 0 ? translate("shared.modelPricing.referenceVideoSeconds", { v0: String(formatSeconds(seconds)) }) : translate("shared.modelPricing.referenceVideos", { v0: String(reference.count) });
+    const status = reference.billed
+        ? reference.estimated
+            ? translate("shared.modelPricing.referenceVideosBilledSeparatelyUnknownDurationEstimatedAt15Seconds")
+            : translate("shared.modelPricing.referenceVideosBilledSeparately")
+        : translate("shared.modelPricing.referenceVideosFreeOfCharge");
+    return translate("shared.modelPricing.generateSeconds", { v0: String(formatSeconds(reference.generatedSeconds)), v1: String(referenceText), v2: String(status) });
 }
 
 function creditAmount(billingMode: "fixed_request" | "per_second", unitPriceMicrocredits: number, count?: string | number, seconds?: string | number) {

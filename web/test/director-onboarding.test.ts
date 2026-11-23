@@ -564,7 +564,7 @@ describe("引导产品接线", () => {
     test("工作台渲染非模态引导，并提供可发现的重新开始入口", () => {
         expect(workbenchCode).toContain('import { CanvasPrevisOnboarding } from "@/components/canvas/previs/canvas-previs-onboarding"');
         expect(workbenchCode).toContain("onboardingScope: string");
-        expect(workbenchCode).toContain('label="重新开始引导"');
+        expect(workbenchCode).toContain('label={translate("canvasTools.previs.canvasPrevisWorkbench.restartGuide")}');
         expect(workbenchCode).toContain("setOnboardingRestartSignal((value) => value + 1)");
         expect(workbenchCode).toContain("<CanvasPrevisOnboarding");
         expect(workbenchCode).toContain("scope={onboardingScope}");

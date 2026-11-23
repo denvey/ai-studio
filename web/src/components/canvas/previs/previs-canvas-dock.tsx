@@ -10,6 +10,7 @@ import { PREVIS_VIEW_MODES, type PrevisViewMode } from "@/lib/canvas/previs/prev
 import { PREVIS_ASPECT_RATIOS, previsAspectOption } from "@/lib/canvas/previs/previs-optics";
 import type { PrevisAspectRatio, PrevisCamera } from "@/types/previs";
 import { PREVIS_TOOL_LABELS, type PrevisToolMode } from "@/lib/canvas/previs/previs-shortcuts";
+import { translate } from "@/i18n";
 
 type TransformMode = PrevisToolMode;
 
@@ -71,15 +72,26 @@ export function PrevisCanvasDock(props: PrevisCanvasDockProps) {
 
     const currentView = PREVIS_VIEW_MODES.find((item) => item.mode === props.viewMode) ?? PREVIS_VIEW_MODES[0];
     const currentAspect = previsAspectOption(props.aspectRatio);
-    const trajectoryLabel = props.trajectoryDrawing ? "结束绘制轨迹" : props.trajectoryKind === "camera" ? "画运镜路径" : "画走位";
+    const trajectoryLabel = props.trajectoryDrawing
+        ? translate("canvasTools.previs.previsCanvasDock.finishDrawingPath")
+        : props.trajectoryKind === "camera"
+          ? translate("canvasTools.previs.previsCanvasDock.drawCameraPath")
+          : translate("canvasTools.previs.previsCanvasDock.drawBlockingPath");
 
     const items: FloatingDockEntry[] = [
-        { id: "previs-scene-panel", label: props.scenePanelOpen ? "收起场景面板" : "打开场景面板", icon: <PanelLeft />, active: props.scenePanelOpen, expands: true, onClick: props.onToggleScenePanel },
+        {
+            id: "previs-scene-panel",
+            label: props.scenePanelOpen ? translate("canvasTools.previs.previsCanvasDock.collapseScenePanel") : translate("canvasTools.previs.previsCanvasDock.openScenePanel"),
+            icon: <PanelLeft />,
+            active: props.scenePanelOpen,
+            expands: true,
+            onClick: props.onToggleScenePanel,
+        },
         { kind: "separator", id: "previs-sep-scene" },
         {
             kind: "switch",
             id: "previs-transform",
-            label: "变换模式",
+            label: translate("canvasTools.previs.previsCanvasDock.transformMode"),
             value: props.transformMode,
             onChange: (value) => props.onTransformModeChange(value as TransformMode),
             options: [
@@ -93,7 +105,7 @@ export function PrevisCanvasDock(props: PrevisCanvasDockProps) {
         { kind: "separator", id: "previs-sep-view" },
         {
             id: "previs-view-mode",
-            label: `取景：${currentView.label}（C 切换 3D / 机位）`,
+            label: translate("canvasTools.previs.previsCanvasDock.viewCToSwitch3DCamera", { v0: String(currentView.label) }),
             wide: true,
             quiet: true,
             expands: true,
@@ -103,7 +115,7 @@ export function PrevisCanvasDock(props: PrevisCanvasDockProps) {
         },
         {
             id: "previs-aspect",
-            label: `画幅比例：${currentAspect.label}`,
+            label: translate("canvasTools.previs.previsCanvasDock.aspectRatio", { v0: String(currentAspect.label) }),
             wide: true,
             quiet: true,
             expands: true,
@@ -116,14 +128,21 @@ export function PrevisCanvasDock(props: PrevisCanvasDockProps) {
             ),
             onClick: () => toggleMenu("aspect"),
         },
-        { id: "previs-focus", label: "聚焦选中对象 (F)", icon: <Focus />, onClick: props.onFocusSelected },
-        { id: "previs-frame", label: "适配全部对象 (A)", icon: <Scan />, onClick: props.onFrameScene },
-        { id: "previs-zoom-out", label: "拉远视角", icon: <Minus />, onClick: () => props.onZoom(1.38) },
-        { id: "previs-zoom-in", label: "拉近视角", icon: <Plus />, onClick: () => props.onZoom(0.72) },
+        { id: "previs-focus", label: translate("canvasTools.previs.previsCanvasDock.focusSelectedObjectF"), icon: <Focus />, onClick: props.onFocusSelected },
+        { id: "previs-frame", label: translate("canvasTools.previs.previsCanvasDock.fitAllObjectsA"), icon: <Scan />, onClick: props.onFrameScene },
+        { id: "previs-zoom-out", label: translate("canvasTools.previs.previsCanvasDock.zoomOut"), icon: <Minus />, onClick: () => props.onZoom(1.38) },
+        { id: "previs-zoom-in", label: translate("canvasTools.previs.previsCanvasDock.zoomIn"), icon: <Plus />, onClick: () => props.onZoom(0.72) },
         { kind: "separator", id: "previs-sep-panels" },
-        { id: "previs-timeline", label: "动画时间轴", icon: <ChartGantt />, active: props.timelineOpen, onClick: props.onOpenTimeline },
-        { id: "previs-inspector", label: props.inspectorOpen ? "收起属性面板" : "打开属性面板", icon: <SlidersHorizontal />, active: props.inspectorOpen, expands: true, onClick: props.onToggleInspector },
-        { id: "previs-shortcuts", label: "快捷键 (?)", icon: <Keyboard />, active: props.shortcutHelpOpen, onClick: props.onToggleShortcutHelp },
+        { id: "previs-timeline", label: translate("canvasTools.previs.previsCanvasDock.animationTimeline"), icon: <ChartGantt />, active: props.timelineOpen, onClick: props.onOpenTimeline },
+        {
+            id: "previs-inspector",
+            label: props.inspectorOpen ? translate("canvasTools.previs.previsCanvasDock.collapsePropertiesPanel") : translate("canvasTools.previs.previsCanvasDock.openPropertiesPanel"),
+            icon: <SlidersHorizontal />,
+            active: props.inspectorOpen,
+            expands: true,
+            onClick: props.onToggleInspector,
+        },
+        { id: "previs-shortcuts", label: translate("canvasTools.previs.previsCanvasDock.shortcuts"), icon: <Keyboard />, active: props.shortcutHelpOpen, onClick: props.onToggleShortcutHelp },
     ];
 
     return (
@@ -133,7 +152,7 @@ export function PrevisCanvasDock(props: PrevisCanvasDockProps) {
                     <motion.div
                         key="aspect"
                         role="dialog"
-                        aria-label="画幅比例"
+                        aria-label={translate("canvasTools.previs.previsCanvasDock.aspectRatio2")}
                         initial={{ opacity: 0, y: 14, scale: 0.92 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 9, scale: 0.96 }}
@@ -142,10 +161,10 @@ export function PrevisCanvasDock(props: PrevisCanvasDockProps) {
                         style={{ background: theme.spatial.elevated, color: theme.node.text, boxShadow: `0 28px 80px ${theme.spatial.shadow}` }}
                     >
                         <div className="pv-canvas-dock__menu-title">
-                            <span>选择画幅比例</span>
-                            <small style={{ color: theme.node.muted }}>决定机位取景与输出尺寸</small>
+                            <span>{translate("canvasTools.previs.previsCanvasDock.selectAspectRatio")}</span>
+                            <small style={{ color: theme.node.muted }}>{translate("canvasTools.previs.previsCanvasDock.determinesCameraFramingAndOutputDimensions")}</small>
                         </div>
-                        <div className="pv-canvas-dock__aspect-grid" role="radiogroup" aria-label="画幅比例">
+                        <div className="pv-canvas-dock__aspect-grid" role="radiogroup" aria-label={translate("canvasTools.previs.previsCanvasDock.aspectRatio2")}>
                             {PREVIS_ASPECT_RATIOS.map((item) => {
                                 const checked = item.value === currentAspect.value;
                                 return (
@@ -174,7 +193,7 @@ export function PrevisCanvasDock(props: PrevisCanvasDockProps) {
                     <motion.div
                         key="view"
                         role="dialog"
-                        aria-label="取景模式"
+                        aria-label={translate("canvasTools.previs.previsCanvasDock.viewMode")}
                         initial={{ opacity: 0, y: 14, scale: 0.92 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 9, scale: 0.96 }}
@@ -183,10 +202,10 @@ export function PrevisCanvasDock(props: PrevisCanvasDockProps) {
                         style={{ background: theme.spatial.elevated, color: theme.node.text, boxShadow: `0 28px 80px ${theme.spatial.shadow}` }}
                     >
                         <div className="pv-canvas-dock__menu-title">
-                            <span>取景</span>
-                            <small style={{ color: theme.node.muted }}>只改变观察方式，不写入场景</small>
+                            <span>{translate("canvasTools.previs.previsCanvasDock.framing")}</span>
+                            <small style={{ color: theme.node.muted }}>{translate("canvasTools.previs.previsCanvasDock.changesOnlyTheViewingModeWithoutModifyingTheScene")}</small>
                         </div>
-                        <div className="pv-canvas-dock__view-grid" role="radiogroup" aria-label="取景模式">
+                        <div className="pv-canvas-dock__view-grid" role="radiogroup" aria-label={translate("canvasTools.previs.previsCanvasDock.viewMode")}>
                             {PREVIS_VIEW_MODES.map((item) => {
                                 const checked = item.mode === props.viewMode;
                                 return (
@@ -211,7 +230,7 @@ export function PrevisCanvasDock(props: PrevisCanvasDockProps) {
                         {props.cameras.length ? (
                             <>
                                 <div className="pv-canvas-dock__menu-title is-sub">
-                                    <span>机位</span>
+                                    <span>{translate("canvasTools.previs.previsCanvasDock.cameraPosition")}</span>
                                 </div>
                                 <div className="pv-canvas-dock__camera-list">
                                     {props.cameras.map((camera) => {
@@ -240,7 +259,7 @@ export function PrevisCanvasDock(props: PrevisCanvasDockProps) {
                     </motion.div>
                 ) : null}
             </AnimatePresence>
-            <FloatingDock items={items} className="canvas-floating-dock" style={canvasDockStyle(theme)} ariaLabel="预演台视口工具" />
+            <FloatingDock items={items} className="canvas-floating-dock" style={canvasDockStyle(theme)} ariaLabel={translate("canvasTools.previs.previsCanvasDock.previsViewportTools")} />
         </div>
     );
 }

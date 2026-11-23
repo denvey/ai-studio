@@ -30,6 +30,7 @@ import type { AiConfig } from "@/stores/use-config-store";
 import { CanvasImageSettingsPopover } from "./canvas-image-settings-popover";
 import { CanvasResourceMentionTextarea } from "./canvas-resource-mention-textarea";
 import "./canvas-node-region-edit-dialog.css";
+import { translate } from "@/i18n";
 
 export type CanvasImageRegionEditPayload = {
     /** 用户原文，保留 @区域N，由调用方编译为模型提示词。 */
@@ -55,7 +56,7 @@ type DragState = { kind: "create"; pointerId: number; start: RegionPoint } | { k
 
 type Corner = "nw" | "ne" | "sw" | "se";
 const CORNERS: Corner[] = ["nw", "ne", "sw", "se"];
-const MENTION_MENU_LABELS = { connected: "图片区域", search: "搜索区域" };
+const MENTION_MENU_LABELS = { connected: translate("canvasTools.canvasNodeRegionEditDialog.imageRegions"), search: translate("canvasTools.canvasNodeRegionEditDialog.searchRegions") };
 
 export function CanvasNodeRegionEditDialog(props: RegionEditorProps) {
     return props.open && props.image.url ? <RegionEditor key={`${props.image.storageKey || ""}:${props.image.url}`} {...props} /> : null;
@@ -106,14 +107,14 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
         const request = new AbortController();
         void imageToDataUrl({ url: image.url, storageKey: image.storageKey })
             .then((dataUrl) => {
-                if (!dataUrl) throw new Error("图片读取失败");
+                if (!dataUrl) throw new Error(translate("canvasTools.canvasNodeRegionEditDialog.couldNotReadTheImage"));
                 return loadRasterImage(dataUrl, request.signal).then((element) => ({ url: dataUrl, element }));
             })
             .then(({ url, element }) => {
                 if (!request.signal.aborted) setSource({ url, element, size: { width: element.naturalWidth, height: element.naturalHeight } });
             })
             .catch((failure: unknown) => {
-                if (!request.signal.aborted) setLoadError(failure instanceof Error ? failure.message : "图片读取失败");
+                if (!request.signal.aborted) setLoadError(failure instanceof Error ? failure.message : translate("canvasTools.canvasNodeRegionEditDialog.couldNotReadTheImage"));
             });
         return () => request.abort();
     }, [image.storageKey, image.url]);
@@ -272,17 +273,17 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
 
     const submit = () => {
         if (!source || !size) return;
-        if (!regions.length) return setError("请先在图片上框选至少一个区域");
-        if (!trimmedPrompt) return setError("请写下修改要求，可用 @区域1 指定区域");
+        if (!regions.length) return setError(translate("canvasTools.canvasNodeRegionEditDialog.selectAtLeastOneRegionOnTheImageFirst"));
+        if (!trimmedPrompt) return setError(translate("canvasTools.canvasNodeRegionEditDialog.describeTheChangesUse1ToSpecifyARegion"));
         const missing = missingRegionReferences(trimmedPrompt, regions);
-        if (missing.length) return setError(`提示词引用了不存在的 ${missing.map((index) => regionMentionToken(index)).join("、")}`);
+        if (missing.length) return setError(translate("canvasTools.canvasNodeRegionEditDialog.thePromptReferencesNonexistent", { v0: String(missing.map((index) => regionMentionToken(index)).join("、")) }));
         let annotatedDataUrl: string;
         let maskDataUrl: string;
         try {
             annotatedDataUrl = renderRegionAnnotatedImage(source.element, size, orderedRegions);
             maskDataUrl = exportRegionMask(size, orderedRegions);
         } catch (failure) {
-            setError(failure instanceof Error ? failure.message : "区域标注导出失败");
+            setError(failure instanceof Error ? failure.message : translate("canvasTools.canvasNodeRegionEditDialog.failedToExportRegionAnnotations"));
             return;
         }
         const { model, quality, count, transparentBackground } = settings;
@@ -300,22 +301,22 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
             : {};
 
     return (
-        <AppModal open centered flush closable={false} footer={null} width="min(1360px, calc(100vw - 48px))" onCancel={onClose} aria-label="区域标注">
+        <AppModal open centered flush closable={false} footer={null} width="min(1360px, calc(100vw - 48px))" onCancel={onClose} aria-label={translate("canvasB.imageTools.regionEditLabel")}>
             <div className="rgn" style={{ "--rgn-color": IMAGE_REGION_COLOR } as CSSProperties}>
-                <section className="rgn-stage" aria-label="标注画面">
+                <section className="rgn-stage" aria-label={translate("canvasTools.canvasNodeRegionEditDialog.annotateImage")}>
                     <div className="rgn-stage-hint">
                         <SquareDashed className="size-3.5" aria-hidden />
-                        拖拽框选要修改的地方，可框选多个 · <kbd>Delete</kbd> 删除
+                        {translate("canvasTools.canvasNodeRegionEditDialog.dragToSelectAreasToEditMultipleAreasSupported")} <kbd>Delete</kbd> {translate("common.delete")}
                     </div>
                     <div className="rgn-canvas">
                         {source && size ? (
                             <div className="rgn-frame">
-                                <img src={source.url} alt="待标注图片" draggable={false} />
+                                <img src={source.url} alt={translate("canvasTools.canvasNodeRegionEditDialog.imageToAnnotate")} draggable={false} />
                                 <div
                                     ref={surfaceRef}
                                     role="application"
                                     tabIndex={0}
-                                    aria-label="在图片上拖拽框选需要修改的区域，可框选多个"
+                                    aria-label={translate("canvasTools.canvasNodeRegionEditDialog.dragOnTheImageToSelectAreasToEditMultiple")}
                                     className="rgn-surface"
                                     onPointerDown={(event) => {
                                         if (event.target !== event.currentTarget) return;
@@ -342,7 +343,13 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
                                                 <span className="rgn-badge">{region.index}</span>
                                                 {active ? (
                                                     <>
-                                                        <button type="button" aria-label={`删除${regionMentionLabel(region.index)}`} className="rgn-box-delete" onPointerDown={(event) => event.stopPropagation()} onClick={() => removeRegion(region.index)}>
+                                                        <button
+                                                            type="button"
+                                                            aria-label={translate("canvasTools.canvasNodeRegionEditDialog.delete", { v0: String(regionMentionLabel(region.index)) })}
+                                                            className="rgn-box-delete"
+                                                            onPointerDown={(event) => event.stopPropagation()}
+                                                            onClick={() => removeRegion(region.index)}
+                                                        >
                                                             <X className="size-3.5" strokeWidth={2.4} />
                                                         </button>
                                                         {CORNERS.map((corner) => (
@@ -369,23 +376,23 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
                                 </div>
                             </div>
                         ) : (
-                            <p className="rgn-loading">{loadError || "正在读取图片…"}</p>
+                            <p className="rgn-loading">{loadError || translate("canvasTools.canvasNodeRegionEditDialog.loadingImage")}</p>
                         )}
                     </div>
-                    <div className="rgn-dock" role="toolbar" aria-label="区域标注工具">
+                    <div className="rgn-dock" role="toolbar" aria-label={translate("canvasTools.canvasNodeRegionEditDialog.regionAnnotationTool")}>
                         <span className="rgn-dock-mode">
                             <SquareDashed className="size-4" aria-hidden />
-                            框选
+                            {translate("canvasTools.canvasNodeRegionEditDialog.marqueeSelect")}
                         </span>
                         <span aria-hidden className="rgn-dock-divider" />
-                        <DockButton title="撤销 ⌘Z" disabled={!past.length} onClick={undo}>
+                        <DockButton title={translate("canvasTools.canvasNodeRegionEditDialog.undoZ")} disabled={!past.length} onClick={undo}>
                             <Undo2 className="size-4" />
                         </DockButton>
-                        <DockButton title="重做 ⇧⌘Z" disabled={!future.length} onClick={redo}>
+                        <DockButton title={translate("canvasTools.canvasNodeRegionEditDialog.redoZ")} disabled={!future.length} onClick={redo}>
                             <Redo2 className="size-4" />
                         </DockButton>
                         <DockButton
-                            title="清空全部区域"
+                            title={translate("canvasTools.canvasNodeRegionEditDialog.clearAllRegions")}
                             disabled={!regions.length}
                             onClick={() => {
                                 commit([]);
@@ -396,7 +403,7 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
                         </DockButton>
                         <span aria-hidden className="rgn-dock-divider" />
                         <span className="rgn-dock-count" aria-live="polite">
-                            已标记 <strong>{regions.length}</strong> 处
+                            {translate("canvasTools.canvasNodeRegionEditDialog.annotated")} <strong>{regions.length}</strong> {translate("canvasTools.canvasNodeRegionEditDialog.regions")}
                         </span>
                     </div>
                 </section>
@@ -404,16 +411,19 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
                 <aside className="rgn-panel">
                     <header className="rgn-panel-header">
                         <div className="rgn-panel-heading">
-                            <h2>区域标注</h2>
-                            <p>框选区域后，用 @区域N 分别描述要怎么改</p>
+                            <h2>{translate("canvasB.imageTools.regionEditLabel")}</h2>
+                            <p>{translate("canvasTools.canvasNodeRegionEditDialog.afterSelectingRegionsUseNToDescribeTheChangesFor")}</p>
                         </div>
-                        <button type="button" className="rgn-close" aria-label="关闭" onClick={onClose}>
+                        <button type="button" className="rgn-close" aria-label={translate("common.close")} onClick={onClose}>
                             <X className="size-4" />
                         </button>
                     </header>
 
                     <div className="rgn-body">
-                        <div className="rgn-label">区域{regions.length ? <span className="rgn-label-count">{regions.length}</span> : null}</div>
+                        <div className="rgn-label">
+                            {translate("canvasTools.canvasNodeRegionEditDialog.region")}
+                            {regions.length ? <span className="rgn-label-count">{regions.length}</span> : null}
+                        </div>
                         {orderedRegions.length ? (
                             <div className="rgn-tiles">
                                 {orderedRegions.map((region) => {
@@ -421,12 +431,18 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
                                     const thumbnail = thumbnails.get(region.index);
                                     return (
                                         <div key={region.index} className="rgn-tile">
-                                            <button type="button" className="rgn-tile-select" aria-pressed={region.index === selected} aria-label={`选中${label}`} onClick={() => setSelected(region.index)}>
+                                            <button
+                                                type="button"
+                                                className="rgn-tile-select"
+                                                aria-pressed={region.index === selected}
+                                                aria-label={translate("canvasTools.canvasNodeRegionEditDialog.select", { v0: String(label) })}
+                                                onClick={() => setSelected(region.index)}
+                                            >
                                                 {thumbnail ? <img src={thumbnail} alt="" draggable={false} /> : null}
                                                 <span className="rgn-tile-badge">{region.index}</span>
                                             </button>
                                             <span className="rgn-tile-name">{label}</span>
-                                            <button type="button" className="rgn-tile-remove" aria-label={`删除${label}`} onClick={() => removeRegion(region.index)}>
+                                            <button type="button" className="rgn-tile-remove" aria-label={translate("canvasTools.canvasNodeRegionEditDialog.delete", { v0: String(label) })} onClick={() => removeRegion(region.index)}>
                                                 <X className="size-3" strokeWidth={2.4} />
                                             </button>
                                         </div>
@@ -439,13 +455,13 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
                                     <SquareDashed className="size-5" />
                                 </span>
                                 <div>
-                                    <strong>还没有区域</strong>
-                                    <span>在左侧图片上拖拽画框，每个框会自动编号，并在提示词里加一行引用。</span>
+                                    <strong>{translate("canvasTools.canvasNodeRegionEditDialog.noRegionsYet")}</strong>
+                                    <span>{translate("canvasTools.canvasNodeRegionEditDialog.dragToDrawBoxesOnTheImageOnTheLeft")}</span>
                                 </div>
                             </div>
                         )}
 
-                        <div className="rgn-label">修改要求</div>
+                        <div className="rgn-label">{translate("canvasTools.canvasNodeRegionEditDialog.editInstructions")}</div>
                         <div ref={editorRef} className="rgn-editor">
                             <CanvasResourceMentionTextarea
                                 value={prompt}
@@ -461,13 +477,13 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
                                 containerClassName="rgn-editor-input"
                                 className="thin-scrollbar h-full w-full resize-none border-none bg-transparent px-4 py-3 text-[var(--fs-body)] leading-7 !outline-none !ring-0 !shadow-none placeholder:text-current placeholder:opacity-40"
                                 style={{ color: "var(--foreground)", outline: "none", boxShadow: "none" }}
-                                placeholder={regions.length ? "在区域后写下修改要求，例如：@区域1 换成一艘渔船" : "先在左侧框选区域"}
-                                aria-label="区域修改要求，可输入 @ 引用区域"
+                                placeholder={regions.length ? translate("canvasTools.canvasNodeRegionEditDialog.writeYourChangesAfterTheRegionReferenceForExample1") : translate("canvasTools.canvasNodeRegionEditDialog.selectARegionOnTheLeftFirst")}
+                                aria-label={translate("canvasTools.canvasNodeRegionEditDialog.regionEditingInstructionsTypeToReferenceARegion")}
                             />
                             <div className="rgn-editor-tip">
-                                <span>输入 @ 引用区域</span>
+                                <span>{translate("canvasTools.canvasNodeRegionEditDialog.typeToReferenceARegion")}</span>
                                 <span>
-                                    <kbd>⌘</kbd> <kbd>Enter</kbd> 生成
+                                    <kbd>⌘</kbd> <kbd>Enter</kbd> {translate("account.welcome.chapters.motion.label")}
                                 </span>
                             </div>
                         </div>
@@ -499,7 +515,7 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
                             />
                             <span className="rgn-footer-spacer" />
                             <Button className="rgn-submit" type="primary" shape="round" icon={<ArrowUp className="size-4" strokeWidth={2.4} />} disabled={!canSubmit} onClick={submit}>
-                                生成
+                                {translate("account.welcome.chapters.motion.label")}
                             </Button>
                         </div>
                     </footer>

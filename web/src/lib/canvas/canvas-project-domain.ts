@@ -16,12 +16,14 @@ import { scopedLocalStorage } from "@/lib/user-scope";
 import type { GenerationTask } from "@/services/api/task-center";
 import { synchronizeGenerationSpec } from "@/lib/canvas/generation-contract";
 import { CanvasNodeType, type CanvasConnection, type CanvasNodeData, type CanvasNodeMetadata, type CanvasNodeTypeId, type ConnectionHandle, type Position, type StoryboardColumn, type StoryboardRow } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 export function createCanvasNode(type: CanvasNodeTypeId, position: Position, metadata?: CanvasNodeMetadata): CanvasNodeData {
     const builtinSpec = type in NODE_DEFAULT_SIZE ? getNodeSpec(type as CanvasNodeType) : undefined;
     const pluginDefinition = getNodeDefinition(type);
     const spec = builtinSpec || (pluginDefinition ? { width: pluginDefinition.defaultSize.width, height: pluginDefinition.defaultSize.height, title: pluginDefinition.defaultTitle, metadata: pluginDefinition.defaultMetadata } : undefined);
-    if (!spec) throw new Error(`未注册的画布节点类型：${type}`);
+    if (!spec) throw new Error(translate("shared.canvas.canvasProjectDomain.unregisteredCanvasNodeType", { v0: String(type) }));
     const id = `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const now = new Date().toISOString();
 
@@ -254,7 +256,7 @@ function normalizeStoryboardRow(row: Partial<StoryboardRow>): Partial<Storyboard
 
 export function storyboardRowsFromTask(task: GenerationTask) {
     const result = parseStoryboardRowsPayload(task.resultJson || "{}");
-    if (!Array.isArray(result.rows) || !result.rows.length) throw new Error("分镜任务没有返回镜头行");
+    if (!Array.isArray(result.rows) || !result.rows.length) throw new Error(translate("shared.canvas.canvasProjectDomain.theStoryboardTaskReturnedNoShotRows"));
     return {
         // 旧任务和部分模型会把 title 返回成对象/数组；恢复路径必须只接受字符串，
         // 否则可选链只能防 undefined，仍会在对象上调用 trim 使整页恢复失败。

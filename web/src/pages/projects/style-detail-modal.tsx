@@ -1,16 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { App, Button } from "antd";
 import { Check, ChevronLeft, ChevronRight, Copy, Flame, X } from "lucide-react";
 
 import { AppModal } from "@/components/ui/product/app-modal";
 import { DRAMA_STYLE_CATEGORIES, findDramaStyle, styleCoverBackground } from "@/lib/drama/drama-styles";
+import { translate } from "@/i18n";
+import { dramaStyleDisplay } from "./style-copy";
 
 const DETAIL_ROWS = [
-    { key: "medium", label: "画面媒介" },
-    { key: "world", label: "题材场景" },
-    { key: "look", label: "色彩光影" },
-    { key: "wardrobe", label: "服化道" },
-    { key: "forbid", label: "避免出现" },
+    { key: "medium", label: translate("drama.styleDetailModal.visualMedium") },
+    { key: "world", label: translate("drama.styleDetailModal.genreAndSetting") },
+    { key: "look", label: translate("drama.styleDetailModal.colorAndLighting") },
+    { key: "wardrobe", label: translate("drama.styleDetailModal.costumesMakeupAndProps") },
+    { key: "forbid", label: translate("drama.styleDetailModal.avoid") },
 ] as const;
 
 /** 风格详情：大图 + 分项美术基线 + 完整提示词；左右键在当前筛选结果里切换。 */
@@ -30,7 +32,10 @@ export function DramaStyleDetailModal({
     onClose: () => void;
 }) {
     const { message } = App.useApp();
-    const style = styleId ? findDramaStyle(styleId) : undefined;
+    const style = useMemo(() => {
+        const source = styleId ? findDramaStyle(styleId) : undefined;
+        return source ? dramaStyleDisplay(source) : undefined;
+    }, [styleId]);
     const index = styleId ? navigationIds.indexOf(styleId) : -1;
     const prevId = index > 0 ? navigationIds[index - 1] : undefined;
     const nextId = index >= 0 && index < navigationIds.length - 1 ? navigationIds[index + 1] : undefined;
@@ -50,9 +55,9 @@ export function DramaStyleDetailModal({
         if (!style) return;
         try {
             await navigator.clipboard.writeText(style.prompt);
-            message.success("已复制风格提示词");
+            message.success(translate("drama.styleDetailModal.stylePromptCopied"));
         } catch {
-            message.error("复制失败，请手动选择文本复制");
+            message.error(translate("drama.styleDetailModal.copyFailedSelectAndCopyTheTextManually"));
         }
     };
 
@@ -60,7 +65,7 @@ export function DramaStyleDetailModal({
     const categoryLabel = style ? DRAMA_STYLE_CATEGORIES.find((item) => item.key === style.category)?.label : "";
 
     return (
-        <AppModal open={Boolean(style)} onCancel={onClose} footer={null} title={null} closable={false} flush centered width="min(880px, calc(100vw - 48px))" rootClassName="drama-root" aria-label="风格详情">
+        <AppModal open={Boolean(style)} onCancel={onClose} footer={null} title={null} closable={false} flush centered width="min(880px, calc(100vw - 48px))" rootClassName="drama-root" aria-label={translate("drama.styleDetailModal.styleDetails")}>
             {style ? (
                 <div className="drama-style-detail">
                     <div className="drama-style-detail-cover" style={{ background: styleCoverBackground(style) }}>
@@ -69,7 +74,7 @@ export function DramaStyleDetailModal({
                                 {style.name.replace(/^3D\s*/, "").slice(0, 2)}
                             </span>
                         ) : null}
-                        <div className="drama-style-detail-palette" aria-label="主色">
+                        <div className="drama-style-detail-palette" aria-label={translate("drama.styleDetailModal.primaryColors")}>
                             {style.palette.map((color) => (
                                 <span key={color} style={{ background: color }} title={color} />
                             ))}
@@ -83,7 +88,7 @@ export function DramaStyleDetailModal({
                                     {style.hot ? (
                                         <span className="is-hot">
                                             <Flame className="size-3" />
-                                            爆款
+                                            {translate("drama.styleDetailModal.popular")}
                                         </span>
                                     ) : null}
                                     {index >= 0 ? (
@@ -95,7 +100,7 @@ export function DramaStyleDetailModal({
                                 <h3>{style.name}</h3>
                                 <p>{style.description}</p>
                             </div>
-                            <Button type="text" icon={<X className="size-4" />} aria-label="关闭" onClick={onClose} />
+                            <Button type="text" icon={<X className="size-4" />} aria-label={translate("common.close")} onClick={onClose} />
                         </header>
                         <div className="drama-style-detail-tags">
                             {style.tags.map((tag) => (
@@ -111,23 +116,26 @@ export function DramaStyleDetailModal({
                             ))}
                             <div>
                                 <dt>
-                                    完整提示词
+                                    {translate("drama.styleDetailModal.fullPrompt")}
                                     <button type="button" className="drama-style-detail-copy" onClick={() => void copyPrompt()}>
                                         <Copy className="size-3" />
-                                        复制
+                                        {translate("canvasB.common.copy")}
                                     </button>
                                 </dt>
                                 <dd className="is-prompt">{style.prompt}</dd>
                             </div>
                         </dl>
-                        <p className="drama-style-detail-note">风格只锁定全剧的画风、色调与服化道，具体构图和动作由分镜决定。{style.cover ? "" : "该风格暂无样图，左侧为主色示意。"}</p>
+                        <p className="drama-style-detail-note">
+                            {translate("drama.styleDetailModal.styleDefinesTheVisualTreatmentColorPaletteCostumesMakeupAnd")}
+                            {style.cover ? "" : translate("drama.styleDetailModal.noPreviewImageIsAvailableForThisStyleTheLeft")}
+                        </p>
                         <footer className="drama-style-detail-foot">
-                            <Button icon={<ChevronLeft className="size-4" />} disabled={!prevId} onClick={() => prevId && onNavigate(prevId)} aria-label="上一个风格" />
-                            <Button icon={<ChevronRight className="size-4" />} disabled={!nextId} onClick={() => nextId && onNavigate(nextId)} aria-label="下一个风格" />
+                            <Button icon={<ChevronLeft className="size-4" />} disabled={!prevId} onClick={() => prevId && onNavigate(prevId)} aria-label={translate("drama.styleDetailModal.previousStyle")} />
+                            <Button icon={<ChevronRight className="size-4" />} disabled={!nextId} onClick={() => nextId && onNavigate(nextId)} aria-label={translate("drama.styleDetailModal.nextStyle")} />
                             <span className="flex-1" />
-                            <Button onClick={onClose}>关闭</Button>
+                            <Button onClick={onClose}>{translate("common.close")}</Button>
                             <Button type="primary" icon={active ? <Check className="size-4" /> : undefined} disabled={active} onClick={() => onUse(style.id)}>
-                                {active ? "当前已选" : "使用此风格"}
+                                {active ? translate("drama.styleDetailModal.currentlySelected") : translate("drama.styleDetailModal.useThisStyle")}
                             </Button>
                         </footer>
                     </div>

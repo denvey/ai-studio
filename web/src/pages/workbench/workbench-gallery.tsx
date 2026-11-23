@@ -14,6 +14,7 @@ import type { WorkbenchOutput } from "./workbench-batches";
 import { SceneGlyph } from "./workbench-composer";
 import { workbenchToolSubtitle } from "./workbench-presets";
 
+import { translate } from "@/i18n";
 export type GalleryTile =
     | { type: "output"; key: string; output: WorkbenchOutput; task: GenerationTask }
     | { type: "active"; key: string; task: GenerationTask; slot: number }
@@ -141,14 +142,20 @@ function OutputTile({ batch, tile, kind, actions }: { batch: GalleryBatch; tile:
                 <video ref={videoRef} src={output.url} muted loop playsInline preload="metadata" onLoadedMetadata={(event) => reportSize(event.currentTarget.videoWidth, event.currentTarget.videoHeight)} onError={() => setFailed(true)} />
             )
         ) : (
-            <img src={output.thumbUrl || output.url} alt={batch.prompt.slice(0, 40) || "生成结果"} loading="lazy" onLoad={(event) => reportSize(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight)} onError={() => setFailed(true)} />
+            <img
+                src={output.thumbUrl || output.url}
+                alt={batch.prompt.slice(0, 40) || translate("library.tasks.detail.generated")}
+                loading="lazy"
+                onLoad={(event) => reportSize(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight)}
+                onError={() => setFailed(true)}
+            />
         );
     return (
         <div
             className={cn("wb-tile is-output", output.kind === "video" && "is-video")}
             role="button"
             tabIndex={0}
-            aria-label={output.kind === "video" ? "预览视频" : "预览图片"}
+            aria-label={output.kind === "video" ? translate("ecommerce.workbench.workbenchGallery.previewVideo") : translate("ecommerce.workbench.workbenchGallery.previewImage")}
             onClick={() => actions.openOutput(batch, output)}
             onKeyDown={(event) => {
                 if (event.target !== event.currentTarget) return;
@@ -172,7 +179,7 @@ function OutputTile({ batch, tile, kind, actions }: { batch: GalleryBatch; tile:
             {failed ? (
                 <span className="wb-tile-state">
                     <ImageOff />
-                    <small>预览不可用</small>
+                    <small>{translate("library.tasks.row.previewUnavailable")}</small>
                 </span>
             ) : (
                 preview
@@ -184,10 +191,10 @@ function OutputTile({ batch, tile, kind, actions }: { batch: GalleryBatch; tile:
             ) : null}
             <span className="wb-tile-scrim" aria-hidden />
             <span className="wb-tile-actions">
-                <TileAction label="下载" icon={<Download />} onClick={() => actions.download(output, batch)} />
-                {kind === "image" && actions.useAsReference && output.resourceId ? <TileAction label="用作参考图" icon={<ImagePlus />} onClick={() => actions.useAsReference?.(output)} /> : null}
-                {kind === "image" && actions.makeVideo && output.resourceId ? <TileAction label="做成视频" icon={<Clapperboard />} onClick={() => actions.makeVideo?.(output)} /> : null}
-                <TileAction label="查看大图" icon={<Maximize2 />} onClick={() => actions.openOutput(batch, output)} primary />
+                <TileAction label={translate("canvasA.assetView.download")} icon={<Download />} onClick={() => actions.download(output, batch)} />
+                {kind === "image" && actions.useAsReference && output.resourceId ? <TileAction label={translate("ecommerce.workbench.workbenchGallery.useAsReferenceImage")} icon={<ImagePlus />} onClick={() => actions.useAsReference?.(output)} /> : null}
+                {kind === "image" && actions.makeVideo && output.resourceId ? <TileAction label={translate("ecommerce.workbench.workbenchGallery.makeAVideo")} icon={<Clapperboard />} onClick={() => actions.makeVideo?.(output)} /> : null}
+                <TileAction label={translate("ecommerce.workbench.workbenchGallery.viewFullSize")} icon={<Maximize2 />} onClick={() => actions.openOutput(batch, output)} primary />
             </span>
         </div>
     );
@@ -201,15 +208,15 @@ function ProgressTile({ tile, actions, busy }: { tile: Extract<GalleryTile, { ty
             <span className="wb-tile-shimmer" aria-hidden />
             <span className="wb-tile-state">
                 <LoaderCircle className="wb-spin" />
-                <strong>{task.status === "queued" ? "排队中" : task.stage || "生成中"}</strong>
+                <strong>{task.status === "queued" ? translate("canvasPage.taskStatus.queued") : task.stage || translate("canvasB.mediaVersion.generating")}</strong>
                 <small>{progress}%</small>
             </span>
             <span className="wb-tile-progress" aria-hidden>
                 <span style={{ transform: `translateX(${progress - 100}%)` }} />
             </span>
             {tile.slot === 0 ? (
-                <Tooltip title="取消这个任务">
-                    <button type="button" className="wb-tile-cancel" data-icon-only aria-label="取消任务" disabled={busy} onClick={() => actions.cancelTask(task)}>
+                <Tooltip title={translate("ecommerce.workbench.workbenchGallery.cancelThisTask")}>
+                    <button type="button" className="wb-tile-cancel" data-icon-only aria-label={translate("canvasA.activeTasks.cancel")} disabled={busy} onClick={() => actions.cancelTask(task)}>
                         {busy ? <LoaderCircle className="wb-spin" /> : <X />}
                     </button>
                 </Tooltip>
@@ -224,14 +231,14 @@ function FailedTile({ task, actions, busy }: { task: GenerationTask; actions: Ga
         <div className={cn("wb-tile is-failed", cancelled && "is-cancelled")}>
             <span className="wb-tile-state">
                 <CircleAlert />
-                <strong>{cancelled ? "已取消" : "生成失败"}</strong>
+                <strong>{cancelled ? translate("ecommerce.workbench.workbenchGallery.cancelled") : translate("canvasPage.batches.generationFailed")}</strong>
                 {!cancelled && task.error ? (
                     <small className="wb-tile-error" title={task.error}>
                         {task.error}
                     </small>
                 ) : null}
                 <Button size="small" icon={busy ? <LoaderCircle className="wb-spin" /> : <RotateCcw />} disabled={busy} onClick={() => actions.retryTask(task)}>
-                    重新生成
+                    {translate("ecommerce.workbench.workbenchGallery.regenerate")}
                 </Button>
             </span>
         </div>
@@ -242,23 +249,23 @@ const BatchCard = memo(function BatchCard({ batch, kind, actions, busyTaskIds }:
     const ref = useOnceVisible<HTMLElement>(() => actions.visible(batch.key));
     const { counts } = batch;
     const style = { "--wb-tile-ratio": batch.ratio ? String(batch.ratio) : "1", "--wb-tile-min": `${tileMinWidth(batch.ratio)}px` } as CSSProperties;
-    const unit = kind === "image" ? "张" : "条";
+    const unit = kind === "image" ? translate("canvasA.characterLibrary.pageItem") : translate("ecommerce.workbench.workbenchGallery.videos");
     const status =
         batch.submitting && counts.done + counts.failed === 0 && !batch.tasks.length
-            ? "正在提交"
+            ? translate("ecommerce.workbench.workbenchGallery.submitting2")
             : counts.active
-              ? `${counts.done} / ${counts.total} 已完成 · ${counts.active} ${unit}生成中`
+              ? translate("ecommerce.workbench.workbenchGallery.completeGenerating", { v0: String(counts.done), v1: String(counts.total), v2: String(counts.active), v3: String(unit) })
               : counts.failed || batch.resumable
-                ? `${counts.done} / ${counts.total} 已完成`
+                ? translate("ecommerce.workbench.workbenchGallery.complete", { v0: String(counts.done), v1: String(counts.total) })
                 : `${counts.total} ${unit}`;
     const menuItems = [
-        ...(counts.active ? [{ key: "cancel", label: "取消未完成的任务" }] : []),
-        ...(counts.failed ? [{ key: "retry", label: "重新生成失败项" }] : []),
-        ...(batch.resumable ? [{ key: "resume", label: `继续提交剩余 ${batch.resumable} 个` }] : []),
-        ...(batch.localOnly && !batch.submitting ? [{ key: "dismiss", label: "移除这组记录" }] : []),
+        ...(counts.active ? [{ key: "cancel", label: translate("ecommerce.workbench.workbenchGallery.cancelUnfinishedTasks") }] : []),
+        ...(counts.failed ? [{ key: "retry", label: translate("ecommerce.workbench.workbenchGallery.regenerateFailedItems") }] : []),
+        ...(batch.resumable ? [{ key: "resume", label: translate("ecommerce.workbench.workbenchGallery.submitTheRemaining", { v0: String(batch.resumable) }) }] : []),
+        ...(batch.localOnly && !batch.submitting ? [{ key: "dismiss", label: translate("ecommerce.workbench.workbenchGallery.removeThisGroup") }] : []),
     ];
     return (
-        <article ref={ref} className="wb-batch" aria-label={batch.prompt.slice(0, 60) || "生成批次"}>
+        <article ref={ref} className="wb-batch" aria-label={batch.prompt.slice(0, 60) || translate("ecommerce.workbench.workbenchGallery.generationBatch")}>
             <header className="wb-batch-head">
                 <div className="wb-batch-meta">
                     <RelativeTime value={batch.createdAt} />
@@ -267,20 +274,20 @@ const BatchCard = memo(function BatchCard({ batch, kind, actions, busyTaskIds }:
                 </div>
                 <div className="wb-batch-actions">
                     {batch.tasks.length ? (
-                        <Tooltip title="复用这组的场景、素材和参数">
-                            <button type="button" className="wb-icon-button" data-icon-only aria-label="复用参数" onClick={() => actions.reuse(batch)}>
+                        <Tooltip title={translate("ecommerce.workbench.workbenchGallery.reuseThisGroupSScenarioAssetsAndSettings")}>
+                            <button type="button" className="wb-icon-button" data-icon-only aria-label={translate("ecommerce.workbench.workbenchGallery.reuseSettings")} onClick={() => actions.reuse(batch)}>
                                 <SquarePen />
                             </button>
                         </Tooltip>
                     ) : null}
-                    <Tooltip title="复制提示词">
-                        <button type="button" className="wb-icon-button" data-icon-only aria-label="复制提示词" disabled={!batch.prompt} onClick={() => actions.copyPrompt(batch)}>
+                    <Tooltip title={translate("canvasA.artCritique.copyPrompt")}>
+                        <button type="button" className="wb-icon-button" data-icon-only aria-label={translate("canvasA.artCritique.copyPrompt")} disabled={!batch.prompt} onClick={() => actions.copyPrompt(batch)}>
                             <Copy />
                         </button>
                     </Tooltip>
                     {batch.outputs.length ? (
-                        <Tooltip title={batch.outputs.length > 1 ? `下载全部 ${batch.outputs.length} 个` : "下载"}>
-                            <button type="button" className="wb-icon-button" data-icon-only aria-label="下载全部" onClick={() => actions.downloadAll(batch)}>
+                        <Tooltip title={batch.outputs.length > 1 ? translate("ecommerce.workbench.workbenchGallery.downloadAll", { v0: String(batch.outputs.length) }) : translate("canvasA.assetView.download")}>
+                            <button type="button" className="wb-icon-button" data-icon-only aria-label={translate("ecommerce.workbench.workbenchGallery.downloadAll2")} onClick={() => actions.downloadAll(batch)}>
                                 <Download />
                             </button>
                         </Tooltip>
@@ -299,7 +306,7 @@ const BatchCard = memo(function BatchCard({ batch, kind, actions, busyTaskIds }:
                                 },
                             }}
                         >
-                            <button type="button" className="wb-icon-button" data-icon-only aria-label="更多操作">
+                            <button type="button" className="wb-icon-button" data-icon-only aria-label={translate("canvasB.common.moreActions")}>
                                 <Ellipsis />
                             </button>
                         </Dropdown>
@@ -307,7 +314,7 @@ const BatchCard = memo(function BatchCard({ batch, kind, actions, busyTaskIds }:
                 </div>
             </header>
             <p className="wb-batch-prompt" title={batch.prompt}>
-                {batch.prompt || "（无提示词）"}
+                {batch.prompt || translate("ecommerce.workbench.workbenchGallery.noPrompt")}
             </p>
             <div className="wb-batch-tags">
                 {batch.chips.map((chip) => (
@@ -321,10 +328,11 @@ const BatchCard = memo(function BatchCard({ batch, kind, actions, busyTaskIds }:
                 <div className="wb-batch-notice" role="status">
                     <CircleAlert />
                     <span>
-                        还有 {batch.resumable} 个任务没有提交{batch.resumeError ? `：${batch.resumeError}` : ""}
+                        {translate("ecommerce.workbench.workbenchGallery.thereAreStill")} {batch.resumable} {translate("ecommerce.workbench.workbenchGallery.unsubmittedTasks")}
+                        {batch.resumeError ? `：${batch.resumeError}` : ""}
                     </span>
                     <Button size="small" onClick={() => actions.resume(batch)}>
-                        继续提交
+                        {translate("ecommerce.workbench.workbenchGallery.continueSubmitting")}
                     </Button>
                 </div>
             ) : null}
@@ -345,7 +353,7 @@ const BatchCard = memo(function BatchCard({ batch, kind, actions, busyTaskIds }:
                             {tile.state === "submitting" ? <span className="wb-tile-shimmer" aria-hidden /> : null}
                             <span className="wb-tile-state">
                                 {tile.state === "submitting" ? <LoaderCircle className="wb-spin" /> : <CircleAlert />}
-                                <strong>{tile.state === "submitting" ? "提交中" : "未提交"}</strong>
+                                <strong>{tile.state === "submitting" ? translate("ecommerce.workbench.workbenchGallery.submitting") : translate("ecommerce.workbench.workbenchGallery.notSubmitted")}</strong>
                             </span>
                         </div>
                     ),
@@ -397,33 +405,42 @@ export function WorkbenchGallery({
         }),
         { outputs: 0, generating: 0, activeBatches: 0, failedBatches: 0 },
     );
-    const unit = kind === "image" ? "张" : "条";
+    const unit = kind === "image" ? translate("canvasA.characterLibrary.pageItem") : translate("ecommerce.workbench.workbenchGallery.videos");
     return (
-        <section className="wb-gallery" aria-label="作品">
+        <section className="wb-gallery" aria-label={translate("ecommerce.workbench.workbenchGallery.works")}>
             <header className="wb-gallery-head">
                 <div className="wb-gallery-title">
-                    <h2>作品</h2>
+                    <h2>{translate("ecommerce.workbench.workbenchGallery.works")}</h2>
                     <span>
                         {totals.outputs} {unit}
-                        {totals.generating ? ` · ${totals.generating} ${unit}生成中` : ""}
+                        {totals.generating ? translate("ecommerce.workbench.workbenchGallery.generating", { v0: String(totals.generating), v1: String(unit) }) : ""}
                     </span>
                 </div>
                 <div className="wb-gallery-tools">
                     <SegmentedControl<GalleryFilter>
                         size="sm"
-                        ariaLabel="按状态筛选"
+                        ariaLabel={translate("ecommerce.workbench.workbenchGallery.filterByStatus")}
                         value={filter}
                         onChange={onFilterChange}
                         options={[
-                            { value: "all", label: "全部" },
-                            { value: "active", label: totals.activeBatches ? `进行中 ${totals.activeBatches}` : "进行中" },
-                            { value: "done", label: "已完成" },
-                            { value: "failed", label: totals.failedBatches ? `失败 ${totals.failedBatches}` : "失败" },
+                            { value: "all", label: translate("canvasA.toolPicker.all") },
+                            { value: "active", label: totals.activeBatches ? translate("ecommerce.workbench.workbenchGallery.inProgress", { v0: String(totals.activeBatches) }) : translate("canvasB.mediaVersion.inProgress") },
+                            { value: "done", label: translate("library.tasks.filter.succeeded") },
+                            { value: "failed", label: totals.failedBatches ? translate("ecommerce.workbench.workbenchGallery.failed", { v0: String(totals.failedBatches) }) : translate("library.assets.batch.failed") },
                         ]}
                     />
-                    <Input className="wb-gallery-search" size="small" allowClear prefix={<Search className="size-3.5" />} placeholder="搜索提示词或场景" aria-label="搜索作品" value={query} onChange={(event) => onQueryChange(event.target.value)} />
-                    <Tooltip title="刷新">
-                        <button type="button" className="wb-icon-button" data-icon-only aria-label="刷新作品列表" onClick={onRefresh}>
+                    <Input
+                        className="wb-gallery-search"
+                        size="small"
+                        allowClear
+                        prefix={<Search className="size-3.5" />}
+                        placeholder={translate("ecommerce.workbench.workbenchGallery.searchPromptsOrScenarios")}
+                        aria-label={translate("ecommerce.workbench.workbenchGallery.searchWorks")}
+                        value={query}
+                        onChange={(event) => onQueryChange(event.target.value)}
+                    />
+                    <Tooltip title={translate("common.refresh")}>
+                        <button type="button" className="wb-icon-button" data-icon-only aria-label={translate("ecommerce.workbench.workbenchGallery.refreshGallery")} onClick={onRefresh}>
                             <RefreshCw />
                         </button>
                     </Tooltip>
@@ -431,7 +448,7 @@ export function WorkbenchGallery({
             </header>
             <div className="wb-gallery-scroll">
                 {loading && !batches.length ? (
-                    <div className="wb-gallery-skeleton" aria-busy="true" aria-label="正在加载作品">
+                    <div className="wb-gallery-skeleton" aria-busy="true" aria-label={translate("ecommerce.workbench.workbenchGallery.loadingWorks")}>
                         {Array.from({ length: 2 }, (_, index) => (
                             <div key={index} className="wb-batch is-skeleton">
                                 <span className="wb-skeleton-line is-short" />
@@ -451,16 +468,20 @@ export function WorkbenchGallery({
                         <WorkspaceState
                             compact
                             icon="assets"
-                            title={kind === "image" ? "上传商品图，一次生成整套商品图" : "用一张商品图，批量生成商品视频"}
-                            description={kind === "image" ? "选好出品场景，上传商品原图，设置数量后生成。主图、场景图、模特图按批次保存在这里。" : "选好镜头场景，上传商品首帧，一次可并行生成多条。生成的视频按批次保存在这里。"}
+                            title={kind === "image" ? translate("ecommerce.workbench.workbenchGallery.uploadProductImagesToGenerateACompleteSet") : translate("ecommerce.workbench.workbenchGallery.createProductVideosInBatchesFromOneProductImage")}
+                            description={
+                                kind === "image"
+                                    ? translate("ecommerce.workbench.workbenchGallery.chooseAnOutputScenarioUploadOriginalProductImagesSetThe")
+                                    : translate("ecommerce.workbench.workbenchGallery.chooseACameraScenarioUploadAProductOpeningFrameAnd")
+                            }
                             action={
                                 <Button type="primary" onClick={onOpenLibrary}>
-                                    选择出品场景
+                                    {translate("ecommerce.workbench.workbenchGallery.chooseAnOutputScenario")}
                                 </Button>
                             }
                         />
                         {quickTools.length ? (
-                            <div className="wb-empty-scenes" role="group" aria-label="常用场景">
+                            <div className="wb-empty-scenes" role="group" aria-label={translate("ecommerce.workbench.workbenchGallery.commonScenarios")}>
                                 {quickTools.slice(0, 3).map((tool) => (
                                     <button key={tool.id} type="button" className="wb-empty-scene" onClick={() => onChooseTool(tool)}>
                                         <SceneGlyph tool={tool} kind={kind} />
@@ -478,8 +499,8 @@ export function WorkbenchGallery({
                     <WorkspaceNoResultsState
                         compact
                         query={query}
-                        title={query.trim() ? undefined : "这个筛选下还没有作品"}
-                        description={query.trim() ? undefined : "切换到“全部”查看所有批次。"}
+                        title={query.trim() ? undefined : translate("ecommerce.workbench.workbenchGallery.noWorksMatchThisFilterYet")}
+                        description={query.trim() ? undefined : translate("ecommerce.workbench.workbenchGallery.switchToAllToSeeEveryBatch")}
                         onClear={() => {
                             onQueryChange("");
                             onFilterChange("all");
@@ -490,7 +511,7 @@ export function WorkbenchGallery({
                         {visible.map((batch) => (
                             <BatchCard key={batch.key} batch={batch} kind={kind} actions={actions} busyTaskIds={busyTaskIds} />
                         ))}
-                        {historyCapped ? <p className="wb-gallery-end">这里显示最近 100 个任务，更早的记录可在任务中心查看。</p> : null}
+                        {historyCapped ? <p className="wb-gallery-end">{translate("ecommerce.workbench.workbenchGallery.theLatest100TasksAreShownHereFindOlderRecords")}</p> : null}
                     </div>
                 )}
             </div>
