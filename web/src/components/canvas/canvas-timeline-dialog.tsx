@@ -37,6 +37,7 @@ import { defaultTimelineExportPreset, resolveTimelineExportSize, summarizeTimeli
 import { buildSubtitleSrt, getOrderedSubtitleClips, getOrderedVideoClips, type TimelineRenderSource } from "@/lib/timeline/timeline-to-ffmpeg";
 import type { CanvasNodeData } from "@/types/canvas";
 import type { SrtEntry, TimelineClip, TimelineDirectMedia, TimelineProject } from "@/types/timeline";
+import { translate } from "@/i18n";
 
 const MIN_CLIP_DURATION_MS = 100;
 const TRACK_ROW_HEIGHT = 52;
@@ -45,7 +46,7 @@ const BASE_PX_PER_SECOND = 96;
 const EXPORT_FPS = 30;
 
 type TimelineSourceKind = TimelineBuildScope | "saved";
-const SOURCE_LABELS: Record<TimelineSourceKind, string> = { current: "当前视频", selection: "选中视频", canvas: "整个画布", saved: "已保存时间线" };
+const SOURCE_LABELS: Record<TimelineSourceKind, string> = { current: translate("canvasTools.canvasTimelineDialog.currentVideo"), selection: translate("canvasTools.canvasTimelineDialog.selectedVideos2"), canvas: translate("canvasTools.canvasTimelineDialog.entireCanvas"), saved: translate("canvasTools.canvasTimelineDialog.savedTimeline") };
 
 type CanvasTimelineDialogProps = {
     node: CanvasNodeData;
@@ -161,10 +162,10 @@ export function CanvasTimelineDialog({
     const rebuildFromScope = async (scope: TimelineBuildScope, includeReferences: boolean) => {
         if (draftDirtyRef.current) {
             const confirmed = await modal.confirm({
-                title: "放弃当前时间线的修改？",
-                content: "切换来源会按新范围重新排列片段，当前未保存的编辑不会保留。",
-                okText: "放弃并切换",
-                cancelText: "继续编辑",
+                title: translate("canvasTools.canvasTimelineDialog.discardChangesToTheCurrentTimeline"),
+                content: translate("canvasTools.canvasTimelineDialog.switchingSourcesRearrangesClipsForTheNewScopeUnsavedEdits"),
+                okText: translate("account.settings.prompts.switchOk"),
+                cancelText: translate("account.settings.prompts.switchCancel"),
             });
             if (!confirmed) return;
         }
@@ -176,10 +177,10 @@ export function CanvasTimelineDialog({
     // 已保存时间线不会被自动替换；用户明确选择后才换成只含当前视频的新草稿，保存前原时间线保持不变。
     const startFromCurrentVideo = async () => {
         const confirmed = await modal.confirm({
-            title: "从当前视频新建时间线？",
-            content: "编辑区会换成只含当前视频的新时间线，当前草稿的修改不会保留；点「保存」后才会覆盖项目里已保存的时间线。",
-            okText: "新建",
-            cancelText: "保留现有时间线",
+            title: translate("canvasTools.canvasTimelineDialog.createANewTimelineFromTheCurrentVideo"),
+            content: translate("canvasTools.canvasTimelineDialog.theEditorWillSwitchToANewTimelineContainingOnly"),
+            okText: translate("canvasTools.canvasTimelineDialog.create"),
+            cancelText: translate("canvasTools.canvasTimelineDialog.keepExistingTimeline"),
         });
         if (!confirmed) return;
         setSource("current");
@@ -384,7 +385,7 @@ export function CanvasTimelineDialog({
 
     const deleteSelectedClip = () => {
         if (!selectedClipId) {
-            message.info("请先点击选中一个片段");
+            message.info(translate("canvasTools.canvasTimelineDialog.selectAClipFirst"));
             return;
         }
         applyDraft((current) => ({
@@ -408,7 +409,7 @@ export function CanvasTimelineDialog({
         const trackId = kind === "video" ? DEFAULT_VIDEO_TRACK_ID : DEFAULT_AUDIO_TRACK_ID;
         const targetTrack = draft.tracks.find((track) => track.id === trackId);
         if (!targetTrack || targetTrack.locked) {
-            message.warning(kind === "video" ? "视频轨已锁定或不存在" : "音频轨已锁定或不存在");
+            message.warning(kind === "video" ? translate("canvasTools.canvasTimelineDialog.theVideoTrackIsLockedOrMissing") : translate("canvasTools.canvasTimelineDialog.theAudioTrackIsLockedOrMissing"));
             return;
         }
         const durationMs = targetNode.metadata?.durationMs && targetNode.metadata.durationMs > 0 ? Math.round(targetNode.metadata.durationMs) : 4_000;
@@ -427,14 +428,14 @@ export function CanvasTimelineDialog({
             trackId,
             startMs,
             durationMs,
-            title: targetNode.title || (kind === "video" ? "视频片段" : "音频片段"),
+            title: targetNode.title || (kind === "video" ? translate("canvasTools.canvasTimelineDialog.videoClip") : translate("canvasTools.canvasTimelineDialog.audioClip")),
             sourceStartMs: 0,
             sourceDurationMs: durationMs,
             ...(kind === "audio" ? { volume: 1, fadeInMs: 0, fadeOutMs: 0 } : {}),
         };
         applyDraft((current) => ({ ...current, clips: [...current.clips, clip] }));
         setSelectedClipId(clip.id);
-        message.success(`已添加「${clip.title}」到时间线`);
+        message.success(translate("canvasTools.canvasTimelineDialog.addedToTheTimeline", { v0: String(clip.title) }));
     };
 
     // 把“添加节点”能力暴露给页面层（素材库/本地上传创建节点后回填到草稿）。
@@ -450,13 +451,13 @@ export function CanvasTimelineDialog({
     const addDirectMediaToTimeline = (media: TimelineDirectMedia) => {
         const kind = media.kind === "video" ? "video" : media.kind === "audio" ? "audio" : null;
         if (!kind) {
-            message.info("图片/文本素材暂不支持直接入轨，请先在画布中添加节点");
+            message.info(translate("canvasTools.canvasTimelineDialog.imageAndTextAssetsCannotGoStraightOntoATrack"));
             return;
         }
         const trackId = kind === "video" ? DEFAULT_VIDEO_TRACK_ID : DEFAULT_AUDIO_TRACK_ID;
         const targetTrack = draft.tracks.find((track) => track.id === trackId);
         if (!targetTrack || targetTrack.locked) {
-            message.warning(kind === "video" ? "视频轨已锁定或不存在" : "音频轨已锁定或不存在");
+            message.warning(kind === "video" ? translate("canvasTools.canvasTimelineDialog.theVideoTrackIsLockedOrMissing") : translate("canvasTools.canvasTimelineDialog.theAudioTrackIsLockedOrMissing"));
             return;
         }
         const durationMs = media.durationMs && media.durationMs > 0 ? Math.round(media.durationMs) : 4_000;
@@ -473,7 +474,7 @@ export function CanvasTimelineDialog({
             trackId,
             startMs: placement.startMs,
             durationMs,
-            title: media.title || (kind === "video" ? "视频片段" : "音频片段"),
+            title: media.title || (kind === "video" ? translate("canvasTools.canvasTimelineDialog.videoClip") : translate("canvasTools.canvasTimelineDialog.audioClip")),
             sourceStartMs: 0,
             sourceDurationMs: durationMs,
             directMedia: media,
@@ -481,7 +482,7 @@ export function CanvasTimelineDialog({
         };
         applyDraft((current) => ({ ...current, clips: [...current.clips, clip] }));
         setSelectedClipId(clip.id);
-        message.success(`已添加「${clip.title}」到时间线`);
+        message.success(translate("canvasTools.canvasTimelineDialog.addedToTheTimeline", { v0: String(clip.title) }));
     };
 
     // 把“直连媒体入轨”能力暴露给页面层（时间线作用域插入不重复落画布）。
@@ -497,12 +498,12 @@ export function CanvasTimelineDialog({
     const splitClipAtPlayhead = () => {
         const clip = draft.clips.find((item) => (item.kind === "video" || item.kind === "audio") && playheadMs > item.startMs && playheadMs < item.startMs + item.durationMs);
         if (!clip) {
-            message.info("请先将播放头移动到片段内部，再执行分割");
+            message.info(translate("canvasTools.canvasTimelineDialog.moveThePlayheadInsideAClipBeforeSplitting"));
             return;
         }
         const cutMs = playheadMs - clip.startMs;
         if (cutMs < MIN_CLIP_DURATION_MS || clip.durationMs - cutMs < MIN_CLIP_DURATION_MS) {
-            message.warning("分割点太靠近片段边缘");
+            message.warning(translate("canvasTools.canvasTimelineDialog.theSplitPointIsTooCloseToTheClipEdge"));
             return;
         }
         const left: TimelineClip = { ...clip, id: `${clip.id}-left-${Date.now()}`, durationMs: Math.round(cutMs) };
@@ -516,14 +517,14 @@ export function CanvasTimelineDialog({
         };
         applyDraft((current) => ({ ...current, clips: [...current.clips.filter((item) => item.id !== clip.id), left, right] }));
         setSelectedClipId(left.id);
-        message.success("已在播放头处分割片段");
+        message.success(translate("canvasTools.canvasTimelineDialog.clipSplitAtThePlayhead"));
     };
 
     const handleLocalUpload = async (files: FileList | null) => {
         const list = files ? Array.from(files) : [];
         if (!list.length) return;
         if (!onUploadLocalFiles) {
-            message.warning("本地上传暂未接线");
+            message.warning(translate("canvasTools.canvasTimelineDialog.localUploadIsNotWiredUpYet"));
             return;
         }
         const medias = await onUploadLocalFiles(list);
@@ -550,7 +551,7 @@ export function CanvasTimelineDialog({
         subtitleNodeIds.forEach((subNodeId) => {
             onSaveSubtitles(subNodeId, buildSubtitleEntriesForNode(subNodeId, normalized));
         });
-        message.success("时间线已保存");
+        message.success(translate("canvasTools.canvasTimelineDialog.timelineSaved"));
         onClose();
     };
 
@@ -568,7 +569,7 @@ export function CanvasTimelineDialog({
     // 组装导出：把当前草稿按片段顺序合成一个 MP4（导出下载与生成新片段共用），所有片段统一到所选导出规格。
     const runExport = async (): Promise<TimelineExportResult> => {
         const videoClips = draft.clips.filter((clip) => clip.kind === "video");
-        if (!videoClips.length) throw new Error("时间线没有视频片段，无法导出");
+        if (!videoClips.length) throw new Error(translate("canvasTools.canvasTimelineDialog.theTimelineHasNoVideoClipsSoItCannotBe"));
         const sources: TimelineRenderSource[] = [];
         for (const clip of videoClips) {
             const sourceNode = nodes.find((item) => item.id === clip.nodeId);
@@ -583,10 +584,10 @@ export function CanvasTimelineDialog({
                 ...clipFrameSize(clip),
             });
         }
-        if (!sources.length) throw new Error("找不到可导出的视频素材，请确认视频节点包含媒体");
+        if (!sources.length) throw new Error(translate("canvasTools.canvasTimelineDialog.noExportableVideoFoundCheckThatTheVideoNodesContain"));
         setExporting(true);
         setExportPercent(0);
-        setExportDetail("准备导出");
+        setExportDetail(translate("canvasTools.canvasTimelineDialog.preparingTheExport"));
         try {
             return await exportTimelineToMp4(normalizeTimelineProject(draft), sources, {
                 context: { width: exportSize.width, height: exportSize.height, fps: EXPORT_FPS },
@@ -609,7 +610,7 @@ export function CanvasTimelineDialog({
             message.success(successText);
             return;
         }
-        const details = result.warnings.length ? result.warnings.join("；") : "成片未包含字幕";
+        const details = result.warnings.length ? result.warnings.join("；") : translate("canvasTools.canvasTimelineDialog.finalVideoHasNoSubtitles");
         message.warning({
             duration: 10,
             content: (
@@ -619,7 +620,7 @@ export function CanvasTimelineDialog({
                     </span>
                     {subtitlesMissing ? (
                         <Button size="small" type="link" onClick={() => saveAs(new Blob([srt], { type: "application/x-subrip;charset=utf-8" }), baseName + ".srt")}>
-                            下载 SRT
+                            {translate("canvasTools.canvasTimelineDialog.downloadSRT")}
                         </Button>
                     ) : null}
                 </span>
@@ -630,30 +631,30 @@ export function CanvasTimelineDialog({
     const handleExport = async () => {
         try {
             const srt = buildSubtitleSrt(getOrderedSubtitleClips(draft));
-            const baseName = node.title || "成片";
+            const baseName = node.title || translate("canvasTools.canvasTimelineDialog.finalCut");
             const result = await runExport();
             saveAs(result.blob, baseName + ".mp4");
-            reportExportResult(result, srt, baseName, "成片导出完成");
+            reportExportResult(result, srt, baseName, translate("canvasTools.canvasTimelineDialog.finalCutExported"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "导出失败");
+            message.error(error instanceof Error ? error.message : translate("account.settings.memory.exportFailed"));
         }
     };
 
     // 组装能力闭环：合成结果不落地下载，而是作为新视频节点放回画布，可继续编辑字幕与样式。
     const handleCreateAssembledNode = async () => {
         if (!onCreateAssembledNode) {
-            message.warning("保存回画布暂未接线");
+            message.warning(translate("canvasTools.canvasTimelineDialog.savingBackToTheCanvasIsNotWiredUpYet"));
             return;
         }
         try {
             const srt = buildSubtitleSrt(getOrderedSubtitleClips(draft));
-            const baseName = node.title || "成片";
+            const baseName = node.title || translate("canvasTools.canvasTimelineDialog.finalCut");
             const result = await runExport();
             const subtitlesMissing = Boolean(srt) && !result.subtitlesBurned;
-            const created = await onCreateAssembledNode(result.blob, baseName + "-新片段" + (subtitlesMissing ? "（无字幕）" : ""));
-            if (created) reportExportResult(result, srt, baseName, "已生成新视频片段并放到画布，可继续编辑字幕与样式");
+            const created = await onCreateAssembledNode(result.blob, baseName + translate("canvasTools.canvasTimelineDialog.newClip") + (subtitlesMissing ? translate("canvasTools.canvasTimelineDialog.noSubtitles") : ""));
+            if (created) reportExportResult(result, srt, baseName, translate("canvasTools.canvasTimelineDialog.newClipGeneratedAndPlacedOnTheCanvasYouCan"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "生成新片段失败");
+            message.error(error instanceof Error ? error.message : translate("canvasTools.canvasTimelineDialog.couldNotGenerateTheNewClip"));
         }
     };
 
@@ -741,9 +742,9 @@ export function CanvasTimelineDialog({
     const selectionVideoCount = countTimelineSelectionVideos(nodes, selectedNodeIds);
     const referenceVideoCount = nodes.filter((item) => isReferenceVideoNode(item) && Boolean(item.metadata?.content || item.metadata?.storageKey)).length;
     const scopeOptions = [
-        { value: "current" as const, label: "当前视频", disabled: !triggerHasMedia },
-        ...(selectionVideoCount > 1 ? [{ value: "selection" as const, label: `选中视频（${selectionVideoCount}）` }] : []),
-        { value: "canvas" as const, label: "整个画布", title: referenceVideoCount ? "默认不含预演台白膜/深度参考视频" : undefined },
+        { value: "current" as const, label: translate("canvasTools.canvasTimelineDialog.currentVideo"), disabled: !triggerHasMedia },
+        ...(selectionVideoCount > 1 ? [{ value: "selection" as const, label: translate("canvasTools.canvasTimelineDialog.selectedVideos", { v0: String(selectionVideoCount) }) }] : []),
+        { value: "canvas" as const, label: translate("canvasTools.canvasTimelineDialog.entireCanvas"), title: referenceVideoCount ? translate("canvasTools.canvasTimelineDialog.excludesPrevisClayDepthReferenceVideosByDefault") : undefined },
     ];
     const sourceSummary = formatTimelineSourceSummary(SOURCE_LABELS[source], summarizeTimelineSource(draft));
 
@@ -753,19 +754,18 @@ export function CanvasTimelineDialog({
                 <Clapperboard className="size-4" />
             </span>
             <div className="min-w-0 flex-1">
-                <div className="truncate text-[var(--fs-heading-lg)] font-semibold leading-6 tracking-[-0.02em]">多轨时间线</div>
+                <div className="truncate text-[var(--fs-heading-lg)] font-semibold leading-6 tracking-[-0.02em]">{translate("canvasTools.canvasTimelineDialog.multiTrackTimeline")}</div>
                 <div className="truncate text-xs tabular-nums opacity-55">{sourceSummary}</div>
             </div>
             {source !== "saved" ? (
                 <div className="flex shrink-0 items-center gap-3 text-xs font-normal">
                     {source === "canvas" && referenceVideoCount ? (
                         <Checkbox size="sm" checked={includeReferenceVideos} onChange={(event) => void rebuildFromScope("canvas", event.target.checked)}>
-                            含白膜/深度参考（{referenceVideoCount}）
-                        </Checkbox>
+                            {translate("canvasTools.inline.canvasTimelineDialog.includesClayDepthReferences", { v0: String(referenceVideoCount) })}</Checkbox>
                     ) : null}
                     <SegmentedControl
                         size="sm"
-                        ariaLabel="时间线来源"
+                        ariaLabel={translate("canvasTools.canvasTimelineDialog.timelineSource")}
                         value={source}
                         options={scopeOptions}
                         onChange={(value) => {
@@ -797,15 +797,15 @@ export function CanvasTimelineDialog({
                     <span className="min-w-24 rounded-md border px-2 py-1 text-xs font-semibold tabular-nums" style={{ borderColor: theme.toolbar.border, background: theme.node.fill, color: theme.accent.primary }}>
                         {formatTimelineTime(playheadMs)}
                     </span>
-                    <Tooltip title={snapEnabled ? "关闭吸附" : "开启吸附"}>
+                    <Tooltip title={snapEnabled ? translate("canvasTools.canvasTimelineDialog.turnOffSnapping") : translate("canvasTools.canvasTimelineDialog.turnOnSnapping")}>
                         <Button size="small" icon={<Scissors className="size-3.5" />} onClick={() => setSnapEnabled((value) => !value)}>
-                            {snapEnabled ? "吸附开" : "吸附关"}
+                            {snapEnabled ? translate("canvasTools.canvasTimelineDialog.snapOn") : translate("canvasTools.canvasTimelineDialog.snapOff")}
                         </Button>
                     </Tooltip>
                     <Button size="small" icon={<ZoomOut className="size-3.5" />} onClick={() => setZoomLevel((value) => zoomOut(value))} />
                     <Button size="small" icon={<ZoomIn className="size-3.5" />} onClick={() => setZoomLevel((value) => zoomIn(value))} />
                     <Button size="small" icon={<Maximize2 className="size-3.5" />} onClick={() => setZoomLevel(getFitTimelineZoom(durationMs, viewportWidth))}>
-                        适应
+                        {translate("canvasTools.canvasTimelineDialog.fit")}
                     </Button>
                     {addGroupCollapsed ? (
                         <Dropdown
@@ -817,14 +817,14 @@ export function CanvasTimelineDialog({
                                         ? [
                                               {
                                                   key: "add",
-                                                  label: "添加素材",
+                                                  label: translate("canvasTools.canvasTimelineDialog.addAsset"),
                                                   icon: <Plus className="size-3.5" />,
                                                   children: addableNodes.map((item) => ({
                                                       key: item.id,
                                                       label: (
                                                           <span className="inline-flex max-w-56 items-center gap-2 truncate">
                                                               {item.type === "video" ? <Video className="size-3.5" /> : <Music2 className="size-3.5" />}
-                                                              {item.title || "未命名素材"}
+                                                              {item.title || translate("library.picker.untitled")}
                                                           </span>
                                                       ),
                                                       onClick: () => addNodeToTimeline(item),
@@ -832,15 +832,15 @@ export function CanvasTimelineDialog({
                                               },
                                           ]
                                         : []),
-                                    { key: "upload", label: "上传本地", icon: <Upload className="size-3.5" />, onClick: () => uploadInputRef.current?.click() },
-                                    { key: "library", label: "素材库", icon: <Library className="size-3.5" />, disabled: !onOpenAssetLibrary, onClick: () => onOpenAssetLibrary?.() },
-                                    { key: "assets", label: "项目资产", icon: <FolderOpen className="size-3.5" />, disabled: !onOpenProjectAssets, onClick: () => onOpenProjectAssets?.() },
+                                    { key: "upload", label: translate("canvasTools.canvasTimelineDialog.uploadFromThisDevice"), icon: <Upload className="size-3.5" />, onClick: () => uploadInputRef.current?.click() },
+                                    { key: "library", label: translate("canvasB.mention.assetLibrary"), icon: <Library className="size-3.5" />, disabled: !onOpenAssetLibrary, onClick: () => onOpenAssetLibrary?.() },
+                                    { key: "assets", label: translate("canvasTools.canvasTimelineDialog.projectAssets"), icon: <FolderOpen className="size-3.5" />, disabled: !onOpenProjectAssets, onClick: () => onOpenProjectAssets?.() },
                                 ],
                             }}
                         >
                             <span ref={moreBtnRef}>
                                 <Button size="small" icon={<MoreHorizontal className="size-3.5" />}>
-                                    更多
+                                    {translate("canvasA.creative.more")}
                                 </Button>
                             </span>
                         </Dropdown>
@@ -856,7 +856,7 @@ export function CanvasTimelineDialog({
                                         label: (
                                             <span className="inline-flex max-w-56 items-center gap-2 truncate">
                                                 {item.type === "video" ? <Video className="size-3.5" /> : <Music2 className="size-3.5" />}
-                                                {item.title || "未命名素材"}
+                                                {item.title || translate("library.picker.untitled")}
                                             </span>
                                         ),
                                         onClick: () => addNodeToTimeline(item),
@@ -864,34 +864,34 @@ export function CanvasTimelineDialog({
                                 }}
                             >
                                 <Button size="small" icon={<Plus className="size-3.5" />} disabled={!addableNodes.length}>
-                                    添加素材
+                                    {translate("canvasTools.canvasTimelineDialog.addAsset")}
                                 </Button>
                             </Dropdown>
                             <Button size="small" icon={<Upload className="size-3.5" />} onClick={() => uploadInputRef.current?.click()}>
-                                上传本地
+                                {translate("canvasTools.canvasTimelineDialog.uploadFromThisDevice")}
                             </Button>
                             <Button size="small" icon={<Library className="size-3.5" />} disabled={!onOpenAssetLibrary} onClick={() => onOpenAssetLibrary?.()}>
-                                素材库
+                                {translate("canvasB.mention.assetLibrary")}
                             </Button>
                             <Button size="small" icon={<FolderOpen className="size-3.5" />} disabled={!onOpenProjectAssets} onClick={() => onOpenProjectAssets?.()}>
-                                项目资产
+                                {translate("canvasTools.canvasTimelineDialog.projectAssets")}
                             </Button>
                         </>
                     )}
                     <div ref={addGroupProbeRef} aria-hidden="true" className="invisible pointer-events-none absolute left-0 top-0 flex items-center gap-2">
                         <Dropdown trigger={["click"]} placement="bottomLeft" disabled={!addableNodes.length} menu={{ items: [] }}>
                             <Button size="small" icon={<Plus className="size-3.5" />}>
-                                添加素材
+                                {translate("canvasTools.canvasTimelineDialog.addAsset")}
                             </Button>
                         </Dropdown>
                         <Button size="small" icon={<Upload className="size-3.5" />}>
-                            上传本地
+                            {translate("canvasTools.canvasTimelineDialog.uploadFromThisDevice")}
                         </Button>
                         <Button size="small" icon={<Library className="size-3.5" />}>
-                            素材库
+                            {translate("canvasB.mention.assetLibrary")}
                         </Button>
                         <Button size="small" icon={<FolderOpen className="size-3.5" />}>
-                            项目资产
+                            {translate("canvasTools.canvasTimelineDialog.projectAssets")}
                         </Button>
                     </div>
                     <input
@@ -906,33 +906,33 @@ export function CanvasTimelineDialog({
                         }}
                     />
                     <Button size="small" icon={<Scissors className="size-3.5" />} onClick={splitClipAtPlayhead}>
-                        分割
+                        {translate("canvasTools.canvasTimelineDialog.split")}
                     </Button>
                     <div className="ml-auto flex items-center gap-2">
                         <Button size="small" type="primary" icon={<Clapperboard className="size-3.5" />} loading={exporting} disabled={!hasVideoClips} onClick={() => void handleExport()}>
-                            导出成片
+                            {translate("canvasTools.canvasTimelineDialog.exportTheCut")}
                         </Button>
                         <Button size="small" icon={<Film className="size-3.5" />} loading={exporting} disabled={!hasVideoClips} onClick={() => void handleCreateAssembledNode()}>
-                            生成新片段
+                            {translate("canvasTools.canvasTimelineDialog.generateANewClip")}
                         </Button>
                         <Button size="small" danger icon={<Trash2 className="size-3.5" />} disabled={!selectedClipId} onClick={deleteSelectedClip}>
-                            删除片段
+                            {translate("canvasTools.canvasTimelineDialog.deleteClip")}
                         </Button>
                         <Button size="small" disabled={!draft.clips.length} onClick={onClose}>
-                            取消
+                            {translate("common.cancel")}
                         </Button>
                         <Button size="small" type="primary" disabled={!draft.clips.length} onClick={handleSave}>
-                            保存
+                            {translate("common.save")}
                         </Button>
                     </div>
                 </div>
 
                 {source === "saved" ? (
                     <div className="flex items-center gap-3 border-b px-4 py-2 text-xs" style={{ borderColor: theme.toolbar.border, background: theme.accent.primarySoft }}>
-                        <span className="min-w-0 flex-1 truncate">正在编辑项目里已保存的时间线，画布上新增的视频不会自动加入。</span>
+                        <span className="min-w-0 flex-1 truncate">{translate("canvasTools.canvasTimelineDialog.youAreEditingATimelineSavedInTheProjectNewly")}</span>
                         {triggerHasVideo ? (
                             <Button size="small" icon={<Video className="size-3.5" />} onClick={() => void startFromCurrentVideo()}>
-                                从当前视频新建时间线
+                                {translate("canvasTools.canvasTimelineDialog.createANewTimelineFromTheCurrentVideo2")}
                             </Button>
                         ) : null}
                     </div>
@@ -988,17 +988,17 @@ export function CanvasTimelineDialog({
                     <div className="border-t px-4 py-2" style={{ borderColor: theme.toolbar.border, background: theme.toolbar.panel }}>
                         <div className="mb-2 flex items-center gap-2 text-xs">
                             <span className="font-semibold" style={{ color: theme.accent.primary }}>
-                                字幕编辑
+                                {translate("canvasTools.canvasTimelineDialog.subtitleEditing")}
                             </span>
-                            <span className="opacity-45">修改后保存将同步写回对应视频节点的字幕数据</span>
+                            <span className="opacity-45">{translate("canvasTools.canvasTimelineDialog.savingWritesTheSubtitlesBackToTheMatchingVideoNode")}</span>
                             {onOpenSubtitleDialog ? (
                                 <Button size="small" className="ml-auto" icon={<Captions className="size-3.5" />} onClick={() => onOpenSubtitleDialog(selectedSubtitleClip.nodeId)}>
-                                    精细编辑（SRT/高亮/样式）
+                                    {translate("canvasTools.canvasTimelineDialog.detailedEditingSRTHighlightsStyle")}
                                 </Button>
                             ) : null}
                         </div>
                         <div className="flex items-start gap-3">
-                            <Input.TextArea autoSize={{ minRows: 1, maxRows: 3 }} value={selectedSubtitleClip.text || ""} placeholder="字幕文本" className="flex-1" onChange={(event) => updateClip(selectedSubtitleClip.id, { text: event.target.value })} />
+                            <Input.TextArea autoSize={{ minRows: 1, maxRows: 3 }} value={selectedSubtitleClip.text || ""} placeholder={translate("canvasTools.canvasTimelineDialog.subtitleText")} className="flex-1" onChange={(event) => updateClip(selectedSubtitleClip.id, { text: event.target.value })} />
                             <div className="flex shrink-0 items-center gap-2 text-xs">
                                 <InputNumber size="small" min={0} step={100} value={selectedSubtitleClip.startMs} onChange={(startMs) => updateClip(selectedSubtitleClip.id, { startMs: startMs ?? 0 })} className="w-28" />
                                 <span className="opacity-40">→</span>
@@ -1010,7 +1010,7 @@ export function CanvasTimelineDialog({
                                     onChange={(endMs) => updateClip(selectedSubtitleClip.id, { durationMs: Math.max(MIN_CLIP_DURATION_MS, (endMs ?? 0) - selectedSubtitleClip.startMs) })}
                                     className="w-28"
                                 />
-                                <span className="opacity-40">毫秒</span>
+                                <span className="opacity-40">{translate("canvasTools.canvasTimelineDialog.ms")}</span>
                             </div>
                         </div>
                     </div>
@@ -1020,15 +1020,15 @@ export function CanvasTimelineDialog({
                     <div className="border-t px-4 py-2" style={{ borderColor: theme.toolbar.border, background: theme.toolbar.panel }}>
                         <div className="mb-2 flex items-center gap-2 text-xs">
                             <span className="font-semibold" style={{ color: theme.accent.primary }}>
-                                片段编辑
+                                {translate("canvasTools.canvasTimelineDialog.clipEditing")}
                             </span>
                             <span className="min-w-0 flex-1 truncate opacity-45">{selectedMediaClip.title || trackLabel(selectedMediaClip.trackId)}</span>
                             <Button size="small" icon={<Scissors className="size-3.5" />} onClick={splitClipAtPlayhead}>
-                                在播放头分割
+                                {translate("canvasTools.canvasTimelineDialog.splitAtThePlayhead")}
                             </Button>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
-                            <span className="opacity-50">起点</span>
+                            <span className="opacity-50">{translate("canvasTools.canvasTimelineDialog.start")}</span>
                             <InputNumber
                                 size="small"
                                 min={selectedMediaMinStartMs}
@@ -1038,7 +1038,7 @@ export function CanvasTimelineDialog({
                                 value={selectedMediaClip.startMs}
                                 onChange={(value) => updateSelectedMediaNumbers({ startMs: Math.max(selectedMediaMinStartMs, Math.min(selectedMediaMaxStartMs, value ?? selectedMediaClip.startMs)) })}
                             />
-                            <span className="opacity-50">时长</span>
+                            <span className="opacity-50">{translate("canvasA.assetView.duration")}</span>
                             <InputNumber
                                 size="small"
                                 min={MIN_CLIP_DURATION_MS}
@@ -1048,7 +1048,7 @@ export function CanvasTimelineDialog({
                                 value={selectedMediaClip.durationMs}
                                 onChange={(value) => updateSelectedMediaNumbers({ durationMs: Math.max(MIN_CLIP_DURATION_MS, Math.min(selectedMediaMaxDurationMs, value ?? selectedMediaClip.durationMs)) })}
                             />
-                            <span className="opacity-50">源内起点</span>
+                            <span className="opacity-50">{translate("canvasTools.canvasTimelineDialog.sourceIn")}</span>
                             <InputNumber
                                 size="small"
                                 min={0}
@@ -1058,35 +1058,35 @@ export function CanvasTimelineDialog({
                                 value={selectedMediaClip.sourceStartMs ?? 0}
                                 onChange={(value) => updateSelectedMediaNumbers({ sourceStartMs: Math.max(0, Math.min(selectedMediaMaxSourceStartMs, value ?? (selectedMediaClip.sourceStartMs || 0))) })}
                             />
-                            <span className="opacity-50">源内结束</span>
+                            <span className="opacity-50">{translate("canvasTools.canvasTimelineDialog.sourceOut")}</span>
                             <span className="tabular-nums" style={{ color: theme.accent.primary }}>
                                 {formatTimelineTime((selectedMediaClip.sourceStartMs || 0) + selectedMediaClip.durationMs)}
                             </span>
-                            <span className="ml-auto hidden opacity-45 sm:inline">数值微调精确裁剪，播放头处可分割；拖拽手柄快速裁剪</span>
+                            <span className="ml-auto hidden opacity-45 sm:inline">{translate("canvasTools.canvasTimelineDialog.trimPreciselyWithNumbersAndSplitAtThePlayheadDrag")}</span>
                         </div>
                     </div>
                 ) : null}
 
                 <div className="flex items-center gap-3 border-t px-4 py-2" style={{ borderColor: theme.toolbar.border, background: theme.toolbar.panel }}>
                     <span className="shrink-0 text-xs opacity-60">
-                        总时长 {formatTimelineTime(durationMs)} · {draft.clips.length} 个片段 · {draft.tracks.length} 条轨道
+                        {translate("canvasTools.inline.canvasTimelineDialog.totalDurationClipsTracks", { v0: String(formatTimelineTime(durationMs)), v1: String(draft.clips.length), v2: String(draft.tracks.length) })}
                     </span>
-                    <span className="shrink-0 text-xs opacity-60">导出规格</span>
+                    <span className="shrink-0 text-xs opacity-60">{translate("canvasTools.canvasTimelineDialog.exportSpecifications")}</span>
                     <Select
                         size="sm"
                         className="w-60 shrink-0"
-                        ariaLabel="导出规格"
+                        ariaLabel={translate("canvasTools.canvasTimelineDialog.exportSpecifications")}
                         value={exportPreset}
                         disabled={exporting}
                         options={exportPresetOptions.map((option) => ({ value: option.value, label: option.label }))}
                         onChange={(value: TimelineExportPreset) => setExportPreset(value)}
                     />
                     {exportFitLabel ? (
-                        <Tooltip title="画面比例与导出规格相差不超过 3% 时裁切填满，否则等比缩放并补黑边">
+                        <Tooltip title={translate("canvasTools.canvasTimelineDialog.cropToFillWhenTheAspectRatioDiffersFromThe")}>
                             <span className="shrink-0 text-xs opacity-60">{exportFitLabel}</span>
                         </Tooltip>
                     ) : null}
-                    <span className="ml-auto min-w-0 truncate text-xs opacity-45">拖拽片段移动，左右边缘裁剪，字幕片段来自视频节点的字幕数据</span>
+                    <span className="ml-auto min-w-0 truncate text-xs opacity-45">{translate("canvasTools.canvasTimelineDialog.dragClipsToMoveThemAndTheirEdgesToTrim")}</span>
                 </div>
             </div>
         </AppModal>

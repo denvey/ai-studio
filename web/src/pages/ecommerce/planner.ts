@@ -11,6 +11,7 @@ import { assertCommerceConsumerCopy, commerceTypographyInstruction } from "./con
 import { commerceDisplayAssignment, commerceDisplaySlotsApply } from "./display-slots";
 import { commerceRestrictedPhrase } from "./platform-knowledge";
 
+import { translate } from "@/i18n";
 export function commerceInputSignature(draft: EcommerceDraft): string {
     draft = normalizeEcommerceReferenceGroups(draft);
     const fields = [
@@ -62,7 +63,7 @@ export function commerceInputSignature(draft: EcommerceDraft): string {
 }
 
 export function assertCommercePlanCurrent(plan: EcommercePlan, draft: EcommerceDraft) {
-    if (!plan.inputSignature || plan.inputSignature !== commerceInputSignature(draft)) throw new Error("商品资料、图片或创作参数已变更，请重新策划后生成，避免使用旧方案");
+    if (!plan.inputSignature || plan.inputSignature !== commerceInputSignature(draft)) throw new Error(translate("ecommerce.planner.productDetailsImagesOrCreativeSettingsChangedReplanBeforeGenerating"));
 }
 
 function affirmativeClaimMatches(text: string, pattern: RegExp): RegExpMatchArray[] {
@@ -293,16 +294,16 @@ export function commercePerformanceAngleCategory(angle: string): string {
 export function assertCommerceDetailRhythm(plan: EcommercePlan, draft: EcommerceDraft) {
     if (draft.imageType !== "detail" || draft.referenceMode === "detail" || plan.images.length !== 9) return;
     const angles = new Set(plan.images.map((image) => commercePerformanceAngleCategory(image.performanceAngle || "")).filter(Boolean));
-    if (angles.size < 2) throw new Error("九张详情图至少需要两种不同的性能/体验说服角度，请重新策划");
+    if (angles.size < 2) throw new Error(translate("ecommerce.planner.nineDetailImagesRequireAtLeastTwoDistinctPerformanceOr"));
     const closeupPattern = /(?:微距|近景|特写|局部|细节放大|macro|close[- ]?up|detail shot|detail view)/i;
-    if (plan.images.filter((image) => closeupPattern.test(commerceRhythmText(image))).length < 2) throw new Error("九张详情图至少需要两张局部近景或细节特写，请重新策划");
-    if (new Set(plan.images.map((image) => image.goal.trim().replace(/\s+/g, " ")).filter(Boolean)).size < 3) throw new Error("九张详情图至少需要三种不同的购买目标或使用场景，请重新策划");
-    if (new Set(plan.images.map((image) => image.composition.trim().replace(/\s+/g, " ")).filter(Boolean)).size < 3) throw new Error("九张详情图至少需要三种不同的机位与构图，请重新策划");
+    if (plan.images.filter((image) => closeupPattern.test(commerceRhythmText(image))).length < 2) throw new Error(translate("ecommerce.planner.nineDetailImagesRequireAtLeastTwoCloseUpOr"));
+    if (new Set(plan.images.map((image) => image.goal.trim().replace(/\s+/g, " ")).filter(Boolean)).size < 3) throw new Error(translate("ecommerce.planner.nineDetailImagesRequireAtLeastThreeDistinctPurchaseGoals"));
+    if (new Set(plan.images.map((image) => image.composition.trim().replace(/\s+/g, " ")).filter(Boolean)).size < 3) throw new Error(translate("ecommerce.planner.nineDetailImagesRequireAtLeastThreeDistinctCameraAngles"));
     if (
         plan.images.every((image) => commerceAllowsText(draft, image.imageType)) &&
         new Set(plan.images.map((image) => /^(卖点总览|标题导语|细节放大窗|场景注释|侧栏目录|规格卡|步骤编号|双栏对照|图标组|留白收束)[｜:：]/.exec(image.informationComponent?.trim() || "")?.[1]).filter(Boolean)).size < 4
     ) {
-        throw new Error("九张详情图至少需要四种不同的信息组件版式，请重新策划");
+        throw new Error(translate("ecommerce.planner.nineDetailImagesRequireAtLeastFourDistinctInformationLayouts"));
     }
 }
 
@@ -507,12 +508,12 @@ export function parsePlannerOutput(text: string, draft: EcommerceDraft): Ecommer
         typeof result.visualStrategy !== "string" ||
         !result.visualStrategy.trim()
     ) {
-        throw new Error("策划结果缺少商品分析或图片数量不匹配，请重新策划");
+        throw new Error(translate("ecommerce.planner.thePlanIsMissingProductAnalysisOrHasAnIncorrect"));
     }
     const seen = new Set<string>();
     for (const [index, image] of result.images.entries()) {
         if (!image || typeof image.id !== "string" || !image.id.trim() || seen.has(image.id) || [image.prompt, image.goal, image.theme, image.composition, image.mainVisual].some((field) => typeof field !== "string" || !field.trim())) {
-            throw new Error(`第${index + 1}张图片的策划字段不完整，请重新策划`);
+            throw new Error(translate("ecommerce.planner.thePlanningFieldsForImageAreIncompleteReplan", { v0: String(index + 1) }));
         }
         seen.add(image.id);
         delete image.taskId;
@@ -520,18 +521,18 @@ export function parsePlannerOutput(text: string, draft: EcommerceDraft): Ecommer
         if (!detailReference) delete image.referenceScreen;
         else if (image.referenceScreen && typeof image.referenceScreen === "object") delete image.referenceScreen.resourceId;
         const required: Array<keyof EcommercePlanImage> = ["imageType", "platform", "language", "fidelity", "imageModel", "ratio", "resolution"];
-        for (const key of required) if (typeof image[key] !== "string" || !image[key]?.trim()) throw new Error(`第${index + 1}张图片缺少${key}`);
-        for (const key of ["copy", "verifiedClaims", "performanceAngle", "informationComponent", "lighting", "negativePrompt"] as const) if (image[key] != null && typeof image[key] !== "string") throw new Error(`第${index + 1}张图片的${key}格式错误`);
+        for (const key of required) if (typeof image[key] !== "string" || !image[key]?.trim()) throw new Error(translate("ecommerce.planner.imageIsMissing", { v0: String(index + 1), v1: String(key) }));
+        for (const key of ["copy", "verifiedClaims", "performanceAngle", "informationComponent", "lighting", "negativePrompt"] as const) if (image[key] != null && typeof image[key] !== "string") throw new Error(translate("ecommerce.planner.imageHasAnInvalidFormat", { v0: String(index + 1), v1: String(key) }));
         const normalizedType = imageTypes.find(([id, label]) => image.imageType === id || image.imageType === label)?.[0];
         if (!normalizedType || (draft.imageType === "set" && normalizedType === "set") || (draft.imageType !== "set" && normalizedType !== draft.imageType)) {
-            throw new Error(`第${index + 1}张图片类型与所选创作类型不一致，请重新策划`);
+            throw new Error(translate("ecommerce.planner.imageDoesNotMatchTheSelectedCreationTypeReplan", { v0: String(index + 1) }));
         }
         image.imageType = normalizedType;
-        if (draft.imageType === "sku" && !draft.skus.some((sku) => sku.id === image.skuId)) throw new Error(`第${index + 1}张图片未关联真实 SKU`);
+        if (draft.imageType === "sku" && !draft.skus.some((sku) => sku.id === image.skuId)) throw new Error(translate("ecommerce.planner.imageIsNotLinkedToARealSKU", { v0: String(index + 1) }));
         image.imageModel = draft.imageModel;
         if (draft.imageType === "marketing") {
             const material = marketingPlanSlots(draft)[index];
-            if (!material) throw new Error(`第${index + 1}张缺少营销物料配置，请重新选择`);
+            if (!material) throw new Error(translate("ecommerce.planner.imageIsMissingMarketingMaterialSettingsSelectThemAgain", { v0: String(index + 1) }));
             image.ratio = material.ratio;
             image.goal = `${material.category} · ${material.name}：${image.goal}`;
             image.prompt = `物料类型：${material.category} / ${material.name}，按 ${material.ratio} 比例完成一张独立的成品。${image.prompt}`;
@@ -540,31 +541,31 @@ export function parsePlannerOutput(text: string, draft: EcommerceDraft): Ecommer
         image.platform = draft.platform;
         image.language = draft.language;
         if (!commerceAllowsText(draft, image.imageType)) image.copy = "";
-        else if (!(image.copy || "").trim()) throw new Error(`第${index + 1}张缺少可直接上图的文案，请重新策划；不能用内部画面说明代替文案`);
+        else if (!(image.copy || "").trim()) throw new Error(translate("ecommerce.planner.imageLacksCopyReadyToPlaceInTheImageReplan", { v0: String(index + 1) }));
         if (commerceAllowsText(draft, image.imageType)) assertCommerceConsumerCopy(image.copy || "");
-        if (commerceAllowsText(draft, image.imageType) && commerceRestrictedPhrase(image.copy || "")) throw new Error(`第${index + 1}张含高风险宣传词，请修改文案后重新策划`);
+        if (commerceAllowsText(draft, image.imageType) && commerceRestrictedPhrase(image.copy || "")) throw new Error(translate("ecommerce.planner.imageContainsRiskyPromotionalWordingReviseTheCopyAndReplan", { v0: String(index + 1) }));
         image.verifiedClaims = [draft.claims, draft.skus.find((sku) => sku.id === image.skuId)?.claims].filter(Boolean).join("；");
         image.performanceAngle = (image.performanceAngle || "").trim();
-        if (draft.imageType === "detail" && !image.performanceAngle) throw new Error(`第${index + 1}张缺少 Agent 策划的性能/体验角度，请重新策划`);
+        if (draft.imageType === "detail" && !image.performanceAngle) throw new Error(translate("ecommerce.planner.imageIsMissingAnAgentPlannedPerformanceOrExperienceAngle", { v0: String(index + 1) }));
         // Near-miss labels are filed under the closest category, as the server does; a detail page inside a
         // set or other mixed plan always gets a category instead of failing the plan.
         if (image.imageType === "detail") image.performanceAngle = repairCommercePerformanceAngle(image.performanceAngle, draft.imageType !== "detail");
-        if (draft.imageType === "detail" && !commercePerformanceAnglePattern.test(image.performanceAngle)) throw new Error(`第${index + 1}张性能/体验角度缺少策划分类，请重新策划`);
+        if (draft.imageType === "detail" && !commercePerformanceAnglePattern.test(image.performanceAngle)) throw new Error(translate("ecommerce.planner.imageIsMissingACategoryForItsPerformanceOrExperience", { v0: String(index + 1) }));
         image.informationComponent = (image.informationComponent || "").trim();
         const componentMatch = /^(卖点总览|标题导语|细节放大窗|场景注释|侧栏目录|规格卡|步骤编号|双栏对照|图标组|留白收束|无文字陈列)[｜:：](.{12,})/.exec(image.informationComponent);
-        if (draft.imageType === "detail" && !componentMatch) throw new Error(`第${index + 1}张缺少具体的信息组件与版式设计，请重新策划`);
+        if (draft.imageType === "detail" && !componentMatch) throw new Error(translate("ecommerce.planner.imageLacksSpecificInformationComponentsAndLayoutReplan", { v0: String(index + 1) }));
         // A no-text choice wins over whatever layout the model proposed: the
         // page keeps only the product display instead of forcing a paid re-plan.
         if (draft.imageType === "detail" && !commerceAllowsText(draft, image.imageType) && componentMatch?.[1] !== "无文字陈列") image.informationComponent = "无文字陈列｜用户选择无文字，本页只保留商品与画面陈列，不放置标题、标签或说明";
-        else if (draft.imageType === "detail" && commerceAllowsText(draft, image.imageType) && componentMatch?.[1] === "无文字陈列") throw new Error(`第${index + 1}张的信息组件与文字模式不匹配，请重新策划`);
+        else if (draft.imageType === "detail" && commerceAllowsText(draft, image.imageType) && componentMatch?.[1] === "无文字陈列") throw new Error(translate("ecommerce.planner.theInformationComponentsInImageDoNotMatchItsText", { v0: String(index + 1) }));
         image.lighting ||= "";
         image.negativePrompt ||= "";
     }
-    if ([result.confirmedFacts, result.uncertainFacts, result.qualityChecks].some((items) => !Array.isArray(items) || items.some((item) => typeof item !== "string"))) throw new Error("策划结果中的商品事实与质检项格式错误，请重新策划");
+    if ([result.confirmedFacts, result.uncertainFacts, result.qualityChecks].some((items) => !Array.isArray(items) || items.some((item) => typeof item !== "string"))) throw new Error(translate("ecommerce.planner.productFactsAndQualityCheckItemsInThePlanHave"));
     assertCommerceDetailRhythm(result, draft);
     if (draft.imageType === "sku") {
         for (const sku of draft.skus) {
-            if (result.images.filter((image) => image.skuId === sku.id).length !== sku.count) throw new Error(`SKU ${sku.name} 的策划张数不匹配`);
+            if (result.images.filter((image) => image.skuId === sku.id).length !== sku.count) throw new Error(translate("ecommerce.planner.thePlannedImageCountForSKUDoesNotMatch", { v0: String(sku.name) }));
         }
     }
     validateCommerceReferencePlan(result, draft);
@@ -589,9 +590,9 @@ export function parsePlannerOutput(text: string, draft: EcommerceDraft): Ecommer
         if (commerceDisplaySlotsApply({ ...draft, count: result.images.length })) {
             // 有逐张展示分配时，任意两张写成同一构图与主体就是同一种展示，不只拦全部相同的情况。
             const repeated = shots.findIndex((shot, index) => shots.indexOf(shot) !== index);
-            if (repeated >= 0) throw new Error(`第${shots.indexOf(shots[repeated]) + 1}张与第${repeated + 1}张使用了同一构图与主体视角，请重新策划不同机位和景别`);
+            if (repeated >= 0) throw new Error(translate("ecommerce.planner.imagesAndUseTheSameCompositionAndSubjectAngleReplan", { v0: String(shots.indexOf(shots[repeated]) + 1), v1: String(repeated + 1) }));
         } else if (!["sku", "white", "size", "three-view", "package"].includes(draft.imageType) && new Set(shots).size === 1) {
-            throw new Error("多张图片使用了同一构图与主体视角，请重新策划不同机位和景别");
+            throw new Error(translate("ecommerce.planner.severalImagesUseTheSameCompositionAndSubjectAngleReplan"));
         }
     }
     return {

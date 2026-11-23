@@ -6,8 +6,9 @@ import type { ModelRequirements } from "@/lib/model-selection";
 import type { DramaModelChoice, DramaModelOption, DramaSegmentRequest } from "@/services/api/drama";
 import { videoResolutionComparisonKey } from "@/lib/video-generation-options";
 import { modelOptionName, resolveModelChannel, type AiConfig } from "@/stores/use-config-store";
+import { translate } from "@/i18n";
 
-export const SEGMENT_NO_QUOTE_HINT = "当前规格无报价，请调整时长、分辨率或更换模型";
+export const SEGMENT_NO_QUOTE_HINT = translate("drama.studio.segmentQuote.noPriceIsAvailableForTheseSettingsAdjustTheDuration");
 const PLAIN_RESOLUTION = /^\d+p$/;
 
 /**

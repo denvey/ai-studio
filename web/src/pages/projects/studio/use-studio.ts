@@ -6,6 +6,7 @@ import { useNavigate } from "react-router";
 import { dramaKeys } from "@/lib/drama/drama-query-keys";
 import { getDrama, getDramaEpisode, listDramaCast, type DramaCast, type DramaEpisodeDetail, type DramaSummary } from "@/services/api/drama";
 import { encodeDramaCanvasFocus, openDramaCanvasPath, type DramaCanvasFocus } from "@/services/drama-canvas";
+import { translate } from "@/i18n";
 
 export { dramaKeys };
 
@@ -87,7 +88,7 @@ export function useOpenDramaCanvas(summary: DramaSummary | undefined) {
             try {
                 navigate(await openDramaCanvasPath({ id, name }, focus));
             } catch (error) {
-                message.error(error instanceof Error && error.message ? error.message : "打开精修画布失败");
+                message.error(error instanceof Error && error.message ? error.message : translate("drama.studio.useStudio.failedToOpenRefinementCanvas"));
             } finally {
                 openingRef.current = false;
                 setOpening(null);

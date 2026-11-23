@@ -13,6 +13,8 @@ import { mergedImageCapabilityConfig } from "@/lib/model-selection";
 import { imagePriceSelector, normalizeImagePriceSelector } from "@/lib/image-pricing";
 import { modelOptionName, resolveModelChannel, type AiConfig } from "@/stores/use-config-store";
 import { imageQualityLabel } from "@/lib/image-quality";
+import { translate } from "@/i18n";
+
 
 export { imageQualityLabel } from "@/lib/image-quality";
 type AspectOption = { value: string; label: string; width: number; height: number; icon: string; size?: string };
@@ -62,7 +64,7 @@ export function ImageSettingsPanel({ config, onConfigChange, theme, showTitle = 
     const activeSize = normalized.size;
     const activeQualityOptions = profile.quality.values.map((value) => ({ value, label: imageQualityLabel(value) }));
     const priceTiers = imageModelPriceTiers(config);
-    if (profile.parameters) return <ImageSettingsTheme theme={theme}><div className={className}>{showTitle ? <div className="mb-3 text-base font-semibold">图像设置</div> : null}<ImageParameterFields profile={profile} config={config} onChange={onConfigChange} showSize={showSize} showCount={showCount} showQuality={showQuality} showTransparent={showTransparent} /></div></ImageSettingsTheme>;
+    if (profile.parameters) return <ImageSettingsTheme theme={theme}><div className={className}>{showTitle ? <div className="mb-3 text-base font-semibold">{translate("canvasB.imageSettings.label")}</div> : null}<ImageParameterFields profile={profile} config={config} onChange={onConfigChange} showSize={showSize} showCount={showCount} showQuality={showQuality} showTransparent={showTransparent} /></div></ImageSettingsTheme>;
 
     return (
         <ImageSettingsTheme theme={theme}>
@@ -75,11 +77,11 @@ export function ImageSettingsPanel({ config, onConfigChange, theme, showTitle = 
                     if (document.activeElement instanceof HTMLInputElement && event.currentTarget.contains(document.activeElement)) document.activeElement.blur();
                 }}
             >
-                {showTitle ? <div className="text-base font-semibold">图像设置</div> : null}
+                {showTitle ? <div className="text-base font-semibold">{translate("canvasB.imageSettings.label")}</div> : null}
                 {/* 张数与透明背景放在最前：尺寸列表较长，放在后面时需要滚动才能看到。 */}
                 {showCount && effectiveMaxCount > 1 ? (
                     <div className="space-y-2">
-                        <SettingTitle color={theme.node.muted}>生成张数</SettingTitle>
+                        <SettingTitle color={theme.node.muted}>{translate("shared.imageSettingsPanel.imageCount")}</SettingTitle>
                         <div className="grid grid-cols-4 gap-2">
                             {Array.from({ length: Math.min(3, effectiveMaxCount) }, (_, index) => index + 1).map((value) => (
                                 <OptionPill key={value} selected={count === value} theme={theme} onClick={() => onConfigChange("count", String(value))}>
@@ -94,12 +96,12 @@ export function ImageSettingsPanel({ config, onConfigChange, theme, showTitle = 
                 ) : null}
                 {showTransparent && profile.transparentBackground.supported ? <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                        <SettingTitle color={theme.node.muted}>透明背景</SettingTitle>
+                        <SettingTitle color={theme.node.muted}>{translate("shared.imageSettingsPanel.transparentBackground")}</SettingTitle>
                         <div className="mt-1 text-[var(--fs-label)]" style={{ color: theme.node.muted }}>
-                            请求模型输出保留 Alpha 通道的 PNG
+                            {translate("shared.imageSettingsPanel.askTheModelToOutputPNGWithTheAlphaChannel")}
                         </div>
                     </div>
-                    <span title="是否支持透明背景由当前模型接口决定" onMouseDown={(event) => event.stopPropagation()}>
+                    <span title={translate("shared.imageSettingsPanel.whetherTransparentBackgroundsAreSupportedDependsOnTheCurrentModel")} onMouseDown={(event) => event.stopPropagation()}>
                         <Switch
                             size="sm"
                             checked={transparentBackground}
@@ -108,7 +110,7 @@ export function ImageSettingsPanel({ config, onConfigChange, theme, showTitle = 
                     </span>
                 </div> : null}
                 {showQuality && profile.quality.supported && !imageResolutionUsesQuality(profile) ? <div className="space-y-2">
-                    <SettingTitle color={theme.node.muted}>{isGrokResolutionQuality(profile) ? "分辨率" : "质量"}</SettingTitle>
+                    <SettingTitle color={theme.node.muted}>{isGrokResolutionQuality(profile) ? translate("library.tasks.params.resolution") : translate("shared.imageSettingsPanel.quality")}</SettingTitle>
                     <div className={`grid gap-2 ${activeQualityOptions.length <= 2 ? "grid-cols-2" : "grid-cols-4"}`}>
 						{activeQualityOptions.map((item) => (
                             <OptionPill key={item.value} selected={quality === item.value} disabled={!bypassPriceGuard && !hasPriceTierForImageSelection(priceTiers, item.value, activeSize)} theme={theme} onClick={() => onConfigChange("quality", item.value)}>
@@ -265,7 +267,7 @@ function CountStepperInput({
             <input
                 type="text"
                 inputMode="numeric"
-                aria-label="自定义生成张数"
+                aria-label={translate("shared.imageSettingsPanel.customImageCount")}
                 value={draftValue}
                 onChange={handleInputChange}
                 onBlur={handleInputBlur}
@@ -289,8 +291,8 @@ function CountStepperInput({
                     onClick={handleStepUp}
                     disabled={value >= max && isSelected}
                     className="flex flex-1 w-full items-center justify-center hover:bg-black/15 dark:hover:bg-white/15 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="增加 1 张"
-                    aria-label="增加 1 张"
+                    title={translate("shared.imageSettingsPanel.add1Image")}
+                    aria-label={translate("shared.imageSettingsPanel.add1Image")}
                 >
                     <ChevronUp className="size-2.5 opacity-70" />
                 </button>
@@ -300,8 +302,8 @@ function CountStepperInput({
                     onClick={handleStepDown}
                     disabled={value <= 1 && isSelected}
                     className="flex flex-1 w-full items-center justify-center hover:bg-black/15 dark:hover:bg-white/15 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="减少 1 张"
-                    aria-label="减少 1 张"
+                    title={translate("shared.imageSettingsPanel.remove1Image")}
+                    aria-label={translate("shared.imageSettingsPanel.remove1Image")}
                 >
                     <ChevronDown className="size-2.5 opacity-70" />
                 </button>

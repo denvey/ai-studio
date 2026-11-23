@@ -1,5 +1,7 @@
 import type { ReferenceImage } from "@/types/image";
 import { loadRasterImage } from "./image-raster";
+import { translate } from "@/i18n";
+
 
 export function formatBytes(bytes: number): string {
     if (!(bytes > 0) || !Number.isFinite(bytes)) return "";
@@ -11,13 +13,13 @@ export function formatBytes(bytes: number): string {
 
 export function formatDuration(milliseconds: number): string {
     const seconds = Number.isFinite(milliseconds) ? Math.max(0, Math.trunc(milliseconds / 1000)) : 0;
-    if (seconds < 60) return `${seconds}秒`;
-    return `${Math.trunc(seconds / 60)}分${String(seconds % 60).padStart(2, "0")}秒`;
+    if (seconds < 60) return translate("shared.canvas.taskTicker.s", { v0: String(seconds) });
+    return translate("shared.canvas.taskTicker.mS", { v0: String(Math.trunc(seconds / 60)), v1: String(String(seconds % 60).padStart(2, "0")) });
 }
 
 function decodeDataUrl(url: string): { bytes: Uint8Array<ArrayBuffer>; mimeType: string } {
     const separator = url.indexOf(",");
-    if (!url.startsWith("data:") || separator < 0) throw new Error("无效的图片数据地址");
+    if (!url.startsWith("data:") || separator < 0) throw new Error(translate("shared.imageUtils.invalidImageDataURL"));
     const parameters = url.slice(5, separator).split(";");
     const payload = url.slice(separator + 1);
     let bytes: Uint8Array<ArrayBuffer>;
@@ -33,7 +35,7 @@ function decodeDataUrl(url: string): { bytes: Uint8Array<ArrayBuffer>; mimeType:
                 continue;
             }
             const hex = String.fromCharCode(...encoded.slice(cursor + 1, cursor + 3));
-            if (!/^[0-9a-f]{2}$/i.test(hex)) throw new Error("图片数据包含无效的转义字符");
+            if (!/^[0-9a-f]{2}$/i.test(hex)) throw new Error(translate("shared.imageUtils.imageDataContainsInvalidEscapeCharacters"));
             output.push(parseInt(hex, 16));
             cursor += 2;
         }

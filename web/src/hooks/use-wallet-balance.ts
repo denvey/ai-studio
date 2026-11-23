@@ -2,6 +2,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import { getWallet, type WalletSummary } from "@/services/api/wallet";
+import { translate } from "@/i18n";
+
 
 // 余额不是页面心跳数据。工作区内多个位置共享同一个 Query，只在首次进入、显式
 // wallet:updated 事件或用户主动刷新时访问服务端，避免常驻布局产生永久轮询。
@@ -22,7 +24,7 @@ export function useWalletBalance(userId?: string, enabled = true) {
         enabled: Boolean(activeUserId),
         queryFn: async (): Promise<WalletSnapshot> => {
             const wallet = await getWallet(1, 1);
-            if (wallet.account.userId !== activeUserId) throw new Error("积分账户与当前用户不一致");
+            if (wallet.account.userId !== activeUserId) throw new Error(translate("shared.hooks.useWalletBalance.theCreditAccountDoesNotMatchTheCurrentUser"));
             return { availableMicrocredits: wallet.account.availableMicrocredits, policy: wallet.policy };
         },
         staleTime: WALLET_STALE_TIME_MS,

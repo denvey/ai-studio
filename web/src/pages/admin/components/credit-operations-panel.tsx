@@ -12,6 +12,7 @@ import { adjustAdminUserCredits, getAdminCreditPolicy, listAdminBillingOrders, r
 
 import { AdminBatchBar, AdminDataTable, AdminRowActions, AdminStatusBadge, AdminTableEmpty } from "./admin-ui";
 import { Select } from "@/components/ui/base/select";
+import { currentLocale, translate } from "@/i18n";
 
 export type CreditOperation = "policy" | "adjustment" | null;
 
@@ -24,11 +25,11 @@ type AdjustmentUser = AdminReferenceData["users"][number] & Partial<Pick<AdminUs
 type BillingResolutionTarget = { kind: "single"; order: BillingOrder; action: BillingResolutionAction } | { kind: "batch"; orders: BillingOrder[]; action: BillingResolutionAction };
 
 const billingStatusLabels = {
-    uncertain: "待核对",
-    running: "运行中",
-    reserved: "已预授权",
-    settled: "已结算",
-    refunded: "已退款",
+    uncertain: translate("admin.creditOperationsPanel.pendingReview"),
+    running: translate("library.tasks.filter.active"),
+    reserved: translate("admin.creditOperationsPanel.preauthorized"),
+    settled: translate("admin.creditOperationsPanel.settled"),
+    refunded: translate("admin.creditOperationsPanel.refunded"),
 } satisfies Record<BillingOrder["status"], string>;
 
 export default function CreditOperationsPanel({ users, activeOperation, onOperationChange }: { users: AdminReferenceData["users"]; activeOperation: CreditOperation; onOperationChange: (operation: CreditOperation) => void }) {
@@ -88,7 +89,7 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             setTotal(result.total);
             setSelectedOrderIds([]);
         } catch (error) {
-            if (requestId === ordersRequestRef.current) message.error(error instanceof Error ? error.message : "读取待核对计费失败");
+            if (requestId === ordersRequestRef.current) message.error(error instanceof Error ? error.message : translate("admin.creditOperationsPanel.failedToLoadBillingAwaitingReconciliation"));
         } finally {
             if (requestId === ordersRequestRef.current) setLoading(false);
         }
@@ -116,7 +117,7 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             .catch((error) => {
                 if (active) {
                     setPolicyLoadError(true);
-                    message.error(error instanceof Error ? error.message : "读取积分策略失败");
+                    message.error(error instanceof Error ? error.message : translate("admin.creditOperationsPanel.failedToLoadCreditPolicy"));
                 }
             })
             .finally(() => {
@@ -150,7 +151,7 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                 });
             })
             .catch((error) => {
-                if (requestId === userSearchRequestRef.current) message.error(error instanceof Error ? error.message : "搜索用户失败");
+                if (requestId === userSearchRequestRef.current) message.error(error instanceof Error ? error.message : translate("admin.creditOperationsPanel.userSearchFailed"));
             })
             .finally(() => {
                 if (requestId === userSearchRequestRef.current) setSearchingUsers(false);
@@ -159,7 +160,7 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
 
     const savePolicy = async (values: PolicyFormValues) => {
         if (!policyLoaded || loadingPolicy) {
-            message.error("积分策略尚未成功读取，未保存任何变更");
+            message.error(translate("admin.creditOperationsPanel.theCreditPolicyHasNotLoadedSuccessfullyNoChangesWere"));
             return false;
         }
         const modelMultiplierBasisPoints: Record<string, number> = {};
@@ -167,11 +168,11 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             const model = String(row.model || "").trim();
             const multiplier = Number(row.multiplier);
             if (!model || !Number.isFinite(multiplier) || multiplier < 0.0001 || multiplier > 100) {
-                message.error("请完整填写模型标识与 0.0001–100 之间的倍率");
+                message.error(translate("admin.creditOperationsPanel.enterAModelIDAndAMultiplierBetween00001"));
                 return false;
             }
             if (model in modelMultiplierBasisPoints) {
-                message.error(`模型“${model}”配置了重复倍率`);
+                message.error(translate("admin.creditOperationsPanel.modelHasDuplicateMultiplierRules", { v0: String(model) }));
                 return false;
             }
             modelMultiplierBasisPoints[model] = Math.round(multiplier * 10_000);
@@ -189,11 +190,11 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             policyLoadedRef.current = true;
             policyForm.setFieldsValue(toPolicyFormValues(result.policy));
             setPendingPolicy(null);
-            message.success("积分策略已保存；赠送额度只作用于后续注册和签到，不会追溯或收回历史积分");
+            message.success(translate("admin.creditOperationsPanel.creditPolicySavedBonusesApplyOnlyToFutureRegistrationsAnd"));
             onOperationChange(null);
             return true;
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "保存积分策略失败");
+            message.error(error instanceof Error ? error.message : translate("admin.creditOperationsPanel.failedToSaveCreditPolicy"));
             return false;
         } finally {
             setSavingPolicy(false);
@@ -202,7 +203,7 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
 
     const submitPolicy = (values: PolicyFormValues) => {
         if (!policyLoaded || loadingPolicy) {
-            message.error("积分策略尚未成功读取，未保存任何变更");
+            message.error(translate("admin.creditOperationsPanel.theCreditPolicyHasNotLoadedSuccessfullyNoChangesWere"));
             return;
         }
         if (values.signupBonus > 0 || values.checkinBonus > 0) {
@@ -227,7 +228,7 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                 ({ policy: latestPolicy } = await getAdminCreditPolicy());
             } catch (error) {
                 setPolicyLoadError(true);
-                message.error(error instanceof Error ? error.message : "读取积分策略失败，未执行停赠");
+                message.error(error instanceof Error ? error.message : translate("admin.creditOperationsPanel.failedToLoadTheCreditPolicyBonusesWereNotDisabled"));
                 return;
             }
             setPolicy(latestPolicy);
@@ -235,7 +236,7 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             setPolicyLoaded(true);
             policyLoadedRef.current = true;
             if (latestPolicy.signupBonusMicrocredits === 0 && latestPolicy.checkinBonusMicrocredits === 0) {
-                message.info("注册与签到赠送已经停止");
+                message.info(translate("admin.creditOperationsPanel.registrationAndCheckInBonusesAreAlreadyDisabled"));
                 return;
             }
             const result = await updateAdminCreditPolicy({
@@ -245,9 +246,9 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             });
             setPolicy(result.policy);
             policyForm.setFieldsValue(toPolicyFormValues(result.policy));
-            message.success("已停止后续注册和签到赠送；不会收回已发放的历史积分");
+            message.success(translate("admin.creditOperationsPanel.futureRegistrationAndCheckInBonusesAreDisabledPreviouslyGranted"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "停止注册和签到赠送失败");
+            message.error(error instanceof Error ? error.message : translate("admin.creditOperationsPanel.failedToDisableRegistrationAndCheckInBonuses"));
         } finally {
             setLoadingPolicy(false);
             setStoppingGifts(false);
@@ -257,18 +258,18 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
     const previewAdjustment = (values: AdjustmentFormValues) => {
         const amount = Number(values.amount);
         if (!Number.isFinite(amount) || amount === 0) {
-            message.error("积分变化不能为 0");
+            message.error(translate("admin.creditOperationsPanel.theCreditAdjustmentCannotBe0"));
             return;
         }
         try {
             toMicrocredits(amount);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "积分变化超出可处理范围");
+            message.error(error instanceof Error ? error.message : translate("admin.creditOperationsPanel.theCreditAdjustmentIsOutOfRange"));
             return;
         }
         const user = adjustmentUsers.find((item) => item.id === values.userId);
         if (amount < 0 && hasCreditBalance(user) && user.availableMicrocredits + toMicrocredits(amount) < 0) {
-            message.error("扣减后可用积分不能低于 0");
+            message.error(translate("admin.creditOperationsPanel.availableCreditsCannotFallBelow0AfterDeduction"));
             return;
         }
         setPendingAdjustment({ ...values, amount, note: values.note.trim() });
@@ -296,9 +297,9 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             adjustmentForm.resetFields();
             setPendingAdjustment(null);
             onOperationChange(null);
-            message.success(`用户积分已调整，当前可用积分 ${formatCredits(result.account.availableMicrocredits)}`);
+            message.success(translate("admin.creditOperationsPanel.userCreditsAdjustedAvailableCredits", { v0: String(formatCredits(result.account.availableMicrocredits)) }));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "调整积分失败");
+            message.error(error instanceof Error ? error.message : translate("admin.creditOperationsPanel.failedToAdjustCredits"));
         } finally {
             setAdjusting(false);
         }
@@ -317,7 +318,7 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
         try {
             if (resolutionTarget.kind === "single") {
                 await resolveAdminBillingOrder(resolutionTarget.order.id, { action: resolutionTarget.action, note });
-                message.success(resolutionTarget.action === "settle" ? "计费订单已结算" : "预授权积分已退回");
+                message.success(resolutionTarget.action === "settle" ? translate("admin.creditOperationsPanel.billingOrderSettled") : translate("admin.creditOperationsPanel.preauthorizedCreditsReleased"));
             } else {
                 const result = await resolveAdminBillingOrders({
                     ids: resolutionTarget.orders.map((order) => order.id),
@@ -328,19 +329,19 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                     const failedIds = new Set(result.failed.map((item) => item.id));
                     const failedOrders = resolutionTarget.orders.filter((order) => failedIds.has(order.id));
                     const detail = result.failed[0]?.message ? `：${result.failed[0].message}` : "";
-                    if (result.resolvedCount > 0) message.warning(`已处理 ${result.resolvedCount} 条，仍有 ${result.failed.length} 条失败${detail}`);
-                    else message.error(`所选 ${result.failed.length} 条订单均处理失败${detail}`);
+                    if (result.resolvedCount > 0) message.warning(translate("admin.creditOperationsPanel.processedStillFailed", { v0: String(result.resolvedCount), v1: String(result.failed.length), v2: String(detail) }));
+                    else message.error(translate("admin.creditOperationsPanel.allSelectedOrdersFailed", { v0: String(result.failed.length), v1: String(detail) }));
                     setResolutionTarget({ ...resolutionTarget, orders: failedOrders.length > 0 ? failedOrders : resolutionTarget.orders });
                     await reload(page, pageSize);
                     return;
                 }
-                message.success(resolutionTarget.action === "settle" ? `已结算 ${result.resolvedCount} 条订单` : `已退回 ${result.resolvedCount} 条订单的预授权积分`);
+                message.success(resolutionTarget.action === "settle" ? translate("admin.creditOperationsPanel.settledOrders", { v0: String(result.resolvedCount) }) : translate("admin.creditOperationsPanel.releasedPreauthorizedCreditsForOrders", { v0: String(result.resolvedCount) }));
             }
             setResolutionTarget(null);
             resolutionForm.resetFields();
             await reload(page, pageSize);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "处理计费订单失败");
+            message.error(error instanceof Error ? error.message : translate("admin.creditOperationsPanel.failedToProcessBillingOrder"));
         } finally {
             setResolving(false);
         }
@@ -359,14 +360,14 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
     };
 
     const columns: ColumnsType<BillingOrder> = [
-        { title: "创建时间", dataIndex: "createdAt", width: 170, align: "center", render: formatTime },
+        { title: translate("library.tasks.detail.createdAt"), dataIndex: "createdAt", width: 170, align: "center", render: formatTime },
         {
-            title: "用户",
+            title: translate("admin.creditOperationsPanel.users"),
             dataIndex: "userId",
             width: 150,
             render: (id: string, order) => (
                 <div>
-                    <div className="font-medium">{billingOrderUserLabel(order) || "未知用户"}</div>
+                    <div className="font-medium">{billingOrderUserLabel(order) || translate("admin.creditOperationsPanel.unknownUser")}</div>
                     <div className="mt-0.5 truncate text-xs text-foreground/50" title={id}>
                         {order.userAccount ? `@${order.userAccount}` : id}
                     </div>
@@ -374,7 +375,7 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             ),
         },
         {
-            title: "模型 / 场景",
+            title: translate("admin.creditOperationsPanel.modelScenario"),
             width: 220,
             render: (_, order) => (
                 <div>
@@ -384,25 +385,25 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             ),
         },
         {
-            title: "预授权积分",
+            title: translate("admin.creditOperationsPanel.preAuthorizedCredits"),
             width: 125,
             align: "center",
             render: (_, order) => <span className="font-medium tabular-nums">{formatCredits(getReservedAmount(order))}</span>,
         },
         {
-            title: "实际结算 / 用量",
+            title: translate("admin.creditOperationsPanel.actualSettlementUsage"),
             width: 205,
             align: "center",
             render: (_, order) =>
                 order.billingMode === "token" ? (
                     <div className="text-xs leading-5">
-                        <div className="font-medium tabular-nums">{order.status === "settled" ? `${formatCredits(order.actualAmountMicrocredits)} 积分` : "等待用量结算"}</div>
+                        <div className="font-medium tabular-nums">{order.status === "settled" ? translate("admin.creditOperationsPanel.credits", { v0: String(formatCredits(order.actualAmountMicrocredits)) }) : translate("admin.creditOperationsPanel.awaitingUsageSettlement")}</div>
                         <div className="text-foreground/50">
                             {order.usageSource === "video_formula"
-                                ? `公式结算 · ${order.outputTokens.toLocaleString()} 视频 Token`
+                                ? translate("admin.creditOperationsPanel.formulaSettlementVideoTokens", { v0: String(order.outputTokens.toLocaleString()) })
                                 : order.capability === "video"
-                                  ? `上游用量 · ${order.outputTokens.toLocaleString()} 视频 Token`
-                                  : `输入 ${order.inputTokens} · 输出 ${order.outputTokens} · 缓存命中 ${order.cachedTokens}${order.cacheWriteTokens ? ` · 缓存写入 ${order.cacheWriteTokens}` : ""}`}
+                                  ? translate("admin.creditOperationsPanel.upstreamUsageVideoTokens", { v0: String(order.outputTokens.toLocaleString()) })
+                                  : translate("admin.creditOperationsPanel.inputOutputCacheRead", { v0: String(order.inputTokens), v1: String(order.outputTokens), v2: String(order.cachedTokens), v3: String(order.cacheWriteTokens ? translate("admin.creditOperationsPanel.cacheWrite", { v0: String(order.cacheWriteTokens) }) : "") })}
                         </div>
                     </div>
                 ) : (
@@ -410,25 +411,25 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                 ),
         },
         {
-            title: "状态",
+            title: translate("library.tasks.detail.status"),
             dataIndex: "status",
             width: 110,
             align: "center",
             render: (value: BillingOrder["status"]) => <AdminStatusBadge label={billingStatusLabels[value]} tone={value === "settled" ? "success" : value === "refunded" ? "neutral" : "warning"} />,
         },
-        { title: "上游请求", dataIndex: "providerRequestId", width: 180, ellipsis: true, render: (value) => value || "未获取" },
-        { title: "核对原因", dataIndex: "error", width: 260, ellipsis: true, render: (value) => value || "费用状态不明确" },
+        { title: translate("admin.creditOperationsPanel.upstreamRequest"), dataIndex: "providerRequestId", width: 180, ellipsis: true, render: (value) => value || translate("admin.creditOperationsPanel.notFetched") },
+        { title: translate("admin.creditOperationsPanel.reviewReason"), dataIndex: "error", width: 260, ellipsis: true, render: (value) => value || translate("admin.creditOperationsPanel.costStatusIsUnclear") },
         {
-            title: "操作",
+            title: translate("account.settings.runninghub.actions"),
             width: 190,
             align: "center",
             fixed: "right",
             render: (_, order) =>
                 !canResolveBillingOrder(order) ? (
-                    <span className="text-xs text-foreground/45">处理完成</span>
+                    <span className="text-xs text-foreground/45">{translate("canvasPage.upload.processDone")}</span>
                 ) : (
                     <div className="flex justify-center">
-                        <AdminRowActions primary={{ label: "确认结算", onClick: () => openSingleResolution(order, "settle") }} actions={[{ key: "refund", label: "退回预授权", danger: true, onClick: () => openSingleResolution(order, "refund") }]} />
+                        <AdminRowActions primary={{ label: translate("admin.creditOperationsPanel.confirmSettlement"), onClick: () => openSingleResolution(order, "settle") }} actions={[{ key: "refund", label: translate("admin.creditOperationsPanel.releasePreauthorization"), danger: true, onClick: () => openSingleResolution(order, "refund") }]} />
                     </div>
                 ),
         },
@@ -437,7 +438,7 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
     const hasFilters = Boolean(keyword || orderStatus !== "review");
     const resolutionOrders = resolutionTarget?.kind === "batch" ? resolutionTarget.orders : resolutionTarget ? [resolutionTarget.order] : [];
     const resolutionReservedTotal = resolutionOrders.reduce((sum, order) => sum + getReservedAmount(order), 0);
-    const resolutionTitle = resolutionTarget ? (resolutionTarget.action === "settle" ? (resolutionTarget.kind === "batch" ? "批量确认结算" : "确认结算计费订单") : resolutionTarget.kind === "batch" ? "批量退回预授权积分" : "确认退回预授权积分") : "";
+    const resolutionTitle = resolutionTarget ? (resolutionTarget.action === "settle" ? (resolutionTarget.kind === "batch" ? translate("admin.creditOperationsPanel.confirmSettlementsInBulk") : translate("admin.creditOperationsPanel.confirmBillingOrderSettlement")) : resolutionTarget.kind === "batch" ? translate("admin.creditOperationsPanel.releasePreauthorizedCreditsInBulk") : translate("admin.creditOperationsPanel.confirmPreauthorizedCreditRelease")) : "";
     const signupGrantForecast = pendingPolicy ? toMicrocredits(pendingPolicy.signupBonus) * 1_000 : 0;
     const checkinGrantForecast = pendingPolicy ? toMicrocredits(pendingPolicy.checkinBonus) * 1_000 : 0;
     const totalGrantForecast = signupGrantForecast + checkinGrantForecast;
@@ -448,31 +449,31 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                         <h2 id="credit-gift-policy-heading" className="text-sm font-semibold">
-                            注册与签到赠送
+                            {translate("admin.creditOperationsPanel.registrationAndCheckInBonuses")}
                         </h2>
                         {policyLoaded && policy ? (
                             <>
                                 <p className="mt-1 text-sm text-foreground/75">
-                                    注册赠送 <strong className="tabular-nums">{formatCredits(policy.signupBonusMicrocredits)} 积分 / 新用户</strong>
+                                    {translate("admin.creditOperationsPanel.registrationBonus")} <strong className="tabular-nums">{formatCredits(policy.signupBonusMicrocredits)} {translate("admin.creditOperationsPanel.creditsNewUser")}</strong>
                                     <span className="mx-2 text-foreground/35">·</span>
-                                    每日签到 <strong className="tabular-nums">{formatCredits(policy.checkinBonusMicrocredits)} 积分 / 用户每日</strong>
+                                    {translate("admin.creditOperationsPanel.dailyCheckIn")} <strong className="tabular-nums">{formatCredits(policy.checkinBonusMicrocredits)} {translate("admin.creditOperationsPanel.creditsUserPerDay")}</strong>
                                 </p>
                                 <p className="mt-1 text-xs leading-5 text-foreground/60">
                                     {policy.signupBonusMicrocredits > 0 || policy.checkinBonusMicrocredits > 0
-                                        ? "当前赠送会随新注册人数与签到天数持续累积；设为 0 可关闭对应赠送，只影响后续发放，不会收回历史积分。"
-                                        : "当前注册与签到赠送均已关闭；设为 0 关闭对应赠送，只影响后续发放，不会收回历史积分。"}
+                                        ? translate("admin.creditOperationsPanel.bonusesAccumulateWithNewRegistrationsAndDailyCheckInsSet")
+                                        : translate("admin.creditOperationsPanel.registrationAndCheckInBonusesAreBothDisabledAValue")}
                                 </p>
                             </>
                         ) : policyLoadError ? (
                             <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-foreground/65">
-                                <span>当前积分策略读取失败，写入操作已禁用。</span>
+                                <span>{translate("admin.creditOperationsPanel.failedToLoadTheCurrentCreditPolicyWriteOperationsAre")}</span>
                                 <Button type="link" size="small" className="h-auto p-0" onClick={() => setPolicyReloadKey((key) => key + 1)}>
-                                    重新读取
+                                    {translate("auth.register.reload")}
                                 </Button>
                             </div>
                         ) : (
                             <p className="mt-1 text-sm text-foreground/55" role="status">
-                                正在读取当前赠送额度…
+                                {translate("admin.creditOperationsPanel.loadingCurrentBonusAmounts")}
                             </p>
                         )}
                     </div>
@@ -483,23 +484,23 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                         disabled={!policyLoaded || loadingPolicy || !policy || savingPolicy || (policy.signupBonusMicrocredits === 0 && policy.checkinBonusMicrocredits === 0)}
                         onClick={() => void stopGiftsNow()}
                     >
-                        {policyLoaded && policy?.signupBonusMicrocredits === 0 && policy?.checkinBonusMicrocredits === 0 ? "注册和签到赠送已停止" : "停止注册和签到赠送"}
+                        {policyLoaded && policy?.signupBonusMicrocredits === 0 && policy?.checkinBonusMicrocredits === 0 ? translate("admin.creditOperationsPanel.registrationAndCheckInBonusesDisabled") : translate("admin.creditOperationsPanel.disableRegistrationAndCheckInBonuses")}
                     </Button>
                 </div>
             </section>
             <section className="admin-credit-operations-table-region flex min-h-0 flex-1" aria-labelledby="credit-review-heading">
                 <h2 id="credit-review-heading" className="sr-only">
-                    异常计费核对
+                    {translate("admin.creditOperationsPanel.reviewBillingExceptions")}
                 </h2>
                 <AdminDataTable
                     toolbar={
                         <Input
                             allowClear
-                            aria-label="搜索计费订单"
+                            aria-label={translate("admin.creditOperationsPanel.searchBillingOrders")}
                             className="app-list-search"
                             prefix={<Search className="size-4 text-foreground/40" />}
                             value={keyword}
-                            placeholder="搜索用户、模型、场景或请求号"
+                            placeholder={translate("admin.creditOperationsPanel.searchUserModelScenarioOrRequestID")}
                             onChange={(event) => {
                                 setKeyword(event.target.value);
                                 setPage(1);
@@ -509,7 +510,7 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                     toolbarActive={hasFilters}
                     toolbarFilters={
                         <Select
-                            aria-label="筛选计费队列"
+                            aria-label={translate("admin.creditOperationsPanel.filterBillingQueue")}
                             className="w-40"
                             value={orderStatus}
                             onChange={(value) => {
@@ -517,13 +518,13 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                                 setPage(1);
                             }}
                             options={[
-                                { label: "待核对队列", value: "review" },
-                                { label: "全部历史", value: "all" },
-                                { label: "费用待核对", value: "uncertain" },
-                                { label: "运行中", value: "running" },
-                                { label: "已预授权", value: "reserved" },
-                                { label: "已结算", value: "settled" },
-                                { label: "已退款", value: "refunded" },
+                                { label: translate("admin.creditOperationsPanel.reconciliationQueue"), value: "review" },
+                                { label: translate("admin.creditOperationsPanel.allHistory"), value: "all" },
+                                { label: translate("admin.creditOperationsPanel.costAwaitingReconciliation"), value: "uncertain" },
+                                { label: translate("library.tasks.filter.active"), value: "running" },
+                                { label: translate("admin.creditOperationsPanel.preauthorized"), value: "reserved" },
+                                { label: translate("admin.creditOperationsPanel.settled"), value: "settled" },
+                                { label: translate("admin.creditOperationsPanel.refunded"), value: "refunded" },
                             ]}
                         />
                     }
@@ -534,16 +535,16 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                     }}
                     trailing={
                         <Button type="text" size="small" icon={<RefreshCw className="size-3.5" />} loading={loading} onClick={() => void reload()}>
-                            刷新
+                            {translate("common.refresh")}
                         </Button>
                     }
                     batchActions={
                         <AdminBatchBar count={selectedOrderIds.length} onClear={() => setSelectedOrderIds([])}>
                             <Button size="small" type="primary" icon={<BadgeCheck className="size-3.5" />} onClick={() => openBatchResolution("settle")}>
-                                批量确认结算
+                                {translate("admin.creditOperationsPanel.confirmSettlementsInBulk")}
                             </Button>
                             <Button size="small" danger icon={<Undo2 className="size-3.5" />} onClick={() => openBatchResolution("refund")}>
-                                批量退回预授权
+                                {translate("admin.creditOperationsPanel.releasePreauthorizationsInBulk")}
                             </Button>
                         </AdminBatchBar>
                     }
@@ -566,7 +567,7 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                         },
                         scroll: { x: 1510 },
                     }}
-                    empty={<AdminTableEmpty filtered={hasFilters} title={!hasFilters ? "当前没有待核对订单" : undefined} description={!hasFilters ? "新的异常计费订单会自动出现在这里。" : undefined} />}
+                    empty={<AdminTableEmpty filtered={hasFilters} title={!hasFilters ? translate("admin.creditOperationsPanel.noOrdersAwaitingReview") : undefined} description={!hasFilters ? translate("admin.creditOperationsPanel.newBillingExceptionsAppearHereAutomatically") : undefined} />}
                     footer={
                         <PaginationBar
                             alwaysShow
@@ -583,10 +584,10 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             </section>
 
             <AdminModal
-                title="确认注册与签到赠送额度"
+                title={translate("admin.creditOperationsPanel.confirmRegistrationAndCheckInBonuses")}
                 open={Boolean(pendingPolicy)}
-                okText="确认并保存赠送策略"
-                cancelText="返回修改"
+                okText={translate("admin.creditOperationsPanel.confirmAndSaveBonusPolicy")}
+                cancelText={translate("admin.creditOperationsPanel.backToEditing")}
                 onCancel={() => {
                     if (!savingPolicy) setPendingPolicy(null);
                 }}
@@ -601,22 +602,22 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             >
                 {pendingPolicy ? (
                     <div className="space-y-3">
-                        <p className="text-sm leading-6 text-foreground/70">本次保存包含正数赠送，以下按 1000 个新注册账号与 1000 次签到展示对应发放量；实际发放会随注册和签到持续累积。</p>
+                        <p className="text-sm leading-6 text-foreground/70">{translate("admin.creditOperationsPanel.thisPolicyIncludesPositiveBonusesTheAmountsBelowIllustrateGrants")}</p>
                         <dl className="grid grid-cols-2 gap-2 border-y border-border/60 py-3 text-sm">
-                            <dt className="text-foreground/60">1000 个新账号</dt>
-                            <dd className="text-right tabular-nums">{formatCredits(signupGrantForecast)} 积分</dd>
-                            <dt className="text-foreground/60">1000 次签到</dt>
-                            <dd className="text-right tabular-nums">{formatCredits(checkinGrantForecast)} 积分</dd>
-                            <dt className="font-semibold">对应发放总额</dt>
-                            <dd className="text-right font-semibold tabular-nums">{formatCredits(totalGrantForecast)} 积分</dd>
+                            <dt className="text-foreground/60">{translate("admin.creditOperationsPanel.item1000NewAccounts")}</dt>
+                            <dd className="text-right tabular-nums">{formatCredits(signupGrantForecast)} {translate("shell.credits")}</dd>
+                            <dt className="text-foreground/60">{translate("admin.creditOperationsPanel.item1000CheckIns")}</dt>
+                            <dd className="text-right tabular-nums">{formatCredits(checkinGrantForecast)} {translate("shell.credits")}</dd>
+                            <dt className="font-semibold">{translate("admin.creditOperationsPanel.totalCreditsGranted")}</dt>
+                            <dd className="text-right font-semibold tabular-nums">{formatCredits(totalGrantForecast)} {translate("shell.credits")}</dd>
                         </dl>
-                        <p className="text-xs leading-5 text-foreground/55">设为 0 可关闭对应赠送；策略只影响后续注册和签到，不会修改或收回历史积分。此处为积分发放额，不等同于现金成本，现金支出取决于积分后续使用的模型及成本。</p>
+                        <p className="text-xs leading-5 text-foreground/55">{translate("admin.creditOperationsPanel.setABonusTo0ToDisableItThisPolicy")}</p>
                     </div>
                 ) : null}
             </AdminModal>
 
             <AdminDrawer
-                title="积分策略"
+                title={translate("admin.creditOperationsPanel.creditPolicy")}
                 open={activeOperation === "policy"}
                 size="min(700px, 100vw)"
                 onClose={() => {
@@ -629,56 +630,56 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                 footer={
                     <div className="flex justify-end gap-2">
                         <Button disabled={savingPolicy || loadingPolicy || Boolean(pendingPolicy)} onClick={() => onOperationChange(null)}>
-                            取消
+                            {translate("common.cancel")}
                         </Button>
                         <Button type="primary" loading={savingPolicy} disabled={!policyLoaded || loadingPolicy || savingPolicy} onClick={() => policyForm.submit()}>
-                            保存策略
+                            {translate("admin.creditOperationsPanel.savePolicy")}
                         </Button>
                     </div>
                 }
             >
                 <div className="admin-credit-drawer-intro">
-                    <strong>注册与签到赠送、积分计费倍率</strong>
-                    <p>赠送值只影响后续注册与签到发放，倍率只影响后续计费；不会调整或收回任何历史积分或订单。</p>
+                    <strong>{translate("admin.creditOperationsPanel.registrationAndCheckInBonusesCreditBillingMultipliers")}</strong>
+                    <p>{translate("admin.creditOperationsPanel.bonusesApplyToFutureRegistrationsAndCheckInsAndMultipliers")}</p>
                 </div>
                 {loadingPolicy ? (
                     <div className="admin-credit-drawer-loading" role="status">
-                        正在读取积分策略…
+                        {translate("admin.creditOperationsPanel.loadingCreditPolicy")}
                     </div>
                 ) : (
                     <Form form={policyForm} layout="vertical" requiredMark={false} initialValues={{ modelMultipliers: [] }} onFinish={submitPolicy}>
                         <section className="admin-credit-drawer-section">
                             <div className="admin-credit-drawer-section-heading">
-                                <h3>基础规则</h3>
-                                <p>积分支持最多 6 位小数，倍率支持最多 4 位小数。</p>
+                                <h3>{translate("admin.creditOperationsPanel.baseRules")}</h3>
+                                <p>{translate("admin.creditOperationsPanel.creditsSupportUpTo6DecimalPlacesMultipliersSupportUp")}</p>
                             </div>
                             <div className="admin-credit-policy-grid">
                                 <Form.Item
                                     name="signupBonus"
-                                    label="注册赠送积分"
+                                    label={translate("admin.creditOperationsPanel.registrationBonusCredits")}
                                     rules={[
-                                        { required: true, message: "请填写注册积分" },
-                                        { type: "number", min: 0, max: 1_000_000, message: "请输入 0–1,000,000" },
+                                        { required: true, message: translate("admin.creditOperationsPanel.enterTheSignUpCredits") },
+                                        { type: "number", min: 0, max: 1_000_000, message: translate("admin.creditOperationsPanel.enterAValueFrom0To1000000") },
                                     ]}
                                 >
                                     <InputNumber className="w-full" min={0} max={1_000_000} precision={6} />
                                 </Form.Item>
                                 <Form.Item
                                     name="checkinBonus"
-                                    label="每日签到积分"
+                                    label={translate("admin.creditOperationsPanel.dailyCheckInCredits")}
                                     rules={[
-                                        { required: true, message: "请填写签到积分" },
-                                        { type: "number", min: 0, max: 100_000, message: "请输入 0–100,000" },
+                                        { required: true, message: translate("admin.creditOperationsPanel.enterTheCheckInCredits") },
+                                        { type: "number", min: 0, max: 100_000, message: translate("admin.creditOperationsPanel.enterAValueFrom0To100000") },
                                     ]}
                                 >
                                     <InputNumber className="w-full" min={0} max={100_000} precision={6} />
                                 </Form.Item>
                                 <Form.Item
                                     name="defaultMultiplier"
-                                    label="默认计费倍率"
+                                    label={translate("admin.creditOperationsPanel.defaultBillingMultiplier")}
                                     rules={[
-                                        { required: true, message: "请填写默认倍率" },
-                                        { type: "number", min: 0.0001, max: 100, message: "请输入 0.0001–100" },
+                                        { required: true, message: translate("admin.creditOperationsPanel.enterTheDefaultMultiplier") },
+                                        { type: "number", min: 0.0001, max: 100, message: translate("admin.creditOperationsPanel.enterAValueFrom00001To100") },
                                     ]}
                                 >
                                     <InputNumber className="w-full" min={0.0001} max={100} precision={4} />
@@ -692,40 +693,40 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                                     <>
                                         <div className="admin-credit-drawer-section-heading admin-credit-drawer-section-heading-with-action">
                                             <div>
-                                                <h3>模型独立倍率</h3>
-                                                <p>仅为需要覆盖默认倍率的模型添加规则。</p>
+                                                <h3>{translate("admin.creditOperationsPanel.perModelMultiplier")}</h3>
+                                                <p>{translate("admin.creditOperationsPanel.addRulesOnlyForModelsThatNeedADifferentMultiplier")}</p>
                                             </div>
                                             <Button type="text" size="small" icon={<Plus className="size-3.5" />} onClick={() => add({ model: "", multiplier: 1 })}>
-                                                添加模型
+                                                {translate("admin.creditOperationsPanel.addModel")}
                                             </Button>
                                         </div>
                                         {fields.length > 0 ? (
                                             <div className="admin-credit-multiplier-list">
                                                 <div className="admin-credit-multiplier-header" aria-hidden="true">
-                                                    <span>模型标识</span>
-                                                    <span>倍率</span>
-                                                    <span>操作</span>
+                                                    <span>{translate("admin.creditOperationsPanel.modelIdentifier")}</span>
+                                                    <span>{translate("admin.creditOperationsPanel.multiplier")}</span>
+                                                    <span>{translate("account.settings.runninghub.actions")}</span>
                                                 </div>
                                                 {fields.map((field, index) => (
                                                     <div className="admin-credit-multiplier-row" key={field.key}>
-                                                        <Form.Item name={[field.name, "model"]} rules={[{ required: true, whitespace: true, message: "请填写模型标识" }]}>
-                                                            <Input aria-label={`第 ${index + 1} 行模型标识`} placeholder="例如 gpt-image-1" />
+                                                        <Form.Item name={[field.name, "model"]} rules={[{ required: true, whitespace: true, message: translate("admin.creditOperationsPanel.enterAModelID") }]}>
+                                                            <Input aria-label={translate("admin.creditOperationsPanel.rowModelID", { v0: String(index + 1) })} placeholder={translate("admin.creditOperationsPanel.eGGptImage1")} />
                                                         </Form.Item>
                                                         <Form.Item
                                                             name={[field.name, "multiplier"]}
                                                             rules={[
-                                                                { required: true, message: "请填写倍率" },
-                                                                { type: "number", min: 0.0001, max: 100, message: "请输入 0.0001–100" },
+                                                                { required: true, message: translate("admin.creditOperationsPanel.enterAMultiplier") },
+                                                                { type: "number", min: 0.0001, max: 100, message: translate("admin.creditOperationsPanel.enterAValueFrom00001To100") },
                                                             ]}
                                                         >
-                                                            <InputNumber aria-label={`第 ${index + 1} 行倍率`} className="w-full" min={0.0001} max={100} precision={4} />
+                                                            <InputNumber aria-label={translate("admin.creditOperationsPanel.rowMultiplier", { v0: String(index + 1) })} className="w-full" min={0.0001} max={100} precision={4} />
                                                         </Form.Item>
-                                                        <Button type="text" danger className="admin-credit-multiplier-remove" icon={<Trash2 className="size-4" />} aria-label={`删除第 ${index + 1} 条模型倍率`} onClick={() => remove(field.name)} />
+                                                        <Button type="text" danger className="admin-credit-multiplier-remove" icon={<Trash2 className="size-4" />} aria-label={translate("admin.creditOperationsPanel.deleteModelMultiplierRule", { v0: String(index + 1) })} onClick={() => remove(field.name)} />
                                                     </div>
                                                 ))}
                                             </div>
                                         ) : (
-                                            <div className="admin-credit-multiplier-empty">暂无模型独立倍率，所有模型使用默认倍率。</div>
+                                            <div className="admin-credit-multiplier-empty">{translate("admin.creditOperationsPanel.noModelSpecificMultipliersAllModelsUseTheDefaultMultiplier")}</div>
                                         )}
                                     </>
                                 )}
@@ -736,7 +737,7 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             </AdminDrawer>
 
             <AdminDrawer
-                title="人工调账"
+                title={translate("admin.creditOperationsPanel.manualBalanceAdjustment")}
                 open={activeOperation === "adjustment"}
                 size="min(580px, 100vw)"
                 onClose={() => {
@@ -750,27 +751,27 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                 footer={
                     <div className="flex justify-end gap-2">
                         <Button disabled={adjusting} onClick={() => onOperationChange(null)}>
-                            取消
+                            {translate("common.cancel")}
                         </Button>
                         <Button type="primary" disabled={adjusting} onClick={() => adjustmentForm.submit()}>
-                            核对并继续
+                            {translate("admin.creditOperationsPanel.reviewAndContinue")}
                         </Button>
                     </div>
                 }
             >
                 <div className="admin-credit-drawer-intro is-warning">
-                    <strong>账务写入操作</strong>
-                    <p>提交后会立即写入积分流水和管理员审计记录，请填写可追溯的处理依据。</p>
+                    <strong>{translate("admin.creditOperationsPanel.financialWriteOperation")}</strong>
+                    <p>{translate("admin.creditOperationsPanel.submittingImmediatelyCreatesACreditTransactionAndAnAdministratorAudit")}</p>
                 </div>
                 <Form form={adjustmentForm} layout="vertical" requiredMark={false} onFinish={previewAdjustment}>
                     <section className="admin-credit-drawer-section">
-                        <Form.Item name="userId" label="目标用户" rules={[{ required: true, message: "请选择用户" }]}>
+                        <Form.Item name="userId" label={translate("admin.creditOperationsPanel.targetUser")} rules={[{ required: true, message: translate("admin.creditOperationsPanel.selectAUser") }]}>
                             <Select
                                 showSearch
                                 filterOption={false}
                                 loading={searchingUsers}
-                                aria-label="搜索并选择调账用户"
-                                placeholder="搜索用户名、显示名称或邮箱"
+                                aria-label={translate("admin.creditOperationsPanel.searchAndSelectAUserForAdjustment")}
+                                placeholder={translate("admin.creditOperationsPanel.searchUsernameDisplayNameOrEmail")}
                                 onSearch={setAdjustmentSearch}
                                 options={adjustmentUsers.map((user) => ({
                                     label: `${user.displayName || user.username} · @${user.username}`,
@@ -781,29 +782,29 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                         {selectedAdjustmentUser ? <CreditAccountSummary user={selectedAdjustmentUser} /> : null}
                         <Form.Item
                             name="amount"
-                            label="积分变化"
-                            extra="正数增加，负数扣减；扣减只能使用可用积分。"
+                            label={translate("admin.creditOperationsPanel.change")}
+                            extra={translate("admin.creditOperationsPanel.positiveValuesAddCreditsNegativeValuesDeductThemDeductionsCan")}
                             rules={[
-                                { required: true, message: "请填写积分变化" },
+                                { required: true, message: translate("admin.creditOperationsPanel.enterTheCreditChange") },
                                 {
-                                    validator: (_, value) => (typeof value === "number" && Number.isFinite(value) && value !== 0 ? Promise.resolve() : Promise.reject(new Error("积分变化不能为 0"))),
+                                    validator: (_, value) => (typeof value === "number" && Number.isFinite(value) && value !== 0 ? Promise.resolve() : Promise.reject(new Error(translate("admin.creditOperationsPanel.theCreditAdjustmentCannotBe0")))),
                                 },
                             ]}
                         >
-                            <InputNumber className="w-full" precision={6} prefix={<Coins className="size-3.5 text-foreground/45" />} placeholder="例如 10 或 -2" />
+                            <InputNumber className="w-full" precision={6} prefix={<Coins className="size-3.5 text-foreground/45" />} placeholder={translate("admin.creditOperationsPanel.eG10Or2")} />
                         </Form.Item>
-                        <Form.Item name="note" label="调整原因" rules={[{ required: true, whitespace: true, message: "请填写工单号或处理依据" }]}>
-                            <Input.TextArea rows={4} maxLength={500} showCount placeholder="例如：工单 YC-20260828，补偿失败任务费用" />
+                        <Form.Item name="note" label={translate("admin.creditOperationsPanel.reasonForAdjustment")} rules={[{ required: true, whitespace: true, message: translate("admin.creditOperationsPanel.enterATicketNumberOrAdjustmentReason") }]}>
+                            <Input.TextArea rows={4} maxLength={500} showCount placeholder={translate("admin.creditOperationsPanel.eGTicketYC20260828CompensationForAFailedTask")} />
                         </Form.Item>
                     </section>
                 </Form>
             </AdminDrawer>
 
             <AdminModal
-                title={pendingAdjustment?.amount && pendingAdjustment.amount < 0 ? "确认扣减用户积分" : "确认增加用户积分"}
+                title={pendingAdjustment?.amount && pendingAdjustment.amount < 0 ? translate("admin.creditOperationsPanel.confirmUserCreditDeduction") : translate("admin.creditOperationsPanel.confirmUserCreditAddition")}
                 open={Boolean(pendingAdjustment)}
-                okText={pendingAdjustment?.amount && pendingAdjustment.amount < 0 ? "确认扣减" : "确认增加"}
-                cancelText="返回修改"
+                okText={pendingAdjustment?.amount && pendingAdjustment.amount < 0 ? translate("admin.creditOperationsPanel.confirmDeduction") : translate("admin.creditOperationsPanel.confirmAddition")}
+                cancelText={translate("admin.creditOperationsPanel.backToEditing")}
                 onCancel={() => {
                     if (!adjusting) setPendingAdjustment(null);
                 }}
@@ -816,14 +817,14 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             >
                 {pendingAdjustment ? (
                     <div className="admin-operation-confirmation">
-                        <p className="admin-operation-confirmation-copy">请再次核对用户、积分变化和处理依据。确认后将立即写入账务流水。</p>
+                        <p className="admin-operation-confirmation-copy">{translate("admin.creditOperationsPanel.reviewTheUserCreditAdjustmentAndReasonConfirmingImmediatelyCreates")}</p>
                         <dl className="admin-operation-confirmation-grid">
                             <div>
-                                <dt>目标用户</dt>
+                                <dt>{translate("admin.creditOperationsPanel.targetUser")}</dt>
                                 <dd>{formatUserLabel(pendingAdjustmentUser, pendingAdjustment.userId)}</dd>
                             </div>
                             <div>
-                                <dt>积分变化</dt>
+                                <dt>{translate("admin.creditOperationsPanel.change")}</dt>
                                 <dd className={pendingAdjustment.amount < 0 ? "is-negative" : "is-positive"}>
                                     {pendingAdjustment.amount > 0 ? "+" : ""}
                                     {formatCredits(toMicrocredits(pendingAdjustment.amount))}
@@ -832,17 +833,17 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                             {hasCreditBalance(pendingAdjustmentUser) ? (
                                 <>
                                     <div>
-                                        <dt>当前可用</dt>
+                                        <dt>{translate("admin.creditOperationsPanel.currentlyAvailable")}</dt>
                                         <dd>{formatCredits(pendingAdjustmentUser.availableMicrocredits)}</dd>
                                     </div>
                                     <div>
-                                        <dt>预计可用</dt>
+                                        <dt>{translate("admin.creditOperationsPanel.expectedAvailable")}</dt>
                                         <dd>{formatCredits(pendingAdjustmentUser.availableMicrocredits + toMicrocredits(pendingAdjustment.amount))}</dd>
                                     </div>
                                 </>
                             ) : null}
                             <div className="is-wide">
-                                <dt>处理依据</dt>
+                                <dt>{translate("admin.creditOperationsPanel.adjustmentReason")}</dt>
                                 <dd>{pendingAdjustment.note}</dd>
                             </div>
                         </dl>
@@ -853,8 +854,8 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             <AdminModal
                 title={resolutionTitle}
                 open={Boolean(resolutionTarget)}
-                okText={resolutionTarget?.action === "settle" ? "确认结算" : "退回预授权"}
-                cancelText="取消"
+                okText={resolutionTarget?.action === "settle" ? translate("admin.creditOperationsPanel.confirmSettlement") : translate("admin.creditOperationsPanel.releasePreauthorization")}
+                cancelText={translate("common.cancel")}
                 onCancel={() => {
                     if (resolving) return;
                     setResolutionTarget(null);
@@ -869,30 +870,30 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             >
                 {resolutionTarget ? (
                     <div className="admin-operation-confirmation">
-                        <p className="admin-operation-confirmation-copy">{resolutionTarget.action === "settle" ? "结算会依据订单计费方式确认实际费用；Token 订单可能退回差额，也可能补扣可用积分。" : "退回操作只会释放尚未结算订单的预授权积分。"}</p>
+                        <p className="admin-operation-confirmation-copy">{resolutionTarget.action === "settle" ? translate("admin.creditOperationsPanel.settlementDeterminesTheActualCostUsingTheOrderSBilling") : translate("admin.creditOperationsPanel.releasingOnlyReturnsPreauthorizedCreditsForUnsettledOrders")}</p>
                         <dl className="admin-operation-confirmation-grid">
                             <div>
-                                <dt>订单数量</dt>
-                                <dd>{resolutionOrders.length} 条</dd>
+                                <dt>{translate("admin.creditOperationsPanel.orderCount")}</dt>
+                                <dd>{resolutionOrders.length} {translate("account.layout.pagination.item")}</dd>
                             </div>
                             <div>
-                                <dt>预授权总额</dt>
-                                <dd>{formatCredits(resolutionReservedTotal)} 积分</dd>
+                                <dt>{translate("admin.creditOperationsPanel.totalPreauthorized")}</dt>
+                                <dd>{formatCredits(resolutionReservedTotal)} {translate("shell.credits")}</dd>
                             </div>
                             {resolutionTarget.kind === "single" ? (
                                 <>
                                     <div>
-                                        <dt>用户</dt>
+                                        <dt>{translate("admin.creditOperationsPanel.users")}</dt>
                                         <dd>{billingOrderUserLabel(resolutionTarget.order) || resolutionTarget.order.userId}</dd>
                                     </div>
                                     <div>
-                                        <dt>模型 / 场景</dt>
+                                        <dt>{translate("admin.creditOperationsPanel.modelScenario")}</dt>
                                         <dd>
                                             {resolutionTarget.order.model} · {resolutionTarget.order.scene || resolutionTarget.order.capability}
                                         </dd>
                                     </div>
                                     <div className="is-wide">
-                                        <dt>订单编号</dt>
+                                        <dt>{translate("admin.creditOperationsPanel.orderNumber")}</dt>
                                         <dd className="admin-monospace">{resolutionTarget.order.id}</dd>
                                     </div>
                                 </>
@@ -901,8 +902,8 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                     </div>
                 ) : null}
                 <Form form={resolutionForm} layout="vertical" requiredMark={false}>
-                    <Form.Item name="note" label="核对依据" rules={[{ required: true, whitespace: true, message: "请填写供应商账单、任务状态或处理依据" }]}>
-                        <Input.TextArea rows={4} maxLength={500} showCount placeholder="例如：供应商后台确认任务未产生费用" />
+                    <Form.Item name="note" label={translate("admin.creditOperationsPanel.reconciliationBasis")} rules={[{ required: true, whitespace: true, message: translate("admin.creditOperationsPanel.enterTheVendorInvoiceTaskStatusOrBasisForThe") }]}>
+                        <Input.TextArea rows={4} maxLength={500} showCount placeholder={translate("admin.creditOperationsPanel.eGTheProviderDashboardConfirmsTheTaskIncurredNo")} />
                     </Form.Item>
                 </Form>
             </AdminModal>
@@ -912,16 +913,16 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
 
 function CreditAccountSummary({ user }: { user: AdjustmentUser }) {
     if (!hasCreditBalance(user)) {
-        return <div className="admin-credit-account-summary is-unavailable">选择远程搜索结果后可核对当前可用与冻结积分。</div>;
+        return <div className="admin-credit-account-summary is-unavailable">{translate("admin.creditOperationsPanel.selectASearchResultToReviewCurrentAvailableAndFrozen")}</div>;
     }
     return (
         <dl className="admin-credit-account-summary">
             <div>
-                <dt>当前可用</dt>
+                <dt>{translate("admin.creditOperationsPanel.currentlyAvailable")}</dt>
                 <dd>{formatCredits(user.availableMicrocredits)}</dd>
             </div>
             <div>
-                <dt>当前冻结</dt>
+                <dt>{translate("admin.creditOperationsPanel.currentlyFrozen")}</dt>
                 <dd>{formatCredits(user.reservedMicrocredits)}</dd>
             </div>
         </dl>
@@ -951,7 +952,7 @@ function formatUserLabel(user: AdjustmentUser | undefined, fallback: string) {
 
 function toMicrocredits(value: number) {
     const result = Math.round(Number(value) * 1_000_000);
-    if (!Number.isSafeInteger(result)) throw new Error("积分变化超出可处理范围");
+    if (!Number.isSafeInteger(result)) throw new Error(translate("admin.creditOperationsPanel.theCreditAdjustmentIsOutOfRange"));
     return result;
 }
 
@@ -965,5 +966,5 @@ function toPolicyFormValues(policy: CreditPolicy): PolicyFormValues {
 }
 
 function formatTime(value?: string) {
-    return value ? new Date(value).toLocaleString("zh-CN", { hour12: false }) : "--";
+    return value ? new Date(value).toLocaleString(currentLocale(), { hour12: false }) : "--";
 }

@@ -10,6 +10,8 @@ import { AdminSegmented } from "../../ui/controls";
 import { AdminModal } from "../../ui/overlays";
 import { ARK_KIND_LABEL, arkUserLabel, formatArkAdminDate } from "./ark-admin-shared";
 import { adminArkGroupsQueryKey } from "./ark-admin-groups-tab";
+import { translate } from "@/i18n";
+
 
 type ReviewStatus = "pending_review" | "rejected";
 
@@ -37,10 +39,10 @@ export function ArkAdminReviewsTab() {
     };
 
     const report = (verb: string, result: AdminArkReviewResult) => {
-        if (result.succeeded.length) message.success(`已${verb} ${result.succeeded.length} 份素材`);
+        if (result.succeeded.length) message.success(translate("adminPages.settings.arkAssets.arkAdminReviewsTab.assets", { v0: String(verb), v1: String(result.succeeded.length) }));
         if (result.failed.length) {
             modal.warning({
-                title: `${result.failed.length} 份素材${verb}失败`,
+                title: translate("adminPages.settings.arkAssets.arkAdminReviewsTab.failedToAssets", { v0: String(result.failed.length), v1: String(verb) }),
                 content: (
                     <ul className="list-disc space-y-1 pl-5 text-sm">
                         {result.failed.map((item) => (
@@ -60,9 +62,9 @@ export function ArkAdminReviewsTab() {
         if (!ids.length) return;
         setWorking(true);
         try {
-            report("通过", await approveAdminArkAssets(ids));
+            report(translate("adminPages.settings.arkAssets.arkAdminReviewsTab.approve"), await approveAdminArkAssets(ids));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "审核失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.settings.arkAssets.arkAdminReviewsTab.reviewFailed"));
         } finally {
             setWorking(false);
         }
@@ -71,16 +73,16 @@ export function ArkAdminReviewsTab() {
     const reject = async () => {
         if (!rejecting?.length) return;
         if (!reason.trim()) {
-            message.warning("请填写驳回原因，用户会在素材组里看到");
+            message.warning(translate("adminPages.settings.arkAssets.arkAdminReviewsTab.pleaseEnterARejectionReasonTheUserWillSeeIt"));
             return;
         }
         setWorking(true);
         try {
-            report("驳回", await rejectAdminArkAssets(rejecting, reason.trim()));
+            report(translate("adminPages.settings.arkAssets.arkAdminReviewsTab.reject"), await rejectAdminArkAssets(rejecting, reason.trim()));
             setRejecting(null);
             setReason("");
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "驳回失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.settings.arkAssets.arkAdminReviewsTab.rejectionFailed"));
         } finally {
             setWorking(false);
         }
@@ -88,36 +90,36 @@ export function ArkAdminReviewsTab() {
 
     const columns: ColumnsType<ArkPortraitAsset> = [
         {
-            title: "素材",
+            title: translate("nav.tools.assets"),
             key: "asset",
             render: (_, asset) => (
                 <div className="flex min-w-0 items-center gap-3">
-                    <a href={arkPortraitAssetFileUrl(asset.id)} target="_blank" rel="noopener noreferrer" className="admin-ark-review-thumb" aria-label={`查看原图 ${asset.name}`}>
+                    <a href={arkPortraitAssetFileUrl(asset.id)} target="_blank" rel="noopener noreferrer" className="admin-ark-review-thumb" aria-label={translate("adminPages.settings.arkAssets.arkAdminReviewsTab.viewOriginal", { v0: String(asset.name) })}>
                         <img src={arkPortraitAssetFileUrl(asset.id)} alt="" loading="lazy" decoding="async" />
                     </a>
                     <div className="min-w-0">
                         <div className="truncate font-medium" title={asset.name}>
                             {asset.name}
                         </div>
-                        <div className="text-xs opacity-60">{asset.width && asset.height ? `${asset.width}×${asset.height}` : "尺寸未知"}</div>
+                        <div className="text-xs opacity-60">{asset.width && asset.height ? `${asset.width}×${asset.height}` : translate("adminPages.settings.arkAssets.arkAdminReviewsTab.unknownDimensions")}</div>
                     </div>
                 </div>
             ),
         },
-        { title: "素材组", key: "group", width: 200, render: (_, asset) => (asset.group ? `${ARK_KIND_LABEL[asset.group.kind]} · ${asset.group.name}` : "-") },
-        { title: "上传者", key: "uploader", width: 180, render: (_, asset) => arkUserLabel(asset.uploader) },
-        { title: "上传时间", key: "createdAt", width: 150, render: (_, asset) => formatArkAdminDate(asset.createdAt, true) },
-        ...(status === "rejected" ? [{ title: "驳回原因", key: "error", render: (_: unknown, asset: ArkPortraitAsset) => asset.error || "-" }] : []),
+        { title: translate("library.ark.certify.groupLabel"), key: "group", width: 200, render: (_, asset) => (asset.group ? `${ARK_KIND_LABEL[asset.group.kind]} · ${asset.group.name}` : "-") },
+        { title: translate("adminPages.settings.arkAssets.arkAdminReviewsTab.uploadedBy"), key: "uploader", width: 180, render: (_, asset) => arkUserLabel(asset.uploader) },
+        { title: translate("adminPages.settings.arkAssets.arkAdminReviewsTab.uploadedAt"), key: "createdAt", width: 150, render: (_, asset) => formatArkAdminDate(asset.createdAt, true) },
+        ...(status === "rejected" ? [{ title: translate("adminPages.settings.arkAssets.arkAdminReviewsTab.rejectionReason"), key: "error", render: (_: unknown, asset: ArkPortraitAsset) => asset.error || "-" }] : []),
         ...(status === "pending_review"
             ? [
                   {
-                      title: "操作",
+                      title: translate("account.settings.runninghub.actions"),
                       key: "actions",
                       width: 150,
                       render: (_: unknown, asset: ArkPortraitAsset) => (
                           <AdminRowActions
-                              primary={{ label: "通过", icon: <Check className="size-3.5" />, disabled: working, onClick: () => approve([asset.id]) }}
-                              actions={[{ key: "reject", label: "驳回", icon: <X className="size-3.5" />, danger: true, disabled: working, onClick: () => setRejecting([asset.id]) }]}
+                              primary={{ label: translate("adminPages.settings.arkAssets.arkAdminReviewsTab.approve"), icon: <Check className="size-3.5" />, disabled: working, onClick: () => approve([asset.id]) }}
+                              actions={[{ key: "reject", label: translate("adminPages.settings.arkAssets.arkAdminReviewsTab.reject"), icon: <X className="size-3.5" />, danger: true, disabled: working, onClick: () => setRejecting([asset.id]) }]}
                           />
                       ),
                   },
@@ -130,7 +132,7 @@ export function ArkAdminReviewsTab() {
             <AdminDataTable<ArkPortraitAsset>
                 toolbar={
                     <AdminSegmented<ReviewStatus>
-                        ariaLabel="审核状态"
+                        ariaLabel={translate("adminPages.settings.arkAssets.arkAdminReviewsTab.reviewStatus")}
                         value={status}
                         onChange={(value) => {
                             setStatus(value);
@@ -138,24 +140,24 @@ export function ArkAdminReviewsTab() {
                             setSelected([]);
                         }}
                         options={[
-                            { value: "pending_review", label: "待审核" },
-                            { value: "rejected", label: "已驳回" },
+                            { value: "pending_review", label: translate("adminPages.settings.arkAssets.arkAdminReviewsTab.inReview") },
+                            { value: "rejected", label: translate("library.ark.asset.status.rejected") },
                         ]}
                     />
                 }
                 trailing={
                     <Button icon={<RefreshCw className="size-4" />} loading={query.isFetching} onClick={refresh}>
-                        刷新
+                        {translate("common.refresh")}
                     </Button>
                 }
                 batchActions={
                     status === "pending_review" ? (
                         <AdminBatchBar count={selected.length} onClear={() => setSelected([])}>
                             <Button size="small" type="primary" icon={<Check className="size-3.5" />} loading={working} onClick={() => void approve(selected)}>
-                                通过并提交方舟
+                                {translate("adminPages.settings.arkAssets.arkAdminReviewsTab.approveAndSubmitToArk")}
                             </Button>
                             <Button size="small" danger icon={<X className="size-3.5" />} disabled={working} onClick={() => setRejecting(selected)}>
-                                驳回
+                                {translate("adminPages.settings.arkAssets.arkAdminReviewsTab.reject")}
                             </Button>
                         </AdminBatchBar>
                     ) : null
@@ -169,7 +171,7 @@ export function ArkAdminReviewsTab() {
                     size: "middle",
                     rowSelection: status === "pending_review" ? { selectedRowKeys: selected, onChange: (keys) => setSelected(keys.map(String)) } : undefined,
                 }}
-                empty={<AdminTableEmpty title={status === "pending_review" ? "没有待审核的上传" : "没有已驳回的上传"} description={status === "pending_review" ? "用户向自建素材组上传的图片需要审核时会出现在这里，通过后才提交方舟。" : undefined} />}
+                empty={<AdminTableEmpty title={status === "pending_review" ? translate("adminPages.settings.arkAssets.arkAdminReviewsTab.noUploadsAwaitingReview") : translate("adminPages.settings.arkAssets.arkAdminReviewsTab.noRejectedUploads")} description={status === "pending_review" ? translate("adminPages.settings.arkAssets.arkAdminReviewsTab.imagesUploadedToUserCreatedAssetGroupsAppearHereWhen") : undefined} />}
                 footer={
                     data && (data.total > pageSize || page > 1) ? (
                         <PaginationBar
@@ -180,24 +182,24 @@ export function ArkAdminReviewsTab() {
                                 setPage(nextSize !== pageSize ? 1 : nextPage);
                                 setPageSize(nextSize);
                             }}
-                            itemLabel="份"
+                            itemLabel={translate("adminPages.settings.arkAssets.arkAdminReviewsTab.assets2")}
                         />
                     ) : null
                 }
             />
             <AdminModal
                 open={Boolean(rejecting)}
-                title={`驳回 ${rejecting?.length || 0} 份素材`}
-                okText="驳回"
+                title={translate("adminPages.settings.arkAssets.arkAdminReviewsTab.rejectAssets", { v0: String(rejecting?.length || 0) })}
+                okText={translate("adminPages.settings.arkAssets.arkAdminReviewsTab.reject")}
                 okButtonProps={{ danger: true }}
-                cancelText="取消"
+                cancelText={translate("common.cancel")}
                 confirmLoading={working}
                 onCancel={() => {
                     if (!working) setRejecting(null);
                 }}
                 onOk={() => void reject()}
             >
-                <Input.TextArea autoFocus value={reason} maxLength={200} autoSize={{ minRows: 3, maxRows: 6 }} placeholder="例如：照片不是正面清晰照 / 含其他人物" onChange={(event) => setReason(event.target.value)} />
+                <Input.TextArea autoFocus value={reason} maxLength={200} autoSize={{ minRows: 3, maxRows: 6 }} placeholder={translate("adminPages.settings.arkAssets.arkAdminReviewsTab.forExampleNotAClearFrontFacingPhotoContainsOther")} onChange={(event) => setReason(event.target.value)} />
             </AdminModal>
         </div>
     );

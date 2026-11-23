@@ -8,6 +8,8 @@ import { getSkillCuration, updateSkillCuration, type CurationCategory, type Cura
 import { curationIcon, curationIconKeys, curationIconLabels } from "@/components/skills/skill-curation-browser";
 import { listSkills, type Skill } from "@/services/api/skills";
 import "./skill-curation-page.css";
+import { translate } from "@/i18n";
+
 
 const emptyRoot = (): CurationRoot => ({ id: "", name: "", iconKey: "shapes", sortOrder: 0, enabled: true });
 const emptyCategory = (rootTag = "drama"): CurationCategory => ({ id: "", rootTag, name: "", sortOrder: 0, enabled: true });
@@ -56,8 +58,8 @@ export default function SkillCurationPage() {
     const selectedEditorRootId = target?.kind === "root" ? target.id : target?.kind === "category" ? category.rootTag : target?.kind === "new-category" ? target.rootTag : "";
     const editorIsRoot = target?.kind === "root" || target?.kind === "new-root";
     const editorIsCategory = target?.kind === "category" || target?.kind === "new-category";
-    const editorTitle = target?.kind === "new-root" ? "新增一级分类" : target?.kind === "new-category" ? "新增子分类" : target?.kind === "root" ? `编辑一级分类 · ${root.name || "未命名"}` : target?.kind === "category" ? `编辑子分类 · ${category.name || "未命名"}` : "选择一个分类";
-    const editorDescription = editorIsRoot ? "一级分类用于组织技能库的主导航和图示。" : editorIsCategory ? "子分类必须归属于一个启用中的一级分类。" : "从左侧分类树选择一个节点，或先创建新的一级分类。";
+    const editorTitle = target?.kind === "new-root" ? translate("adminPages.skillCurationPage.addTopLevelCategory2") : target?.kind === "new-category" ? translate("adminPages.skillCurationPage.addSubcategory") : target?.kind === "root" ? translate("adminPages.skillCurationPage.editTopLevelCategory", { v0: String(root.name || translate("adminPages.skillCurationPage.untitled")) }) : target?.kind === "category" ? translate("adminPages.skillCurationPage.editSubcategory", { v0: String(category.name || translate("adminPages.skillCurationPage.untitled")) }) : translate("adminPages.skillCurationPage.selectACategory");
+    const editorDescription = editorIsRoot ? translate("adminPages.skillCurationPage.topLevelCategoriesOrganizeTheSkillLibrarySMainNavigation") : editorIsCategory ? translate("adminPages.skillCurationPage.subcategoriesMustBelongToAnEnabledTopLevelCategory") : translate("adminPages.skillCurationPage.selectANodeInTheCategoryTreeOnTheLeft");
 
     const reload = async () => {
         try {
@@ -120,10 +122,10 @@ export default function SkillCurationPage() {
             setData(next);
             setError("");
             onSaved?.(next);
-            message.success("已保存");
+            message.success(translate("adminPages.skillCurationPage.saved"));
             window.dispatchEvent(new Event("canvas-skills-changed"));
         } catch (e) {
-            setError(`${String(e)}；请重新加载后核对修改`);
+            setError(translate("adminPages.skillCurationPage.reloadAndCheckYourChanges", { v0: String(String(e)) }));
         } finally {
             setBusy(false);
         }
@@ -200,29 +202,29 @@ export default function SkillCurationPage() {
 
     return (
         <AdminPageFrame
-            title="技能分类"
-            description="管理平台技能的一级分类、子分类和技能归属。"
+            title={translate("adminPages.skillCurationPage.skillCategory")}
+            description={translate("adminPages.skillCurationPage.manageTopLevelCategoriesSubcategoriesAndSkillAssignmentsOnThe")}
             scroll
             actions={
                 <Button icon={<RefreshCw className="size-3.5" />} onClick={() => void reload()} disabled={busy}>
-                    重新加载
+                    {translate("account.layout.state.reload")}
                 </Button>
             }
         >
             <div className="admin-skill-curation">
                 {error ? <Alert type="error" showIcon title={error} /> : null}
 
-                <section className="admin-skill-curation-policy" aria-label="平台策展模式">
+                <section className="admin-skill-curation-policy" aria-label={translate("adminPages.skillCurationPage.platformCurationMode")}>
                     <div className="admin-skill-curation-policy-icon">
                         <SlidersHorizontal className="size-4" aria-hidden="true" />
                     </div>
                     <div className="admin-skill-curation-policy-copy">
-                        <div className="admin-skill-curation-policy-title">平台策展模式</div>
-                        <p>开启后，技能库会优先使用这里维护的分类和归属；关闭时不影响现有技能展示。</p>
+                        <div className="admin-skill-curation-policy-title">{translate("adminPages.skillCurationPage.platformCurationMode")}</div>
+                        <p>{translate("adminPages.skillCurationPage.whenEnabledTheSkillLibraryPrioritizesCategoriesAndAssignmentsManaged")}</p>
                     </div>
                     <div className="admin-skill-curation-policy-control">
-                        <AdminStatusBadge label={data?.enabled ? "已开启" : "未开启"} tone={data?.enabled ? "success" : "neutral"} />
-                        <AdminSwitch aria-label="平台策展模式" checked={data?.enabled ?? false} disabled={!data || busy} onChange={(enabled) => void save({ enabled })} />
+                        <AdminStatusBadge label={data?.enabled ? translate("adminPages.skillCurationPage.enabled") : translate("adminPages.skillCurationPage.notEnabled")} tone={data?.enabled ? "success" : "neutral"} />
+                        <AdminSwitch aria-label={translate("adminPages.skillCurationPage.platformCurationMode")} checked={data?.enabled ?? false} disabled={!data || busy} onChange={(enabled) => void save({ enabled })} />
                     </div>
                 </section>
 
@@ -231,20 +233,20 @@ export default function SkillCurationPage() {
                         layout="stacked"
                         className="admin-skill-curation-tree-panel"
                         icon={<FolderTree className="size-4" aria-hidden="true" />}
-                        title="分类树"
-                        description="选择分类后，在右侧编辑；也可以从这里直接新增。"
-                        status={<AdminStatusBadge label={`${(data?.roots?.length ?? 0) + (data?.categories.length ?? 0)} 个节点`} tone="info" />}
+                        title={translate("adminPages.skillCurationPage.categoryTree")}
+                        description={translate("adminPages.skillCurationPage.selectACategoryToEditItOnTheRightOr")}
+                        status={<AdminStatusBadge label={translate("adminPages.skillCurationPage.nodes", { v0: String((data?.roots?.length ?? 0) + (data?.categories.length ?? 0)) })} tone="info" />}
                     >
                         <div className="admin-skill-curation-tree-toolbar">
-                            <span className="admin-skill-curation-tree-toolbar-label">一级分类与子分类</span>
+                            <span className="admin-skill-curation-tree-toolbar-label">{translate("adminPages.skillCurationPage.topLevelCategoriesAndSubcategories")}</span>
                             <Button size="small" icon={<Plus className="size-3.5" />} onClick={startNewRoot} disabled={busy}>
-                                新增一级
+                                {translate("adminPages.skillCurationPage.addTopLevelCategory")}
                             </Button>
                         </div>
-                        <div className="admin-skill-curation-tree-list" role="tree" aria-label="技能分类树">
+                        <div className="admin-skill-curation-tree-list" role="tree" aria-label={translate("adminPages.skillCurationPage.skillCategoryTree")}>
                             {!data ? (
                                 <div className="admin-skill-curation-tree-loading" role="status">
-                                    正在加载分类…
+                                    {translate("adminPages.skillCurationPage.loadingCategories")}
                                 </div>
                             ) : sortedRoots.length ? (
                                 <>
@@ -268,8 +270,8 @@ export default function SkillCurationPage() {
                                                         <span className="admin-skill-curation-tree-node-copy">
                                                             <span className="admin-skill-curation-tree-node-name">{rootItem.name}</span>
                                                             <span className="admin-skill-curation-tree-node-meta">
-                                                                {children.length ? `${children.length} 个子分类` : "暂无子分类"}
-                                                                {!rootItem.enabled ? <AdminStatusBadge label="已停用" tone="neutral" /> : null}
+                                                                {children.length ? translate("adminPages.skillCurationPage.subcategories", { v0: String(children.length) }) : translate("adminPages.skillCurationPage.noSubcategories")}
+                                                                {!rootItem.enabled ? <AdminStatusBadge label={translate("adminPages.skillCurationPage.disabled")} tone="neutral" /> : null}
                                                             </span>
                                                         </span>
                                                         <ChevronRight className="admin-skill-curation-tree-node-chevron size-4" aria-hidden="true" />
@@ -279,8 +281,8 @@ export default function SkillCurationPage() {
                                                         size="small"
                                                         className="admin-skill-curation-tree-node-add"
                                                         icon={<Plus className="size-3.5" />}
-                                                        aria-label={`在${rootItem.name}下新增子分类`}
-                                                        title={rootItem.enabled ? "新增子分类" : "启用一级分类后才能新增子分类"}
+                                                        aria-label={translate("adminPages.skillCurationPage.addSubcategoryUnder", { v0: String(rootItem.name) })}
+                                                        title={rootItem.enabled ? translate("adminPages.skillCurationPage.addSubcategory") : translate("adminPages.skillCurationPage.enableTheTopLevelCategoryBeforeAddingSubcategories")}
                                                         onClick={() => startNewCategory(rootItem.id)}
                                                         disabled={busy || !rootItem.enabled}
                                                     />
@@ -301,7 +303,7 @@ export default function SkillCurationPage() {
                                                                     <span className="admin-skill-curation-tree-node-marker" aria-hidden="true" />
                                                                     <span className="admin-skill-curation-tree-node-copy">
                                                                         <span className="admin-skill-curation-tree-node-name">{item.name}</span>
-                                                                        <span className="admin-skill-curation-tree-node-meta">{item.enabled ? "启用中" : "已停用"}</span>
+                                                                        <span className="admin-skill-curation-tree-node-meta">{item.enabled ? translate("adminPages.skillCurationPage.active") : translate("adminPages.skillCurationPage.disabled")}</span>
                                                                     </span>
                                                                     <ChevronRight className="admin-skill-curation-tree-node-chevron size-3.5" aria-hidden="true" />
                                                                 </button>
@@ -314,13 +316,13 @@ export default function SkillCurationPage() {
                                     })}
                                     {orphanCategories.length ? (
                                         <div className="admin-skill-curation-tree-orphans">
-                                            <div className="admin-skill-curation-tree-orphans-title">未关联一级分类</div>
+                                            <div className="admin-skill-curation-tree-orphans-title">{translate("adminPages.skillCurationPage.noTopLevelCategoryAssigned")}</div>
                                             {orphanCategories.map((item) => (
                                                 <button key={item.id} type="button" role="treeitem" aria-selected={target?.kind === "category" && target.id === item.id} className={`admin-skill-curation-tree-node admin-skill-curation-tree-node-child${target?.kind === "category" && target.id === item.id ? " is-active" : ""}`} onClick={() => selectCategory(item)}>
                                                     <span className="admin-skill-curation-tree-node-marker" aria-hidden="true" />
                                                     <span className="admin-skill-curation-tree-node-copy">
                                                         <span className="admin-skill-curation-tree-node-name">{item.name}</span>
-                                                        <span className="admin-skill-curation-tree-node-meta">{item.enabled ? "启用中" : "已停用"}</span>
+                                                        <span className="admin-skill-curation-tree-node-meta">{item.enabled ? translate("adminPages.skillCurationPage.active") : translate("adminPages.skillCurationPage.disabled")}</span>
                                                     </span>
                                                     <ChevronRight className="admin-skill-curation-tree-node-chevron size-3.5" aria-hidden="true" />
                                                 </button>
@@ -330,11 +332,11 @@ export default function SkillCurationPage() {
                                 </>
                             ) : (
                                 <AdminTableEmpty
-                                    title="还没有一级分类"
-                                    description="先创建一个一级分类，再继续添加子分类。"
+                                    title={translate("adminPages.skillCurationPage.noTopLevelCategoriesYet")}
+                                    description={translate("adminPages.skillCurationPage.createATopLevelCategoryFirstThenAddSubcategories")}
                                     action={
                                         <Button type="primary" size="small" icon={<Plus className="size-3.5" />} onClick={startNewRoot}>
-                                            创建一级分类
+                                            {translate("adminPages.skillCurationPage.createTopLevelCategory")}
                                         </Button>
                                     }
                                 />
@@ -349,38 +351,38 @@ export default function SkillCurationPage() {
                             icon={<Shapes className="size-4" aria-hidden="true" />}
                             title={editorTitle}
                             description={editorDescription}
-                            status={editorIsRoot || editorIsCategory ? <AdminStatusBadge label={target?.kind?.startsWith("new-") ? "新建中" : "已选中"} tone={target?.kind?.startsWith("new-") ? "warning" : "info"} /> : <AdminStatusBadge label="未选择" tone="neutral" />}
+                            status={editorIsRoot || editorIsCategory ? <AdminStatusBadge label={target?.kind?.startsWith("new-") ? translate("adminPages.skillCurationPage.creating") : translate("adminPages.skillCurationPage.selected")} tone={target?.kind?.startsWith("new-") ? "warning" : "info"} /> : <AdminStatusBadge label={translate("adminPages.skillCurationPage.notSelected")} tone="neutral" />}
                         >
                             {!data ? (
                                 <div className="admin-skill-curation-editor-empty" role="status">
-                                    正在加载编辑器…
+                                    {translate("adminPages.skillCurationPage.loadingEditor")}
                                 </div>
                             ) : editorIsRoot ? (
-                                <div className="admin-skill-curation-form" aria-label="一级分类编辑表单">
+                                <div className="admin-skill-curation-form" aria-label={translate("adminPages.skillCurationPage.topLevelCategoryForm")}>
                                     <div className="admin-skill-curation-editor-context">
-                                        <span className="admin-skill-curation-editor-kicker">一级分类</span>
-                                        <strong>{root.id ? `正在编辑「${root.name || "未命名"}」` : "准备创建一个新的一级分类"}</strong>
-                                        <span>一级分类会显示在技能库主导航中，并决定子分类的归属。</span>
+                                        <span className="admin-skill-curation-editor-kicker">{translate("adminPages.skillCurationPage.topLevelCategory")}</span>
+                                        <strong>{root.id ? translate("adminPages.skillCurationPage.editing", { v0: String(root.name || translate("adminPages.skillCurationPage.untitled")) }) : translate("adminPages.skillCurationPage.createANewTopLevelCategory")}</strong>
+                                        <span>{translate("adminPages.skillCurationPage.topLevelCategoriesAppearInTheSkillLibrarySMain")}</span>
                                     </div>
                                     <div className="admin-skill-curation-fields admin-skill-curation-fields-root">
                                         <label className="admin-skill-curation-field">
-                                            <span>分类名称</span>
-                                            <Input aria-label="一级分类名称" placeholder="例如：视频创作" maxLength={64} value={root.name} onChange={(e) => setRoot({ ...root, name: e.target.value })} />
+                                            <span>{translate("adminPages.skillCurationPage.categoryName")}</span>
+                                            <Input aria-label={translate("adminPages.skillCurationPage.topLevelCategoryName")} placeholder={translate("adminPages.skillCurationPage.forExampleVideoCreation")} maxLength={64} value={root.name} onChange={(e) => setRoot({ ...root, name: e.target.value })} />
                                         </label>
                                         <label className="admin-skill-curation-field is-order">
-                                            <span>排序</span>
-                                            <InputNumber aria-label="一级分类排序" className="admin-skill-curation-control" precision={0} min={0} value={root.sortOrder} onChange={(sortOrder) => setRoot({ ...root, sortOrder: sortOrder ?? 0 })} />
+                                            <span>{translate("adminPages.skillCurationPage.order")}</span>
+                                            <InputNumber aria-label={translate("adminPages.skillCurationPage.topLevelCategoryOrder")} className="admin-skill-curation-control" precision={0} min={0} value={root.sortOrder} onChange={(sortOrder) => setRoot({ ...root, sortOrder: sortOrder ?? 0 })} />
                                         </label>
                                         <div className="admin-skill-curation-field is-switch">
-                                            <span>状态</span>
+                                            <span>{translate("library.tasks.detail.status")}</span>
                                             <div className="admin-skill-curation-switch-row">
-                                                <AdminSwitch aria-label="一级分类启用" checked={root.enabled} onChange={(enabled) => setRoot({ ...root, enabled })} />
-                                                <span>{root.enabled ? "启用" : "停用"}</span>
+                                                <AdminSwitch aria-label={translate("adminPages.skillCurationPage.enableTopLevelCategory")} checked={root.enabled} onChange={(enabled) => setRoot({ ...root, enabled })} />
+                                                <span>{root.enabled ? translate("adminPages.skillCurationPage.enable") : translate("adminPages.skillCurationPage.disable")}</span>
                                             </div>
                                         </div>
                                         <div className="admin-skill-curation-field admin-skill-curation-icon-field">
-                                            <span>分类图示</span>
-                                            <div className="admin-skill-curation-icon-grid" role="radiogroup" aria-label="一级分类图示">
+                                            <span>{translate("adminPages.skillCurationPage.categoryIcon")}</span>
+                                            <div className="admin-skill-curation-icon-grid" role="radiogroup" aria-label={translate("adminPages.skillCurationPage.topLevelCategoryIcon")}>
                                                 {curationIconKeys.map((key) => {
                                                     const Icon = curationIcon(key);
                                                     const selected = (root.iconKey || "shapes") === key;
@@ -395,28 +397,28 @@ export default function SkillCurationPage() {
                                         </div>
                                     </div>
                                     <div className="admin-skill-curation-form-actions">
-                                        <span className="admin-skill-curation-hint">停用一级分类后，技能仍保留原有数据，不再作为可选归类。</span>
+                                        <span className="admin-skill-curation-hint">{translate("adminPages.skillCurationPage.disablingATopLevelCategoryPreservesExistingSkillDataBut")}</span>
                                         <div className="admin-skill-curation-action-buttons">
                                             <Button onClick={resetEditor} disabled={busy || (!root.id && !root.name)}>
-                                                {root.id ? "还原" : "清空"}
+                                                {root.id ? translate("canvasA.characterStudio.revert") : translate("canvasA.outbox.clear")}
                                             </Button>
                                             <Button type="primary" icon={root.id ? <Check className="size-3.5" /> : <Plus className="size-3.5" />} loading={busy} disabled={!data || !root.name.trim()} onClick={saveRoot}>
-                                                {root.id ? "保存一级分类" : "新增一级分类"}
+                                                {root.id ? translate("adminPages.skillCurationPage.saveTopLevelCategory") : translate("adminPages.skillCurationPage.addTopLevelCategory2")}
                                             </Button>
                                         </div>
                                     </div>
                                 </div>
                             ) : editorIsCategory ? (
-                                <div className="admin-skill-curation-form" aria-label="子分类编辑表单">
+                                <div className="admin-skill-curation-form" aria-label={translate("adminPages.skillCurationPage.subcategoryForm")}>
                                     <div className="admin-skill-curation-editor-context">
-                                        <span className="admin-skill-curation-editor-kicker">子分类</span>
-                                        <strong>{category.id ? `正在编辑「${category.name || "未命名"}」` : "准备创建一个新的子分类"}</strong>
-                                        <span>子分类只能在创建后归属于当前一级分类，已保存的子分类不能移动到其他一级分类。</span>
+                                        <span className="admin-skill-curation-editor-kicker">{translate("adminPages.skillCurationPage.subcategory")}</span>
+                                        <strong>{category.id ? translate("adminPages.skillCurationPage.editing", { v0: String(category.name || translate("adminPages.skillCurationPage.untitled")) }) : translate("adminPages.skillCurationPage.createANewSubcategory")}</strong>
+                                        <span>{translate("adminPages.skillCurationPage.newSubcategoriesBelongToTheCurrentTopLevelCategorySaved")}</span>
                                     </div>
                                     <div className="admin-skill-curation-fields admin-skill-curation-fields-category">
                                         <div className="admin-skill-curation-field admin-skill-curation-parent-field">
-                                            <span>所属一级分类</span>
-                                            <div className="admin-skill-curation-direct-list" role="radiogroup" aria-label="所属一级分类">
+                                            <span>{translate("adminPages.skillCurationPage.parentCategory")}</span>
+                                            <div className="admin-skill-curation-direct-list" role="radiogroup" aria-label={translate("adminPages.skillCurationPage.parentCategory")}>
                                                 {sortedRoots.length ? (
                                                     sortedRoots.map((item) => {
                                                         const Icon = curationIcon(item.iconKey);
@@ -436,41 +438,41 @@ export default function SkillCurationPage() {
                                                                 </span>
                                                                 <span className="admin-skill-curation-direct-choice-copy">
                                                                     <strong>{item.name}</strong>
-                                                                    <small>{item.enabled ? "可用于新建子分类" : "已停用"}</small>
+                                                                    <small>{item.enabled ? translate("adminPages.skillCurationPage.availableForNewSubcategories") : translate("adminPages.skillCurationPage.disabled")}</small>
                                                                 </span>
                                                                 {selected ? <CheckCircle2 className="admin-skill-curation-choice-check size-3.5" aria-hidden="true" /> : null}
                                                             </button>
                                                         );
                                                     })
                                                 ) : (
-                                                    <div className="admin-skill-curation-direct-empty">还没有可用的一级分类</div>
+                                                    <div className="admin-skill-curation-direct-empty">{translate("adminPages.skillCurationPage.noTopLevelCategoriesAvailableYet")}</div>
                                                 )}
                                             </div>
                                         </div>
                                         <label className="admin-skill-curation-field">
-                                            <span>子分类名称</span>
-                                            <Input aria-label="分类名称" placeholder="例如：分镜设计" value={category.name} maxLength={64} onChange={(e) => setCategory({ ...category, name: e.target.value })} />
+                                            <span>{translate("adminPages.skillCurationPage.subcategoryName")}</span>
+                                            <Input aria-label={translate("adminPages.skillCurationPage.categoryName")} placeholder={translate("adminPages.skillCurationPage.forExampleStoryboardDesign")} value={category.name} maxLength={64} onChange={(e) => setCategory({ ...category, name: e.target.value })} />
                                         </label>
                                         <label className="admin-skill-curation-field is-order">
-                                            <span>排序</span>
-                                            <InputNumber aria-label="排序" className="admin-skill-curation-control" value={category.sortOrder} precision={0} min={0} onChange={(sortOrder) => setCategory({ ...category, sortOrder: sortOrder ?? 0 })} />
+                                            <span>{translate("adminPages.skillCurationPage.order")}</span>
+                                            <InputNumber aria-label={translate("adminPages.skillCurationPage.order")} className="admin-skill-curation-control" value={category.sortOrder} precision={0} min={0} onChange={(sortOrder) => setCategory({ ...category, sortOrder: sortOrder ?? 0 })} />
                                         </label>
                                         <div className="admin-skill-curation-field is-switch">
-                                            <span>状态</span>
+                                            <span>{translate("library.tasks.detail.status")}</span>
                                             <div className="admin-skill-curation-switch-row">
-                                                <AdminSwitch aria-label="分类启用" checked={category.enabled} onChange={(enabled) => setCategory({ ...category, enabled })} />
-                                                <span>{category.enabled ? "启用" : "停用"}</span>
+                                                <AdminSwitch aria-label={translate("adminPages.skillCurationPage.enableCategory")} checked={category.enabled} onChange={(enabled) => setCategory({ ...category, enabled })} />
+                                                <span>{category.enabled ? translate("adminPages.skillCurationPage.enable") : translate("adminPages.skillCurationPage.disable")}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="admin-skill-curation-form-actions">
-                                        <span className="admin-skill-curation-hint">{category.id ? `正在编辑「${category.name}」` : "新增后即可在技能归类中使用"}</span>
+                                        <span className="admin-skill-curation-hint">{category.id ? translate("adminPages.skillCurationPage.editing", { v0: String(category.name) }) : translate("adminPages.skillCurationPage.availableForSkillAssignmentAfterCreation")}</span>
                                         <div className="admin-skill-curation-action-buttons">
                                             <Button onClick={resetEditor} disabled={busy || (!category.id && !category.name)}>
-                                                {category.id ? "还原" : "清空"}
+                                                {category.id ? translate("canvasA.characterStudio.revert") : translate("canvasA.outbox.clear")}
                                             </Button>
                                             <Button type="primary" icon={category.id ? <Check className="size-3.5" /> : <Plus className="size-3.5" />} loading={busy} disabled={!data || !category.name.trim() || !category.rootTag} onClick={saveCategory}>
-                                                {category.id ? "保存子分类" : "新增子分类"}
+                                                {category.id ? translate("adminPages.skillCurationPage.saveSubcategory") : translate("adminPages.skillCurationPage.addSubcategory")}
                                             </Button>
                                         </div>
                                     </div>
@@ -478,11 +480,11 @@ export default function SkillCurationPage() {
                             ) : (
                                 <div className="admin-skill-curation-editor-empty">
                                     <AdminTableEmpty
-                                        title="还没有选择分类"
-                                        description="从左侧选择一个分类，或先创建一个新的一级分类。"
+                                        title={translate("adminPages.skillCurationPage.noCategorySelected")}
+                                        description={translate("adminPages.skillCurationPage.selectACategoryOnTheLeftOrCreateANew")}
                                         action={
                                             <Button type="primary" size="small" icon={<Plus className="size-3.5" />} onClick={startNewRoot}>
-                                                新增一级分类
+                                                {translate("adminPages.skillCurationPage.addTopLevelCategory2")}
                                             </Button>
                                         }
                                     />
@@ -494,43 +496,43 @@ export default function SkillCurationPage() {
                             layout="stacked"
                             className="admin-skill-curation-assignment-panel"
                             icon={<Check className="size-4" aria-hidden="true" />}
-                            title="技能归类"
-                            description="搜索公开技能，选择一级分类和它应该出现的子分类。"
-                            status={<AdminStatusBadge label={skillId ? "已选择技能" : "等待选择"} tone={skillId ? "success" : "neutral"} />}
+                            title={translate("adminPages.skillCurationPage.skillAssignments")}
+                            description={translate("adminPages.skillCurationPage.searchPublicSkillsAndChooseTheirTopLevelCategoryAnd")}
+                            status={<AdminStatusBadge label={skillId ? translate("adminPages.skillCurationPage.selectedSkill") : translate("adminPages.skillCurationPage.waitingForSelection")} tone={skillId ? "success" : "neutral"} />}
                         >
-                            <div className="admin-skill-curation-assignment-form" aria-label="技能归类表单">
+                            <div className="admin-skill-curation-assignment-form" aria-label={translate("adminPages.skillCurationPage.skillAssignmentForm")}>
                                 <label className="admin-skill-curation-field admin-skill-curation-assignment-search">
-                                    <span>搜索技能</span>
-                                    <Input prefix={<Search className="size-3.5" aria-hidden="true" />} aria-label="搜索公开技能" placeholder="按名称搜索公开技能" value={search} onChange={(e) => setSearch(e.target.value)} allowClear />
+                                    <span>{translate("canvasA.skillLibrary.searchPlaceholder")}</span>
+                                    <Input prefix={<Search className="size-3.5" aria-hidden="true" />} aria-label={translate("adminPages.skillCurationPage.searchPublicSkills")} placeholder={translate("adminPages.skillCurationPage.searchPublicSkillsByName")} value={search} onChange={(e) => setSearch(e.target.value)} allowClear />
                                 </label>
                                 <div className="admin-skill-curation-field admin-skill-curation-skill-field">
                                     <div className="admin-skill-curation-field-heading">
-                                        <span>选择技能</span>
-                                        <small>{skills.length ? `${skills.length} 个结果` : search ? "没有匹配结果" : "暂无公开技能"}</small>
+                                        <span>{translate("adminPages.skillCurationPage.selectSkill")}</span>
+                                        <small>{skills.length ? translate("adminPages.skillCurationPage.results", { v0: String(skills.length) }) : search ? translate("adminPages.skillCurationPage.noMatchingResults") : translate("adminPages.skillCurationPage.noPublicSkillsYet")}</small>
                                     </div>
-                                    <div className="admin-skill-curation-skill-list" role="listbox" aria-label="选择技能">
+                                    <div className="admin-skill-curation-skill-list" role="listbox" aria-label={translate("adminPages.skillCurationPage.selectSkill")}>
                                         {skills.length ? (
                                             skills.map((skill) => {
                                                 const selected = skill.skillId === skillId;
                                                 return (
                                                     <button key={skill.skillId} type="button" role="option" aria-selected={selected} className={`admin-skill-curation-skill-row${selected ? " is-selected" : ""}`} onClick={() => selectSkill(skill.skillId)}>
                                                         <strong>{skill.skillName || skill.skillId}</strong>
-                                                        <em>{skill.tag || "未分类"}</em>
+                                                        <em>{skill.tag || translate("account.settings.models.uncategorized")}</em>
                                                         {selected ? <Check className="size-3.5" aria-hidden="true" /> : null}
                                                     </button>
                                                 );
                                             })
                                         ) : (
-                                            <div className="admin-skill-curation-direct-empty">{search ? "没有找到匹配的公开技能" : "暂无公开技能"}</div>
+                                            <div className="admin-skill-curation-direct-empty">{search ? translate("adminPages.skillCurationPage.noMatchingPublicSkillsFound") : translate("adminPages.skillCurationPage.noPublicSkillsYet")}</div>
                                         )}
                                     </div>
                                 </div>
                                 <div className="admin-skill-curation-field admin-skill-curation-assignment-root-field">
                                     <div className="admin-skill-curation-field-heading">
-                                        <span>技能一级分类</span>
-                                        <small>{assignedRoot ? selectedRoot?.name || "已指定分类" : "沿用原始分类"}</small>
+                                        <span>{translate("adminPages.skillCurationPage.skillTopLevelCategory")}</span>
+                                        <small>{assignedRoot ? selectedRoot?.name || translate("adminPages.skillCurationPage.categoryAssigned") : translate("adminPages.skillCurationPage.useOriginalCategory")}</small>
                                     </div>
-                                    <div className="admin-skill-curation-assign-chips" role="radiogroup" aria-label="技能一级分类">
+                                    <div className="admin-skill-curation-assign-chips" role="radiogroup" aria-label={translate("adminPages.skillCurationPage.skillTopLevelCategory")}>
                                         <button
                                             type="button"
                                             role="radio"
@@ -542,7 +544,7 @@ export default function SkillCurationPage() {
                                             }}
                                         >
                                             <Shapes className="size-4" aria-hidden="true" />
-                                            <span>按原始分类{selectedSkill?.tag ? ` · ${selectedSkill.tag}` : ""}</span>
+                                            <span>{translate("adminPages.skillCurationPage.byOriginalCategory")}{selectedSkill?.tag ? ` · ${selectedSkill.tag}` : ""}</span>
                                         </button>
                                         {sortedRoots.map((item) => {
                                             const Icon = curationIcon(item.iconKey);
@@ -569,10 +571,10 @@ export default function SkillCurationPage() {
                                 </div>
                                 <div className="admin-skill-curation-field admin-skill-curation-assignment-category-field">
                                     <div className="admin-skill-curation-field-heading">
-                                        <span>技能子分类</span>
-                                        <small>{selectedSkill ? `${categoryIds.length} 个已选` : "先选择技能"}</small>
+                                        <span>{translate("adminPages.skillCurationPage.skillSubcategories")}</span>
+                                        <small>{selectedSkill ? translate("adminPages.skillCurationPage.selected2", { v0: String(categoryIds.length) }) : translate("adminPages.skillCurationPage.selectASkillFirst")}</small>
                                     </div>
-                                    <div className={`admin-skill-curation-assign-chips${!selectedSkill ? " is-disabled" : ""}`} role="listbox" aria-label="技能子分类" aria-multiselectable="true">
+                                    <div className={`admin-skill-curation-assign-chips${!selectedSkill ? " is-disabled" : ""}`} role="listbox" aria-label={translate("adminPages.skillCurationPage.skillSubcategories")} aria-multiselectable="true">
                                         {availableCategories.length ? (
                                             availableCategories.map((item) => {
                                                 const selected = categoryIds.includes(item.id);
@@ -583,14 +585,14 @@ export default function SkillCurationPage() {
                                                 );
                                             })
                                         ) : (
-                                            <div className="admin-skill-curation-direct-empty">{selectedSkill ? (selectedRoot || assignedRoot ? "该一级分类暂无启用的子分类" : "原始分类下暂无启用的子分类") : "先选择技能"}</div>
+                                            <div className="admin-skill-curation-direct-empty">{selectedSkill ? (selectedRoot || assignedRoot ? translate("adminPages.skillCurationPage.noEnabledSubcategoriesInThisTopLevelCategory") : translate("adminPages.skillCurationPage.noEnabledSubcategoriesInTheOriginalCategory")) : translate("adminPages.skillCurationPage.selectASkillFirst")}</div>
                                         )}
                                     </div>
                                 </div>
                                 <div className="admin-skill-curation-assignment-footer">
-                                    <span className="admin-skill-curation-hint">{selectedSkill ? `当前技能：${selectedSkill.skillName}` : "未选择技能时不会修改任何归类"}</span>
+                                    <span className="admin-skill-curation-hint">{selectedSkill ? translate("adminPages.skillCurationPage.currentSkill", { v0: String(selectedSkill.skillName) }) : translate("adminPages.skillCurationPage.noAssignmentsAreChangedWhenNoSkillIsSelected")}</span>
                                     <Button type="primary" loading={busy} disabled={!skillId || !data} onClick={() => void save({ assignment: { skillId, categoryIds, rootId: assignedRoot } })}>
-                                        保存技能归类
+                                        {translate("adminPages.skillCurationPage.saveSkillAssignments")}
                                     </Button>
                                 </div>
                             </div>

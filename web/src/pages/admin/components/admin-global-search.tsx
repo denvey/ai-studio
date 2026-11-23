@@ -5,13 +5,14 @@ import { useNavigate } from "react-router";
 
 import { searchAdminNavigation, type AdminSearchEntry } from "../lib/navigation-search";
 import "./admin-global-search.css";
+import { translate } from "@/i18n";
 
 export function AdminGlobalSearch({ entries }: { entries: readonly AdminSearchEntry[] }) {
     const navigate = useNavigate();
     const [query, setQuery] = useState("");
     const results = searchAdminNavigation(entries, query);
     return (
-        <div className="admin-global-search" role="search" aria-label="后台页面搜索">
+        <div className="admin-global-search" role="search" aria-label={translate("admin.adminGlobalSearch.adminPageSearch")}>
             <AutoComplete<string, { value: string; label: ReactNode; disabled?: boolean }>
                 value={query}
                 onChange={setQuery}
@@ -29,7 +30,7 @@ export function AdminGlobalSearch({ entries }: { entries: readonly AdminSearchEn
                                   </span>
                               ),
                           }))
-                        : [{ value: "", disabled: true, label: <span role="status">未找到对应后台页面，请更换关键词</span> }]
+                        : [{ value: "", disabled: true, label: <span role="status">{translate("admin.adminGlobalSearch.noMatchingAdminPagesTryAnotherKeyword")}</span> }]
                 }
                 onSelect={(path) => {
                     if (!entries.some((entry) => entry.path === path)) return;
@@ -37,7 +38,7 @@ export function AdminGlobalSearch({ entries }: { entries: readonly AdminSearchEn
                     navigate(path);
                 }}
             >
-                <Input aria-label="搜索后台页面" placeholder="搜索后台页面或功能…" prefix={<Search className="size-4" aria-hidden="true" />} />
+                <Input aria-label={translate("admin.adminGlobalSearch.searchAdminPages")} placeholder={translate("admin.adminGlobalSearch.searchAdminPagesOrFeatures")} prefix={<Search className="size-4" aria-hidden="true" />} />
             </AutoComplete>
         </div>
     );

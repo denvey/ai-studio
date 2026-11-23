@@ -1,16 +1,18 @@
 import { currentMediaVersion, listMediaVersions } from "@/lib/canvas/canvas-media-versions";
 import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 /** 资产视图的固定分类；顺序即左侧目录顺序。 */
 export const CANVAS_ASSET_KINDS = ["txt", "markdown", "image", "video", "audio"] as const;
 export type CanvasAssetKind = (typeof CANVAS_ASSET_KINDS)[number];
 
 export const CANVAS_ASSET_KIND_LABELS: Record<CanvasAssetKind, string> = {
-    txt: "文本",
+    txt: translate("account.settings.modelConfig.capabilities.text"),
     markdown: "Markdown",
-    image: "图片",
-    video: "视频",
-    audio: "音频",
+    image: translate("account.feedback.image"),
+    video: translate("account.feedback.video"),
+    audio: translate("account.settings.modelConfig.capabilities.audio"),
 };
 
 export type CanvasAssetVersionSource = "version-group" | "batch" | "media-history" | "single";
@@ -129,7 +131,7 @@ function buildEntry(draft: AssetGroupDraft): CanvasAssetEntry | null {
         primaryNode = ordered.find((node) => node.id === primaryId) || root;
         versions = ordered.map((node, index) => ({
             key: `${node.id}:node`,
-            label: layered ? `图层 ${index + 1}` : `第 ${index + 1} 张`,
+            label: layered ? translate("shared.canvas.canvasAssetCatalog.layer", { v0: String(index + 1) }) : translate("shared.canvas.canvasAssetCatalog.image", { v0: String(index + 1) }),
             nodeId: node.id,
             source: "batch" as const,
             primary: !layered && node.id === primaryId,

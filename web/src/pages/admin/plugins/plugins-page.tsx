@@ -19,6 +19,8 @@ import { AdminPageFrame } from "../components/admin-shell";
 import { AdminDataTable, AdminStatusBadge, AdminTableEmpty } from "../components/admin-ui";
 import { Select } from "@/components/ui/base/select";
 import { AdminPluginDetailModal, type AdminPluginDetail } from "./plugin-detail-modal";
+import { currentLocale, translate } from "@/i18n";
+
 
 type AdminPluginItem = AdminPluginDetail;
 
@@ -43,7 +45,7 @@ export default function AdminPluginsPage() {
             setPlugins(result.plugins);
             setStates(result.states);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "读取插件管理数据失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.plugins.pluginsPage.failedToLoadPluginManagementData"));
         } finally {
             setLoading(false);
         }
@@ -78,9 +80,9 @@ export default function AdminPluginsPage() {
         try {
             const state = await setPluginPlatformAvailability(item.manifest.id, available);
             setStates((current) => ({ ...current, [item.manifest.id]: state }));
-            message.success(`${item.manifest.name}${available ? "已开放" : "已停用"}`);
+            message.success(translate("adminPages.plugins.pluginsPage.availabilityChanged", { name: item.manifest.name, status: available ? translate("adminPages.plugins.pluginsPage.available") : translate("adminPages.plugins.pluginsPage.disabled") }));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "更新插件可用状态失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.plugins.pluginsPage.failedToUpdatePluginAvailability"));
         } finally {
             setSavingId("");
         }
@@ -90,27 +92,27 @@ export default function AdminPluginsPage() {
         try {
             await uploadPlugin(file);
             setUploadOpen(false);
-            message.success("自定义插件已安装");
+            message.success(translate("adminPages.plugins.pluginsPage.customPluginInstalled"));
             await reload();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "安装插件失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.plugins.pluginsPage.failedToInstallPlugin"));
         }
     };
 
     const remove = (item: AdminPluginItem) => {
         modal.confirm({
-            title: `卸载 ${item.manifest.name}？`,
-            content: "插件包、平台状态和所有用户的启用记录都会删除。此操作不可撤销。",
-            okText: "确认卸载",
+            title: translate("adminPages.plugins.pluginsPage.uninstall", { v0: String(item.manifest.name) }),
+            content: translate("adminPages.plugins.pluginsPage.thePluginPackagePlatformStateAndAllUserActivationRecords"),
+            okText: translate("adminPages.plugins.pluginsPage.confirmUninstall"),
             okButtonProps: { danger: true },
-            cancelText: "取消",
+            cancelText: translate("common.cancel"),
             onOk: async () => {
                 try {
                     await uninstallPlugin(item.manifest.id);
-                    message.success("自定义插件已卸载");
+                    message.success(translate("adminPages.plugins.pluginsPage.customPluginUninstalled"));
                     await reload();
                 } catch (error) {
-                    message.error(error instanceof Error ? error.message : "卸载插件失败");
+                    message.error(error instanceof Error ? error.message : translate("adminPages.plugins.pluginsPage.failedToUninstallPlugin"));
                     throw error;
                 }
             },
@@ -126,7 +128,7 @@ export default function AdminPluginsPage() {
 
     const columns: ColumnsType<AdminPluginItem> = [
         {
-            title: "插件",
+            title: translate("adminPages.plugins.pluginsPage.plugin"),
             key: "plugin",
             width: 410,
             render: (_, item) => (
@@ -137,7 +139,7 @@ export default function AdminPluginsPage() {
                             <button
                                 type="button"
                                 className="min-w-0 truncate rounded-sm text-left font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--control-focus-ring)]"
-                                title={`查看 ${item.manifest.name} 详情`}
+                                title={translate("adminPages.plugins.pluginsPage.viewDetails", { v0: String(item.manifest.name) })}
                                 onClick={() => setDetailId(item.manifest.id)}
                             >
                                 {item.manifest.name}
@@ -151,8 +153,8 @@ export default function AdminPluginsPage() {
                             <span className="text-foreground/20" aria-hidden="true">
                                 ·
                             </span>
-                            <span className={`truncate ${item.error ? "text-status-error" : "text-foreground/52"}`} title={item.error || item.manifest.description || "未提供插件说明"}>
-                                {item.error || item.manifest.description || "未提供插件说明"}
+                            <span className={`truncate ${item.error ? "text-status-error" : "text-foreground/52"}`} title={item.error || item.manifest.description || translate("adminPages.plugins.pluginsPage.noPluginDescriptionProvided")}>
+                                {item.error || item.manifest.description || translate("adminPages.plugins.pluginsPage.noPluginDescriptionProvided")}
                             </span>
                         </div>
                     </div>
@@ -160,7 +162,7 @@ export default function AdminPluginsPage() {
             ),
         },
         {
-            title: "类型",
+            title: translate("account.settings.runninghub.kind"),
             key: "type",
             width: 160,
             align: "center",
@@ -169,35 +171,35 @@ export default function AdminPluginsPage() {
                     <AdminStatusBadge label={managementLabel(item.management)} tone={item.management.origin === "uploaded" ? "warning" : item.management.kind === "application" ? "info" : "neutral"} />
                     {!item.manifest.trusted ? (
                         <div className="mt-2">
-                            <AdminStatusBadge label="来源未验证" tone="warning" />
+                            <AdminStatusBadge label={translate("adminPages.plugins.pluginsPage.sourceNotVerified")} tone="warning" />
                         </div>
                     ) : null}
                 </div>
             ),
         },
         {
-            title: "作用范围",
+            title: translate("adminPages.plugins.pluginsPage.scope"),
             key: "scope",
             width: 180,
             align: "center",
             render: (_, item) =>
                 item.management.activationScope === "user" ? (
                     <div>
-                        <div className="font-medium text-foreground/78">用户自主启用</div>
+                        <div className="font-medium text-foreground/78">{translate("adminPages.plugins.pluginsPage.usersEnableIndividually")}</div>
                         <div className="mt-1 inline-flex items-center gap-1 text-xs text-foreground/48">
                             <UsersRound className="size-3.5" aria-hidden="true" />
-                            {states[item.manifest.id]?.enabledUserCount || 0} 位已启用
+                            {states[item.manifest.id]?.enabledUserCount || 0} {translate("adminPages.plugins.pluginsPage.usersEnabled")}
                         </div>
                     </div>
                 ) : (
                     <div>
-                        <div className="font-medium text-foreground/78">全局生效</div>
-                        <div className="mt-1 text-xs text-foreground/48">管理员统一控制</div>
+                        <div className="font-medium text-foreground/78">{translate("adminPages.plugins.pluginsPage.appliesGlobally")}</div>
+                        <div className="mt-1 text-xs text-foreground/48">{translate("adminPages.plugins.pluginsPage.controlledByAdministrators")}</div>
                     </div>
                 ),
         },
         {
-            title: "平台状态",
+            title: translate("adminPages.plugins.pluginsPage.platformStatus"),
             key: "status",
             width: 170,
             align: "center",
@@ -205,12 +207,12 @@ export default function AdminPluginsPage() {
                 const available = states[item.manifest.id]?.platformAvailable ?? item.status === "enabled";
                 return (
                     <div className="flex items-center justify-center gap-3">
-                        <AdminStatusBadge label={available ? "已开放" : "已停用"} tone={available ? "success" : "neutral"} />
+                        <AdminStatusBadge label={available ? translate("adminPages.plugins.pluginsPage.available") : translate("adminPages.plugins.pluginsPage.disabled")} tone={available ? "success" : "neutral"} />
                         <Switch
                             className="plugin-state-switch"
                             loading={savingId === item.manifest.id}
                             checked={available}
-                            aria-label={`${item.manifest.name}，当前${available ? "平台开放，点击停用" : "平台停用，点击开放"}`}
+                            aria-label={translate("adminPages.plugins.pluginsPage.currently", { v0: String(item.manifest.name), v1: String(available ? translate("adminPages.plugins.pluginsPage.availableOnThePlatformClickToDisable") : translate("adminPages.plugins.pluginsPage.disabledOnThePlatformClickToEnable")) })}
                             onChange={(checked) => void changeAvailability(item, checked)}
                         />
                     </div>
@@ -218,20 +220,20 @@ export default function AdminPluginsPage() {
             },
         },
         {
-            title: "操作",
+            title: translate("account.settings.runninghub.actions"),
             key: "actions",
             width: 128,
             align: "center",
             render: (_, item) => (
                 <div className="flex items-center justify-center gap-1">
-                    <Button type="text" size="small" aria-label={`查看 ${item.manifest.name} 详情`} icon={<FileText className="size-3.5" aria-hidden="true" />} onClick={() => setDetailId(item.manifest.id)}>
-                        详情
+                    <Button type="text" size="small" aria-label={translate("adminPages.plugins.pluginsPage.viewDetails", { v0: String(item.manifest.name) })} icon={<FileText className="size-3.5" aria-hidden="true" />} onClick={() => setDetailId(item.manifest.id)}>
+                        {translate("account.layout.banner.details")}
                     </Button>
                     {item.management.origin === "uploaded" ? (
-                        <Button danger type="text" size="small" aria-label={`卸载 ${item.manifest.name}`} icon={<Trash2 className="size-3.5" aria-hidden="true" />} onClick={() => remove(item)} />
+                        <Button danger type="text" size="small" aria-label={translate("adminPages.plugins.pluginsPage.uninstall2", { v0: String(item.manifest.name) })} icon={<Trash2 className="size-3.5" aria-hidden="true" />} onClick={() => remove(item)} />
                     ) : (
-                        <span title="内置插件不可卸载">
-                            <Button type="text" size="small" disabled aria-label={`${item.manifest.name}为内置插件，不可卸载`} icon={<Trash2 className="size-3.5" aria-hidden="true" />} />
+                        <span title={translate("adminPages.plugins.pluginsPage.builtInPluginsCannotBeUninstalled")}>
+                            <Button type="text" size="small" disabled aria-label={translate("adminPages.plugins.pluginsPage.isBuiltInAndCannotBeUninstalled", { v0: String(item.manifest.name) })} icon={<Trash2 className="size-3.5" aria-hidden="true" />} />
                         </span>
                     )}
                 </div>
@@ -241,25 +243,25 @@ export default function AdminPluginsPage() {
 
     return (
         <AdminPageFrame
-            title="插件管理"
-            description="管理平台级可用性、自定义插件安装与用户启用范围"
+            title={translate("adminPages.plugins.pluginsPage.pluginManagement")}
+            description={translate("adminPages.plugins.pluginsPage.managePlatformAvailabilityCustomPluginInstallationAndUserAccess")}
             actions={
                 <>
                     <Button icon={<RefreshCw className="size-4" />} loading={loading} onClick={() => void reload()}>
-                        刷新
+                        {translate("common.refresh")}
                     </Button>
                     <Button type="primary" icon={<CloudUpload className="size-4" />} onClick={() => setUploadOpen(true)}>
-                        上传插件
+                        {translate("adminPages.plugins.pluginsPage.uploadPlugin")}
                     </Button>
                 </>
             }
         >
             <div className="my-4 grid min-h-16 grid-cols-2 divide-x divide-border/70 overflow-hidden rounded-lg border border-border/70 bg-card sm:grid-cols-5">
-                <OverviewItem label="全部插件" value={items.length} />
-                <OverviewItem label="官方应用" value={applicationCount} />
-                <OverviewItem label="系统协议" value={protocolCount} />
-                <OverviewItem label="支付协议" value={paymentCount} />
-                <OverviewItem label="平台已停用" value={unavailableCount} tone={unavailableCount ? "warning" : "default"} />
+                <OverviewItem label={translate("adminPages.plugins.pluginsPage.allPlugins")} value={items.length} />
+                <OverviewItem label={translate("adminPages.plugins.pluginsPage.officialApps")} value={applicationCount} />
+                <OverviewItem label={translate("adminPages.plugins.pluginsPage.systemProtocols")} value={protocolCount} />
+                <OverviewItem label={translate("adminPages.plugins.pluginsPage.paymentProtocols")} value={paymentCount} />
+                <OverviewItem label={translate("adminPages.plugins.pluginsPage.disabledOnPlatform")} value={unavailableCount} tone={unavailableCount ? "warning" : "default"} />
             </div>
             <AdminDataTable
                 toolbar={
@@ -268,8 +270,8 @@ export default function AdminPluginsPage() {
                         allowClear
                         prefix={<Search className="size-4 text-foreground/40" />}
                         value={search}
-                        aria-label="搜索插件"
-                        placeholder="搜索插件名称、ID 或作者"
+                        aria-label={translate("adminPages.plugins.pluginsPage.searchPlugins")}
+                        placeholder={translate("adminPages.plugins.pluginsPage.searchPluginNameIDOrAuthor")}
                         onChange={(event) => {
                             setSearch(event.target.value);
                             setPage(1);
@@ -279,7 +281,7 @@ export default function AdminPluginsPage() {
                 toolbarFilters={
                     <>
                         <Select
-                            aria-label="筛选插件类型"
+                            aria-label={translate("adminPages.plugins.pluginsPage.filterPluginType")}
                             className="w-44"
                             value={kind}
                             onChange={(value) => {
@@ -287,15 +289,15 @@ export default function AdminPluginsPage() {
                                 setPage(1);
                             }}
                             options={[
-                                { value: "all", label: "全部类型" },
-                                { value: "application", label: "官方应用插件" },
-                                { value: "protocol", label: "系统协议插件" },
-                                { value: "payment", label: "支付协议插件" },
-                                { value: "uploaded", label: "上传的自定义插件" },
+                                { value: "all", label: translate("library.tasks.page.allKinds") },
+                                { value: "application", label: translate("adminPages.plugins.pluginsPage.officialAppPlugins") },
+                                { value: "protocol", label: translate("adminPages.plugins.pluginsPage.systemProtocolPlugins") },
+                                { value: "payment", label: translate("adminPages.plugins.pluginsPage.paymentProtocolPlugins") },
+                                { value: "uploaded", label: translate("adminPages.plugins.pluginsPage.uploadedCustomPlugins") },
                             ]}
                         />
                         <Select
-                            aria-label="筛选插件状态"
+                            aria-label={translate("adminPages.plugins.pluginsPage.filterPluginStatus")}
                             className="w-32"
                             value={availability}
                             onChange={(value) => {
@@ -303,9 +305,9 @@ export default function AdminPluginsPage() {
                                 setPage(1);
                             }}
                             options={[
-                                { value: "all", label: "全部状态" },
-                                { value: "available", label: "平台开放" },
-                                { value: "unavailable", label: "平台停用" },
+                                { value: "all", label: translate("library.ark.expiry.all") },
+                                { value: "available", label: translate("adminPages.plugins.pluginsPage.platformEnabled") },
+                                { value: "unavailable", label: translate("adminPages.plugins.pluginsPage.platformDisabled") },
                             ]}
                         />
                     </>
@@ -319,7 +321,7 @@ export default function AdminPluginsPage() {
                 }}
                 skeletonColumns={5}
                 table={{ className: "app-data-table", size: "small", sticky: true, rowKey: (item) => item.manifest.id, loading, columns, dataSource: paginated, pagination: false, scroll: { x: 1120 } }}
-                empty={<AdminTableEmpty filtered={hasFilters} title={hasFilters ? undefined : "还没有可管理的插件"} />}
+                empty={<AdminTableEmpty filtered={hasFilters} title={hasFilters ? undefined : translate("adminPages.plugins.pluginsPage.noManageablePluginsYet")} />}
                 footer={
                     <PaginationBar
                         alwaysShow
@@ -372,7 +374,7 @@ function PluginBrandIcon({ pluginId }: { pluginId: string }) {
     if (pluginId === "official-payment-zhifufm") {
         return (
             <span className="grid size-9 shrink-0 place-items-center rounded-lg overflow-hidden border border-border/40 bg-card shadow-xs">
-                <img src={ZHIFUFM_LOGO_SRC} alt="支付FM" className="size-full object-contain select-none pointer-events-none rounded-lg" />
+                <img src={ZHIFUFM_LOGO_SRC} alt={translate("adminPages.plugins.pluginsPage.payFM")} className="size-full object-contain select-none pointer-events-none rounded-lg" />
             </span>
         );
     }
@@ -399,7 +401,7 @@ function mergePlugins(remote: BackendPlugin[]): AdminPluginItem[] {
         });
     }
     for (const plugin of remote) byId.set(plugin.manifest.id, plugin);
-    return [...byId.values()].sort((left, right) => managementOrder(left.management) - managementOrder(right.management) || left.manifest.name.localeCompare(right.manifest.name, "zh-CN"));
+    return [...byId.values()].sort((left, right) => managementOrder(left.management) - managementOrder(right.management) || left.manifest.name.localeCompare(right.manifest.name, currentLocale()));
 }
 
 function managementOrder(value: PluginManagement) {
@@ -410,7 +412,7 @@ function managementOrder(value: PluginManagement) {
 }
 
 function managementLabel(value: PluginManagement) {
-    if (value.origin === "uploaded") return "自定义插件";
-    if (value.kind === "application") return "官方应用";
-    return value.kind === "payment" ? "系统支付协议" : "系统协议";
+    if (value.origin === "uploaded") return translate("adminPages.plugins.pluginsPage.customPlugin");
+    if (value.kind === "application") return translate("adminPages.plugins.pluginsPage.officialApps");
+    return value.kind === "payment" ? translate("adminPages.plugins.pluginsPage.systemPaymentProtocol") : translate("adminPages.plugins.pluginsPage.systemProtocols");
 }

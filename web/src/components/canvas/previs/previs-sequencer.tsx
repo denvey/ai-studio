@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
 import { previsBoneLabel } from "@/lib/canvas/previs/previs-scene";
 import { releasePrevisFocusAfterPointer } from "@/lib/canvas/previs/previs-shortcuts";
 import type { PrevisCamera, PrevisKeyframeDeleteTarget, PrevisKeyframeEasing, PrevisObject, PrevisScene, PrevisShot } from "@/types/previs";
+import { translate } from "@/i18n";
 
 type PrevisSequencerProps = {
     scene: PrevisScene;
@@ -78,7 +79,7 @@ export function PrevisSequencer({ scene, shot, camera, objects, selectedObjectId
     };
 
     // 摄影机关键帧只在摄影机行提供删除入口；Camera Cut 是概览轨，保持只读。
-    const cameraKeys: TrackKey[] = camera?.keyframes.map((key) => ({ id: key.id, time: key.time, color: "#78a9ff", label: `${camera.name} 镜头`, easing: key.easing, target: { track: "camera", cameraId: camera.id, keyframeId: key.id } })) || [];
+    const cameraKeys: TrackKey[] = camera?.keyframes.map((key) => ({ id: key.id, time: key.time, color: "#78a9ff", label: translate("canvasTools.previs.previsSequencer.shots", { v0: String(camera.name) }), easing: key.easing, target: { track: "camera", cameraId: camera.id, keyframeId: key.id } })) || [];
 
     const selectTrackKey = (key: TrackKey) => {
         if (!key.target) return;
@@ -101,69 +102,69 @@ export function PrevisSequencer({ scene, shot, camera, objects, selectedObjectId
     if (!visible) {
         return <section className="previs-sequencer shrink-0 border-t" style={{ height: "var(--space-8)", minHeight: 0, background: "var(--previs-sequencer-surface)", borderColor: "var(--previs-sequencer-border)" }}>
             <div className="flex h-full items-center justify-end px-3">
-                <button type="button" className="previs-sequencer-tool" title="显示时间轴" aria-label="显示时间轴" onClick={() => onVisibilityChange(true)}><ChevronUp className="size-3.5" /><span>显示时间轴</span></button>
+                <button type="button" className="previs-sequencer-tool" title={translate("canvasTools.previs.previsSequencer.showTimeline")} aria-label={translate("canvasTools.previs.previsSequencer.showTimeline")} onClick={() => onVisibilityChange(true)}><ChevronUp className="size-3.5" /><span>{translate("canvasTools.previs.previsSequencer.showTimeline")}</span></button>
             </div>
         </section>;
     }
 
     return (
         <section ref={rootRef} className="previs-sequencer shrink-0 border-t" style={{ height, minHeight: "var(--previs-sequencer-min-height)", background: "var(--previs-sequencer-surface)", borderColor: "var(--previs-sequencer-border)" }}>
-            <div className="previs-sequencer-resizer" onPointerDown={startResize} role="separator" aria-label="调整时间轴高度" />
+            <div className="previs-sequencer-resizer" onPointerDown={startResize} role="separator" aria-label={translate("canvasTools.previs.previsSequencer.resizeTheTimeline")} />
             <header className="flex h-10 shrink-0 items-center gap-2 border-b px-3" style={{ borderColor: "var(--previs-sequencer-border)" }}>
-                <button type="button" className="previs-sequencer-transport" onClick={onPlayToggle} aria-label={playing ? "暂停" : "播放"} title={playing ? "暂停" : "播放"}>{playing ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}</button>
+                <button type="button" className="previs-sequencer-transport" onClick={onPlayToggle} aria-label={playing ? translate("canvasA.outbox.pause") : translate("canvasTools.previs.previsSequencer.play")} title={playing ? translate("canvasA.outbox.pause") : translate("canvasTools.previs.previsSequencer.play")}>{playing ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}</button>
                 <span className="w-14 text-right text-[var(--fs-caption)] font-medium tabular-nums text-white/75">{formatTime(playhead)}</span>
                 <span className="text-[var(--fs-micro)] text-white/35">/ {formatTime(duration)} · {fps}fps</span>
                 <span className="mx-1 h-4 w-px bg-white/10" />
-                <select className="previs-sequencer-shot-select" value={shot.id} aria-label="当前镜头" onChange={(event) => onSelectShot(event.target.value)}>
+                <select className="previs-sequencer-shot-select" value={shot.id} aria-label={translate("canvasTools.previs.previsSequencer.currentShot")} onChange={(event) => onSelectShot(event.target.value)}>
                     {scene.shots.map((item, index) => <option key={item.id} value={item.id}>{index + 1}. {item.name}</option>)}
                 </select>
-                <button type="button" className={`previs-sequencer-tool ${autoKey ? "is-active" : ""}`} onClick={() => onAutoKeyChange(!autoKey)} aria-pressed={autoKey} title="自动关键帧"><KeyRound className="size-3.5" /><span>自动关键帧</span></button>
-                <button type="button" className={`previs-sequencer-tool ${snapEnabled ? "is-active" : ""}`} title="吸附到帧" aria-pressed={snapEnabled} onClick={() => setSnapEnabled((value) => !value)}><Magnet className="size-3.5" /><span>吸附</span></button>
-                <button type="button" className="previs-sequencer-tool" title="记录当前关键帧" onClick={onRecordKeyframe}><KeyRound className="size-3.5" /><span>记录</span></button>
+                <button type="button" className={`previs-sequencer-tool ${autoKey ? "is-active" : ""}`} onClick={() => onAutoKeyChange(!autoKey)} aria-pressed={autoKey} title={translate("canvasTools.previs.previsSequencer.autoKeyframes")}><KeyRound className="size-3.5" /><span>{translate("canvasTools.previs.previsSequencer.autoKeyframes")}</span></button>
+                <button type="button" className={`previs-sequencer-tool ${snapEnabled ? "is-active" : ""}`} title={translate("canvasTools.previs.previsSequencer.snapToFrame")} aria-pressed={snapEnabled} onClick={() => setSnapEnabled((value) => !value)}><Magnet className="size-3.5" /><span>{translate("canvasTools.previs.previsSequencer.snap")}</span></button>
+                <button type="button" className="previs-sequencer-tool" title={translate("canvasTools.previs.previsSequencer.recordTheCurrentKeyframe")} onClick={onRecordKeyframe}><KeyRound className="size-3.5" /><span>{translate("canvasTools.previs.previsSequencer.record")}</span></button>
                 {activeSelectedKey?.target ? <>
                     <select
                         className="previs-sequencer-shot-select"
                         value={activeSelectedKey.easing || "linear"}
-                        aria-label="关键帧缓动"
-                        title="关键帧到下一帧的缓动"
+                        aria-label={translate("canvasTools.previs.previsSequencer.keyframeEasing")}
+                        title={translate("canvasTools.previs.previsSequencer.easingFromThisKeyframeToTheNext")}
                         onChange={(event) => {
                             const easing = event.target.value as PrevisKeyframeEasing;
                             onSetKeyframeEasing(activeSelectedKey.target!, easing);
                             setSelectedKey((current) => current ? { ...current, easing } : current);
                         }}
                     >
-                        <option value="step">保持</option>
-                        <option value="linear">线性</option>
-                        <option value="smooth">平滑</option>
+                        <option value="step">{translate("canvasTools.previs.previsSequencer.hold")}</option>
+                        <option value="linear">{translate("canvasTools.previs.previsSequencer.linear")}</option>
+                        <option value="smooth">{translate("canvasTools.previs.previsSequencer.smooth")}</option>
                     </select>
-                    <button type="button" className="previs-sequencer-icon" title="删除所选关键帧" aria-label="删除所选关键帧" onClick={() => deleteTrackKey(activeSelectedKey.target!)}><Trash2 className="size-3.5" /></button>
+                    <button type="button" className="previs-sequencer-icon" title={translate("canvasTools.previs.previsSequencer.deleteSelectedKeyframe")} aria-label={translate("canvasTools.previs.previsSequencer.deleteSelectedKeyframe")} onClick={() => deleteTrackKey(activeSelectedKey.target!)}><Trash2 className="size-3.5" /></button>
                 </> : null}
                 <span className="ml-auto flex items-center gap-1">
-                    <button type="button" className="previs-sequencer-icon" title="缩小时间轴" aria-label="缩小时间轴" onClick={() => setTimelineScale((value) => Math.max(0.75, value - 0.25))}><ZoomOut className="size-3.5" /></button>
-                    <button type="button" className="previs-sequencer-icon" title="放大时间轴" aria-label="放大时间轴" onClick={() => setTimelineScale((value) => Math.min(2.5, value + 0.25))}><ZoomIn className="size-3.5" /></button>
-                    <button type="button" className={`previs-sequencer-icon ${showDetails ? "is-active" : ""}`} title="显示子轨道" aria-label="显示子轨道" aria-pressed={showDetails} onClick={() => setShowDetails((value) => !value)}><Rows3 className="size-3.5" /></button>
-                    <button type="button" className="previs-sequencer-icon" title="新增镜头" aria-label="新增镜头" onClick={onAddShot}><Plus className="size-3.5" /></button>
-                    <button type="button" className="previs-sequencer-icon" title="隐藏时间轴" aria-label="隐藏时间轴" onClick={() => onVisibilityChange(false)}><ChevronDown className="size-3.5" /></button>
+                    <button type="button" className="previs-sequencer-icon" title={translate("canvasTools.previs.previsSequencer.zoomOutTheTimeline")} aria-label={translate("canvasTools.previs.previsSequencer.zoomOutTheTimeline")} onClick={() => setTimelineScale((value) => Math.max(0.75, value - 0.25))}><ZoomOut className="size-3.5" /></button>
+                    <button type="button" className="previs-sequencer-icon" title={translate("canvasTools.previs.previsSequencer.zoomInOnTheTimeline")} aria-label={translate("canvasTools.previs.previsSequencer.zoomInOnTheTimeline")} onClick={() => setTimelineScale((value) => Math.min(2.5, value + 0.25))}><ZoomIn className="size-3.5" /></button>
+                    <button type="button" className={`previs-sequencer-icon ${showDetails ? "is-active" : ""}`} title={translate("canvasTools.previs.previsSequencer.showSubTracks")} aria-label={translate("canvasTools.previs.previsSequencer.showSubTracks")} aria-pressed={showDetails} onClick={() => setShowDetails((value) => !value)}><Rows3 className="size-3.5" /></button>
+                    <button type="button" className="previs-sequencer-icon" title={translate("canvasTools.previs.previsSequencer.addShot")} aria-label={translate("canvasTools.previs.previsSequencer.addShot")} onClick={onAddShot}><Plus className="size-3.5" /></button>
+                    <button type="button" className="previs-sequencer-icon" title={translate("canvasTools.previs.previsSequencer.hideTimeline")} aria-label={translate("canvasTools.previs.previsSequencer.hideTimeline")} onClick={() => onVisibilityChange(false)}><ChevronDown className="size-3.5" /></button>
                 </span>
             </header>
 
             <div className="previs-sequencer-body thin-scrollbar overflow-auto">
                 <div className="previs-sequencer-grid" style={{ "--previs-sequencer-duration": duration, "--previs-sequencer-track-scale": timelineScale } as CSSProperties}>
                     <span className="previs-sequencer-global-playhead"><i style={{ left: `${(playhead / duration) * 100}%` }} /></span>
-                    <div className="previs-sequencer-label previs-sequencer-ruler-label">轨道</div>
+                    <div className="previs-sequencer-label previs-sequencer-ruler-label">{translate("canvasTools.previs.previsSequencer.track")}</div>
                     <div className="previs-sequencer-ruler" onPointerDown={setTimeFromPointer}>
                         {ticks.map((tick) => <span key={tick} className="previs-sequencer-tick" style={{ left: `${(tick / duration) * 100}%` }}>{tick}s</span>)}
                         <span className="previs-sequencer-playhead" style={{ left: `${(playhead / duration) * 100}%` }} />
                     </div>
 
-                    <SequencerRow label="镜头总轨" icon="◈" selected={false} onClick={() => undefined}>
+                    <SequencerRow label={translate("canvasTools.previs.previsSequencer.masterShotTrack")} icon="◈" selected={false} onClick={() => undefined}>
                         <TrackBar duration={duration} color="#7da2ff" label={`${shot.name} · ${formatTime(duration)}`} />
                     </SequencerRow>
                     <SequencerRow label="Camera Cut" icon="▣" selected={false} onClick={() => undefined}>
                         <TrackKeys duration={duration} keys={cameraKeys} />
                     </SequencerRow>
                     {camera ? <SequencerRow label={camera.name} icon="⌾" selected={!selectedObjectId} onClick={() => { onSelectObject(null); onSelectBone(null); }}>
-                        <TrackBar duration={duration} color="#78a9ff" label="Transform · 焦距 · 景深" />
+                        <TrackBar duration={duration} color="#78a9ff" label={translate("canvasTools.previs.previsSequencer.transformFocalLengthDepthOfField")} />
                         <TrackKeys duration={duration} keys={cameraKeys} selectedTarget={activeSelectedKey?.target} onSelectKey={selectTrackKey} onDeleteKey={deleteTrackKey} />
                     </SequencerRow> : null}
                     {actorObjects.map((object) => {
@@ -178,8 +179,8 @@ export function PrevisSequencer({ scene, shot, camera, objects, selectedObjectId
                                 <TrackKeys duration={duration} keys={[...transformKeys, ...boneTrackKeys]} selectedTarget={activeSelectedKey?.target} onSelectKey={selectTrackKey} onDeleteKey={deleteTrackKey} />
                             </SequencerRow>
                             {isExpanded && showDetails ? <>
-                                <SequencerRow label="动作片段" icon="▶" indent selected={selectedObjectId === object.id && !selectedBone} onClick={() => onSelectObject(object.id)}>
-                                    <TrackBar duration={duration} color="#61d2ad" label={activeClip ? `${activeClip.name}${activeClip.loop ? " · 循环" : ""}` : "姿势 / 动作"} start={activeClip?.start || 0} clipDuration={activeClip?.loop ? duration : activeClip?.duration || duration} />
+                                <SequencerRow label={translate("canvasTools.previs.previsSequencer.actionClip")} icon="▶" indent selected={selectedObjectId === object.id && !selectedBone} onClick={() => onSelectObject(object.id)}>
+                                    <TrackBar duration={duration} color="#61d2ad" label={activeClip ? `${activeClip.name}${activeClip.loop ? (" " + translate("canvasTools.previs.previsSequencer.loop")) : ""}` : translate("canvasTools.previs.previsSequencer.poseMotion")} start={activeClip?.start || 0} clipDuration={activeClip?.loop ? duration : activeClip?.duration || duration} />
                                 </SequencerRow>
                                 <SequencerRow label="Transform" icon="◇" indent selected={selectedObjectId === object.id && !selectedBone} onClick={() => { onSelectObject(object.id); onSelectBone(null); }}>
                                     <TrackKeys duration={duration} keys={transformKeys} selectedTarget={activeSelectedKey?.target} onSelectKey={selectTrackKey} onDeleteKey={deleteTrackKey} />
@@ -238,9 +239,9 @@ function TrackKeys({ duration, keys, selectedTarget, onSelectKey, onDeleteKey }:
                     type="button"
                     className={`previs-sequencer-key is-actionable ${selectedTarget && previsKeyframeTargetId(selectedTarget) === previsKeyframeTargetId(target) ? "is-selected" : ""}`}
                     style={{ left: `${(key.time / duration) * 100}%`, background: key.color || "#d7dee8" }}
-                    aria-label={`选择 ${key.label ?? "关键帧"} ${key.time.toFixed(2)}s 的关键帧`}
+                    aria-label={translate("canvasTools.previs.previsSequencer.selectKeyframeAtS", { v0: String(key.label ?? translate("canvasTools.previs.previsSequencer.keyframes")), v1: String(key.time.toFixed(2)) })}
                     aria-pressed={Boolean(selectedTarget && previsKeyframeTargetId(selectedTarget) === previsKeyframeTargetId(target))}
-                    title={`${key.time.toFixed(2)}s · 点击定位，按 Delete 删除`}
+                    title={translate("canvasTools.previs.previsSequencer.sClickToLocatePressDeleteToRemove", { v0: String(key.time.toFixed(2)) })}
                     onClick={(event) => {
                         event.stopPropagation();
                         onSelectKey?.(key);

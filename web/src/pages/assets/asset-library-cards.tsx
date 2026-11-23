@@ -17,23 +17,23 @@ import { type LibraryAsset, assetKindIcons } from "./asset-library-format";
 import { assetKindLabel, assetProjectLabel, assetSummary, assetSummaryDetail, formatAssetClock, formatAssetTime } from "./asset-library-format";
 
 export function formatExpirationHint(updatedAt: string, retentionDays: number) {
-    if (!retentionDays || retentionDays <= 0) return "永久保留";
+    if (!retentionDays || retentionDays <= 0) return translate("shared.assets.assetLibraryCards.keepPermanently");
     const updatedTime = new Date(updatedAt).getTime();
-    if (!Number.isFinite(updatedTime)) return `保留 ${retentionDays} 天`;
+    if (!Number.isFinite(updatedTime)) return translate("shared.assets.assetLibraryCards.keepForDays", { v0: String(retentionDays) });
     const expireTime = updatedTime + retentionDays * 24 * 60 * 60 * 1000;
     const remainingMs = expireTime - Date.now();
     const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
-    if (remainingDays <= 0) return "即将彻底清除";
-    if (remainingDays === 1) return "剩余 1 天过期";
-    return `剩余 ${remainingDays} 天过期`;
+    if (remainingDays <= 0) return translate("shared.assets.assetLibraryCards.willBePermanentlyDeletedSoon");
+    if (remainingDays === 1) return translate("shared.assets.assetLibraryCards.expiresIn1Day");
+    return translate("shared.assets.assetLibraryCards.expiresInDays", { v0: String(remainingDays) });
 }
 
 export function formatExpirationDate(updatedAt: string, retentionDays: number) {
-    if (!retentionDays || retentionDays <= 0) return "永久保留";
+    if (!retentionDays || retentionDays <= 0) return translate("shared.assets.assetLibraryCards.keepPermanently");
     const updatedTime = new Date(updatedAt).getTime();
     if (!Number.isFinite(updatedTime)) return "";
     const expireDate = new Date(updatedTime + retentionDays * 24 * 60 * 60 * 1000);
-    return `预计于 ${expireDate.getFullYear()}-${String(expireDate.getMonth() + 1).padStart(2, "0")}-${String(expireDate.getDate()).padStart(2, "0")} 彻底清除`;
+    return translate("shared.assets.assetLibraryCards.scheduledForPermanentDeletionOn", { v0: String(expireDate.getFullYear()), v1: String(String(expireDate.getMonth() + 1).padStart(2, "0")), v2: String(String(expireDate.getDate()).padStart(2, "0")) });
 }
 
 export function AssetCard({
@@ -74,15 +74,15 @@ export function AssetCard({
 }) {
     const summary = assetSummary(asset);
     const menuItems: MenuProps["items"] = isTrash
-        ? [{ key: "restore", icon: <RotateCcw className="size-3.5" />, label: "还原到素材库", onClick: onRestore }, { type: "divider" as const }, { key: "delete", danger: true, icon: <Trash2 className="size-3.5" />, label: "彻底删除", onClick: onDelete }]
+        ? [{ key: "restore", icon: <RotateCcw className="size-3.5" />, label: translate("shared.assets.assetLibraryCards.restoreToAssetLibrary"), onClick: onRestore }, { type: "divider" as const }, { key: "delete", danger: true, icon: <Trash2 className="size-3.5" />, label: translate("library.picker.deletePermanently"), onClick: onDelete }]
         : [
-              ...(asset.kind === "text" || asset.kind === "image" ? [{ key: "edit", icon: <PencilLine className="size-3.5" />, label: "编辑", onClick: onEdit }] : []),
-              ...(asset.kind === "text" ? [{ key: "copy", icon: <Copy className="size-3.5" />, label: "复制文本", onClick: () => void onCopy(asset) }] : []),
-              ...(asset.kind === "image" || asset.kind === "video" || asset.kind === "audio" || asset.kind === "model" ? [{ key: "download", icon: <Download className="size-3.5" />, label: "下载", onClick: () => onDownload(asset) }] : []),
-              { key: "move", icon: <FolderOpen className="size-3.5" />, label: "移动到分类", children: folderOptions.map((folder) => ({ key: folder.value || "uncategorized", label: folder.label, onClick: () => onMoveToFolder(folder.value) })) },
+              ...(asset.kind === "text" || asset.kind === "image" ? [{ key: "edit", icon: <PencilLine className="size-3.5" />, label: translate("account.settings.channels.edit"), onClick: onEdit }] : []),
+              ...(asset.kind === "text" ? [{ key: "copy", icon: <Copy className="size-3.5" />, label: translate("shared.assets.assetLibraryCards.copyText"), onClick: () => void onCopy(asset) }] : []),
+              ...(asset.kind === "image" || asset.kind === "video" || asset.kind === "audio" || asset.kind === "model" ? [{ key: "download", icon: <Download className="size-3.5" />, label: translate("canvasA.assetView.download"), onClick: () => onDownload(asset) }] : []),
+              { key: "move", icon: <FolderOpen className="size-3.5" />, label: translate("shared.assets.assetLibraryCards.moveToCategory"), children: folderOptions.map((folder) => ({ key: folder.value || "uncategorized", label: folder.label, onClick: () => onMoveToFolder(folder.value) })) },
               { type: "divider" as const },
-              { key: "archive", icon: <Trash2 className="size-3.5 text-amber-500" />, label: "移入回收站", onClick: onArchive },
-              { key: "delete", danger: true, icon: <Trash2 className="size-3.5" />, label: "彻底删除", onClick: onDelete },
+              { key: "archive", icon: <Trash2 className="size-3.5 text-amber-500" />, label: translate("shared.assets.assetLibraryCards.moveToTrash"), onClick: onArchive },
+              { key: "delete", danger: true, icon: <Trash2 className="size-3.5" />, label: translate("library.picker.deletePermanently"), onClick: onDelete },
           ];
     const handleCardClick = (event: MouseEvent<HTMLButtonElement>) => {
         if (selectionMode || event.shiftKey || event.ctrlKey || event.metaKey) {
@@ -114,7 +114,7 @@ export function AssetCard({
                     </div>
                 )}
                 <div className="asset-collection-source mt-1 flex min-w-0 items-center gap-2">
-                    <span className="truncate">{asset.source || "未标注来源"}</span>
+                    <span className="truncate">{asset.source || translate("shared.assets.assetLibraryCards.sourceNotSpecified")}</span>
                     <span aria-hidden="true">·</span>
                     <span className="truncate">{assetProjectLabel(asset)}</span>
                 </div>
@@ -155,12 +155,12 @@ export function AssetCover({
     const visualMedia = asset.kind === "image" || asset.kind === "video";
     return (
         <AssetLibraryCardMedia className={isLight ? "assets-cover is-light" : "assets-cover"}>
-            <button type="button" className="assets-cover-link" onClick={onOpen} aria-label={`查看素材：${asset.title}`}>
+            <button type="button" className="assets-cover-link" onClick={onOpen} aria-label={translate("shared.assets.assetLibraryCards.viewAsset", { v0: String(asset.title) })}>
                 {asset.kind === "audio" ? (
                     <AudioWaveCover asset={asset} />
                 ) : asset.kind === "entity" && (asset.category === "environment" || asset.category === "prop") ? (
                     <div className="assets-cover-fallback">
-                        <span>{assetCategoryLabel(asset.category)} · 待生成图片</span>
+                        <span>{assetCategoryLabel(asset.category)} {translate("shared.assets.assetLibraryCards.imagePendingGeneration")}</span>
                     </div>
                 ) : asset.kind === "entity" ? (
                     <CharacterAssetCover asset={asset} />
@@ -191,11 +191,11 @@ export function AssetCover({
                 {visualMedia ? null : (
                     <span className="assets-cover-badge is-kind">
                         <KindIcon />
-                        {kind ? assetKindLabel(kind, asset.category) : "素材"}
+                        {kind ? assetKindLabel(kind, asset.category) : translate("nav.tools.assets")}
                     </span>
                 )}
                 {isTrash ? (
-                    <span className="assets-cover-badge is-category !bg-amber-500/85 !text-white">回收站</span>
+                    <span className="assets-cover-badge is-category !bg-amber-500/85 !text-white">{translate("canvasA.assetPicker.trash")}</span>
                 ) : asset.kind === "entity" || visualMedia ? null : (
                     <span className="assets-cover-badge is-category">{assetCategoryLabel(asset.category)}</span>
                 )}
@@ -209,10 +209,10 @@ export function AssetCover({
                 onClick={(event) => event.stopPropagation()}
                 onChange={(event) => onSelect(event.target.checked, (event.nativeEvent as globalThis.MouseEvent).shiftKey)}
                 className="assets-select-check"
-                aria-label={`选择 ${asset.title}`}
+                aria-label={translate("shared.assets.assetLibraryCards.choose", { v0: String(asset.title) })}
             />
             <Dropdown trigger={["click"]} menu={{ items: menuItems }}>
-                <button type="button" className="assets-cover-more" aria-label="更多素材操作" title="更多操作">
+                <button type="button" className="assets-cover-more" aria-label={translate("library.assets.page.moreActions")} title={translate("canvasB.common.moreActions")}>
                     <MoreHorizontal className="size-4" />
                 </button>
             </Dropdown>
@@ -269,7 +269,7 @@ export function AudioWaveCover({ asset }: { asset: LibraryAsset & { kind: "audio
 export function TextCover({ asset }: { asset: LibraryAsset & { kind: "text" } }) {
     return (
         <div className="assets-cover-text">
-            <p>{asset.data.content || "空白文本素材"}</p>
+            <p>{asset.data.content || translate("shared.assets.assetLibraryCards.emptyTextAsset")}</p>
         </div>
     );
 }

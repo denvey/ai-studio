@@ -10,6 +10,7 @@ import { useActiveTheme } from "@/stores/canvas/use-canvas-theme-store";
 import type { CanvasNodeData } from "@/types/canvas";
 
 import "./canvas-short-drama-entry.css";
+import { translate } from "@/i18n";
 
 export function CanvasLinkedProjectEmptyState({ projectName, hasChapter, onAddFirstChapter, onOpenAssets, onAddText }: { projectName: string; hasChapter: boolean; onAddFirstChapter: () => void; onOpenAssets: () => void; onAddText: () => void }) {
     const theme = canvasThemes[useActiveTheme()];
@@ -23,7 +24,7 @@ export function CanvasLinkedProjectEmptyState({ projectName, hasChapter, onAddFi
                     <div className="min-w-0">
                         <h2 className="truncate text-sm font-semibold">{projectName}</h2>
                         <p className="mt-0.5 text-[var(--fs-label)]" style={{ color: theme.node.muted }}>
-                            项目画布为空
+                            {translate("canvasTools.canvasShortDramaEntry.thisProjectHasNoCanvases")}
                         </p>
                     </div>
                 </div>
@@ -36,7 +37,7 @@ export function CanvasLinkedProjectEmptyState({ projectName, hasChapter, onAddFi
                         style={{ borderColor: theme.node.stroke, background: theme.node.fill }}
                     >
                         <Plus className="size-3.5 shrink-0" />
-                        <span className="truncate">添加首章</span>
+                        <span className="truncate">{translate("canvasTools.canvasShortDramaEntry.addTheFirstChapter")}</span>
                     </button>
                     <button
                         type="button"
@@ -45,11 +46,11 @@ export function CanvasLinkedProjectEmptyState({ projectName, hasChapter, onAddFi
                         style={{ borderColor: theme.node.stroke, background: theme.node.fill }}
                     >
                         <Images className="size-3.5 shrink-0" />
-                        <span className="truncate">项目资产</span>
+                        <span className="truncate">{translate("canvasTools.canvasShortDramaEntry.projectAssets")}</span>
                     </button>
                     <button type="button" onClick={onAddText} className="flex h-9 min-w-0 items-center justify-center gap-1 rounded-md border px-2 text-[var(--fs-label)] font-medium" style={{ borderColor: theme.node.stroke, background: theme.node.fill }}>
                         <Type className="size-3.5 shrink-0" />
-                        <span className="truncate">新建文本</span>
+                        <span className="truncate">{translate("canvasTools.canvasShortDramaEntry.newText")}</span>
                     </button>
                 </div>
             </div>
@@ -69,9 +70,9 @@ export function CanvasDramaEmptyState({ dramaName, studioPath, episodeLabel, onP
                         <Clapperboard className="size-4" />
                     </span>
                     <div className="min-w-0">
-                        <h2 className="truncate text-sm font-semibold">{dramaName} · 精修画布</h2>
+                        <h2 className="truncate text-sm font-semibold">{translate("canvasTools.inline.canvasShortDramaEntry.canvasRefinement", { v0: String(dramaName) })}</h2>
                         <p className="mt-0.5 text-[var(--fs-label)]" style={{ color: theme.node.muted }}>
-                            从左侧短剧侧栏投送设定、剧情段或成片；精修后在节点工具栏点“采用到短剧”写回。
+                            {translate("canvasTools.canvasShortDramaEntry.sendSettingsStorySegmentsOrFinalVideosFromTheDrama")}
                         </p>
                     </div>
                 </div>
@@ -82,18 +83,18 @@ export function CanvasDramaEmptyState({ dramaName, studioPath, episodeLabel, onP
                         onClick={onProjectEpisode}
                         className="flex h-9 min-w-0 items-center justify-center gap-1 rounded-md border px-2 text-[var(--fs-label)] font-medium disabled:opacity-35"
                         style={actionStyle}
-                        title={onProjectEpisode ? `把${episodeLabel || "第一集"}的剧情段投送到画布` : "还没有可投送的剧情段"}
+                        title={onProjectEpisode ? translate("canvasTools.canvasShortDramaEntry.sendStorySegmentsFromToTheCanvas", { v0: String(episodeLabel || translate("canvasTools.canvasShortDramaEntry.episode1")) }) : translate("canvasTools.canvasShortDramaEntry.noStorySegmentsAvailableToSendYet")}
                     >
                         <LayoutGrid className="size-3.5 shrink-0" />
-                        <span className="truncate">投送{episodeLabel || "第一集"}</span>
+                        <span className="truncate">{translate("canvasTools.inline.canvasShortDramaEntry.send", { v0: String(episodeLabel || translate("canvasTools.canvasShortDramaEntry.episode1")) })}</span>
                     </button>
                     <Link to={studioPath} className="flex h-9 min-w-0 items-center justify-center gap-1 rounded-md border px-2 text-[var(--fs-label)] font-medium" style={actionStyle}>
                         <FolderKanban className="size-3.5 shrink-0" />
-                        <span className="truncate">打开制作台</span>
+                        <span className="truncate">{translate("canvasTools.canvasShortDramaEntry.openStudio")}</span>
                     </Link>
                     <button type="button" onClick={onAddText} className="flex h-9 min-w-0 items-center justify-center gap-1 rounded-md border px-2 text-[var(--fs-label)] font-medium" style={actionStyle}>
                         <Type className="size-3.5 shrink-0" />
-                        <span className="truncate">新建文本</span>
+                        <span className="truncate">{translate("canvasTools.canvasShortDramaEntry.newText")}</span>
                     </button>
                 </div>
             </div>
@@ -101,7 +102,11 @@ export function CanvasDramaEmptyState({ dramaName, studioPath, episodeLabel, onP
     );
 }
 
-const ENTRY_SUGGESTIONS = ["一个外卖员意外捡到会说话的猫", "都市甜宠：总裁和实习生的契约婚姻", "古风悬疑：雨夜古宅里的第三声钟响"];
+const ENTRY_SUGGESTIONS = [
+    { prompt: "一个外卖员意外捡到会说话的猫", label: translate("canvasTools.canvasShortDramaEntry.examples.deliveryCat") },
+    { prompt: "都市甜宠：总裁和实习生的契约婚姻", label: translate("canvasTools.canvasShortDramaEntry.examples.contractMarriage") },
+    { prompt: "古风悬疑：雨夜古宅里的第三声钟响", label: translate("canvasTools.canvasShortDramaEntry.examples.rainyNight") },
+];
 
 export function CanvasShortDramaEmptyState({
     onCreatePipeline,
@@ -143,12 +148,12 @@ export function CanvasShortDramaEmptyState({
             <div className="canvas-entry-shell" data-canvas-no-zoom data-canvas-wheel-scroll>
                 <span className="canvas-entry-eyebrow">
                     <Clapperboard aria-hidden="true" />
-                    AI 短剧工作台
+                    {translate("canvasTools.canvasShortDramaEntry.aIDramaStudio")}
                 </span>
                 <h2 className="canvas-entry-title">
-                    让灵感，<strong>开始成片。</strong>
+                    {translate("canvasTools.canvasShortDramaEntry.turnYourIdeas")}<strong>{translate("canvasTools.canvasShortDramaEntry.intoAFilm")}</strong>
                 </h2>
-                <p className="canvas-entry-subtitle">写下一句故事，Agent 帮你拆剧本、定角色、出分镜和视频。</p>
+                <p className="canvas-entry-subtitle">{translate("canvasTools.canvasShortDramaEntry.startWithAStoryIdeaAgentHelpsYouDevelopThe")}</p>
                 <form
                     className="canvas-entry-composer"
                     onSubmit={(event) => {
@@ -159,8 +164,8 @@ export function CanvasShortDramaEmptyState({
                     <textarea
                         value={prompt}
                         rows={2}
-                        placeholder="描述你想拍的故事…"
-                        aria-label="描述你想拍的故事"
+                        placeholder={translate("canvasTools.canvasShortDramaEntry.describeTheStoryYouWantToFilm")}
+                        aria-label={translate("canvasTools.canvasShortDramaEntry.describeTheStoryYouWantToFilm2")}
                         onChange={(event) => setPrompt(event.target.value)}
                         onKeyDown={(event) => {
                             if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
@@ -172,18 +177,18 @@ export function CanvasShortDramaEmptyState({
                     <div className="canvas-entry-composer-bar">
                         <button type="button" className="canvas-entry-ghost" onClick={onUpload}>
                             <Upload aria-hidden="true" />
-                            导入素材
+                            {translate("canvasTools.canvasShortDramaEntry.importAssets")}
                         </button>
-                        <span className="canvas-entry-hint">Enter 发送 · Shift+Enter 换行</span>
-                        <button type="submit" className="canvas-entry-send" disabled={!prompt.trim()} aria-label="交给 Agent">
+                        <span className="canvas-entry-hint">{translate("canvasTools.canvasShortDramaEntry.enterToSendShiftEnterForANewLine")}</span>
+                        <button type="submit" className="canvas-entry-send" disabled={!prompt.trim()} aria-label={translate("canvasTools.canvasShortDramaEntry.handToTheAgent")}>
                             <ArrowUp aria-hidden="true" />
                         </button>
                     </div>
                 </form>
-                <div className="canvas-entry-suggestions" role="list" aria-label="灵感示例">
+                <div className="canvas-entry-suggestions" role="list" aria-label={translate("canvasTools.canvasShortDramaEntry.inspiration")}>
                     {ENTRY_SUGGESTIONS.map((item) => (
-                        <button key={item} type="button" role="listitem" onClick={() => setPrompt(item)}>
-                            {item}
+                        <button key={item.prompt} type="button" role="listitem" onClick={() => setPrompt(item.prompt)}>
+                            {item.label}
                         </button>
                     ))}
                 </div>
@@ -191,29 +196,29 @@ export function CanvasShortDramaEmptyState({
                     <button type="button" onClick={onCreatePipeline}>
                         <Workflow aria-hidden="true" />
                         <span>
-                            <strong>自己创作</strong>
-                            <small>按短剧流程搭好节点</small>
+                            <strong>{translate("canvasTools.canvasShortDramaEntry.createYourOwn")}</strong>
+                            <small>{translate("canvasTools.canvasShortDramaEntry.setUpNodesForTheDramaWorkflow")}</small>
                         </span>
                     </button>
                     <button type="button" onClick={onAddScript}>
                         <Clapperboard aria-hidden="true" />
                         <span>
-                            <strong>空白分镜</strong>
-                            <small>直接写分镜表</small>
+                            <strong>{translate("canvasTools.canvasShortDramaEntry.blankStoryboard")}</strong>
+                            <small>{translate("canvasTools.canvasShortDramaEntry.writeAStoryboardTableDirectly")}</small>
                         </span>
                     </button>
                     <button type="button" onClick={onAddText}>
                         <Type aria-hidden="true" />
                         <span>
-                            <strong>新建文本</strong>
-                            <small>先记下想法</small>
+                            <strong>{translate("canvasTools.canvasShortDramaEntry.newText")}</strong>
+                            <small>{translate("canvasTools.canvasShortDramaEntry.captureYourIdeasFirst")}</small>
                         </span>
                     </button>
                     <button type="button" onClick={onStartFreeform}>
                         <LayoutGrid aria-hidden="true" />
                         <span>
-                            <strong>空白画布</strong>
-                            <small>不预设流程</small>
+                            <strong>{translate("canvasTools.canvasShortDramaEntry.blankCanvas")}</strong>
+                            <small>{translate("canvasTools.canvasShortDramaEntry.noPresetWorkflow")}</small>
                         </span>
                     </button>
                 </div>
@@ -277,9 +282,9 @@ export function CanvasFreeformEmptyState({ commands }: { commands: CanvasCreateC
                 data-canvas-no-zoom
                 style={{ background: theme.node.fill, borderColor: theme.node.edge, boxShadow: theme.node.shadow, color: theme.node.text }}
             >
-                <h2 className="text-base font-semibold">自由空白画布</h2>
+                <h2 className="text-base font-semibold">{translate("canvasTools.canvasShortDramaEntry.freeformBlankCanvas")}</h2>
                 <p className="mt-1 text-xs" style={{ color: theme.node.muted }}>
-                    不预设流程，从任意一种素材开始创作。
+                    {translate("canvasTools.canvasShortDramaEntry.createFromAnyKindOfAssetWithNoPresetWorkflow")}
                 </p>
                 <Popover
                     arrow={false}
@@ -295,7 +300,7 @@ export function CanvasFreeformEmptyState({ commands }: { commands: CanvasCreateC
                 >
                     <button
                         type="button"
-                        aria-label="添加第一项"
+                        aria-label={translate("canvasTools.canvasShortDramaEntry.addYourFirstItem")}
                         className="mt-7 grid size-14 place-items-center rounded-full border outline-none transition-opacity duration-150 hover:opacity-85 focus-visible:ring-2 motion-reduce:transition-none"
                         style={{ background: theme.toolbar.panel, borderColor: theme.node.edge, color: theme.node.text, boxShadow: theme.node.shadow, "--tw-ring-color": theme.accent.primary } as CSSProperties}
                     >
@@ -303,7 +308,7 @@ export function CanvasFreeformEmptyState({ commands }: { commands: CanvasCreateC
                     </button>
                 </Popover>
                 <p className="mt-4 text-[var(--fs-label)]" style={{ color: theme.node.muted }}>
-                    点击 + 添加文本、图片、视频、音频或导入素材
+                    {translate("canvasTools.canvasShortDramaEntry.clickToAddTextImagesVideoOrAudioOrImport")}
                 </p>
             </div>
         </div>
@@ -371,7 +376,7 @@ export function CanvasShortDramaGuide({ progress, collapsed, onToggle, onSkip, o
                     onClick={onSkip}
                 >
                     <X className="size-3" />
-                    跳过导引
+                    {translate("canvasTools.canvasShortDramaEntry.skipTheGuide")}
                 </button>
             ) : null}
             <button
@@ -379,7 +384,7 @@ export function CanvasShortDramaGuide({ progress, collapsed, onToggle, onSkip, o
                 className="grid size-8 shrink-0 place-items-center rounded-md outline-none transition hover:bg-black/5 focus-visible:ring-2 dark:hover:bg-white/10"
                 style={{ color: theme.node.muted, "--tw-ring-color": theme.accent.primary } as CSSProperties}
                 onClick={onToggle}
-                aria-label="折叠短剧流程"
+                aria-label={translate("canvasTools.canvasShortDramaEntry.collapseTheShortDramaWorkflow")}
             >
                 <ChevronUp className="size-3.5" />
             </button>
@@ -394,9 +399,9 @@ export function CanvasStylePlaceholderNodeContent({ onChoose }: { onChoose: () =
             <span className="grid size-10 place-items-center rounded-md" style={{ background: `${theme.accent.primary}16`, color: theme.accent.primary }}>
                 <Palette className="size-5" />
             </span>
-            <div className="mt-3 text-sm font-semibold">项目画风</div>
+            <div className="mt-3 text-sm font-semibold">{translate("canvasPage.style.projectStyle")}</div>
             <div className="mt-1 text-xs" style={{ color: theme.node.muted }}>
-                待选择
+                {translate("canvasTools.canvasShortDramaEntry.toChoose")}
             </div>
             <button
                 type="button"
@@ -409,7 +414,7 @@ export function CanvasStylePlaceholderNodeContent({ onChoose }: { onChoose: () =
                 }}
             >
                 <Palette className="size-3.5" />
-                选择画风
+                {translate("canvasTools.canvasShortDramaEntry.chooseAStyle")}
             </button>
         </div>
     );
@@ -425,11 +430,11 @@ export function CanvasStoryInputNodeContent({ node, onEdit }: { node: CanvasNode
                     <span className="grid size-8 shrink-0 place-items-center rounded-md" style={{ background: theme.toolbar.itemHover, color: theme.node.muted }}>
                         <AlignLeft className="size-4" />
                     </span>
-                    <span className="truncate text-sm font-semibold">故事梗概</span>
+                    <span className="truncate text-sm font-semibold">{translate("canvasTools.canvasShortDramaEntry.synopsis")}</span>
                 </div>
             </div>
             <div className="mt-4 min-h-0 flex-1 overflow-hidden border-t pt-3 text-xs leading-6" style={{ borderColor: theme.node.stroke, color: content ? theme.node.muted : theme.node.placeholder }}>
-                {content || "写下题材、角色、冲突和结局方向…"}
+                {content || translate("canvasTools.canvasShortDramaEntry.writeTheGenreCharactersConflictAndWhereItEnds")}
             </div>
             <button
                 type="button"
@@ -442,7 +447,7 @@ export function CanvasStoryInputNodeContent({ node, onEdit }: { node: CanvasNode
                 }}
             >
                 <Pencil className="size-3.5" />
-                编辑故事
+                {translate("canvasTools.canvasShortDramaEntry.editStory")}
             </button>
         </div>
     );

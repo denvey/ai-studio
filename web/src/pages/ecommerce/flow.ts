@@ -2,6 +2,7 @@
  * 电商创作的一条完整流程：准备素材 → 选视觉方向 → 确认方案 → 生成图片 → 交付。
  * 页面状态很多，这里只把它们折算成「现在在哪一步、这一步在做什么」，供进度条和下一步提示共用。
  */
+import { translate } from "@/i18n";
 export type CommerceFlowStepKey = "material" | "direction" | "plan" | "generate" | "deliver";
 export type CommerceFlowStepStatus = "done" | "current" | "todo";
 export type CommerceFlowStep = { key: CommerceFlowStepKey; label: string; status: CommerceFlowStepStatus; detail: string; running: boolean };
@@ -26,11 +27,11 @@ export type CommerceFlowInput = {
 };
 
 const labels: Record<CommerceFlowStepKey, string> = {
-    material: "准备素材",
-    direction: "选视觉方向",
-    plan: "确认方案",
-    generate: "生成图片",
-    deliver: "导出交付",
+    material: translate("ecommerce.flow.material"),
+    direction: translate("ecommerce.flow.direction"),
+    plan: translate("ecommerce.flow.plan"),
+    generate: translate("ecommerce.flow.generate"),
+    deliver: translate("ecommerce.flow.deliver"),
 };
 
 function currentStep(input: CommerceFlowInput): CommerceFlowStepKey {
@@ -46,17 +47,17 @@ function currentStep(input: CommerceFlowInput): CommerceFlowStepKey {
 function stepDetail(key: CommerceFlowStepKey, input: CommerceFlowInput): string {
     switch (key) {
         case "material":
-            return !input.hasProduct ? "添加商品图，并描述想要的画面" : "描述想要的画面，或点选描述短语";
+            return translate(input.hasProduct ? "ecommerce.flow.describe" : "ecommerce.flow.addProduct");
         case "direction":
-            return input.directionsLoading ? "正在识别商品并推荐 4 套视觉方向，切换页面不会中断" : input.directionsReady ? "选一套视觉方向，选定后自动策划并出图" : "点「开始创作」，先推荐 4 套视觉方向；也可以「跳过选方向」直接策划";
+            return translate(input.directionsLoading ? "ecommerce.flow.recommending" : input.directionsReady ? "ecommerce.flow.chooseDirection" : "ecommerce.flow.startPlanning");
         case "plan":
-            if (input.planningPending) return `正在写卖点文案、逐张分镜和生图提示词，${input.directionChosen ? "完成后自动出图" : "完成后请审阅方案再出图"}`;
-            return input.planReady ? `方案共 ${input.planCount} 张，审阅后确认出图` : "按选定方向生成图片方案";
+            if (input.planningPending) return translate(input.directionChosen ? "ecommerce.flow.writingThenGenerate" : "ecommerce.flow.writingThenReview");
+            return input.planReady ? translate("ecommerce.flow.reviewCount", { count:input.planCount}) : translate("ecommerce.flow.planDirection");
         case "generate":
-            if (!input.submitted) return input.direct ? "点「开始创作」直接按设置出图" : "确认方案后逐张出图";
-            return `已完成 ${input.completed} / ${input.planCount} 张${input.failed ? `，${input.failed} 张失败可重试` : ""}`;
+            if (!input.submitted) return translate(input.direct ? "ecommerce.flow.startDirect" : "ecommerce.flow.confirmThenGenerate");
+            return input.failed ? translate("ecommerce.flow.progressWithFailures", { completed: input.completed, total: input.planCount, failed:input.failed}) : translate("ecommerce.flow.progress", { completed: input.completed, total: input.planCount });
         case "deliver":
-            return "全部完成，已保存到资产库，可导出、做成视频或继续下一组";
+            return translate("ecommerce.flow.complete");
     }
 }
 

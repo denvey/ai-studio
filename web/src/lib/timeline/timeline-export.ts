@@ -7,6 +7,8 @@ import { getMediaBlob } from "@/services/file-storage";
 import type { TimelineProject } from "@/types/timeline";
 import { runTimelineRenderPlan, type TimelineExportProgress, type TimelineExportResult } from "./timeline-export-runner";
 import { buildTimelineRenderPlan, type TimelineRenderContext, type TimelineRenderSource } from "./timeline-to-ffmpeg";
+import { translate } from "@/i18n";
+
 
 export type { TimelineExportProgress, TimelineExportResult } from "./timeline-export-runner";
 
@@ -22,17 +24,17 @@ async function fetchSourceBlob(source: TimelineRenderSource): Promise<Blob> {
     }
     if (source.url) {
         const response = await fetch(source.url);
-        if (!response.ok) throw new Error("视频资源请求失败（" + response.status + "）");
+        if (!response.ok) throw new Error(translate("shared.timeline.timelineExport.videoResourceRequestFailed", { status: response.status }));
         return response.blob();
     }
-    throw new Error("找不到素材 " + source.nodeId + " 的媒体文件");
+    throw new Error(translate("shared.timeline.timelineExport.missingMediaFile", { nodeId: source.nodeId }));
 }
 
 /** 导出时间线为 MP4：写媒体 → 按计划逐步执行 → 返回成片与降级提示（下载由调用方处理） */
 export async function exportTimelineToMp4(timeline: TimelineProject, sources: TimelineRenderSource[], options: TimelineExportOptions = {}): Promise<TimelineExportResult> {
     const { onProgress, context } = options;
-    onProgress?.({ phase: "loading", percent: 0, detail: "加载 FFmpeg" });
-    const ffmpeg = await loadFFmpeg(({ phase, progress }) => onProgress?.({ phase: phase === "loading" ? "loading" : "reading", percent: progress, detail: phase === "loading" ? "加载 FFmpeg" : "读取素材" }));
+    onProgress?.({ phase: "loading", percent: 0, detail: translate("canvasPage.mediaTools.loadingFfmpeg") });
+    const ffmpeg = await loadFFmpeg(({ phase, progress }) => onProgress?.({ phase: phase === "loading" ? "loading" : "reading", percent: progress, detail: phase === "loading" ? translate("canvasPage.mediaTools.loadingFfmpeg") : translate("shared.plugins.readingAssets") }));
     const plan = buildTimelineRenderPlan(timeline, sources, context);
     return runTimelineRenderPlan(ffmpeg, timeline, sources, plan, {
         readSource: async (source) => fetchFile(await fetchSourceBlob(source)),

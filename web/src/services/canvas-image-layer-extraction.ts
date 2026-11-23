@@ -5,6 +5,8 @@ import type { AiConfig } from "@/stores/use-config-store";
 import type { ReferenceImage } from "@/types/image";
 import { resolveImageLayerExtractions, type ImageLayerExtraction } from "@/lib/canvas/canvas-image-layer-strategy";
 import { extractImageLayerFromSource } from "@/services/canvas-image-layer-source";
+import { translate } from "@/i18n";
+
 
 export type ImageLayerStage = "extract" | "remove-background";
 type LayerImage = { dataUrl: string; storageKey?: string; width?: number; height?: number; bytes?: number; mimeType?: string };
@@ -48,23 +50,23 @@ export async function runImageLayerExtraction({
     onLayerError?(index: number, error: unknown): void;
 }) {
     parseExperimentalLayerTargets(targets.join("\n"));
-    if (!Array.isArray(generations) || generations.length !== targets.length) throw new Error("每层独立生成参数数量与图层计划不一致，未提交拆图任务");
+    if (!Array.isArray(generations) || generations.length !== targets.length) throw new Error(translate("shared.canvasImageLayerExtraction.theNumberOfPerLayerGenerationParametersDoesNotMatch"));
     const layerGenerations = generations.map((generation, index) => parseImageLayerGeneration(generation, index));
     const methods = resolveImageLayerExtractions(targets.length, extractions, removeFromBackground);
-    if (methods.some((extraction) => extraction.method !== "generate") && !onLocalResult) throw new Error("原图提取结果保存回调缺失，未提交模型请求");
+    if (methods.some((extraction) => extraction.method !== "generate") && !onLocalResult) throw new Error(translate("shared.canvasImageLayerExtraction.theSourceExtractionSaveCallbackIsMissingNoModelRequest"));
     if (signal.aborted) throw new DOMException("拆层已停止", "AbortError");
     const sourceInfo = await inspectImageLayer(source);
-    if (!sourceInfo.nonempty) throw new Error("源图是完全透明的空图");
+    if (!sourceInfo.nonempty) throw new Error(translate("shared.canvasImageLayerExtraction.theSourceImageIsEmptyAndFullyTransparent"));
     const canvas = { width: sourceInfo.width, height: sourceInfo.height };
-    if (canvas.width * canvas.height * targets.length > MAX_GROUP_PIXELS) throw new Error("图层总像素量超过处理上限");
+    if (canvas.width * canvas.height * targets.length > MAX_GROUP_PIXELS) throw new Error(translate("shared.canvasImageLayerExtraction.totalLayerPixelsExceedTheProcessingLimit"));
     const check = (index: number) => {
         if (signal.aborted) throw new DOMException("拆层已停止", "AbortError");
         assertActive(index);
     };
     const inspect = async (images: LayerImage[] | undefined) => {
-        if (images?.length !== 1) throw new Error("逐层提取必须返回一张独立图片，不能返回拼版或多张候选图");
+        if (images?.length !== 1) throw new Error(translate("shared.canvasImageLayerExtraction.eachLayerExtractionMustReturnOneSeparateImageNotA"));
         const { image, info } = await normalizeImageLayerCanvas(images[0], canvas);
-        if (!info.nonempty) throw new Error("提取结果是完全透明的空图层");
+        if (!info.nonempty) throw new Error(translate("shared.canvasImageLayerExtraction.theExtractedResultIsAnEmptyFullyTransparentLayer"));
         return { image, info };
     };
     const outcomes = await Promise.allSettled(
@@ -109,6 +111,6 @@ export async function runImageLayerExtraction({
         }),
     );
     if (signal.aborted) throw new DOMException("拆层已停止", "AbortError");
-    const failures = outcomes.flatMap((outcome, index) => (outcome.status === "rejected" ? [`${targets[index]}：${outcome.reason instanceof Error ? outcome.reason.message : "图层生成失败"}`] : []));
-    if (failures.length) throw new Error(`${failures.length}/${targets.length} 个图层未通过；其他图层结果已保留。${failures.join("；")}`);
+    const failures = outcomes.flatMap((outcome, index) => (outcome.status === "rejected" ? [`${targets[index]}：${outcome.reason instanceof Error ? outcome.reason.message : translate("shared.canvasImageLayerExtraction.layerGenerationFailed")}`] : []));
+    if (failures.length) throw new Error(translate("shared.canvasImageLayerExtraction.layersFailedValidationOtherLayerResultsArePreserved", { v0: String(failures.length), v1: String(targets.length), v2: String(failures.join("；")) }));
 }

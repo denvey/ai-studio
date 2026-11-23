@@ -10,6 +10,7 @@ import { subscribeCanvasGraphicsViewportPreview, subscribeCanvasNodeDragPreview,
 import { useActiveTheme } from "@/stores/canvas/use-canvas-theme-store";
 import { CanvasNodeType, type CanvasNodeData, type ConnectionHandle, type Position, type ViewportTransform } from "@/types/canvas";
 import { useCanvasNodeResizeMotion } from "./canvas-node-resize-motion";
+import { translate } from "@/i18n";
 
 export type PendingConnectionCreate = {
     connection: ConnectionHandle;
@@ -91,7 +92,7 @@ export function CanvasSelectionToolbar({ anchorRef, containerRef, count, childre
                     className="aceternity-floating-panel shrink-0 rounded-full border px-2 py-2 text-[var(--fs-tiny)] font-semibold tabular-nums backdrop-blur-2xl"
                     style={{ background: theme.spatial.elevated, borderColor: theme.toolbar.border, color: theme.accent.primary }}
                 >
-                    已选 {count}
+                    {translate("canvasTools.inline.canvasWorkspaceOverlays.selected", { v0: String(count) })}
                 </span>
                 <div className="max-w-[min(560px,calc(100vw-90px))]">{children}</div>
             </motion.div>
@@ -207,15 +208,15 @@ function resolveNodePanelWidth(node: CanvasNodeData, viewport: ViewportTransform
 type ConnectionCreateNodeType = CanvasNodeType.Image | CanvasNodeType.Text | CanvasNodeType.Script | CanvasNodeType.BatchTable | CanvasNodeType.Video | CanvasNodeType.Audio | CanvasNodeType.Drawing | CanvasNodeType.Config | CanvasNodeType.MediaConversion;
 
 const CONNECTION_CREATE_OPTIONS: Array<{ type: ConnectionCreateNodeType; title: string; description: string; icon: ReactNode }> = [
-    { type: CanvasNodeType.Text, title: "文本生成", description: "引用当前内容，生成或改写文本", icon: <List /> },
-    { type: CanvasNodeType.Script, title: "分镜脚本", description: "根据剧情拆解镜头，编排分镜脚本", icon: <Clapperboard /> },
-    { type: CanvasNodeType.BatchTable, title: "批量创作表", description: "汇总多张图片，批量执行换装或创意生图", icon: <Table2 /> },
-    { type: CanvasNodeType.Image, title: "图片生成", description: "结合提示词和参考图，生成新的画面", icon: <ImageIcon /> },
-    { type: CanvasNodeType.Config, title: "生成配置", description: "选择模型，或使用已启用的工作流插件", icon: <WorkflowIcon /> },
-    { type: CanvasNodeType.Drawing, title: "绘图", description: "以参考图片为底图，自由绘制和标注", icon: <Pencil /> },
-    { type: CanvasNodeType.Video, title: "视频生成", description: "结合提示词与参考素材，生成动态视频", icon: <Video /> },
-    { type: CanvasNodeType.Audio, title: "音频参考", description: "连接文本或角色卡，创建音频生成节点", icon: <Music2 /> },
-    { type: CanvasNodeType.MediaConversion, title: "转换", description: "本地处理图片或视频", icon: <ArrowRightLeft /> },
+    { type: CanvasNodeType.Text, title: translate("canvasTools.canvasWorkspaceOverlays.textGeneration"), description: translate("canvasTools.canvasWorkspaceOverlays.referenceCurrentContentToGenerateOrRewriteText"), icon: <List /> },
+    { type: CanvasNodeType.Script, title: translate("canvasTools.canvasWorkspaceOverlays.storyboard"), description: translate("canvasTools.canvasWorkspaceOverlays.breakAStoryIntoShotsAndArrangeAStoryboardScript"), icon: <Clapperboard /> },
+    { type: CanvasNodeType.BatchTable, title: translate("canvasTools.canvasWorkspaceOverlays.batchCreationTable"), description: translate("canvasTools.canvasWorkspaceOverlays.collectMultipleImagesForBatchVirtualTryOnOrCreative"), icon: <Table2 /> },
+    { type: CanvasNodeType.Image, title: translate("nav.sidebar.toolboxImage"), description: translate("canvasTools.canvasWorkspaceOverlays.generateNewImagesFromPromptsAndReferenceImages"), icon: <ImageIcon /> },
+    { type: CanvasNodeType.Config, title: translate("canvasTools.canvasWorkspaceOverlays.generationSettings"), description: translate("canvasTools.canvasWorkspaceOverlays.selectAModelOrUseAnEnabledWorkflowPlugin"), icon: <WorkflowIcon /> },
+    { type: CanvasNodeType.Drawing, title: translate("canvasA.drawingModal.defaultTitle"), description: translate("canvasTools.canvasWorkspaceOverlays.drawAndAnnotateFreelyOverAReferenceImage"), icon: <Pencil /> },
+    { type: CanvasNodeType.Video, title: translate("nav.sidebar.toolboxVideo"), description: translate("canvasTools.canvasWorkspaceOverlays.generateMotionVideoFromPromptsAndReferenceAssets"), icon: <Video /> },
+    { type: CanvasNodeType.Audio, title: translate("canvasTools.canvasWorkspaceOverlays.audioReference"), description: translate("canvasTools.canvasWorkspaceOverlays.connectTextOrCharacterCardsToCreateAnAudioGeneration"), icon: <Music2 /> },
+    { type: CanvasNodeType.MediaConversion, title: translate("canvasTools.canvasWorkspaceOverlays.convert"), description: translate("canvasTools.canvasWorkspaceOverlays.processImagesOrVideosLocally"), icon: <ArrowRightLeft /> },
 ];
 
 export function CanvasConnectionCreateMenu({
@@ -284,7 +285,7 @@ export function CanvasConnectionCreateMenu({
             className="absolute flex origin-top-left flex-col overflow-hidden rounded-[var(--r-2xl)] border"
             data-canvas-no-zoom
             data-connection-create-menu
-            aria-label="创建下一步"
+            aria-label={translate("canvasTools.canvasWorkspaceOverlays.createTheNextStep")}
             onKeyDown={(event) => {
                 if (event.key === "Escape") {
                     event.stopPropagation();
@@ -334,8 +335,8 @@ export function CanvasConnectionCreateMenu({
             </div>
             <div className="canvas-connection-create-detail" aria-hidden="true" data-motion={reducedMotion ? "reduced" : "enabled"} style={{ borderColor: theme.toolbar.border, color: theme.node.muted }}>
                 <p key={active ? `${active.title}:${activeDisabledReason}` : "idle"} className="canvas-connection-create-detail-text">
-                    {active && activeDisabledReason ? <span style={{ color: theme.node.text }}>暂不可用 · </span> : null}
-                    {active ? activeDisabledReason || active.description : "选择节点类型，新节点会自动连接当前内容"}
+                    {active && activeDisabledReason ? <span style={{ color: theme.node.text }}>{translate("canvasTools.canvasWorkspaceOverlays.unavailable")} </span> : null}
+                    {active ? activeDisabledReason || active.description : translate("canvasTools.canvasWorkspaceOverlays.selectANodeTypeTheNewNodeWillConnectTo")}
                 </p>
             </div>
         </motion.div>

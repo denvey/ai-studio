@@ -12,6 +12,7 @@ import { useUserStore } from "@/stores/use-user-store";
 import { useAppearanceStore } from "@/stores/use-appearance-store";
 import { AdminStatusBadge, configuredSecretText, SettingsSectionCard } from "./admin-ui";
 import "./email-test-popover.css";
+import { currentLocale, translate } from "@/i18n";
 
 type EmailFormValues = Pick<EmailSetting, "enabled" | "host" | "port" | "username" | "password" | "encryption" | "fromEmail" | "fromName"> & {
     registrationAllowedDomains: string;
@@ -46,14 +47,14 @@ export default function EmailSettingsPanel() {
             try {
                 const result = await getAdminEmailSetting();
                 if (requestVersion !== requestVersionRef.current) return;
-                if (!isEmailSetting(result.setting)) throw new Error("服务端返回的邮件配置格式无效");
+                if (!isEmailSetting(result.setting)) throw new Error(translate("admin.emailSettingsPanel.theServerReturnedAnInvalidEmailConfiguration"));
                 setSetting(result.setting);
                 setDirty(false);
                 setSaveError("");
-                if (announce) message.success("已重新读取当前邮件服务配置");
+                if (announce) message.success(translate("admin.emailSettingsPanel.reloadedTheCurrentEmailServiceConfiguration"));
             } catch (error) {
                 if (requestVersion !== requestVersionRef.current) return;
-                const errorMessage = error instanceof Error ? error.message : "读取邮件配置失败";
+                const errorMessage = error instanceof Error ? error.message : translate("admin.emailSettingsPanel.failedToLoadEmailSettings");
                 setLoadError(errorMessage);
                 if (!initial) message.error(errorMessage);
             } finally {
@@ -95,10 +96,10 @@ export default function EmailSettingsPanel() {
         navigationConfirmOpenRef.current = true;
         navigationTriggerRef.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
         modal.confirm({
-            title: "放弃邮件服务调整？",
-            content: "当前 SMTP 表单有尚未保存的调整，离开后这些内容会丢失。服务端正在使用的邮件配置不会改变。",
-            okText: "放弃并离开",
-            cancelText: "继续编辑",
+            title: translate("admin.emailSettingsPanel.discardEmailServiceChanges"),
+            content: translate("admin.emailSettingsPanel.theSMTPFormHasUnsavedChangesThatWillBeLost"),
+            okText: translate("admin.emailSettingsPanel.discardAndLeave"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
             okButtonProps: { danger: true },
             onOk: () => {
                 navigationConfirmOpenRef.current = false;
@@ -125,7 +126,7 @@ export default function EmailSettingsPanel() {
         setDraftEnabled(setting.enabled);
         setDirty(false);
         setSaveError("");
-        message.info("已撤销邮件服务的未保存调整");
+        message.info(translate("admin.emailSettingsPanel.discardedUnsavedEmailServiceChanges"));
     };
 
     const requestRefresh = () => {
@@ -134,10 +135,10 @@ export default function EmailSettingsPanel() {
             return;
         }
         modal.confirm({
-            title: "放弃调整并重新读取？",
-            content: "重新读取会丢弃当前 SMTP 表单中的未保存内容，并以服务端配置为准。",
-            okText: "放弃并刷新",
-            cancelText: "继续编辑",
+            title: translate("admin.emailSettingsPanel.discardChangesAndReload"),
+            content: translate("admin.emailSettingsPanel.reloadingDiscardsUnsavedSMTPFormChangesAndUsesTheServer"),
+            okText: translate("admin.emailSettingsPanel.discardAndRefresh"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
             okButtonProps: { danger: true },
             onOk: () => load(false, true),
         });
@@ -149,15 +150,15 @@ export default function EmailSettingsPanel() {
         setSaveError("");
         try {
             const result = await updateAdminEmailSetting(expected);
-            if (!isEmailSetting(result.setting) || !emailResponseMatches(result.setting, expected)) throw new Error("服务端返回的邮件配置与本次保存内容不一致，请重新读取后核对");
+            if (!isEmailSetting(result.setting) || !emailResponseMatches(result.setting, expected)) throw new Error(translate("admin.emailSettingsPanel.theEmailConfigurationReturnedByTheServerDiffersFromWhat"));
             setSetting(result.setting);
             form.setFieldsValue(toEmailFormValues(result.setting));
             setDraftEnabled(result.setting.enabled);
             setDirty(false);
-            message.success("邮件服务配置已保存");
+            message.success(translate("admin.emailSettingsPanel.emailServiceConfigurationSaved"));
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "保存邮件配置失败";
-            setSaveError(`${errorMessage}。未自动重试，请重新读取当前配置后再决定是否保存。`);
+            const errorMessage = error instanceof Error ? error.message : translate("admin.emailSettingsPanel.failedToSaveEmailSettings");
+            setSaveError(translate("admin.emailSettingsPanel.noAutomaticRetryWasMadeReloadTheCurrentSettingsBefore", { v0: String(errorMessage) }));
             message.error(errorMessage);
             throw error;
         } finally {
@@ -194,7 +195,7 @@ export default function EmailSettingsPanel() {
 
     if (loading && !setting) {
         return (
-            <div className="admin-settings-stack admin-email-settings" aria-label="正在读取邮件服务配置" role="status">
+            <div className="admin-settings-stack admin-email-settings" aria-label={translate("admin.emailSettingsPanel.loadingEmailServiceConfiguration")} role="status">
                 <div className="admin-email-loading-card">
                     <Skeleton active paragraph={{ rows: 7 }} />
                 </div>
@@ -210,11 +211,11 @@ export default function EmailSettingsPanel() {
                         <AlertTriangle className="size-5" aria-hidden="true" />
                     </span>
                     <div>
-                        <h2>无法读取邮件服务配置</h2>
-                        <p>{loadError || "当前没有可显示的配置，请稍后重试。"}</p>
+                        <h2>{translate("admin.emailSettingsPanel.unableToLoadEmailServiceConfiguration")}</h2>
+                        <p>{loadError || translate("admin.emailSettingsPanel.noSettingsAreAvailableToDisplayTryAgainLater")}</p>
                     </div>
                     <Button icon={<RefreshCw className="size-4" />} loading={refreshing} onClick={() => void load(false, true)}>
-                        重新读取
+                        {translate("auth.register.reload")}
                     </Button>
                 </div>
             </div>
@@ -232,22 +233,22 @@ export default function EmailSettingsPanel() {
                         <MailCheck className="size-4" aria-hidden="true" />
                     </span>
                     <div>
-                        <strong>{dirty ? "有未保存的邮件调整" : `账户邮件：${setting.enabled ? "已启用" : "未启用"}`}</strong>
-                        <p>{dirty ? "完成当前配置后保存生效。" : formatSettingTime(setting.updatedAt, "使用系统默认值")}</p>
+                        <strong>{dirty ? translate("admin.emailSettingsPanel.unsavedEmailChanges") : translate("admin.emailSettingsPanel.accountEmails", { v0: String(setting.enabled ? translate("account.layout.oss.enabled") : translate("account.layout.oss.notEnabled")) })}</strong>
+                        <p>{dirty ? translate("admin.emailSettingsPanel.completeTheConfigurationAndSaveToApplyIt") : formatSettingTime(setting.updatedAt, translate("admin.emailSettingsPanel.useSystemDefault"))}</p>
                     </div>
                 </div>
                 <div className="admin-email-command-actions">
                     {dirty ? (
                         <Button icon={<RotateCcw className="size-4" />} disabled={saving} onClick={resetDraft}>
-                            撤销调整
+                            {translate("admin.emailSettingsPanel.discardChanges")}
                         </Button>
                     ) : null}
                     <Link to="/admin/email-logs">
-                        <Button icon={<ScrollText className="size-4" />}>发送记录</Button>
+                        <Button icon={<ScrollText className="size-4" />}>{translate("admin.emailSettingsPanel.deliveryHistory")}</Button>
                     </Link>
-                    <TestEmailButton disabled={dirty || saving || !smtpReady} disabledReason={dirty ? "请先保存当前调整" : !smtpReady ? "请先保存 SMTP 主机、端口和发件邮箱" : ""} />
+                    <TestEmailButton disabled={dirty || saving || !smtpReady} disabledReason={dirty ? translate("admin.emailSettingsPanel.saveYourCurrentChangesFirst") : !smtpReady ? translate("admin.emailSettingsPanel.saveTheSMTPHostPortAndSenderEmailFirst") : ""} />
                     <Button icon={<RefreshCw className="size-4" />} loading={refreshing} disabled={saving} onClick={requestRefresh}>
-                        刷新状态
+                        {translate("library.ark.asset.refresh")}
                     </Button>
                 </div>
             </div>
@@ -255,7 +256,7 @@ export default function EmailSettingsPanel() {
             {loadError || saveError ? (
                 <div className="admin-email-inline-alert" role="alert">
                     <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
-                    <span>{saveError || `${loadError}。页面仍显示上一次成功读取的配置。`}</span>
+                    <span>{saveError || translate("admin.emailSettingsPanel.thePageStillShowsTheLastSuccessfullyLoadedSettings", { v0: String(loadError) })}</span>
                 </div>
             ) : null}
 
@@ -263,24 +264,24 @@ export default function EmailSettingsPanel() {
                 <SettingsSectionCard
                     className="admin-email-section admin-email-delivery-section"
                     icon={<Send className="size-4" aria-hidden="true" />}
-                    title="1. 是否发送账户安全邮件"
-                    description="这是注册验证码和密码找回邮件的主开关。关闭时不需要配置 SMTP；开启后再填写连接与发件信息。"
-                    status={<AdminStatusBadge label={draftEnabled ? (dirty && !setting.enabled ? "待启用" : "已启用") : dirty && setting.enabled ? "待停用" : "未启用"} tone={dirty ? "warning" : draftEnabled ? "success" : "neutral"} />}
+                    title={translate("admin.emailSettingsPanel.item1SendAccountSecurityEmails")}
+                    description={translate("admin.emailSettingsPanel.thisControlsRegistrationVerificationAndPasswordRecoveryEmailsSMTPConfiguration")}
+                    status={<AdminStatusBadge label={draftEnabled ? (dirty && !setting.enabled ? translate("admin.emailSettingsPanel.pendingEnablement") : translate("account.layout.oss.enabled")) : dirty && setting.enabled ? translate("admin.emailSettingsPanel.pendingDisablement") : translate("account.layout.oss.notEnabled")} tone={dirty ? "warning" : draftEnabled ? "success" : "neutral"} />}
                     footer={
                         !draftEnabled ? (
                             <>
                                 <div className="admin-email-footer-note">
                                     <BadgeCheck className="size-4" aria-hidden="true" />
-                                    <span>关闭后，普通邮箱注册和密码找回都无法发送验证码。</span>
+                                    <span>{translate("admin.emailSettingsPanel.whenDisabledEmailRegistrationAndPasswordRecoveryCannotSendVerification")}</span>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2">
                                     {dirty ? (
                                         <Button icon={<RotateCcw className="size-4" />} disabled={saving} onClick={resetDraft}>
-                                            撤销
+                                            {translate("account.settings.memory.actors.restore")}
                                         </Button>
                                     ) : null}
                                     <Button type="primary" icon={<Save className="size-4" />} loading={saving} disabled={!dirty || loading || refreshing} onClick={() => void submitSave()}>
-                                        保存设置
+                                        {translate("admin.emailSettingsPanel.saveSettings")}
                                     </Button>
                                 </div>
                             </>
@@ -293,13 +294,13 @@ export default function EmailSettingsPanel() {
                         </span>
                         <div className="admin-email-policy-copy">
                             <div className="flex flex-wrap items-center gap-2">
-                                <strong>发送注册与密码找回验证码</strong>
-                                <AdminStatusBadge label="保存后生效" tone="info" />
+                                <strong>{translate("admin.emailSettingsPanel.sendRegistrationAndPasswordRecoveryCodes")}</strong>
+                                <AdminStatusBadge label={translate("admin.emailSettingsPanel.appliesAfterSaving")} tone="info" />
                             </div>
-                            <p>启用后，普通邮箱注册和密码找回使用 6 位验证码；邮件发送失败时不会保留可用验证码。</p>
-                            <span>关闭只停止后续账户邮件，不改变新用户注册开关，也不影响已有登录会话。</span>
+                            <p>{translate("admin.emailSettingsPanel.whenEnabledEmailRegistrationAndPasswordRecoveryUse6Digit")}</p>
+                            <span>{translate("admin.emailSettingsPanel.disablingStopsFutureAccountEmailsOnlyRegistrationSettingsAndExisting")}</span>
                         </div>
-                        <Switch checked={draftEnabled} disabled={loading || refreshing || saving} aria-label="发送账户安全邮件" onChange={toggleEnabled} />
+                        <Switch checked={draftEnabled} disabled={loading || refreshing || saving} aria-label={translate("admin.emailSettingsPanel.sendAccountSecurityEmails")} onChange={toggleEnabled} />
                     </div>
                 </SettingsSectionCard>
             </div>
@@ -326,51 +327,51 @@ export default function EmailSettingsPanel() {
                         <SettingsSectionCard
                             className="admin-email-section admin-email-configuration-section"
                             icon={<Server className="size-4" aria-hidden="true" />}
-                            title="2. 配置 SMTP 连接与发件身份"
-                            description="填写邮件服务器、身份验证和发件人信息。保存后可用页面顶部的“发送测试邮件”确认能否投递。"
-                            status={<AdminStatusBadge label={dirty ? "待保存" : smtpReady ? "已配置" : "待配置"} tone={dirty ? "warning" : smtpReady ? "success" : "neutral"} />}
+                            title={translate("admin.emailSettingsPanel.item2ConfigureSMTPConnectionAndSenderIdentity")}
+                            description={translate("admin.emailSettingsPanel.enterMailServerAuthenticationAndSenderDetailsAfterSavingUse")}
+                            status={<AdminStatusBadge label={dirty ? translate("admin.emailSettingsPanel.unsaved") : smtpReady ? translate("admin.emailSettingsPanel.configured") : translate("account.settings.modelConfig.capabilities.pending")} tone={dirty ? "warning" : smtpReady ? "success" : "neutral"} />}
                             footer={
                                 <>
                                     <div className="admin-email-footer-note">
                                         <BadgeCheck className="size-4" aria-hidden="true" />
-                                        <span>SMTP 密码由服务端加密保存且不回显明文</span>
+                                        <span>{translate("admin.emailSettingsPanel.theServerStoresTheSMTPPasswordEncryptedAndNeverDisplays")}</span>
                                     </div>
                                     <div className="flex flex-wrap items-center gap-2">
                                         {dirty ? (
                                             <Button icon={<RotateCcw className="size-4" />} disabled={saving} onClick={resetDraft}>
-                                                撤销
+                                                {translate("account.settings.memory.actors.restore")}
                                             </Button>
                                         ) : null}
                                         <Button type="primary" icon={<Save className="size-4" />} loading={saving} disabled={!dirty || loading || refreshing} onClick={() => void submitSave()}>
-                                            {draftEnabled ? "保存并启用" : "保存设置"}
+                                            {draftEnabled ? translate("admin.emailSettingsPanel.saveAndEnable") : translate("admin.emailSettingsPanel.saveSettings")}
                                         </Button>
                                     </div>
                                 </>
                             }
                         >
                             <div className="admin-email-form-section">
-                                <FormSectionTitle icon={<Server className="size-4" />} title="服务器连接" description="填写 SMTP 主机、端口和传输加密；STARTTLS 通常使用 587，直接 TLS 通常使用 465。" />
+                                <FormSectionTitle icon={<Server className="size-4" />} title={translate("admin.emailSettingsPanel.serverConnection")} description={translate("admin.emailSettingsPanel.enterTheSMTPHostPortAndTransportEncryptionSTARTTLSTypically")} />
                                 <div className="admin-email-form-grid is-connection">
-                                    <Form.Item name="host" label="SMTP 主机" extra="仅填写主机名或 IP，不包含协议和端口。">
+                                    <Form.Item name="host" label={translate("admin.emailSettingsPanel.sMTPHost")} extra={translate("admin.emailSettingsPanel.enterOnlyTheHostnameOrIPAddressWithoutProtocolOr")}>
                                         <Input autoComplete="off" placeholder="smtp.example.com" />
                                     </Form.Item>
                                     <Form.Item
                                         name="port"
-                                        label="SMTP 端口"
+                                        label={translate("admin.emailSettingsPanel.sMTPPort")}
                                         rules={[
                                             {
-                                                validator: (_, value: number | null | undefined) => (!draftEnabled || (Number(value) >= 1 && Number(value) <= 65535) ? Promise.resolve() : Promise.reject(new Error("请输入 1 至 65535 的端口"))),
+                                                validator: (_, value: number | null | undefined) => (!draftEnabled || (Number(value) >= 1 && Number(value) <= 65535) ? Promise.resolve() : Promise.reject(new Error(translate("admin.emailSettingsPanel.enterAPortFrom1To65535")))),
                                             },
                                         ]}
                                     >
                                         <InputNumber min={1} max={65535} precision={0} placeholder="587" controls={false} />
                                     </Form.Item>
-                                    <Form.Item name="encryption" label="连接加密" rules={[{ required: true, message: "请选择连接加密方式" }]}>
+                                    <Form.Item name="encryption" label={translate("admin.emailSettingsPanel.connectionEncryption")} rules={[{ required: true, message: translate("admin.emailSettingsPanel.selectAConnectionEncryptionMethod") }]}>
                                         <Select
                                             options={[
-                                                { label: "STARTTLS（推荐，通常 587）", value: "starttls" },
-                                                { label: "直接 TLS（通常 465）", value: "tls" },
-                                                { label: "无加密（仅限可信网络）", value: "none" },
+                                                { label: translate("admin.emailSettingsPanel.sTARTTLSRecommendedUsually587"), value: "starttls" },
+                                                { label: translate("admin.emailSettingsPanel.implicitTLSUsually465"), value: "tls" },
+                                                { label: translate("admin.emailSettingsPanel.noEncryptionTrustedNetworksOnly"), value: "none" },
                                             ]}
                                         />
                                     </Form.Item>
@@ -378,41 +379,41 @@ export default function EmailSettingsPanel() {
                             </div>
 
                             <div className="admin-email-form-section">
-                                <FormSectionTitle icon={<KeyRound className="size-4" />} title="SMTP 身份验证" description="服务器要求登录时填写账号和密码；密码留空会保留服务端已配置值。" />
+                                <FormSectionTitle icon={<KeyRound className="size-4" />} title={translate("admin.emailSettingsPanel.sMTPAuthentication")} description={translate("admin.emailSettingsPanel.enterCredentialsIfTheServerRequiresAuthenticationLeaveThePassword")} />
                                 <div className="admin-email-form-grid">
-                                    <Form.Item name="username" label="SMTP 用户名" extra="通常是完整邮箱地址；无需验证的服务器可留空。">
+                                    <Form.Item name="username" label={translate("admin.emailSettingsPanel.sMTPUsername")} extra={translate("admin.emailSettingsPanel.usuallyTheFullEmailAddressLeaveBlankForServersThat")}>
                                         <Input autoComplete="off" placeholder="mailer@example.com" />
                                     </Form.Item>
-                                    <Form.Item name="password" label={setting.hasPassword ? `SMTP 密码（${configuredSecretText}）` : "SMTP 密码"} extra="只在需要新增或替换密码时填写。">
-                                        <Input.Password autoComplete="new-password" placeholder={setting.hasPassword ? "留空保留原密码" : "SMTP 密码或服务商授权码"} />
+                                    <Form.Item name="password" label={setting.hasPassword ? translate("admin.emailSettingsPanel.sMTPPassword", { v0: String(configuredSecretText) }) : translate("admin.emailSettingsPanel.sMTPPassword2")} extra={translate("admin.emailSettingsPanel.enterAPasswordOnlyToAddOrReplaceIt")}>
+                                        <Input.Password autoComplete="new-password" placeholder={setting.hasPassword ? translate("admin.emailSettingsPanel.leaveBlankToKeepTheCurrentPassword") : translate("admin.emailSettingsPanel.sMTPPasswordOrProviderAuthorizationCode")} />
                                     </Form.Item>
                                 </div>
                             </div>
 
                             <div className="admin-email-form-section">
-                                <FormSectionTitle icon={<AtSign className="size-4" />} title="发件人身份" description="这组名称和地址会显示在注册与密码重置邮件的 From 信息中。" />
+                                <FormSectionTitle icon={<AtSign className="size-4" />} title={translate("admin.emailSettingsPanel.senderIdentity")} description={translate("admin.emailSettingsPanel.thisNameAndAddressAppearInTheFromFieldOf")} />
                                 <div className="admin-email-form-grid">
                                     <Form.Item
                                         name="fromEmail"
-                                        label="发件邮箱"
+                                        label={translate("admin.emailSettingsPanel.senderEmail")}
                                         rules={[
                                             {
-                                                validator: (_, value: string | undefined) => (!draftEnabled || !value || isValidEmail(value.trim()) ? Promise.resolve() : Promise.reject(new Error("请输入有效的发件邮箱"))),
+                                                validator: (_, value: string | undefined) => (!draftEnabled || !value || isValidEmail(value.trim()) ? Promise.resolve() : Promise.reject(new Error(translate("admin.emailSettingsPanel.enterAValidSenderEmail")))),
                                             },
                                         ]}
-                                        extra="通常需要与 SMTP 账号或服务商验证域名一致。"
+                                        extra={translate("admin.emailSettingsPanel.usuallyMustMatchTheSMTPAccountOrADomainVerified")}
                                     >
                                         <Input autoComplete="off" inputMode="email" placeholder="noreply@example.com" />
                                     </Form.Item>
                                     <Form.Item
                                         name="fromName"
-                                        label="发件人名称"
+                                        label={translate("admin.emailSettingsPanel.senderName")}
                                         rules={[
                                             {
-                                                validator: (_, value: string | undefined) => (!draftEnabled || !value || !/[\r\n]/.test(value) ? Promise.resolve() : Promise.reject(new Error("发件人名称不能包含换行"))),
+                                                validator: (_, value: string | undefined) => (!draftEnabled || !value || !/[\r\n]/.test(value) ? Promise.resolve() : Promise.reject(new Error(translate("admin.emailSettingsPanel.theSenderNameCannotContainLineBreaks")))),
                                             },
                                         ]}
-                                        extra={`留空时自动使用当前站点名称“${brandName}”；之后修改站点名称会同步更新。`}
+                                        extra={translate("admin.emailSettingsPanel.leaveBlankToUseTheCurrentSiteNameItUpdates", { v0: String(brandName) })}
                                     >
                                         <Input placeholder={brandName} />
                                     </Form.Item>
@@ -426,30 +427,30 @@ export default function EmailSettingsPanel() {
                     <SettingsSectionCard
                         className="admin-email-section"
                         icon={<MailCheck className="size-4" aria-hidden="true" />}
-                        title="3. 电子邮件域名白名单"
-                        description="每行填写一个允许注册的邮箱域名；不在白名单内的邮箱无法注册。"
-                        status={<AdminStatusBadge label={currentValues.registrationAllowedDomains.length > 0 ? "已限制范围" : "不限制服务商"} tone={currentValues.registrationAllowedDomains.length > 0 ? "info" : "neutral"} />}
+                        title={translate("admin.emailSettingsPanel.item3AllowedEmailDomains")}
+                        description={translate("admin.emailSettingsPanel.enterOnePermittedEmailDomainPerLineEmailAddressesOutside")}
+                        status={<AdminStatusBadge label={currentValues.registrationAllowedDomains.length > 0 ? translate("admin.emailSettingsPanel.restricted") : translate("admin.emailSettingsPanel.allProvidersAllowed")} tone={currentValues.registrationAllowedDomains.length > 0 ? "info" : "neutral"} />}
                         footer={
                             <>
                                 <div className="admin-email-footer-note">
                                     <BadgeCheck className="size-4" aria-hidden="true" />
-                                    <span>规则只影响新用户注册，不限制发件邮箱和已有账号找回密码</span>
+                                    <span>{translate("admin.emailSettingsPanel.rulesAffectNewRegistrationsOnlyTheyDoNotRestrictThe")}</span>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2">
                                     {dirty ? (
                                         <Button icon={<RotateCcw className="size-4" />} disabled={saving} onClick={resetDraft}>
-                                            撤销
+                                            {translate("account.settings.memory.actors.restore")}
                                         </Button>
                                     ) : null}
                                     <Button type="primary" icon={<Save className="size-4" />} loading={saving} disabled={!dirty || loading || refreshing} onClick={() => void submitSave()}>
-                                        保存设置
+                                        {translate("admin.emailSettingsPanel.saveSettings")}
                                     </Button>
                                 </div>
                             </>
                         }
                     >
                         <div className="admin-email-form-section">
-                            <Form.Item name="registrationAllowedDomains" label="电子邮件域名白名单" extra="每行一个域名。留空保存表示不限制邮箱域名。" rules={[{ validator: (_, value: string | undefined) => validateDomainList(value) }]}>
+                            <Form.Item name="registrationAllowedDomains" label={translate("admin.emailSettingsPanel.allowedEmailDomains")} extra={translate("admin.emailSettingsPanel.oneDomainPerLineSaveAnEmptyValueToAllow")} rules={[{ validator: (_, value: string | undefined) => validateDomainList(value) }]}>
                                 <Input.TextArea
                                     autoSize={{ minRows: 9, maxRows: 16 }}
                                     placeholder="gmail.com&#10;163.com&#10;126.com&#10;qq.com"
@@ -475,17 +476,17 @@ function TestEmailButton({ disabled, disabledReason }: { disabled: boolean; disa
     const send = async () => {
         const value = recipient.trim();
         if (!isValidEmail(value)) {
-            setResult({ ok: false, text: "请输入有效的收件邮箱" });
+            setResult({ ok: false, text: translate("admin.emailSettingsPanel.enterAValidRecipientEmailAddress") });
             return;
         }
         setSending(true);
         setResult(null);
         try {
             await sendAdminTestEmail(value);
-            setResult({ ok: true, text: `已投递到 ${value}，请检查收件箱和垃圾邮件。` });
-            message.success("测试邮件已发送");
+            setResult({ ok: true, text: translate("admin.emailSettingsPanel.deliveredToCheckTheInboxAndSpamFolder", { v0: String(value) }) });
+            message.success(translate("admin.emailSettingsPanel.testEmailSent"));
         } catch (error) {
-            setResult({ ok: false, text: error instanceof Error ? error.message : "测试邮件发送失败" });
+            setResult({ ok: false, text: error instanceof Error ? error.message : translate("admin.emailSettingsPanel.failedToSendTheTestEmail") });
         } finally {
             setSending(false);
         }
@@ -504,23 +505,23 @@ function TestEmailButton({ disabled, disabledReason }: { disabled: boolean; disa
             trigger="click"
             placement="bottomRight"
             content={
-                <div className="admin-email-test-popover" role="dialog" aria-label="发送测试邮件">
-                    <strong>发送测试邮件</strong>
-                    <p>用已保存的 SMTP 配置发送一封验证码样式的测试邮件，结果会写入发送记录。</p>
-                    <Input value={recipient} onChange={(event) => setRecipient(event.target.value)} onPressEnter={() => void send()} placeholder="收件邮箱" inputMode="email" autoComplete="email" aria-label="测试收件邮箱" />
+                <div className="admin-email-test-popover" role="dialog" aria-label={translate("admin.emailSettingsPanel.sendTestEmail")}>
+                    <strong>{translate("admin.emailSettingsPanel.sendTestEmail")}</strong>
+                    <p>{translate("admin.emailSettingsPanel.sendAVerificationStyleTestEmailUsingTheSavedSMTP")}</p>
+                    <Input value={recipient} onChange={(event) => setRecipient(event.target.value)} onPressEnter={() => void send()} placeholder={translate("admin.emailSettingsPanel.recipientEmail")} inputMode="email" autoComplete="email" aria-label={translate("admin.emailSettingsPanel.testRecipientEmail")} />
                     {result ? (
                         <div className={cn("admin-email-test-result", result.ok ? "is-ok" : "is-error")} role="status">
                             {result.text}
                         </div>
                     ) : null}
                     <Button type="primary" block icon={<Send className="size-4" />} loading={sending} onClick={() => void send()}>
-                        发送
+                        {translate("admin.emailSettingsPanel.send")}
                     </Button>
                 </div>
             }
         >
             <Button icon={<Send className="size-4" />} disabled={disabled} title={disabledReason || undefined}>
-                发送测试邮件
+                {translate("admin.emailSettingsPanel.sendTestEmail")}
             </Button>
         </Popover>
     );
@@ -578,10 +579,10 @@ function hasEmailChanges(values: Partial<EmailFormValues>, setting: EmailSetting
 function validateEmailDraft(values: EmailFormValues, setting: EmailSetting | null) {
     const draft = normalizeEmailFormValues(values);
     if (!draft.enabled) return "";
-    if (/\r|\n/.test(draft.fromName)) return "发件人名称不能包含换行";
-    if (!draft.host || draft.port < 1 || draft.port > 65535 || !draft.fromEmail) return "启用邮件服务前请完整填写 SMTP 主机、端口和发件邮箱";
-    if (!isValidEmail(draft.fromEmail)) return "发件邮箱格式不正确";
-    if (draft.username && !draft.password && !setting?.hasPassword) return "SMTP 用户名已填写，请同时填写密码或服务商授权码";
+    if (/\r|\n/.test(draft.fromName)) return translate("admin.emailSettingsPanel.theSenderNameCannotContainLineBreaks");
+    if (!draft.host || draft.port < 1 || draft.port > 65535 || !draft.fromEmail) return translate("admin.emailSettingsPanel.enterTheSMTPHostPortAndSenderEmailBeforeEnabling");
+    if (!isValidEmail(draft.fromEmail)) return translate("admin.emailSettingsPanel.invalidSenderEmailAddress");
+    if (draft.username && !draft.password && !setting?.hasPassword) return translate("admin.emailSettingsPanel.anSMTPUsernameWasEnteredAlsoEnterThePasswordOr");
     return "";
 }
 
@@ -627,7 +628,7 @@ function arraysEqual(left: string[], right: string[]) {
 
 function validateDomainList(value?: string) {
     const invalid = invalidDomain(value);
-    return invalid ? Promise.reject(new Error(`邮箱域名格式不正确：“${invalid}”`)) : Promise.resolve();
+    return invalid ? Promise.reject(new Error(translate("admin.emailSettingsPanel.invalidEmailDomain", { v0: String(invalid) }))) : Promise.resolve();
 }
 
 function invalidDomain(value?: string) {
@@ -642,5 +643,5 @@ function formatSettingTime(value: string | undefined, fallback: string) {
     if (!value) return fallback;
     const date = new Date(value);
     if (Number.isNaN(date.getTime()) || date.getFullYear() < 2000) return fallback;
-    return `更新于 ${date.toLocaleString("zh-CN", { hour12: false })}`;
+    return translate("admin.emailSettingsPanel.updated", { v0: String(date.toLocaleString(currentLocale(), { hour12: false })) });
 }

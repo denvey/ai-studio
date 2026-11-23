@@ -6,6 +6,7 @@ import { dramaChoiceKey, dramaChoiceKeys, dramaChoiceToModel, dramaVideoRatioIss
 import { cn } from "@/lib/utils";
 import { getDramaModels, type DramaCapability, type DramaModelChoice } from "@/services/api/drama";
 import { useEffectiveConfig } from "@/stores/use-config-store";
+import { translate } from "@/i18n";
 
 export function useDramaModelCatalog() {
     return useQuery({ queryKey: ["drama-models"], queryFn: getDramaModels, staleTime: 60_000 });
@@ -53,7 +54,7 @@ export function DramaModelPicker({
     const modelDisabledReason = useCallback(
         (model: string) => {
             const keys = dramaChoiceKeys(config, model);
-            if (!keys.length) return "个人渠道的密钥只保存在浏览器，短剧在服务端无人值守执行，只能使用平台模型";
+            if (!keys.length) return translate("drama.dramaModelPicker.personalChannelKeysAreStoredOnlyInTheBrowserDrama");
             if (!catalogQuery.data) return "";
             const matched = matchChoice(model);
             if (matched) return capability === "video" ? (aspectRatio && dramaVideoRatioIssue(allowed.get(matched), aspectRatio)) || dramaVideoResolutionIssue(allowed.get(matched), videoResolution) : "";
@@ -61,7 +62,7 @@ export function DramaModelPicker({
                 const reason = blocked.get(key);
                 if (reason) return reason;
             }
-            return "模型列表已更新，请刷新页面后再选";
+            return translate("drama.dramaModelPicker.theModelListHasChangedRefreshThePageBeforeSelecting");
         },
         [allowed, aspectRatio, blocked, capability, catalogQuery.data, config, matchChoice, videoResolution],
     );
@@ -78,7 +79,7 @@ export function DramaModelPicker({
             showOptionPrices
             modelDisabledReason={modelDisabledReason}
             className={cn("drama-model-picker", size === "sm" && "is-sm", className)}
-            placeholder={current ? placeholder || "选择模型" : value?.label || placeholder || "选择模型"}
+            placeholder={current ? placeholder || translate("drama.dramaModelPicker.selectModel") : value?.label || placeholder || translate("drama.dramaModelPicker.selectModel")}
             onChange={(model) => {
                 const choice = modelToDramaChoice(config, model);
                 if (!choice) return;

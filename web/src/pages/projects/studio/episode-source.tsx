@@ -9,6 +9,7 @@ import { EPISODE_SOURCE_CHARS, sourceChars } from "@/lib/drama/novel-parse";
 import { addDramaEpisode, getDramaChapter, updateDramaChapter, updateDramaEpisode, type DramaChapterRef, type DramaSourceFormat } from "@/services/api/drama";
 
 import { formatCount, SOURCE_FORMAT_LABEL, SourceFormatPicker } from "../drama-shared";
+import { translate } from "@/i18n";
 
 // 逐集制作：在作品末尾追加一集、插到某一集前后，或修改某一集的原文与素材类型。原文修改后需要重新改编才会重写剧本。
 
@@ -20,11 +21,11 @@ function useTextFile(onText: (text: string, fileName: string) => void) {
     const inputRef = useRef<HTMLInputElement>(null);
     const read = async (file: File) => {
         if (!TEXT_FILE.test(file.name)) {
-            message.warning("支持 TXT、Markdown、CSV、TSV 文本文件");
+            message.warning(translate("drama.studio.episodeSource.supportsTXTMarkdownCSVAndTSVTextFiles"));
             return;
         }
         if (file.size > MAX_FILE_BYTES) {
-            message.warning("单集文件不超过 2MB");
+            message.warning(translate("drama.studio.episodeSource.episodeFilesMustBeNoLargerThan2MB"));
             return;
         }
         onText(decodeNovelText(await file.arrayBuffer()), file.name);
@@ -49,7 +50,7 @@ function CharCounter({ chars, limit }: { chars: number; limit: number }) {
     const over = chars > limit;
     return (
         <span className={`drama-composer-count ${over ? "is-over" : ""}`}>
-            {formatCount(chars)} / {formatCount(limit)} 字{over ? " · 超出部分会丢台词，请拆成多集" : ""}
+            {formatCount(chars)} / {formatCount(limit)} {translate("drama.studio.episodeSource.characters")}{over ? (" " + translate("drama.studio.episodeSource.dialogueBeyondThisLimitWillBeLostSplitTheContent")) : ""}
         </span>
     );
 }
@@ -98,17 +99,17 @@ function SourceComposer({
                         <strong>{title}</strong>
                         <span>{subtitle}</span>
                     </div>
-                    <Button type="text" icon={<X className="size-4" />} aria-label="关闭" onClick={onClose} />
+                    <Button type="text" icon={<X className="size-4" />} aria-label={translate("common.close")} onClick={onClose} />
                 </header>
                 <div className="drama-composer-body">
                     <aside className="drama-composer-side thin-scrollbar">
                         {side}
                         <div className="drama-composer-field">
-                            <span className="drama-composer-label">素材类型</span>
+                            <span className="drama-composer-label">{translate("library.assets.page.kindFilter")}</span>
                             <SourceFormatPicker value={format} onChange={onFormat} />
                         </div>
                         <div className="drama-composer-guide">
-                            <span className="drama-composer-label">{SOURCE_FORMAT_LABEL[format].title}怎么写</span>
+                            <span className="drama-composer-label">{translate("drama.sentences.sourceFormatGuide", { format: SOURCE_FORMAT_LABEL[format].title })}</span>
                             <ul>
                                 {SOURCE_FORMAT_LABEL[format].guide.map((line) => (
                                     <li key={line}>{line}</li>
@@ -116,7 +117,7 @@ function SourceComposer({
                             </ul>
                         </div>
                         <Button block icon={<FileUp className="size-4" />} onClick={file.open}>
-                            从文件导入
+                            {translate("drama.studio.episodeSource.importFromFile")}
                         </Button>
                         {file.input}
                     </aside>
@@ -134,8 +135,8 @@ function SourceComposer({
                             className="drama-composer-text thin-scrollbar"
                             value={loading ? "" : text}
                             disabled={loading}
-                            placeholder={loading ? "正在读取原文…" : `${SOURCE_FORMAT_LABEL[format].placeholder}\n\n也可以把 TXT / Markdown 文件拖到这里。`}
-                            aria-label="本集原文"
+                            placeholder={loading ? translate("drama.studio.episodeSource.loadingSourceText") : translate("drama.studio.episodeSource.youCanAlsoDropTXTMarkdownFilesHere", { v0: String(SOURCE_FORMAT_LABEL[format].placeholder) })}
+                            aria-label={translate("drama.studio.episodeSource.episodeSource")}
                             onChange={(event) => onText(event.target.value)}
                         />
                     </section>
@@ -183,16 +184,16 @@ export function AddEpisodeModal({
     const add = useMutation({
         mutationFn: () => addDramaEpisode(projectId, { title: title.trim(), text, sourceFormat: format, ...(placement ? { anchorEpisodeId: placement.anchorId, position: placement.position } : {}) }),
         onSuccess: (detail) => {
-            message.success(`已${placement ? "插入" : "添加"}第 ${detail.episode.number} 集，开始${format === "novel" ? "改编" : "拆镜"}`);
+            message.success(translate(placement ? (format === "novel" ? "drama.sentences.episodeInsertedAdaptation" : "drama.sentences.episodeInsertedBreakdown") : (format === "novel" ? "drama.sentences.episodeAddedAdaptation" : "drama.sentences.episodeAddedBreakdown"), { number: detail.episode.number }));
             onAdded(detail.episode.id);
         },
-        onError: (error) => message.error(error instanceof Error ? error.message : placement ? "插入失败" : "添加失败"),
+        onError: (error) => message.error(error instanceof Error ? error.message : placement ? translate("drama.studio.episodeSource.insertionFailed") : translate("drama.studio.episodeSource.failedToAdd")),
     });
     return (
         <SourceComposer
             open={open}
-            title={placement ? `在第 ${placement.anchorNumber} 集${placement.position === "before" ? "前" : "后"}插入一集` : `添加第 ${nextNumber} 集`}
-            subtitle={placement ? `新的一集成为第 ${nextNumber} 集，后面各集集号顺延；已做好的集内容不受影响` : "一次只放这一集的内容，前面已做好的集不会受影响"}
+            title={placement ? translate(placement.position === "before" ? "drama.sentences.insertEpisodeBefore" : "drama.sentences.insertEpisodeAfter", { number: placement.anchorNumber }) : translate("drama.sentences.addEpisode", { number: nextNumber })}
+            subtitle={placement ? translate("drama.studio.episodeSource.theNewEpisodeBecomesEpisodeAndLaterEpisodesAreRenumbered", { v0: String(nextNumber) }) : translate("drama.studio.episodeSource.includeOnlyThisEpisodeSContentEarlierEpisodesAreUnaffected")}
             format={format}
             onFormat={setFormat}
             text={text}
@@ -203,8 +204,8 @@ export function AddEpisodeModal({
             onClose={onClose}
             side={
                 <label className="drama-composer-field">
-                    <span className="drama-composer-label">集标题</span>
-                    <Input value={title} maxLength={60} placeholder={`留空为“第 ${nextNumber} 集”`} aria-label="集标题" onChange={(event) => setTitle(event.target.value)} />
+                    <span className="drama-composer-label">{translate("drama.studio.episodeSource.episodeTitle")}</span>
+                    <Input value={title} maxLength={60} placeholder={translate("drama.studio.episodeSource.leaveBlankForEpisode", { v0: String(nextNumber) })} aria-label={translate("drama.studio.episodeSource.episodeTitle")} onChange={(event) => setTitle(event.target.value)} />
                 </label>
             }
             notice={
@@ -219,9 +220,9 @@ export function AddEpisodeModal({
                 <>
                     <CharCounter chars={chars} limit={EPISODE_SOURCE_CHARS} />
                     <span className="flex-1" />
-                    <Button onClick={onClose}>取消</Button>
+                    <Button onClick={onClose}>{translate("common.cancel")}</Button>
                     <Button type="primary" loading={add.isPending} disabled={Boolean(blockedReason) || !chars || chars > EPISODE_SOURCE_CHARS} onClick={() => add.mutate()}>
-                        {format === "storyboard" ? "导入这一集" : placement ? "插入并开始拆镜" : "添加并开始拆镜"}
+                        {format === "storyboard" ? translate("drama.studio.episodeSource.importEpisode") : placement ? translate("drama.studio.episodeSource.insertAndStartShotBreakdown") : translate("drama.studio.episodeSource.addAndStartShotBreakdown")}
                     </Button>
                 </>
             }
@@ -270,16 +271,16 @@ export function SourceEditModal({
         },
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey });
-            message.success(rescript ? "原文已保存，正在按新原文重新改编" : "原文已保存，点“重新改编”后生效");
+            message.success(rescript ? translate("drama.studio.episodeSource.sourceSavedAdaptingAgainFromTheUpdatedText") : translate("drama.studio.episodeSource.sourceSavedChooseAdaptAgainToApplyIt"));
             onSaved(rescript);
         },
-        onError: (error) => message.error(error instanceof Error ? error.message : "保存失败"),
+        onError: (error) => message.error(error instanceof Error ? error.message : translate("account.settings.memory.saveFailed")),
     });
     return (
         <SourceComposer
             open={open}
-            title={chapter ? `编辑原文 · ${chapter.title}` : "编辑原文"}
-            subtitle="改的是这一章的原文；已写好的剧本保持不变，重新改编后才按新原文重写"
+            title={chapter ? translate("drama.studio.episodeSource.editSource", { v0: String(chapter.title) }) : translate("drama.studio.episodeSource.editSource2")}
+            subtitle={translate("drama.studio.episodeSource.thisChangesTheChapterSSourceTextExistingScriptsStay")}
             format={format}
             onFormat={setFormat}
             text={text}
@@ -289,13 +290,13 @@ export function SourceEditModal({
             footer={
                 <>
                     <Checkbox checked={rescript} onChange={(event) => setRescript(event.target.checked)}>
-                        保存后重新改编本集
+                        {translate("drama.studio.episodeSource.readaptThisEpisodeAfterSaving")}
                     </Checkbox>
                     <CharCounter chars={chars} limit={limit} />
                     <span className="flex-1" />
-                    <Button onClick={onClose}>取消</Button>
+                    <Button onClick={onClose}>{translate("common.cancel")}</Button>
                     <Button type="primary" loading={save.isPending} disabled={!changed || !chars || chars > limit || query.isLoading} onClick={() => save.mutate()}>
-                        {rescript ? "保存并重新改编" : "保存原文"}
+                        {rescript ? translate("drama.studio.episodeSource.saveAndReadapt") : translate("drama.studio.episodeSource.saveSource")}
                     </Button>
                 </>
             }

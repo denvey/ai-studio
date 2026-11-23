@@ -2,6 +2,8 @@ import type { CanvasAssistantMessage, CanvasAssistantSession } from "@/types/can
 import { getActiveUserScope } from "@/lib/user-scope";
 import { flushCanvasStorePersistence, useCanvasStore } from "@/stores/canvas/use-canvas-store";
 import { createCanvasProjectWithRemoteSync, hasRemoteUserDataSyncSession, loadCanvasProjectForEditing, saveRemoteUserDataNow } from "@/services/user-data-sync";
+import { translate } from "@/i18n";
+
 
 type SourceMessage = {
     id: string; role: "user" | "assistant"; content: string; createdAt: string;
@@ -16,9 +18,9 @@ type SourceConversation = { id: string; title: string; updatedAt: string; canvas
 export async function continueCreationConversationOnCanvas(source: SourceConversation) {
     const scope = getActiveUserScope();
     const assertScope = () => { if (scope !== getActiveUserScope()) throw new DOMException("账号已切换，请重新打开创作", "AbortError"); };
-    if (!source.id || !source.messages.length) throw new Error("请先开始一段创作对话");
-    if (source.messages.some((item) => item.status === "pending" || item.status === "streaming")) throw new Error("当前创作仍在生成，请完成或停止后再转入画布。");
-    if (!useCanvasStore.getState().hydrated) throw new Error("画布资料正在加载，请稍后继续。");
+    if (!source.id || !source.messages.length) throw new Error(translate("shared.creationCanvasConversation.startACreationConversationFirst"));
+    if (source.messages.some((item) => item.status === "pending" || item.status === "streaming")) throw new Error(translate("shared.creationCanvasConversation.creationIsStillInProgressWaitForItToFinish"));
+    if (!useCanvasStore.getState().hydrated) throw new Error(translate("shared.creationCanvasConversation.canvasContentIsLoadingContinueShortly"));
     const sessionId = `creation:${source.id}`;
     const messages: CanvasAssistantMessage[] = source.messages.map((item) => ({
         id: `creation:${source.id}:${item.id}`, role: item.role,
@@ -37,7 +39,7 @@ export async function continueCreationConversationOnCanvas(source: SourceConvers
     if (existingId) {
         const project = await loadCanvasProjectForEditing(existingId);
         assertScope();
-        if (!project) throw new Error("关联画布已不存在，请先恢复画布后继续。");
+        if (!project) throw new Error(translate("shared.creationCanvasConversation.theLinkedCanvasNoLongerExistsRestoreItBeforeContinuing"));
         const sessions = project.chatSessions || [];
         const previous = sessions.find((item) => item.id === sessionId);
         const incoming = new Map(messages.map((item) => [item.id, item]));

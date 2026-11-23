@@ -10,6 +10,7 @@ import { subscribeCanvasViewportPreview } from "@/lib/canvas/canvas-live-viewpor
 import { canvasBottomRowLayout } from "@/lib/canvas/canvas-overlay-layout";
 import { useActiveTheme } from "@/stores/canvas/use-canvas-theme-store";
 import "./canvas-zoom-controls.css";
+import { translate } from "@/i18n";
 
 type CanvasZoomControlsProps = {
     scale: number;
@@ -120,14 +121,14 @@ export function CanvasZoomControls({ scale, onScaleChange, onFitContent, onAutoA
     }
 
     const items: FloatingDockEntry[] = [
-        { id: "zoom-minimap", label: isMiniMapOpen ? "关闭小地图" : "打开小地图", icon: <Compass />, active: isMiniMapOpen, onClick: onToggleMiniMap },
-        { id: "zoom-fit", label: "适应画布", icon: <Focus />, onClick: onFitContent },
-        ...(onAutoArrange ? [{ id: "zoom-auto-arrange", label: "自动整理节点", icon: <LayoutTemplate />, onClick: onAutoArrange }] : []),
+        { id: "zoom-minimap", label: isMiniMapOpen ? translate("canvasTools.canvasZoomControls.closeTheMinimap") : translate("canvasTools.canvasZoomControls.openTheMinimap"), icon: <Compass />, active: isMiniMapOpen, onClick: onToggleMiniMap },
+        { id: "zoom-fit", label: translate("canvasTools.canvasZoomControls.fitCanvas"), icon: <Focus />, onClick: onFitContent },
+        ...(onAutoArrange ? [{ id: "zoom-auto-arrange", label: translate("canvasTools.canvasZoomControls.autoArrangeNodes"), icon: <LayoutTemplate />, onClick: onAutoArrange }] : []),
         ...(onHideNodeConnectionsChange
             ? [
                   {
                       id: "zoom-hide-node-connections",
-                      label: hideNodeConnections ? "显示全部连线" : "设置隐藏节点连线",
+                      label: hideNodeConnections ? translate("canvasTools.canvasZoomControls.showAllConnections") : translate("canvasTools.canvasZoomControls.configureHiddenNodeConnections"),
                       icon: hideNodeConnections ? <Eye /> : <EyeOff />,
                       active: hideNodeConnections,
                       onClick: () => onHideNodeConnectionsChange(!hideNodeConnections),
@@ -135,10 +136,10 @@ export function CanvasZoomControls({ scale, onScaleChange, onFitContent, onAutoA
               ]
             : []),
         { kind: "separator", id: "zoom-separator" },
-        { id: "zoom-out", label: "缩小画布", icon: <Minus />, onClick: () => commitScale(liveScaleRef.current - 0.1) },
+        { id: "zoom-out", label: translate("canvasTools.canvasZoomControls.zoomOutTheCanvas"), icon: <Minus />, onClick: () => commitScale(liveScaleRef.current - 0.1) },
         {
             id: "zoom-precision",
-            label: "精确缩放",
+            label: translate("canvasTools.canvasZoomControls.preciseZoom"),
             wide: true,
             quiet: true,
             icon: (
@@ -150,9 +151,9 @@ export function CanvasZoomControls({ scale, onScaleChange, onFitContent, onAutoA
             active: precisionOpen,
             onClick: () => setPrecisionOpen((value) => !value),
         },
-        { id: "zoom-in", label: "放大画布", icon: <Plus />, onClick: () => commitScale(liveScaleRef.current + 0.1) },
+        { id: "zoom-in", label: translate("canvasTools.canvasZoomControls.zoomInOnTheCanvas"), icon: <Plus />, onClick: () => commitScale(liveScaleRef.current + 0.1) },
         { kind: "separator", id: "help-separator" },
-        { id: "zoom-shortcuts", label: "画布快捷键", icon: <HelpCircle />, onClick: onOpenShortcuts },
+        { id: "zoom-shortcuts", label: translate("canvasPage.shortcuts.title"), icon: <HelpCircle />, onClick: onOpenShortcuts },
     ];
 
     return (
@@ -170,9 +171,9 @@ export function CanvasZoomControls({ scale, onScaleChange, onFitContent, onAutoA
                         <div className="absolute inset-x-10 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${theme.spatial.glowStrong}, transparent)` }} />
                         <div className="flex items-center justify-between gap-3">
                             <span>
-                                <span className="block text-[var(--fs-tiny)] font-semibold">画布尺度</span>
+                                <span className="block text-[var(--fs-tiny)] font-semibold">{translate("canvasTools.canvasZoomControls.canvasScale")}</span>
                                 <span className="mt-0.5 block text-[var(--fs-micro)]" style={{ color: theme.node.muted }}>
-                                    精确控制视野密度
+                                    {translate("canvasTools.canvasZoomControls.fineTuneHowDenseTheViewIs")}
                                 </span>
                             </span>
                             <span
@@ -193,7 +194,7 @@ export function CanvasZoomControls({ scale, onScaleChange, onFitContent, onAutoA
                             className="aceternity-zoom-range mt-3 h-4 w-full"
                             style={{ accentColor: theme.accent.primary }}
                             onChange={(event) => commitScale(Number(event.target.value) / 100)}
-                            aria-label="精确缩放画布"
+                            aria-label={translate("canvasTools.canvasZoomControls.zoomTheCanvasPrecisely")}
                         />
                         <div className="mt-2 grid grid-cols-4 gap-1">
                             {QUICK_ZOOM_LEVELS.map((level) => (
@@ -215,7 +216,7 @@ export function CanvasZoomControls({ scale, onScaleChange, onFitContent, onAutoA
                 ) : null}
             </AnimatePresence>
 
-            <FloatingDock items={items} size="compact" className="canvas-floating-dock is-bare" style={canvasDockStyle(theme, theme.node.text)} ariaLabel="画布视图控制" />
+            <FloatingDock items={items} size="compact" className="canvas-floating-dock is-bare" style={canvasDockStyle(theme, theme.node.text)} ariaLabel={translate("canvasTools.canvasZoomControls.canvasViewControls")} />
         </div>
     );
 }

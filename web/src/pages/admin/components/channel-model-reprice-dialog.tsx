@@ -5,6 +5,7 @@ import { repriceAdminAllChannelModels, repriceAdminChannelModels, type ChannelMo
 import { specificationLabel } from "./channel-model-cost-summary";
 import { formatModelMarkup, formatModelPrice, modelRepricePayload, modelRepriceRows, parseSaleInput, previewModelRepricing, type ModelRepriceRow } from "./channel-model-pricing";
 import { Select } from "@/components/ui/base/select";
+import { translate } from "@/i18n";
 
 type RepriceModel = ChannelModel & { channelName?: string };
 
@@ -20,7 +21,7 @@ export function ChannelModelRepriceDialog({ channelId, channelName, items, onClo
     try {
         modelRepricePayload(items, rows);
     } catch (cause) {
-        validationError = cause instanceof Error ? cause.message : "销售价无效";
+        validationError = cause instanceof Error ? cause.message : translate("admin.channelModelRepriceDialog.invalidSellingPrice");
     }
     const original = new Map(modelRepriceRows(items).map((row) => [row.key, row.sale]));
     const changed = rows.filter((row) => {
@@ -41,7 +42,7 @@ export function ChannelModelRepriceDialog({ channelId, channelName, items, onClo
             setRows(modelRepriceRows(previewModelRepricing(items, nextMargin, places)));
             setCalculationError("");
         } catch (cause) {
-            setCalculationError(cause instanceof Error ? cause.message : "无法计算销售价");
+            setCalculationError(cause instanceof Error ? cause.message : translate("admin.channelModelRepriceDialog.unableToCalculateSellingPrices"));
         }
     };
     const save = async () => {
@@ -50,16 +51,16 @@ export function ChannelModelRepriceDialog({ channelId, channelName, items, onClo
         try {
             const payload = modelRepricePayload(items, rows);
             const result = channelId ? await repriceAdminChannelModels(channelId, payload) : await repriceAdminAllChannelModels(payload);
-            message.success(`已保存 ${result.updated} 个模型的销售价`);
+            message.success(translate("admin.channelModelRepriceDialog.savedSellingPricesForModels", { v0: String(result.updated) }));
         } catch (cause) {
-            message.error(cause instanceof Error ? cause.message : "统一调价失败");
+            message.error(cause instanceof Error ? cause.message : translate("admin.channelModelRepriceDialog.bulkPriceAdjustmentFailed"));
             setSaving(false);
             return;
         }
         try {
             await onSaved();
         } catch {
-            message.warning("价格已保存，但列表刷新失败，请手动刷新");
+            message.warning(translate("admin.channelModelRepriceDialog.pricesSavedButTheListCouldNotBeRefreshedRefresh"));
         } finally {
             setSaving(false);
             onClose();
@@ -67,7 +68,7 @@ export function ChannelModelRepriceDialog({ channelId, channelName, items, onClo
     };
     return (
         <AdminModal
-            title={`统一调价 · ${items.length} 个模型`}
+            title={translate("admin.channelModelRepriceDialog.bulkPriceAdjustmentModels", { v0: String(items.length) })}
             open
             centered
             width={1180}
@@ -79,40 +80,40 @@ export function ChannelModelRepriceDialog({ channelId, channelName, items, onClo
             confirmLoading={saving}
             cancelButtonProps={{ disabled: saving }}
             okButtonProps={{ disabled: Boolean(validationError || calculationError) || !changed }}
-            okText={`保存销售价${changed ? `（${changed} 项）` : ""}`}
+            okText={translate("admin.channelModelRepriceDialog.saveSellingPrices", { v0: String(changed ? translate("admin.channelModelRepriceDialog.items", { v0: String(changed) }) : "") })}
             onOk={() => void save()}
         >
             <div className="admin-model-reprice">
                 <div className="admin-model-reprice-controls">
                     <div className="admin-model-reprice-field">
-                        <label htmlFor="reprice-margin">加价率</label>
-                        <InputNumber id="reprice-margin" aria-label="加价率" size="large" value={margin} onChange={(value) => recalculate(value, decimalPlaces)} min={0} max={1000} step={5} suffix="%" placeholder="输入百分比" disabled={saving} />
+                        <label htmlFor="reprice-margin">{translate("admin.channelModelRepriceDialog.markup")}</label>
+                        <InputNumber id="reprice-margin" aria-label={translate("admin.channelModelRepriceDialog.markup")} size="large" value={margin} onChange={(value) => recalculate(value, decimalPlaces)} min={0} max={1000} step={5} suffix="%" placeholder={translate("admin.channelModelRepriceDialog.enterAPercentage")} disabled={saving} />
                     </div>
                     <div className="admin-model-reprice-field">
-                        <label htmlFor="reprice-decimals">保留小数位</label>
+                        <label htmlFor="reprice-decimals">{translate("admin.channelModelRepriceDialog.decimalPlaces")}</label>
                         <Select
                             id="reprice-decimals"
-                            aria-label="保留小数位"
+                            aria-label={translate("admin.channelModelRepriceDialog.decimalPlaces")}
                             size="large"
                             value={decimalPlaces}
                             disabled={saving}
                             onChange={(value) => recalculate(margin, value)}
-                            options={Array.from({ length: 7 }, (_, value) => ({ value, label: `${value} 位小数` }))}
+                            options={Array.from({ length: 7 }, (_, value) => ({ value, label: translate("admin.channelModelRepriceDialog.decimalPlaces2", { v0: String(value) }) }))}
                         />
                     </div>
                     <Button size="large" disabled={saving || margin === null} onClick={() => recalculate(margin, decimalPlaces)}>
-                        重新计算
+                        {translate("admin.channelModelRepriceDialog.recalculate")}
                     </Button>
                     <div className="admin-model-reprice-formula">
-                        <strong>按成本计算，四舍五入</strong>
-                        <span>新售价 = 成本价 ×（1 + 加价率）</span>
+                        <strong>{translate("admin.channelModelRepriceDialog.calculatedFromCostAndRounded")}</strong>
+                        <span>{translate("admin.channelModelRepriceDialog.newSellingPriceCostPrice1Markup")}</span>
                     </div>
                 </div>
-                <p className="admin-model-reprice-note">修改加价率、小数位或点击「重新计算」会按成本重算全部规格售价，覆盖手动修改。计算后可继续单独编辑，保存以输入框的最终值为准。</p>
+                <p className="admin-model-reprice-note">{translate("admin.channelModelRepriceDialog.changingTheMarkupOrDecimalPlacesOrClickingRecalculateRecalculates")}</p>
                 <div className="admin-model-reprice-list-heading">
-                    <strong>模型价格</strong>
+                    <strong>{translate("admin.channelModelRepriceDialog.modelPrice")}</strong>
                     <span>
-                        {rows.length} 个计费项 · 已修改 {changed} 项
+                        {rows.length} {translate("admin.channelModelRepriceDialog.billingItemsModified")} {changed} {translate("library.picker.itemUnit")}
                     </span>
                 </div>
                 <ChannelModelRepriceTable
@@ -124,7 +125,7 @@ export function ChannelModelRepriceDialog({ channelId, channelName, items, onClo
                     onSaleChange={(key, value) => setRows((current) => current.map((entry) => (entry.key === key ? { ...entry, sale: value, manual: true } : entry)))}
                 />
                 {calculationError || validationError ? <Alert type="warning" showIcon title={calculationError || validationError} /> : null}
-                <p className="admin-model-reprice-note">仅修改已启用规格的售价，不改变成本或启停状态。四舍五入及手动修改可能使实际加价率偏离目标；价格配置发生变化时整批拒绝保存，请刷新后重试。</p>
+                <p className="admin-model-reprice-note">{translate("admin.channelModelRepriceDialog.onlySellingPricesOfEnabledSpecificationsAreChangedCostsAnd")}</p>
             </div>
         </AdminModal>
     );
@@ -159,11 +160,11 @@ export function ChannelModelRepriceTable({
             pagination={false}
             tableLayout="fixed"
             scroll={{ x: 1040 }}
-            locale={{ emptyText: "暂无所选模型" }}
+            locale={{ emptyText: translate("admin.channelModelRepriceDialog.noSelectedModels") }}
             columns={[
-                { title: "模型展示名", width: 180, render: (_, model) => <strong>{model.displayName || model.modelKey}</strong> },
+                { title: translate("admin.channelModelRepriceDialog.modelDisplayName"), width: 180, render: (_, model) => <strong>{model.displayName || model.modelKey}</strong> },
                 {
-                    title: "渠道展示名（上游模型ID）",
+                    title: translate("admin.channelModelRepriceDialog.channelDisplayNameUpstreamModelID"),
                     width: 220,
                     render: (_, model) => (
                         <div className="admin-model-reprice-identity">
@@ -174,7 +175,7 @@ export function ChannelModelRepriceTable({
                 },
                 // One model per table row; the shared grid keeps each specification and its prices aligned even when labels wrap.
                 {
-                    title: "规格",
+                    title: translate("admin.channelModelRepriceDialog.specifications"),
                     width: 140,
                     onCell: () => ({ colSpan: 3, className: "admin-model-reprice-spec-cell" }),
                     render: (_, model) => (
@@ -192,16 +193,16 @@ export function ChannelModelRepriceTable({
                                         <div className="admin-model-reprice-identity">
                                             <span>{specificationLabel(row.tier)}</span>
                                             {row.field.label && <small>{row.field.label}</small>}
-                                            {row.tier.providerModelKey && row.tier.providerModelKey !== (model.providerModelKey || model.modelKey) && <small className="admin-monospace">上游：{row.tier.providerModelKey}</small>}
+                                            {row.tier.providerModelKey && row.tier.providerModelKey !== (model.providerModelKey || model.modelKey) && <small className="admin-monospace">{translate("admin.channelModelRepriceDialog.upstream")}{row.tier.providerModelKey}</small>}
                                         </div>
                                         <div className="admin-model-reprice-identity">
-                                            <span>{cost === undefined ? "未配置成本" : formatModelPrice(cost)}</span>
-                                            <small>积分 / {row.field.unit}</small>
+                                            <span>{cost === undefined ? translate("admin.channelModelRepriceDialog.costNotConfigured") : formatModelPrice(cost)}</span>
+                                            <small>{translate("admin.channelModelRepriceDialog.credits")} {row.field.unit}</small>
                                         </div>
                                         <div className="admin-model-reprice-sale">
                                             <InputNumber<string>
                                                 stringMode
-                                                aria-label={`${model.displayName || model.modelKey} ${specificationLabel(row.tier)} ${row.field.label} 销售价`}
+                                                aria-label={translate("admin.channelModelRepriceDialog.sellingPrice", { v0: String(model.displayName || model.modelKey), v1: String(specificationLabel(row.tier)), v2: String(row.field.label) })}
                                                 size="middle"
                                                 value={row.sale}
                                                 min="0"
@@ -211,18 +212,18 @@ export function ChannelModelRepriceTable({
                                                 onChange={(value) => onSaleChange(row.key, value)}
                                             />
                                             <small>
-                                                {row.manual ? "手动修改 · " : ""}加价 {formatModelMarkup(cost, sale)}
+                                                {row.manual ? (translate("admin.channelModelRepriceDialog.manuallyEdited") + " ") : ""}{translate("admin.channelModelRepriceDialog.markup2")} {formatModelMarkup(cost, sale)}
                                             </small>
                                         </div>
                                     </div>
                                 );
                             })}
-                            {!byModel.get(model.id)?.length && <div className="admin-model-reprice-no-spec">暂无已启用规格</div>}
+                            {!byModel.get(model.id)?.length && <div className="admin-model-reprice-no-spec">{translate("admin.channelModelRepriceDialog.noEnabledSpecifications")}</div>}
                         </div>
                     ),
                 },
-                { title: "成本价", width: 160, onCell: () => ({ colSpan: 0 }) },
-                { title: "销售价（积分）", width: 340, onCell: () => ({ colSpan: 0 }) },
+                { title: translate("admin.channelModelRepriceDialog.costPrice"), width: 160, onCell: () => ({ colSpan: 0 }) },
+                { title: translate("admin.channelModelRepriceDialog.sellingPriceCredits"), width: 340, onCell: () => ({ colSpan: 0 }) },
             ]}
         />
     );

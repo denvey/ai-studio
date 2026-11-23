@@ -10,6 +10,7 @@ import { imageLayerOutputSize, imageLayerPlannerError, type ImageLayerPlan } fro
 import { supportsExperimentalLayerExtraction, supportsLayerDecomposition } from "@/lib/canvas/canvas-image-layers";
 import type { ImageLayerExtraction } from "@/lib/canvas/canvas-image-layer-strategy";
 import { navigateToSettings } from "@/lib/settings-navigation";
+import { translate } from "@/i18n";
 
 export type CanvasImageLayerDecompositionPayload = {
     prompt: string;
@@ -70,7 +71,7 @@ export function CanvasNodeLayerDecompositionDialog({
     const supported = supportsLayerDecomposition(config, selectedModel) || supportsExperimentalLayerExtraction(config, selectedModel);
     const plannerError = imageLayerPlannerError(config, plannerModel);
     const outputSize = imageLayerOutputSize(config, selectedModel, sourceSize || measuredSize);
-    const outputSizeError = supported && !outputSize ? "所选模型没有支持原图比例的尺寸，或源图尺寸尚未读取；请更换模型或重新打开图片" : "";
+    const outputSizeError = supported && !outputSize ? translate("canvasTools.canvasNodeLayerDecompositionDialog.theSelectedModelHasNoSizeMatchingTheOriginalAspect") : "";
 
     const point = (event: ReactPointerEvent<HTMLDivElement>) => {
         const rect = imageFrameRef.current?.getBoundingClientRect();
@@ -91,12 +92,12 @@ export function CanvasNodeLayerDecompositionDialog({
     };
 
     return (
-        <AppModal flush open={open && Boolean(dataUrl)} onCancel={onClose} footer={null} centered width={1120} title="AI 图层拆分">
+        <AppModal flush open={open && Boolean(dataUrl)} onCancel={onClose} footer={null} centered width={1120} title={translate("canvasB.imageTools.layerDecompositionLabel")}>
             <div className="grid max-h-[82vh] gap-6 overflow-y-auto p-5 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]" data-canvas-no-zoom>
                 <div className="grid min-h-[260px] place-items-center overflow-hidden rounded-xl bg-black/5 p-3 dark:bg-white/[0.04] md:min-h-[480px]">
                     <div
                         ref={imageFrameRef}
-                        aria-label="框选重点区域"
+                        aria-label={translate("canvasTools.canvasNodeLayerDecompositionDialog.selectFocusAreas")}
                         className="relative inline-block max-h-[60vh] max-w-full touch-none select-none"
                         onPointerDown={(event) => {
                             if (event.button !== 0) return;
@@ -120,7 +121,7 @@ export function CanvasNodeLayerDecompositionDialog({
                     >
                         <img
                             src={dataUrl}
-                            alt="待拆分图片"
+                            alt={translate("canvasTools.canvasNodeLayerDecompositionDialog.imageToSplit")}
                             className="block max-h-[60vh] max-w-full object-contain"
                             draggable={false}
                             onLoad={(event) => setMeasuredSize({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })}
@@ -135,32 +136,32 @@ export function CanvasNodeLayerDecompositionDialog({
                 </div>
                 <div className="flex min-w-0 flex-col gap-4">
                     <div>
-                        <h3 className="text-lg font-semibold">拆分图片图层</h3>
-                        <p className="mt-2 text-sm opacity-60">可在图片上拖拽框选重点区域，AI 将规划并拆出完整背景与独立图层，在画布中收纳为一组。</p>
+                        <h3 className="text-lg font-semibold">{translate("canvasTools.canvasNodeLayerDecompositionDialog.splitImageIntoLayers")}</h3>
+                        <p className="mt-2 text-sm opacity-60">{translate("canvasTools.canvasNodeLayerDecompositionDialog.dragOnTheImageToSelectFocusAreasAIWill")}</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                        {regions.length ? <Tag color="blue">已框选 {regions.length} 个区域</Tag> : <span className="rounded-md bg-black/5 px-2 py-1 text-xs dark:bg-white/5">未框选，按描述拆分</span>}
+                        {regions.length ? <Tag color="blue">{translate("canvasTools.inline.canvasNodeLayerDecompositionDialog.areasSelected", { v0: String(regions.length) })}</Tag> : <span className="rounded-md bg-black/5 px-2 py-1 text-xs dark:bg-white/5">{translate("canvasTools.canvasNodeLayerDecompositionDialog.noAreasSelectedSplitBasedOnDescription")}</span>}
                         {regions.length ? (
                             <Button size="small" icon={<RotateCcw className="size-3.5" />} onClick={() => setRegions([])}>
-                                清除选区
+                                {translate("canvasTools.canvasNodeLayerDecompositionDialog.clearSelection")}
                             </Button>
                         ) : (
                             <span className="text-xs opacity-55">
                                 <Plus className="mr-1 inline size-3" />
-                                在图片上拖动添加选区
+                                {translate("canvasTools.canvasNodeLayerDecompositionDialog.dragOnTheImageToAddASelection")}
                             </span>
                         )}
                     </div>
-                    <Input.TextArea aria-label="拆层要求" rows={5} value={prompt} placeholder="描述需要拆分的内容" onChange={(event) => setPrompt(event.target.value)} />
+                    <Input.TextArea aria-label={translate("canvasTools.canvasNodeLayerDecompositionDialog.layerSplittingInstructions")} rows={5} value={prompt} placeholder={translate("canvasTools.canvasNodeLayerDecompositionDialog.describeWhatToSplit")} onChange={(event) => setPrompt(event.target.value)} />
                     <div className="space-y-2">
-                        <div className="text-sm font-medium opacity-75">视觉规划模型</div>
+                        <div className="text-sm font-medium opacity-75">{translate("canvasTools.canvasNodeLayerDecompositionDialog.visualPlanningModel")}</div>
                         <ModelPicker
                             config={config}
                             value={plannerModel}
                             capability="text"
                             fullWidth
                             showSelectedPrice
-                            placeholder="选择视觉规划模型"
+                            placeholder={translate("canvasTools.canvasNodeLayerDecompositionDialog.selectVisualPlanningModel")}
                             modelFilter={(model) => !imageLayerPlannerError(config, model)}
                             onMissingConfig={() => navigateToSettings({ continueCreation: true })}
                             onChange={setPlannerModel}
@@ -172,21 +173,21 @@ export function CanvasNodeLayerDecompositionDialog({
                         ) : null}
                     </div>
                     <div className="space-y-2">
-                        <div className="text-sm font-medium opacity-75">图层拆分模型</div>
+                        <div className="text-sm font-medium opacity-75">{translate("canvasTools.canvasNodeLayerDecompositionDialog.layerSplittingModel")}</div>
                         <ModelPicker
                             config={{ ...config, model: selectedModel, imageModel: selectedModel }}
                             value={selectedModel}
                             capability="image"
                             fullWidth
                             showSelectedPrice
-                            placeholder="选择图层拆分模型"
+                            placeholder={translate("canvasTools.canvasNodeLayerDecompositionDialog.selectLayerSplittingModel")}
                             modelFilter={(model) => supportsLayerDecomposition(config, model) || supportsExperimentalLayerExtraction(config, model)}
                             onMissingConfig={() => navigateToSettings({ continueCreation: true })}
                             onChange={(model) => setGenerationConfig((current) => ({ ...current, model, imageModel: model, ...defaultImageParamsForModel(current, model) }))}
                         />
                         {!supported ? (
                             <p role="alert" className="text-xs text-red-500">
-                                请选择可编辑参考图的图片模型或专用拆层模型
+                                {translate("canvasPage.mediaTools.selectLayerModel")}
                             </p>
                         ) : null}
                         {outputSizeError ? (
@@ -197,7 +198,7 @@ export function CanvasNodeLayerDecompositionDialog({
                     </div>
                     <div className="mt-auto flex justify-end gap-2 pt-2">
                         <Button icon={<X className="size-4" />} onClick={onClose}>
-                            取消
+                            {translate("common.cancel")}
                         </Button>
                         <Button
                             type="primary"
@@ -219,7 +220,7 @@ export function CanvasNodeLayerDecompositionDialog({
                                 });
                             }}
                         >
-                            开始拆分
+                            {translate("canvasTools.canvasNodeLayerDecompositionDialog.startSplitting")}
                         </Button>
                     </div>
                 </div>

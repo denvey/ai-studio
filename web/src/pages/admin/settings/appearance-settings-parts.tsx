@@ -7,16 +7,18 @@ import { Button, Skeleton } from "antd";
 import { DEFAULT_PUBLIC_APPEARANCE } from "@/stores/use-appearance-store";
 import { cn } from "@/lib/utils";
 import { isSkinButtonFill, type SkinDefinition } from "@/lib/skin-themes";
+import { translate } from "@/i18n";
+
 
 export type DraftFiles = Record<AppearanceAssetSlot, File | null>;
 
 export type ResetState = Record<AppearanceAssetSlot, boolean>;
 
 export const FILE_RULES: Record<AppearanceAssetSlot, { accept: string; maxBytes: number; label: string }> = {
-    logo: { accept: "image/png,image/jpeg,image/webp", maxBytes: 5 << 20, label: "浅色模式 Logo" },
-    "logo-dark": { accept: "image/png,image/jpeg,image/webp", maxBytes: 5 << 20, label: "深色模式 Logo" },
-    poster: { accept: "image/png,image/jpeg,image/webp", maxBytes: 10 << 20, label: "视频封面" },
-    video: { accept: "video/mp4,video/webm", maxBytes: 256 << 20, label: "品牌视频" },
+    logo: { accept: "image/png,image/jpeg,image/webp", maxBytes: 5 << 20, label: translate("adminPages.settings.appearanceSettingsParts.lightModeLogo") },
+    "logo-dark": { accept: "image/png,image/jpeg,image/webp", maxBytes: 5 << 20, label: translate("adminPages.settings.appearanceSettingsParts.darkModeLogo") },
+    poster: { accept: "image/png,image/jpeg,image/webp", maxBytes: 10 << 20, label: translate("adminPages.settings.appearanceSettingsParts.videoPoster") },
+    video: { accept: "video/mp4,video/webm", maxBytes: 256 << 20, label: translate("adminPages.settings.appearanceSettingsParts.brandVideo") },
 };
 
 export function AssetPicker({
@@ -49,15 +51,15 @@ export function AssetPicker({
             <span className="admin-appearance-asset-copy">
                 <strong>{title}</strong>
                 <small>{description}</small>
-                <em>{file ? `${file.name} · ${formatBytes(file.size)}` : configured ? "已配置自定义文件" : emptyLabel || "使用项目原始文件"}</em>
+                <em>{file ? `${file.name} · ${formatBytes(file.size)}` : configured ? translate("adminPages.settings.appearanceSettingsParts.customFileConfigured") : emptyLabel || translate("adminPages.settings.appearanceSettingsParts.usingOriginalProjectFile")}</em>
             </span>
             <span className="admin-appearance-asset-actions">
                 <input ref={inputRef} type="file" accept={rule.accept} onChange={(event) => onSelect(slot, event.target.files?.[0])} />
                 <Button icon={<Upload className="size-3.5" />} disabled={disabled} onClick={() => inputRef.current?.click()}>
-                    选择文件
+                    {translate("adminPages.settings.appearanceSettingsParts.chooseFile")}
                 </Button>
                 <Button type="text" danger={configured || Boolean(file)} disabled={disabled || (!configured && !file)} onClick={() => onReset(slot)}>
-                    恢复原始
+                    {translate("adminPages.settings.appearanceSettingsParts.restoreOriginal")}
                 </Button>
             </span>
         </div>
@@ -110,7 +112,7 @@ export function useObjectURL(file: File | null) {
 
 export function AppearanceSkeleton() {
     return (
-        <div className="admin-settings-stack admin-appearance-settings" aria-label="正在读取外观配置" role="status">
+        <div className="admin-settings-stack admin-appearance-settings" aria-label={translate("adminPages.settings.appearanceSettingsParts.loadingAppearanceSettings")} role="status">
             <div className="admin-appearance-command-bar">
                 <Skeleton active title={{ width: 190 }} paragraph={false} />
             </div>
@@ -137,20 +139,20 @@ export function hasUnsupportedControlCharacter(value: string) {
 }
 
 export function validateSkinDrafts(themes: SkinDefinition[], selectedID: string) {
-    if (!themes.length || themes.length > 16) return "皮肤主题数量必须为 1 到 16 套";
+    if (!themes.length || themes.length > 16) return translate("adminPages.settings.appearanceSettingsParts.thereMustBe116Themes");
     const ids = new Set<string>();
     for (const theme of themes) {
-        if (!/^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/.test(theme.id) || ids.has(theme.id)) return "皮肤主题 ID 无效或重复";
+        if (!/^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/.test(theme.id) || ids.has(theme.id)) return translate("adminPages.settings.appearanceSettingsParts.invalidOrDuplicateThemeID");
         ids.add(theme.id);
-        if (!theme.name.trim() || Array.from(theme.name.trim()).length > 40) return "皮肤主题名称必须为 1 到 40 个字符";
-        if (Array.from(theme.description.trim()).length > 100) return "皮肤主题说明不能超过 100 个字符";
+        if (!theme.name.trim() || Array.from(theme.name.trim()).length > 40) return translate("adminPages.settings.appearanceSettingsParts.themeNamesMustBe140Characters");
+        if (Array.from(theme.description.trim()).length > 100) return translate("adminPages.settings.appearanceSettingsParts.themeDescriptionsCannotExceed100Characters");
         const invalidColor = [...Object.values(theme.tokens.light), ...Object.values(theme.tokens.dark)].some((color) => !/^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(color));
-        if (invalidColor) return `主题“${theme.name}”存在无效颜色，请使用 6 或 8 位十六进制色值`;
-        if (!isSkinButtonFill(theme.tokens.buttons.light) || !isSkinButtonFill(theme.tokens.buttons.dark)) return `主题“${theme.name}”的主按钮参数无效，请检查颜色和渐变角度（0–360°）`;
-        if (theme.tokens.components.controlHeightSmall > theme.tokens.components.controlHeight || theme.tokens.components.controlHeight > theme.tokens.components.controlHeightLarge) return `主题“${theme.name}”的控件高度顺序无效`;
-        if (theme.tokens.components.motionFast > theme.tokens.components.motionNormal) return `主题“${theme.name}”的快速动效不能慢于常规动效`;
+        if (invalidColor) return translate("adminPages.settings.appearanceSettingsParts.themeContainsAnInvalidColorUse6Or8Digit", { v0: String(theme.name) });
+        if (!isSkinButtonFill(theme.tokens.buttons.light) || !isSkinButtonFill(theme.tokens.buttons.dark)) return translate("adminPages.settings.appearanceSettingsParts.themeHasInvalidPrimaryButtonSettingsCheckColorsAndGradient", { v0: String(theme.name) });
+        if (theme.tokens.components.controlHeightSmall > theme.tokens.components.controlHeight || theme.tokens.components.controlHeight > theme.tokens.components.controlHeightLarge) return translate("adminPages.settings.appearanceSettingsParts.themeHasAnInvalidControlHeightOrder", { v0: String(theme.name) });
+        if (theme.tokens.components.motionFast > theme.tokens.components.motionNormal) return translate("adminPages.settings.appearanceSettingsParts.themeFastAnimationsCannotBeSlowerThanRegularAnimations", { v0: String(theme.name) });
     }
-    if (!ids.has("classic") || !ids.has(selectedID)) return "默认主题或当前启用主题不存在";
+    if (!ids.has("classic") || !ids.has(selectedID)) return translate("adminPages.settings.appearanceSettingsParts.theDefaultOrCurrentlyActiveThemeDoesNotExist");
     return "";
 }
 

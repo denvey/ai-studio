@@ -14,6 +14,8 @@ import {
 } from "@/services/api/timeline-tasks";
 import type { ProjectAsset } from "@/services/api/projects";
 import type { SrtEntry } from "@/types/timeline";
+import { translate } from "@/i18n";
+
 
 const WHISPER_WAIT_TIMEOUT_MS = 25 * 60 * 1000;
 
@@ -64,13 +66,13 @@ export function EditorTranscription() {
         const resourceId = resourceIdOfAsset(selected);
         if (!resourceId) {
             setFailed(true);
-            setMessage("该素材没有可转写的媒体对象（缺少 storageKey）");
+            setMessage(translate("shared.plugins.builtin.editor.editorTranscription.thisAssetHasNoMediaObjectToTranscribeMissingStorageKey"));
             return;
         }
         setRunning(true);
         setFailed(false);
         setMessage(null);
-        setProgressLabel("排队中…");
+        setProgressLabel(translate("shared.plugins.builtin.editor.editorTranscription.queued"));
         try {
             const created = await createTimelineTranscriptionTask({
                 resourceId,
@@ -87,21 +89,21 @@ export function EditorTranscription() {
             const parsed = JSON.parse(done.resultJson ?? "{}") as TimelineTranscriptionResult;
             const entries = toSrtEntries(parsed.segments ?? []);
             if (entries.length === 0) {
-                setMessage("转写完成，但没有识别出可用字幕（语音内容为空？）");
+                setMessage(translate("shared.plugins.builtin.editor.editorTranscription.transcriptionFinishedButNoUsableSubtitlesWereRecognizedTheMedia"));
             } else if (!subtitleTrack) {
-                setMessage("项目没有字幕轨道，无法写入转写字幕");
+                setMessage(translate("shared.plugins.builtin.editor.editorTranscription.thisProjectHasNoSubtitleTrackTranscribedSubtitlesCouldNot"));
             } else {
                 dispatch({
                     op: "rebuildSubtitleClips",
                     payload: { nodeId: `transcription:${selected.id}`, entries, trackId: subtitleTrack.id },
                 });
                 const langHint = parsed.language ? `（${parsed.language}）` : "";
-                setMessage(`已写入 ${entries.length} 条转写字幕${langHint}`);
+                setMessage(translate("shared.plugins.builtin.editor.editorTranscription.addedTranscribedSubtitles", { v0: String(entries.length), v1: String(langHint) }));
             }
             setProgressLabel(null);
         } catch (err) {
             setFailed(true);
-            setMessage(err instanceof Error ? err.message : "转写失败，请稍后重试");
+            setMessage(err instanceof Error ? err.message : translate("shared.plugins.builtin.editor.editorTranscription.transcriptionFailedTryAgainLater"));
             setProgressLabel(null);
         } finally {
             setRunning(false);
@@ -114,13 +116,13 @@ export function EditorTranscription() {
                 {transcribableAssets.length === 0 ? (
                     <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center">
                         <AudioLines className="size-5 text-[var(--previs-dock-fg)]/40" />
-                        <p className="text-xs text-[var(--previs-dock-fg)]/60">项目暂无音视频素材</p>
-                        <p className="max-w-[200px] text-[var(--fs-label)] leading-relaxed text-[var(--previs-dock-fg)]/45">素材库加入音频或视频后可转写自动字幕</p>
+                        <p className="text-xs text-[var(--previs-dock-fg)]/60">{translate("shared.plugins.builtin.editor.editorTranscription.thisProjectHasNoAudioOrVideoAssetsYet")}</p>
+                        <p className="max-w-[200px] text-[var(--fs-label)] leading-relaxed text-[var(--previs-dock-fg)]/45">{translate("shared.plugins.builtin.editor.editorTranscription.addAudioOrVideoToTheAssetLibraryToTranscribe")}</p>
                     </div>
                 ) : (
                     <>
                         <label className="mb-2 block">
-                            <span className="mb-1 block text-[var(--fs-label)] text-[var(--previs-dock-fg)]/70">音视频素材</span>
+                            <span className="mb-1 block text-[var(--fs-label)] text-[var(--previs-dock-fg)]/70">{translate("shared.plugins.builtin.editor.editorTranscription.audioAndVideoAssets")}</span>
                             <select
                                 value={selectedId ?? ""}
                                 onChange={(e) => setSelectedId(e.target.value)}
@@ -141,7 +143,7 @@ export function EditorTranscription() {
                             className="flex w-full items-center justify-center gap-2 rounded-md bg-[var(--previs-accent)] px-2 py-2 text-xs font-medium text-[var(--previs-on-accent)] hover:bg-[var(--previs-accent-hover)] disabled:opacity-40"
                         >
                             {running && <Loader2 className="size-3.5 animate-spin" />}
-                            {running ? "转写中…" : "转写自动字幕"}
+                            {running ? translate("shared.plugins.builtin.editor.editorTranscription.transcribing") : translate("shared.plugins.builtin.editor.editorTranscription.transcribeAutomaticSubtitles")}
                         </button>
 
                         {running && progressLabel && (
@@ -153,7 +155,7 @@ export function EditorTranscription() {
                             </p>
                         )}
                         <p className="mt-2 text-[var(--fs-label)] leading-relaxed text-[var(--previs-dock-fg)]/45">
-                            由本地 whisper.cpp 识别，音视频不出本机；识别结果写入字幕轨道，可再编辑。
+                            {translate("shared.plugins.builtin.editor.editorTranscription.transcribedLocallyWithWhisperCppAudioAndVideoStayOn")}
                         </p>
                     </>
                 )}

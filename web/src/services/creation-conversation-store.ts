@@ -1,5 +1,7 @@
 import { localForageStorageForScope } from "@/lib/localforage-storage";
 import { getActiveUserScope } from "@/lib/user-scope";
+import { translate } from "@/i18n";
+
 
 export const CREATION_CONVERSATIONS_KEY = "creation-conversations-v1";
 
@@ -23,9 +25,9 @@ export function updateCreationConversationSnapshot<T extends { id: string }>(con
 
 // 对话、生成任务与素材是独立持久状态；删除历史记录不能在这里级联清理任务或资源。
 export function removeCreationConversationSnapshot<T extends { id: string }>(conversations: T[], conversationId: string) {
-    if (!conversationId) throw new Error("缺少要删除的创作对话 ID");
+    if (!conversationId) throw new Error(translate("shared.creationConversationStore.missingIDOfTheCreationConversationToDelete"));
     const next = conversations.filter((conversation) => conversation.id !== conversationId);
-    if (next.length === conversations.length) throw new Error("要删除的创作对话不存在");
+    if (next.length === conversations.length) throw new Error(translate("shared.creationConversationStore.theCreationConversationToDeleteDoesNotExist"));
     return next;
 }
 
@@ -63,9 +65,9 @@ export async function loadCreationConversations<T extends StoredCreationConversa
     try {
         parsed = JSON.parse(value);
     } catch {
-        throw new Error("创作对话持久状态无效");
+        throw new Error(translate("shared.creationConversationStore.invalidCreationConversationPersistenceState"));
     }
-    if (!Array.isArray(parsed)) throw new Error("创作对话持久状态无效");
+    if (!Array.isArray(parsed)) throw new Error(translate("shared.creationConversationStore.invalidCreationConversationPersistenceState"));
     return parsed as T[];
 }
 

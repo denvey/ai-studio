@@ -66,6 +66,7 @@ import { preloadAdminPages } from "../admin-page-loader";
 import "@/styles/admin-ui.css";
 import "../theme/admin-tokens.css";
 import "../theme/admin-chrome.css";
+import { translate } from "@/i18n";
 
 type AdminNavigationItem = {
     path: string;
@@ -83,75 +84,75 @@ type AdminNavigationGroup = { key: string; label: string; items: AdminNavigation
 const adminNavigation: AdminNavigationGroup[] = [
     {
         key: "overview",
-        label: "运营监控",
+        label: translate("admin.adminShell.operationsMonitoring"),
         items: [
-            { path: "/admin", keywords: "统计 仪表盘 收入 使用量 dashboard analytics", label: "运行总览", shortLabel: "总览", icon: <BarChart3 className="size-4" /> },
-            { path: "/admin/logs", keywords: "请求 日志 错误 调用 计费 退款", label: "请求明细", shortLabel: "请求", icon: <FileClock className="size-4" /> },
-            { path: "/admin/login-logs", keywords: "登录 记录 IP 安全", label: "登录日志", shortLabel: "登录", icon: <LogIn className="size-4" /> },
-            { path: "/admin/email-logs", keywords: "邮件 发送 记录 验证码", label: "邮件记录", shortLabel: "邮件", icon: <MailSearch className="size-4" /> },
-            { path: "/admin/settings/system-performance", keywords: "性能 监控 CPU 内存 缓存 队列", label: "系统性能", shortLabel: "性能", icon: <Activity className="size-4" /> },
+            { path: "/admin", keywords: "统计 仪表盘 收入 使用量 dashboard analytics", label: translate("admin.adminShell.operationsOverview"), shortLabel: translate("admin.adminShell.overview"), icon: <BarChart3 className="size-4" /> },
+            { path: "/admin/logs", keywords: "请求 日志 错误 调用 计费 退款", label: translate("admin.adminShell.requestDetails"), shortLabel: translate("admin.adminShell.request"), icon: <FileClock className="size-4" /> },
+            { path: "/admin/login-logs", keywords: "登录 记录 IP 安全", label: translate("admin.adminShell.signInLogs"), shortLabel: translate("shell.login"), icon: <LogIn className="size-4" /> },
+            { path: "/admin/email-logs", keywords: "邮件 发送 记录 验证码", label: translate("admin.adminShell.emailLogs"), shortLabel: translate("admin.adminShell.email"), icon: <MailSearch className="size-4" /> },
+            { path: "/admin/settings/system-performance", keywords: "性能 监控 CPU 内存 缓存 队列", label: translate("admin.adminShell.systemPerformance"), shortLabel: translate("admin.adminShell.performance"), icon: <Activity className="size-4" /> },
         ],
     },
     {
         key: "users",
-        label: "用户与运营",
+        label: translate("admin.adminShell.usersAndOperations"),
         items: [
-            { path: "/admin/users", keywords: "账号 用户 权限 封禁 密码", label: "用户管理", shortLabel: "用户", icon: <UsersRound className="size-4" /> },
-            { path: "/admin/user-groups", keywords: "用户组 倍率 VIP 定价", label: "用户分组", shortLabel: "分组", icon: <Crown className="size-4" /> },
-            { path: "/admin/credit-operations", keywords: "积分 余额 账务 退款", label: "积分运营", shortLabel: "积分", icon: <Coins className="size-4" /> },
-            { path: "/admin/payments", keywords: "支付 充值 订单 商品 支付宝 微信", label: "支付充值", shortLabel: "支付", icon: <CreditCard className="size-4" /> },
-            { path: "/admin/redemption-codes", keywords: "兑换码 激活码 充值", label: "兑换码", shortLabel: "兑换", icon: <TicketCheck className="size-4" /> },
-            { path: "/admin/referral", keywords: "推广 邀请 佣金 返佣", label: "推广中心", shortLabel: "推广", icon: <Gift className="size-4" /> },
-            { path: "/admin/announcements", keywords: "公告 更新 弹窗", label: "系统公告", shortLabel: "公告", icon: <BellRing className="size-4" /> },
-            { path: "/admin/banner-announcements", keywords: "通知 横幅", label: "常驻通知", shortLabel: "通知", icon: <Megaphone className="size-4" /> },
-            { path: "/admin/feedbacks", keywords: "反馈 工单 建议 问题", label: "用户反馈", shortLabel: "反馈", icon: <Inbox className="size-4" /> },
-            { path: "/admin/agent-lessons", keywords: "Agent 记忆 经验", label: "Agent 记忆", shortLabel: "记忆", icon: <BookMarked className="size-4" /> },
+            { path: "/admin/users", keywords: "账号 用户 权限 封禁 密码", label: translate("admin.adminShell.userManagement"), shortLabel: translate("admin.adminShell.users"), icon: <UsersRound className="size-4" /> },
+            { path: "/admin/user-groups", keywords: "用户组 倍率 VIP 定价", label: translate("admin.adminShell.userGroups"), shortLabel: translate("admin.adminShell.groups"), icon: <Crown className="size-4" /> },
+            { path: "/admin/credit-operations", keywords: "积分 余额 账务 退款", label: translate("admin.adminShell.creditOperations"), shortLabel: translate("shell.credits"), icon: <Coins className="size-4" /> },
+            { path: "/admin/payments", keywords: "支付 充值 订单 商品 支付宝 微信", label: translate("admin.adminShell.paymentsAndTopUps"), shortLabel: translate("admin.adminShell.payments"), icon: <CreditCard className="size-4" /> },
+            { path: "/admin/redemption-codes", keywords: "兑换码 激活码 充值", label: translate("account.wallet.redeemTitle"), shortLabel: translate("account.wallet.tabRedeem"), icon: <TicketCheck className="size-4" /> },
+            { path: "/admin/referral", keywords: "推广 邀请 佣金 返佣", label: translate("shell.account.referral"), shortLabel: translate("admin.adminShell.referrals"), icon: <Gift className="size-4" /> },
+            { path: "/admin/announcements", keywords: "公告 更新 弹窗", label: translate("account.layout.announcements.title"), shortLabel: translate("admin.adminShell.announcement"), icon: <BellRing className="size-4" /> },
+            { path: "/admin/banner-announcements", keywords: "通知 横幅", label: translate("admin.adminShell.persistentNotices"), shortLabel: translate("settings.preferences.notifications"), icon: <Megaphone className="size-4" /> },
+            { path: "/admin/feedbacks", keywords: "反馈 工单 建议 问题", label: translate("admin.adminShell.userFeedback"), shortLabel: translate("account.feedback.button"), icon: <Inbox className="size-4" /> },
+            { path: "/admin/agent-lessons", keywords: "Agent 记忆 经验", label: translate("settings.sections.agent-memory.label"), shortLabel: translate("admin.adminShell.memory"), icon: <BookMarked className="size-4" /> },
         ],
     },
     {
         key: "models",
-        label: "模型与渠道",
+        label: translate("admin.adminShell.modelsAndChannels"),
         items: [
-            { path: "/admin/channels", keywords: "渠道 模型 API Key 密钥 上游 定价 协议", label: "渠道与模型", shortLabel: "渠道", icon: <RadioTower className="size-4" /> },
-            { path: "/admin/models", keywords: "前台模型 逻辑模型 能力", label: "前台模型", shortLabel: "模型", icon: <Layers3 className="size-4" />, requireFeature: "frontendModelsEnabled" },
+            { path: "/admin/channels", keywords: "渠道 模型 API Key 密钥 上游 定价 协议", label: translate("admin.adminShell.channelsAndModels"), shortLabel: translate("admin.adminShell.channel"), icon: <RadioTower className="size-4" /> },
+            { path: "/admin/models", keywords: "前台模型 逻辑模型 能力", label: translate("admin.adminShell.userFacingModels"), shortLabel: translate("canvasA.assetView.model"), icon: <Layers3 className="size-4" />, requireFeature: "frontendModelsEnabled" },
         ],
     },
     {
         key: "creation",
-        label: "创作与扩展",
+        label: translate("admin.adminShell.creationAndExtensions"),
         items: [
-            { path: "/admin/workbench-tools", keywords: "工作台 工具 首页", label: "工作台工具", shortLabel: "工具", icon: <Shapes className="size-4" /> },
-            { path: "/admin/prompt-templates", keywords: "提示词 模板 分镜 prompt", label: "提示词模板", shortLabel: "模板", icon: <MessageSquareText className="size-4" /> },
-            { path: "/admin/pose-library", keywords: "姿势 动作 pose", label: "姿势库", shortLabel: "姿势", icon: <PersonStanding className="size-4" /> },
-            { path: "/admin/settings/drawing-engine", keywords: "绘图 画板 引擎", label: "绘图工具", shortLabel: "绘图", icon: <Paintbrush className="size-4" /> },
-            { path: "/admin/plugins", keywords: "插件 扩展 协议 plugin", label: "插件管理", shortLabel: "插件", icon: <PlugZap className="size-4" /> },
-            { path: "/admin/skills", keywords: "技能 skill", label: "技能管理", shortLabel: "技能", icon: <Wand2 className="size-4" /> },
-            { path: "/admin/skill-curation", keywords: "技能 分类 推荐", label: "技能分类", shortLabel: "分类", icon: <Sparkles className="size-4" /> },
-            { path: "/admin/resources", keywords: "资源 文件 素材 存储 清理", label: "存储资源", shortLabel: "资源", icon: <Database className="size-4" /> },
+            { path: "/admin/workbench-tools", keywords: "工作台 工具 首页", label: translate("admin.adminShell.workbenchTools"), shortLabel: translate("canvasA.focusBar.tools"), icon: <Shapes className="size-4" /> },
+            { path: "/admin/prompt-templates", keywords: "提示词 模板 分镜 prompt", label: translate("account.settings.prompts.template"), shortLabel: translate("admin.adminShell.template"), icon: <MessageSquareText className="size-4" /> },
+            { path: "/admin/pose-library", keywords: "姿势 动作 pose", label: translate("admin.adminShell.poseLibrary"), shortLabel: translate("admin.adminShell.poses"), icon: <PersonStanding className="size-4" /> },
+            { path: "/admin/settings/drawing-engine", keywords: "绘图 画板 引擎", label: translate("admin.adminShell.drawingTools"), shortLabel: translate("canvasA.drawingModal.defaultTitle"), icon: <Paintbrush className="size-4" /> },
+            { path: "/admin/plugins", keywords: "插件 扩展 协议 plugin", label: translate("admin.adminShell.pluginManagement"), shortLabel: translate("nav.sidebar.plugins"), icon: <PlugZap className="size-4" /> },
+            { path: "/admin/skills", keywords: "技能 skill", label: translate("admin.adminShell.skillManagement"), shortLabel: translate("nav.sidebar.skills"), icon: <Wand2 className="size-4" /> },
+            { path: "/admin/skill-curation", keywords: "技能 分类 推荐", label: translate("admin.adminShell.skillCategory"), shortLabel: translate("library.picker.category"), icon: <Sparkles className="size-4" /> },
+            { path: "/admin/resources", keywords: "资源 文件 素材 存储 清理", label: translate("admin.adminShell.storageResources"), shortLabel: translate("admin.adminShell.resources"), icon: <Database className="size-4" /> },
         ],
     },
     {
         key: "ecommerce-agent",
-        label: "电商 Agent",
+        label: translate("nav.sidebar.ecommerce"),
         items: [
-            { path: "/admin/ecommerce/agent", keywords: "电商 Agent 模型 配置", label: "电商 Agent 配置", shortLabel: "配置", icon: <Bot className="size-4" /> },
-            { path: "/admin/ecommerce/library", keywords: "电商 知识 技能 品类", label: "知识与技能", shortLabel: "知识", icon: <Database className="size-4" /> },
+            { path: "/admin/ecommerce/agent", keywords: "电商 Agent 模型 配置", label: translate("admin.adminShell.eCommerceAgentSettings"), shortLabel: translate("account.settings.channels.configure"), icon: <Bot className="size-4" /> },
+            { path: "/admin/ecommerce/library", keywords: "电商 知识 技能 品类", label: translate("admin.adminShell.knowledgeAndSkills"), shortLabel: translate("admin.adminShell.knowledge"), icon: <Database className="size-4" /> },
         ],
     },
     {
         key: "settings",
-        label: "系统设置",
+        label: translate("admin.adminShell.systemSettings"),
         items: [
-            { path: "/admin/settings/appearance", keywords: "站点 外观 品牌 主题 Logo 皮肤", label: "站点及外观", shortLabel: "外观", icon: <Palette className="size-4" /> },
-            { path: "/admin/settings/features", keywords: "功能 开关 开放", label: "功能开放", shortLabel: "功能", icon: <ToggleLeft className="size-4" /> },
-            { path: "/admin/settings/access", keywords: "登录 注册 验证码 认证", label: "登录与注册", shortLabel: "注册", icon: <ShieldCheck className="size-4" /> },
-            { path: "/admin/settings/email", keywords: "邮件 SMTP 发信 邮箱", label: "邮件服务", shortLabel: "邮件", icon: <Mail className="size-4" /> },
-            { path: "/admin/settings/storage", keywords: "存储 OSS S3 对象存储 上传", label: "存储服务", shortLabel: "存储", icon: <HardDrive className="size-4" /> },
-            { path: "/admin/settings/runtime-policy", keywords: "资源 策略 并发 限流 配额 worker", label: "资源与策略", shortLabel: "策略", icon: <Settings2 className="size-4" /> },
-            { path: "/admin/settings/ark-private-assets", keywords: "方舟 素材库 火山", label: "方舟素材库", shortLabel: "方舟", icon: <CloudUpload className="size-4" /> },
-            { path: "/admin/settings/third-party", keywords: "第三方 参数 配置 密钥 LibTV", label: "第三方参数配置", shortLabel: "三方", icon: <KeyRound className="size-4" /> },
-            { path: "/admin/settings/response-interception", keywords: "模型 响应 拦截 敏感词 过滤", label: "模型响应拦截", shortLabel: "拦截", icon: <ShieldAlert className="size-4" /> },
-            { path: "/admin/settings/system-update", keywords: "系统 更新 升级 版本 部署", label: "系统更新", shortLabel: "更新", icon: <RefreshCw className="size-4" /> },
+            { path: "/admin/settings/appearance", keywords: "站点 外观 品牌 主题 Logo 皮肤", label: translate("admin.adminShell.siteAndAppearance"), shortLabel: translate("canvasA.characterStudio.groups.appearance"), icon: <Palette className="size-4" /> },
+            { path: "/admin/settings/features", keywords: "功能 开关 开放", label: translate("admin.adminShell.featureAvailability"), shortLabel: translate("admin.adminShell.features"), icon: <ToggleLeft className="size-4" /> },
+            { path: "/admin/settings/access", keywords: "登录 注册 验证码 认证", label: translate("admin.adminShell.signInAndRegistration"), shortLabel: translate("admin.adminShell.signUp"), icon: <ShieldCheck className="size-4" /> },
+            { path: "/admin/settings/email", keywords: "邮件 SMTP 发信 邮箱", label: translate("admin.adminShell.emailService"), shortLabel: translate("admin.adminShell.email"), icon: <Mail className="size-4" /> },
+            { path: "/admin/settings/storage", keywords: "存储 OSS S3 对象存储 上传", label: translate("account.layout.oss.provider"), shortLabel: translate("admin.adminShell.storage"), icon: <HardDrive className="size-4" /> },
+            { path: "/admin/settings/runtime-policy", keywords: "资源 策略 并发 限流 配额 worker", label: translate("admin.adminShell.resourcesAndPolicy"), shortLabel: translate("admin.adminShell.strategy"), icon: <Settings2 className="size-4" /> },
+            { path: "/admin/settings/ark-private-assets", keywords: "方舟 素材库 火山", label: translate("settings.sections.ark-assets.label"), shortLabel: translate("admin.adminShell.ark"), icon: <CloudUpload className="size-4" /> },
+            { path: "/admin/settings/third-party", keywords: "第三方 参数 配置 密钥 LibTV", label: translate("admin.adminShell.thirdPartySettings"), shortLabel: translate("admin.adminShell.thirdParty"), icon: <KeyRound className="size-4" /> },
+            { path: "/admin/settings/response-interception", keywords: "模型 响应 拦截 敏感词 过滤", label: translate("admin.adminShell.modelResponseFiltering"), shortLabel: translate("admin.adminShell.interception"), icon: <ShieldAlert className="size-4" /> },
+            { path: "/admin/settings/system-update", keywords: "系统 更新 升级 版本 部署", label: translate("admin.adminShell.systemUpdates"), shortLabel: translate("canvasA.assetView.updated"), icon: <RefreshCw className="size-4" /> },
         ],
     },
 ];
@@ -236,7 +237,7 @@ function AdminShellLayout() {
                 <main id="admin-root" data-admin-root data-admin-density={density} className="admin-shell flex h-full min-h-0 overflow-hidden">
                     <aside className={cn("admin-sidebar hidden shrink-0 flex-col overflow-hidden lg:flex", collapsed && "is-collapsed")}>
                         <div className="admin-sidebar-identity shrink-0">
-                            <AdminTooltip title={collapsed ? (appearance.updates?.enabled ? "查看更新公告" : "查看更新日志") : undefined} placement="right">
+                            <AdminTooltip title={collapsed ? (appearance.updates?.enabled ? translate("admin.adminShell.viewReleaseAnnouncements") : translate("admin.adminShell.viewChangelog")) : undefined} placement="right">
                                 <AppChangelogButton
                                     className={cn("admin-sidebar-brand-button", collapsed && "is-collapsed")}
                                     icon={<BrandLogoFrame className="admin-sidebar-brand-mark grid shrink-0 place-items-center bg-foreground text-background" logoClassName="size-5 object-contain" alt="" fallback={<InfinityIcon className="size-4" />} />}
@@ -251,20 +252,20 @@ function AdminShellLayout() {
                         <AdminNavigation collapsed={collapsed} />
                         <div className={cn("admin-sidebar-footer shrink-0", collapsed && "is-collapsed")}>
                             <div className="admin-sidebar-footer-row">
-                                <AdminTooltip title={collapsed ? "返回创作台" : undefined} placement="right">
-                                    <NavLink to="/" aria-label={collapsed ? "返回创作台" : undefined} className={cn("admin-nav-link", collapsed && "is-collapsed")}>
+                                <AdminTooltip title={collapsed ? translate("admin.adminShell.backToWorkspace") : undefined} placement="right">
+                                    <NavLink to="/" aria-label={collapsed ? translate("admin.adminShell.backToWorkspace") : undefined} className={cn("admin-nav-link", collapsed && "is-collapsed")}>
                                         <Home className="size-4" strokeWidth={1.6} />
-                                        {collapsed ? <span className="admin-nav-short-label">返回</span> : <span>返回创作台</span>}
+                                        {collapsed ? <span className="admin-nav-short-label">{translate("admin.adminShell.back")}</span> : <span>{translate("admin.adminShell.backToWorkspace")}</span>}
                                     </NavLink>
                                 </AdminTooltip>
                                 {!collapsed ? (
-                                    <button type="button" className="admin-sidebar-collapse-toggle" onClick={toggleCollapsed} aria-label="收起侧栏" title="收起侧栏" aria-expanded={!collapsed}>
+                                    <button type="button" className="admin-sidebar-collapse-toggle" onClick={toggleCollapsed} aria-label={translate("shell.collapseSidebar")} title={translate("shell.collapseSidebar")} aria-expanded={!collapsed}>
                                         <PanelLeftClose className="size-4" strokeWidth={1.7} />
                                     </button>
                                 ) : null}
                             </div>
                             {collapsed ? (
-                                <button type="button" className="admin-sidebar-collapse-toggle is-collapsed" onClick={toggleCollapsed} aria-label="展开侧栏" title="展开侧栏">
+                                <button type="button" className="admin-sidebar-collapse-toggle is-collapsed" onClick={toggleCollapsed} aria-label={translate("shell.expandSidebar")} title={translate("shell.expandSidebar")}>
                                     <PanelLeftOpen className="size-4" strokeWidth={1.7} />
                                 </button>
                             ) : null}
@@ -278,7 +279,7 @@ function AdminShellLayout() {
                         <Suspense
                             fallback={
                                 <div className="p-8 text-sm" role="status">
-                                    正在加载管理页面…
+                                    {translate("admin.adminShell.loadingAdminPage")}
                                 </div>
                             }
                         >
@@ -308,8 +309,8 @@ export function AdminPageFrame({ title, description, actions, back, scroll = fal
                             </AdminTooltip>
                         ) : null}
                         <div className="admin-page-title-block min-w-0">
-                            <nav className="admin-page-location" aria-label="当前位置">
-                                <span className="admin-page-location-section">{current?.group.label ?? "管理后台"}</span>
+                            <nav className="admin-page-location" aria-label={translate("shell.breadcrumb")}>
+                                <span className="admin-page-location-section">{current?.group.label ?? translate("admin.adminShell.admin")}</span>
                                 <span className="admin-page-location-separator" aria-hidden="true">
                                     /
                                 </span>
@@ -343,10 +344,10 @@ export function AdminPageFrame({ title, description, actions, back, scroll = fal
 function AdminDensityButton() {
     const { density, toggleDensity } = useAdminDensity();
     return (
-        <AdminTooltip title={density === "compact" ? "切换为舒适行距" : "切换为紧凑行距"}>
-            <button type="button" className="admin-density-toggle" onClick={toggleDensity} aria-label="紧凑表格行距" aria-pressed={density === "compact"}>
+        <AdminTooltip title={density === "compact" ? translate("admin.adminShell.useComfortableRowSpacing") : translate("admin.adminShell.useCompactRowSpacing")}>
+            <button type="button" className="admin-density-toggle" onClick={toggleDensity} aria-label={translate("admin.adminShell.compactTableRowSpacing")} aria-pressed={density === "compact"}>
                 <Rows3 className="size-4" aria-hidden="true" />
-                {density === "compact" ? "紧凑" : "舒适"}
+                {density === "compact" ? translate("library.assets.density.compact") : translate("library.assets.density.comfortable")}
             </button>
         </AdminTooltip>
     );
@@ -358,8 +359,8 @@ function AdminThemeButton() {
     const dark = theme === "dark";
 
     return (
-        <AdminTooltip title={dark ? "切换到浅色主题" : "切换到深色主题"} placement="bottom">
-            <button type="button" className="admin-page-theme-toggle shrink-0" onClick={() => setTheme(dark ? "light" : "dark")} aria-label={dark ? "切换到浅色主题" : "切换到深色主题"}>
+        <AdminTooltip title={dark ? translate("admin.adminShell.switchToLightTheme") : translate("admin.adminShell.switchToDarkTheme")} placement="bottom">
+            <button type="button" className="admin-page-theme-toggle shrink-0" onClick={() => setTheme(dark ? "light" : "dark")} aria-label={dark ? translate("admin.adminShell.switchToLightTheme") : translate("admin.adminShell.switchToDarkTheme")}>
                 {dark ? <Sun className="size-4" aria-hidden="true" /> : <Moon className="size-4" aria-hidden="true" />}
             </button>
         </AdminTooltip>
@@ -389,20 +390,20 @@ function MobileAdminNavigation() {
     }));
 
     return (
-        <nav className="admin-mobile-navigation flex shrink-0 items-center justify-between gap-2 lg:hidden" aria-label="管理后台导航">
+        <nav className="admin-mobile-navigation flex shrink-0 items-center justify-between gap-2 lg:hidden" aria-label={translate("admin.adminShell.adminNavigation")}>
             <Dropdown menu={{ items: menuItems, selectable: true, selectedKeys: currentItem ? [currentItem.path] : [], className: "admin-mobile-navigation-menu" }} trigger={["click"]} placement="bottomLeft">
-                <button type="button" className="admin-mobile-navigation-trigger" aria-label={`打开管理后台导航，当前页面${currentItem?.label || "未知"}`}>
+                <button type="button" className="admin-mobile-navigation-trigger" aria-label={translate("admin.adminShell.openAdminNavigationCurrentPage", { v0: String(currentItem?.label || translate("admin.adminShell.unknown")) })}>
                     <span className="admin-mobile-navigation-current-icon">{currentItem?.icon}</span>
                     <span className="min-w-0 text-left">
-                        <span className="admin-mobile-navigation-eyebrow">管理后台</span>
-                        <span className="admin-mobile-navigation-current-label">{currentItem?.label || "选择页面"}</span>
+                        <span className="admin-mobile-navigation-eyebrow">{translate("admin.adminShell.admin")}</span>
+                        <span className="admin-mobile-navigation-current-label">{currentItem?.label || translate("admin.adminShell.chooseAPage")}</span>
                     </span>
                     <ChevronDown className="size-3.5 shrink-0" aria-hidden="true" />
                 </button>
             </Dropdown>
             <div className="flex shrink-0 items-center gap-1">
-                <AdminTooltip title="返回创作台">
-                    <Link to="/" className="admin-mobile-navigation-action" aria-label="返回创作台">
+                <AdminTooltip title={translate("admin.adminShell.backToWorkspace")}>
+                    <Link to="/" className="admin-mobile-navigation-action" aria-label={translate("admin.adminShell.backToWorkspace")}>
                         <Home className="size-4" aria-hidden="true" />
                     </Link>
                 </AdminTooltip>
@@ -450,7 +451,7 @@ function AdminNavigation({ collapsed }: { collapsed: boolean }) {
     };
 
     return (
-        <nav className={cn("admin-sidebar-nav thin-scrollbar flex-1 overflow-y-auto", !collapsed && "is-tree")} aria-label="管理后台菜单">
+        <nav className={cn("admin-sidebar-nav thin-scrollbar flex-1 overflow-y-auto", !collapsed && "is-tree")} aria-label={translate("admin.adminShell.adminMenu")}>
             {groups.map((group) => {
                 if (collapsed) {
                     return (

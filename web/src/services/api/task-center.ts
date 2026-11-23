@@ -4,6 +4,8 @@ import { consumeTaskTextStream, createTaskTextStreamParser, type TaskTextStreamE
 import { recordDiagnosticEvent } from "@/services/diagnostics/client-diagnostics";
 import { observeGenerationTaskStatus, observeGenerationTaskStatuses } from "@/services/generation-completion-tracker";
 import { getActiveUserScope } from "@/lib/user-scope";
+import { translate } from "@/i18n";
+
 
 export type { BackendEnvelope } from "@/services/api/request";
 
@@ -438,7 +440,7 @@ export function isGenerationTaskTerminalError(error: unknown): error is Generati
 }
 
 function terminalTaskError(task: GenerationTask) {
-    return new GenerationTaskTerminalError(task.error ? generationErrorMessage(task.error) : `任务${task.status === "cancelled" ? "已取消" : "失败"}`, task);
+    return new GenerationTaskTerminalError(task.error ? generationErrorMessage(task.error) : translate("shared.api.taskCenter.task", { v0: String(task.status === "cancelled" ? translate("shared.api.taskCenter.cancelled") : translate("shared.api.taskCenter.failed")) }), task);
 }
 
 export type WaitForGenerationTaskOptions = {
@@ -497,7 +499,7 @@ export async function waitForGenerationTask(id: string, options?: WaitForGenerat
         }
         throw error;
     }
-    throw new Error(lastQueryError instanceof Error ? `任务状态同步失败：${lastQueryError.message}` : "任务执行超时，请稍后重试");
+    throw new Error(lastQueryError instanceof Error ? translate("shared.api.taskCenter.failedToSyncTaskStatus", { v0: String(lastQueryError.message) }) : translate("shared.api.taskCenter.theTaskTimedOutPleaseRetryLater"));
 }
 
 async function waitForGenerationTaskTextEvents(id: string, options: WaitForGenerationTaskOptions) {
@@ -528,9 +530,9 @@ async function waitForGenerationTaskTextEvents(id: string, options: WaitForGener
             });
             if (!response.ok) throw new TaskTextStreamFatalError(await taskTextStreamHTTPError(response));
             if (!(response.headers.get("content-type") || "").toLowerCase().includes("text/event-stream")) {
-                throw new TaskTextStreamFatalError("任务文本流接口未返回事件流，请检查后端地址和反向代理配置");
+                throw new TaskTextStreamFatalError(translate("shared.api.taskCenter.theTaskTextEndpointDidNotReturnAnEventStream"));
             }
-            if (!response.body) throw new Error("任务文本流不可用");
+            if (!response.body) throw new Error(translate("shared.api.taskCenter.taskTextStreamUnavailable"));
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             const parser = createTaskTextStreamParser();
@@ -569,7 +571,7 @@ async function waitForGenerationTaskTextEvents(id: string, options: WaitForGener
                     }
                     return;
                 }
-                if (event.event === "error") throw new Error(typeof payload.message === "string" ? payload.message : "任务文本流不可用");
+                if (event.event === "error") throw new Error(typeof payload.message === "string" ? payload.message : translate("shared.api.taskCenter.taskTextStreamUnavailable"));
             };
             for (;;) {
                 const { done, value } = await reader.read();
@@ -584,7 +586,7 @@ async function waitForGenerationTaskTextEvents(id: string, options: WaitForGener
                 if (completed.status === "succeeded") return completed;
                 if (completed.status === "failed" || completed.status === "cancelled") throw terminalTaskError(completed);
             }
-            lastStreamError = new Error("任务文本流连接提前结束");
+            lastStreamError = new Error(translate("shared.api.taskCenter.taskTextStreamConnectionEndedPrematurely"));
         } catch (error) {
             if (options.signal?.aborted) throw new DOMException("Aborted", "AbortError");
             if (error instanceof TaskTextStreamFatalError || error instanceof GenerationTaskTerminalError) throw error;
@@ -592,7 +594,7 @@ async function waitForGenerationTaskTextEvents(id: string, options: WaitForGener
         }
         await delay(intervalMs, options.signal);
     }
-    throw new Error(lastStreamError instanceof Error ? `任务文本流同步失败：${lastStreamError.message}` : "任务执行超时，请稍后重试");
+    throw new Error(lastStreamError instanceof Error ? translate("shared.api.taskCenter.failedToSyncTheTaskTextStream", { v0: String(lastStreamError.message) }) : translate("shared.api.taskCenter.theTaskTimedOutPleaseRetryLater"));
 }
 
 function asTaskTextStreamRecord(value: unknown): Record<string, unknown> {
@@ -621,7 +623,7 @@ async function taskTextStreamHTTPError(response: Response) {
     } catch {
         // SSE 错误响应可能是空正文或网关 HTML，只返回状态码，避免泄露正文。
     }
-    return `任务文本流请求失败（HTTP ${response.status}）`;
+    return translate("shared.api.taskCenter.taskTextStreamRequestFailedHTTP", { v0: String(response.status) });
 }
 
 function taskWaitTimeoutMs(task?: GenerationTask) {

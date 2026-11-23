@@ -1,4 +1,6 @@
 import { http, compactApiParams } from "./request";
+import { translate } from "@/i18n";
+
 
 export type AgentMemoryStep = { tool: string; action: string; note?: string };
 
@@ -89,19 +91,19 @@ export type AgentMemorySettingRequest = AgentMemoryCompactRequest & {
 };
 
 export const AGENT_MEMORY_CATEGORIES = [
-    { key: "storyboard", label: "分镜" },
-    { key: "video", label: "视频生成" },
-    { key: "image", label: "图像生成" },
-    { key: "canvas", label: "画布操作" },
-    { key: "asset", label: "资产" },
-    { key: "model", label: "模型选择" },
-    { key: "workflow", label: "流程顺序" },
-    { key: "billing", label: "计费" },
-    { key: "other", label: "其他" },
+    { key: "storyboard", label: translate("account.welcome.chapters.shots.label") },
+    { key: "video", label: translate("nav.sidebar.toolboxVideo") },
+    { key: "image", label: translate("create.message.imageGeneration") },
+    { key: "canvas", label: translate("shared.api.agentMemories.canvasOperations") },
+    { key: "asset", label: translate("nav.sidebar.assets") },
+    { key: "model", label: translate("settings.sections.models.label") },
+    { key: "workflow", label: translate("shared.api.agentMemories.workflowOrder") },
+    { key: "billing", label: translate("canvasC.taskItem.billing") },
+    { key: "other", label: translate("canvasA.skillLibrary.other") },
 ] as const;
 
 export function agentMemoryCategoryLabel(key?: string) {
-    return AGENT_MEMORY_CATEGORIES.find((entry) => entry.key === key)?.label || "其他";
+    return AGENT_MEMORY_CATEGORIES.find((entry) => entry.key === key)?.label || translate("canvasA.skillLibrary.other");
 }
 
 export function listAgentMemories(status?: string, limit = 200) {

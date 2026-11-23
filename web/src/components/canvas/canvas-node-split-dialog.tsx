@@ -3,6 +3,7 @@ import { InputNumber } from "antd";
 import { AppModal } from "@/components/ui/product/app-modal";
 import { MAX_IMAGE_GRID, planImageTiles, type ImageSplitParams } from "@/lib/canvas/image-operation-plan";
 import { useImageToolSource } from "./use-image-tool-source";
+import { translate } from "@/i18n";
 
 export type CanvasImageSplitParams = ImageSplitParams;
 type SplitDialogProps = { dataUrl: string; open: boolean; onClose: () => void; onConfirm: (params: CanvasImageSplitParams) => void };
@@ -22,12 +23,12 @@ function SplitEditor({ dataUrl, onClose, onConfirm }: SplitDialogProps) {
         setGrid((previous) => ({ ...previous, [axis]: Math.min(MAX_IMAGE_GRID, Math.max(1, Math.round(value))) }));
     };
     return (
-        <AppModal open title="宫格切分" width={780} centered onCancel={onClose} okText={`生成 ${grid.rows * grid.columns} 个子节点`} onOk={() => valid && onConfirm(grid)} okButtonProps={{ disabled: !valid }}>
-            <p className="mb-4 text-sm text-muted-foreground">按行、列拆分原图，子节点保持网格顺序。</p>
+        <AppModal open title={translate("canvasB.gridSplit.label")} width={780} centered onCancel={onClose} okText={translate("canvasTools.canvasNodeSplitDialog.generateChildNodes", { v0: String(grid.rows * grid.columns) })} onOk={() => valid && onConfirm(grid)} okButtonProps={{ disabled: !valid }}>
+            <p className="mb-4 text-sm text-muted-foreground">{translate("canvasTools.canvasNodeSplitDialog.splitTheSourceImageIntoRowsAndColumnsChildNodes")}</p>
             <div className="grid gap-4 md:grid-cols-[1fr_220px]">
                 <figure className="m-0 flex min-w-0 flex-col items-center gap-3 rounded-lg border border-border bg-surface-active p-3">
                     <div className="relative max-w-full overflow-hidden">
-                        <img alt="待切分图片" src={dataUrl} draggable={false} className="block max-h-[340px] max-w-full object-contain" />
+                        <img alt={translate("canvasTools.canvasNodeSplitDialog.imageToSplit")} src={dataUrl} draggable={false} className="block max-h-[340px] max-w-full object-contain" />
                         <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                             {Array.from({ length: grid.columns - 1 }, (_, i) => (
                                 <line key={`v${i}`} x1={(100 * (i + 1)) / grid.columns} x2={(100 * (i + 1)) / grid.columns} y1={0} y2={100} stroke="white" strokeWidth={1} vectorEffect="non-scaling-stroke" />
@@ -37,19 +38,19 @@ function SplitEditor({ dataUrl, onClose, onConfirm }: SplitDialogProps) {
                             ))}
                         </svg>
                     </div>
-                    <figcaption className="text-sm text-muted-foreground">{size ? `${size.width} × ${size.height} px` : error || "正在读取图片…"}</figcaption>
+                    <figcaption className="text-sm text-muted-foreground">{size ? `${size.width} × ${size.height} px` : error || translate("canvasTools.canvasNodeSplitDialog.loadingImage")}</figcaption>
                 </figure>
                 <div className="flex flex-col gap-4">
                     {(["rows", "columns"] as const).map((axis) => (
                         <label key={axis} className="flex flex-col gap-2 text-sm">
-                            {axis === "rows" ? "行数" : "列数"}
-                            <InputNumber aria-label={axis === "rows" ? "切分行数" : "切分列数"} min={1} max={MAX_IMAGE_GRID} precision={0} value={grid[axis]} onChange={(value) => updateCount(axis, value)} />
+                            {axis === "rows" ? translate("canvasTools.canvasNodeSplitDialog.rows") : translate("canvasTools.canvasNodeSplitDialog.columns")}
+                            <InputNumber aria-label={axis === "rows" ? translate("canvasTools.canvasNodeSplitDialog.rows2") : translate("canvasTools.canvasNodeSplitDialog.columns2")} min={1} max={MAX_IMAGE_GRID} precision={0} value={grid[axis]} onChange={(value) => updateCount(axis, value)} />
                         </label>
                     ))}
-                    <output className="text-sm text-muted-foreground">{previewSize ? `每块约 ${previewSize.width} × ${previewSize.height} px；边缘像素会完整保留。` : "等待有效图片尺寸"}</output>
+                    <output className="text-sm text-muted-foreground">{previewSize ? translate("canvasTools.canvasNodeSplitDialog.eachTileIsApproximatelyPxAllEdgePixelsArePreserved", { v0: String(previewSize.width), v1: String(previewSize.height) }) : translate("canvasTools.canvasNodeSplitDialog.waitingForValidImageDimensions")}</output>
                     {error || (size && !valid) ? (
                         <p role="alert" className="text-sm text-destructive">
-                            {error || "行列数超过图片像素尺寸，请减少切分数量"}
+                            {error || translate("canvasTools.canvasNodeSplitDialog.theRowOrColumnCountExceedsTheImageDimensionsReduce")}
                         </p>
                     ) : null}
                 </div>

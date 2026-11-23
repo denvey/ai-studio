@@ -27,6 +27,7 @@ import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
 
 import { useCanvasNodeActions } from "../canvas-node-action-context";
 import { useUpstreamNodes } from "../canvas-node-graph-context";
+import { translate } from "@/i18n";
 
 type MediaConversionNodeContentProps = {
     node: CanvasNodeData;
@@ -35,7 +36,7 @@ type MediaConversionNodeContentProps = {
 
 const OPERATIONS = Object.keys(MEDIA_CONVERSION_OPERATION_LABELS) as MediaConversionOperation[];
 // 本机模型服务不随发行版提供，提示里不能指向不存在的启动脚本。
-const LOCAL_RUNTIME_UNAVAILABLE_NOTICE = "未检测到本机模型服务。AI 线稿、深度图和姿态骨架需要另行部署本机模型服务，当前发行版未附带；可先改用灰度图或 Canny 边缘";
+const LOCAL_RUNTIME_UNAVAILABLE_NOTICE = translate("canvasTools.nodes.mediaConversionNode.noLocalModelServiceDetectedAILineArtDepthMaps");
 
 export function MediaConversionNodeContent({ node, theme }: MediaConversionNodeContentProps) {
     const { updateMetadata, updateNode } = useCanvasNodeActions();
@@ -141,26 +142,26 @@ export function MediaConversionNodeContent({ node, theme }: MediaConversionNodeC
     const run = async () => {
         setNotice("");
         if (!input || !currentFingerprint) {
-            setNotice("请先连接一张图片或一个视频");
+            setNotice(translate("canvasTools.nodes.mediaConversionNode.connectAnImageOrVideoFirst"));
             return;
         }
         if (hasMultipleInputs) {
-            setNotice("转换节点只能连接一个输入，请移除多余连线");
+            setNotice(translate("canvasTools.nodes.mediaConversionNode.aConversionNodeAcceptsOnlyOneInputRemoveExtraConnections"));
             return;
         }
         if (inputKind === "video") {
-            updateState({ status: "unavailable", outputKind: "video", errorCode: "video_not_ready", errorMessage: "本地视频转换还在进行短片性能验证", updatedAt: new Date().toISOString() });
-            setNotice("视频转换暂未开启，先完成单图模型验证");
+            updateState({ status: "unavailable", outputKind: "video", errorCode: "video_not_ready", errorMessage: translate("canvasTools.nodes.mediaConversionNode.localVideoConversionIsStillUndergoingShortClipPerformanceValidation"), updatedAt: new Date().toISOString() });
+            setNotice(translate("canvasTools.nodes.mediaConversionNode.videoConversionIsNotEnabledYetCompleteSingleImageModel"));
             return;
         }
         if (!isLocalImageOperation(state.operation) && state.operation !== "depth" && state.operation !== "lineart" && state.operation !== "pose") {
-            updateState({ status: "unavailable", outputKind: "image", errorCode: "model_missing", errorMessage: "该转换需要先安装并验证本地模型", updatedAt: new Date().toISOString() });
+            updateState({ status: "unavailable", outputKind: "image", errorCode: "model_missing", errorMessage: translate("canvasTools.nodes.mediaConversionNode.installAndValidateTheLocalModelBeforeUsingThisConversion"), updatedAt: new Date().toISOString() });
             setNotice(mediaConversionOperationDescription(state.operation));
             return;
         }
         if (!sourceUrl) {
-            updateState({ status: "error", errorCode: "source_unreadable", errorMessage: "图片预览尚未准备好，请稍后重试", updatedAt: new Date().toISOString() });
-            setNotice("图片预览尚未准备好，请稍后重试");
+            updateState({ status: "error", errorCode: "source_unreadable", errorMessage: translate("canvasTools.nodes.mediaConversionNode.imagePreviewIsNotReadyTryAgainShortly"), updatedAt: new Date().toISOString() });
+            setNotice(translate("canvasTools.nodes.mediaConversionNode.imagePreviewIsNotReadyTryAgainShortly"));
             return;
         }
 
@@ -237,7 +238,7 @@ export function MediaConversionNodeContent({ node, theme }: MediaConversionNodeC
             if (error instanceof LocalRuntimeClientError) {
                 if (error.code === "pose_no_person") {
                     updateState({ status: "skipped", errorCode: error.code, errorMessage: error.message, detectedPeople: 0, updatedAt: new Date().toISOString() });
-                    setNotice("未检测到可用人物姿态，可更换含人物的图片或选择其他转换方式");
+                    setNotice(translate("canvasTools.nodes.mediaConversionNode.noUsableHumanPoseDetectedTryAnImageContainingA"));
                     return;
                 }
                 const nextStatus = ["depth_model_missing", "depth_runtime_unavailable", "lineart_model_missing", "lineart_runtime_unavailable", "pose_model_missing", "pose_runtime_unavailable"].includes(error.code) ? "unavailable" : "error";
@@ -245,7 +246,7 @@ export function MediaConversionNodeContent({ node, theme }: MediaConversionNodeC
                 setNotice(localRuntimeNotice(error, useLocalRuntimeStore.getState().connection));
                 return;
             }
-            const conversionError = error instanceof LocalImageConversionError ? error : new LocalImageConversionError("source_unreadable", "本地图片转换失败");
+            const conversionError = error instanceof LocalImageConversionError ? error : new LocalImageConversionError("source_unreadable", translate("canvasTools.nodes.mediaConversionNode.localImageConversionFailed"));
             const nextStatus = conversionError.code === "model_missing" ? "unavailable" : "error";
             updateState({ status: nextStatus, errorCode: conversionError.code, errorMessage: conversionError.message, updatedAt: new Date().toISOString() });
             setNotice(conversionError.message);
@@ -256,7 +257,7 @@ export function MediaConversionNodeContent({ node, theme }: MediaConversionNodeC
         if (!resultUrl) return;
         const link = document.createElement("a");
         link.href = resultUrl;
-        link.download = `${node.title || "转换结果"}-${state.operation}.png`;
+        link.download = `${node.title || translate("canvasTools.nodes.mediaConversionNode.conversionResult")}-${state.operation}.png`;
         link.click();
     };
 
@@ -265,7 +266,7 @@ export function MediaConversionNodeContent({ node, theme }: MediaConversionNodeC
     const buttonDisabled = !input || hasMultipleInputs || status === "processing";
     const statusText = mediaConversionStatusLabel(status);
     const previewStatusText = state.operation === "pose" && status === "completed" && typeof state.detectedPeople === "number"
-        ? `${statusText} · ${state.detectedPeople} 人`
+        ? translate("canvasTools.nodes.mediaConversionNode.people", { v0: String(statusText), v1: String(state.detectedPeople) })
         : statusText;
     const showRuntimeRecovery = (state.operation === "depth" || state.operation === "lineart" || state.operation === "pose") && (localRuntimeConnection === "unreachable" || state.errorCode === "depth_runtime_unavailable" || state.errorCode === "lineart_runtime_unavailable" || state.errorCode === "pose_runtime_unavailable");
     const retryLocalRuntime = async () => {
@@ -273,7 +274,7 @@ export function MediaConversionNodeContent({ node, theme }: MediaConversionNodeC
         await reconnectLocalRuntime();
         const next = useLocalRuntimeStore.getState();
         if (next.connection === "connected") {
-            setNotice("本地模型服务已连接，可以重新开始转换");
+            setNotice(translate("canvasTools.nodes.mediaConversionNode.localModelServiceConnectedYouCanRestartConversion"));
         } else {
             setNotice(next.connection === "unreachable" ? LOCAL_RUNTIME_UNAVAILABLE_NOTICE : next.error || LOCAL_RUNTIME_UNAVAILABLE_NOTICE);
         }
@@ -291,8 +292,8 @@ export function MediaConversionNodeContent({ node, theme }: MediaConversionNodeC
                     <ArrowRightLeft className="size-4" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1">
-                    <div className="truncate text-[var(--fs-label)] font-semibold">{node.title || "转换"}</div>
-                    <div className="truncate text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>本地处理 · 单图优先</div>
+                    <div className="truncate text-[var(--fs-label)] font-semibold">{node.title || translate("canvasTools.nodes.mediaConversionNode.convert")}</div>
+                    <div className="truncate text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>{translate("canvasTools.nodes.mediaConversionNode.localProcessingSingleImagePreferred")}</div>
                 </div>
                 <StatusBadge status={status} />
             </div>
@@ -300,9 +301,9 @@ export function MediaConversionNodeContent({ node, theme }: MediaConversionNodeC
             <div className="flex min-h-0 flex-1 flex-col gap-2">
                 <div className="relative min-h-0 flex-1 overflow-hidden rounded-[var(--r-md)] border" style={{ borderColor: theme.node.edge, background: theme.node.fill }}>
                     {displayResult ? (
-                        <img src={resultUrl} alt={`${mediaConversionOperationLabel(state.operation)}结果`} className="absolute inset-0 size-full object-contain" draggable={false} />
+                        <img src={resultUrl} alt={translate("canvasTools.nodes.mediaConversionNode.result", { v0: String(mediaConversionOperationLabel(state.operation)) })} className="absolute inset-0 size-full object-contain" draggable={false} />
                     ) : input?.type === CanvasNodeType.Image && sourceUrl ? (
-                        <img src={sourceUrl} alt="转换输入" className="absolute inset-0 size-full object-contain" draggable={false} />
+                        <img src={sourceUrl} alt={translate("canvasTools.nodes.mediaConversionNode.conversionInput")} className="absolute inset-0 size-full object-contain" draggable={false} />
                     ) : input?.type === CanvasNodeType.Video && sourceUrl ? (
                         <video src={sourceUrl} className="absolute inset-0 size-full object-contain" controls preload="metadata" />
                     ) : (
@@ -312,8 +313,8 @@ export function MediaConversionNodeContent({ node, theme }: MediaConversionNodeC
                     )}
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/75 to-transparent px-2 pb-2 pt-8 text-white">
                         <div className="min-w-0">
-                            <div className="truncate text-[var(--fs-micro)] font-semibold">{displayResult ? (status === "stale" ? "上次结果 · 待更新" : "转换结果") : input?.title || "等待输入"}</div>
-                            <div className="mt-0.5 truncate text-[var(--fs-micro)] opacity-75">{hasMultipleInputs ? "已连接多个输入" : input ? `${input.type === CanvasNodeType.Video ? "视频" : "图片"} · ${previewStatusText}` : "连接图片或视频节点"}</div>
+                            <div className="truncate text-[var(--fs-micro)] font-semibold">{displayResult ? (status === "stale" ? translate("canvasTools.nodes.mediaConversionNode.previousResultUpdatePending") : translate("canvasTools.nodes.mediaConversionNode.conversionResult")) : input?.title || translate("canvasTools.nodes.mediaConversionNode.waitingForInput")}</div>
+                            <div className="mt-0.5 truncate text-[var(--fs-micro)] opacity-75">{hasMultipleInputs ? translate("canvasTools.nodes.mediaConversionNode.multipleInputsConnected") : input ? `${input.type === CanvasNodeType.Video ? translate("account.feedback.video") : translate("account.feedback.image")} · ${previewStatusText}` : translate("canvasTools.nodes.mediaConversionNode.connectAnImageOrVideoNode")}</div>
                         </div>
                         {state.resultWidth && state.resultHeight && displayResult ? <span className="shrink-0 text-[var(--fs-micro)] tabular-nums">{state.resultWidth} × {state.resultHeight}</span> : null}
                     </div>
@@ -321,9 +322,9 @@ export function MediaConversionNodeContent({ node, theme }: MediaConversionNodeC
 
                 {effectiveResult ? (
                     <div className="flex gap-1" data-canvas-no-zoom>
-                        <PreviewToggle theme={theme} pressed={!showResult} label="原素材" onClick={() => setShowResult(false)} />
-                        <PreviewToggle theme={theme} pressed={showResult} label="结果" onClick={() => setShowResult(true)} />
-                        <button type="button" aria-label="下载转换结果" title="下载转换结果" className="grid h-6 w-8 shrink-0 place-items-center rounded-[var(--r-sm)] outline-none transition hover:bg-black/5 focus-visible:ring-2 dark:hover:bg-white/10" style={{ color: theme.node.muted, outlineColor: theme.accent.primary }} onClick={(event) => { event.stopPropagation(); downloadResult(); }} onMouseDown={(event) => event.stopPropagation()}>
+                        <PreviewToggle theme={theme} pressed={!showResult} label={translate("canvasTools.nodes.mediaConversionNode.originalAsset")} onClick={() => setShowResult(false)} />
+                        <PreviewToggle theme={theme} pressed={showResult} label={translate("canvasTools.nodes.mediaConversionNode.result2")} onClick={() => setShowResult(true)} />
+                        <button type="button" aria-label={translate("canvasTools.nodes.mediaConversionNode.downloadConversionResult")} title={translate("canvasTools.nodes.mediaConversionNode.downloadConversionResult")} className="grid h-6 w-8 shrink-0 place-items-center rounded-[var(--r-sm)] outline-none transition hover:bg-black/5 focus-visible:ring-2 dark:hover:bg-white/10" style={{ color: theme.node.muted, outlineColor: theme.accent.primary }} onClick={(event) => { event.stopPropagation(); downloadResult(); }} onMouseDown={(event) => event.stopPropagation()}>
                             <Download className="size-3.5" aria-hidden="true" />
                         </button>
                     </div>
@@ -348,7 +349,7 @@ export function MediaConversionNodeContent({ node, theme }: MediaConversionNodeC
                     onMouseDown={(event) => event.stopPropagation()}
                 >
                     {status === "processing" ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
-                    {status === "processing" ? "处理中" : status === "completed" || status === "stale" ? "重新转换" : "开始转换"}
+                    {status === "processing" ? translate("canvasA.fileUpload.processing") : status === "completed" || status === "stale" ? translate("canvasTools.nodes.mediaConversionNode.convertAgain") : translate("canvasTools.nodes.mediaConversionNode.startConversion")}
                 </button>
             </div>
 
@@ -363,7 +364,7 @@ export function MediaConversionNodeContent({ node, theme }: MediaConversionNodeC
                         onClick={(event) => { event.stopPropagation(); void retryLocalRuntime(); }}
                         onMouseDown={(event) => event.stopPropagation()}
                     >
-                        {localRuntimeConnecting ? "连接中" : "重试连接"}
+                        {localRuntimeConnecting ? translate("canvasTools.nodes.mediaConversionNode.connecting") : translate("canvasA.creative.retryConnect")}
                     </button>
                 ) : null}
             </div>
@@ -456,7 +457,7 @@ function OperationPicker({ theme, nodeId, value, disabled, onSelect }: { theme: 
                       ref={menuRef}
                       id={`${nodeId}-operation-menu`}
                       role="listbox"
-                      aria-label="转换方式"
+                      aria-label={translate("canvasTools.nodes.mediaConversionNode.conversionMethod")}
                       data-canvas-no-zoom
                       className="fixed z-[var(--z-toast)] overflow-hidden rounded-[var(--r-lg)] border"
                       style={menuStyle}
@@ -465,7 +466,7 @@ function OperationPicker({ theme, nodeId, value, disabled, onSelect }: { theme: 
                       onWheel={(event) => event.stopPropagation()}
                   >
                       <div className="border-b px-3 py-2 text-[var(--fs-micro)] font-semibold" style={{ borderColor: theme.node.edge, color: theme.node.muted }}>
-                          选择转换方式
+                          {translate("canvasTools.nodes.mediaConversionNode.selectConversionMethod")}
                       </div>
                       <div className="thin-scrollbar overflow-y-auto p-1" style={{ maxHeight: Math.max(0, position.maxHeight - 36) }}>
                           {OPERATIONS.map((operation) => {
@@ -506,7 +507,7 @@ function OperationPicker({ theme, nodeId, value, disabled, onSelect }: { theme: 
 
     return (
         <div className={`relative ${open ? "z-[var(--z-toast)]" : ""}`}>
-            <div className="mb-2 px-0.5 text-[var(--fs-micro)] font-medium" style={{ color: theme.node.muted }}>转换方式</div>
+            <div className="mb-2 px-0.5 text-[var(--fs-micro)] font-medium" style={{ color: theme.node.muted }}>{translate("canvasTools.nodes.mediaConversionNode.conversionMethod")}</div>
             <button
                 ref={triggerRef}
                 id={`${nodeId}-operation`}
@@ -547,30 +548,30 @@ function OperationPicker({ theme, nodeId, value, disabled, onSelect }: { theme: 
 }
 
 function StatusBadge({ status }: { status: MediaConversionNodeState["status"] | "stale" }) {
-    if (status === "processing") return <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--status-info)", background: "color-mix(in oklch, var(--status-info) 15%, transparent)" }}><LoaderCircle className="size-3 animate-spin" aria-hidden="true" />处理中</span>;
-    if (status === "completed") return <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--status-success)", background: "color-mix(in oklch, var(--status-success) 15%, transparent)" }}><CheckCircle2 className="size-3" aria-hidden="true" />已完成</span>;
-    if (status === "stale") return <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--status-warning)", background: "color-mix(in oklch, var(--status-warning) 15%, transparent)" }}><RefreshCw className="size-3" aria-hidden="true" />待更新</span>;
-    if (status === "error") return <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--status-error)", background: "color-mix(in oklch, var(--status-error) 15%, transparent)" }}><CircleAlert className="size-3" aria-hidden="true" />失败</span>;
-    if (status === "unavailable") return <span className="inline-flex shrink-0 items-center rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--status-warning)", background: "color-mix(in oklch, var(--status-warning) 15%, transparent)" }}>本地不可用</span>;
-    if (status === "skipped") return <span className="inline-flex shrink-0 items-center rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--status-warning)", background: "color-mix(in oklch, var(--status-warning) 15%, transparent)" }}>已跳过</span>;
-    return <span className="inline-flex shrink-0 items-center rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--foreground-muted)", background: "color-mix(in oklch, var(--foreground-muted) 12%, transparent)" }}>未开始</span>;
+    if (status === "processing") return <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--status-info)", background: "color-mix(in oklch, var(--status-info) 15%, transparent)" }}><LoaderCircle className="size-3 animate-spin" aria-hidden="true" />{translate("canvasA.fileUpload.processing")}</span>;
+    if (status === "completed") return <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--status-success)", background: "color-mix(in oklch, var(--status-success) 15%, transparent)" }}><CheckCircle2 className="size-3" aria-hidden="true" />{translate("canvasTools.nodes.mediaConversionNode.done")}</span>;
+    if (status === "stale") return <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--status-warning)", background: "color-mix(in oklch, var(--status-warning) 15%, transparent)" }}><RefreshCw className="size-3" aria-hidden="true" />{translate("canvasTools.nodes.mediaConversionNode.updatePending")}</span>;
+    if (status === "error") return <span className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--status-error)", background: "color-mix(in oklch, var(--status-error) 15%, transparent)" }}><CircleAlert className="size-3" aria-hidden="true" />{translate("library.assets.batch.failed")}</span>;
+    if (status === "unavailable") return <span className="inline-flex shrink-0 items-center rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--status-warning)", background: "color-mix(in oklch, var(--status-warning) 15%, transparent)" }}>{translate("canvasTools.nodes.mediaConversionNode.unavailableLocally")}</span>;
+    if (status === "skipped") return <span className="inline-flex shrink-0 items-center rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--status-warning)", background: "color-mix(in oklch, var(--status-warning) 15%, transparent)" }}>{translate("canvasTools.nodes.mediaConversionNode.skipped")}</span>;
+    return <span className="inline-flex shrink-0 items-center rounded-full px-2 py-1 text-[var(--fs-micro)] font-semibold" style={{ color: "var(--foreground-muted)", background: "color-mix(in oklch, var(--foreground-muted) 12%, transparent)" }}>{translate("canvasTools.nodes.mediaConversionNode.notStarted")}</span>;
 }
 
 function mediaConversionStatusLabel(status: MediaConversionNodeState["status"] | "stale") {
-    if (status === "processing") return "正在处理";
-    if (status === "completed") return "已完成";
-    if (status === "stale") return "输入已变化，结果待更新";
-    if (status === "unavailable") return "本地能力不可用";
-    if (status === "skipped") return "未检测到人物姿态";
-    if (status === "error") return "处理失败";
-    return "尚未转换";
+    if (status === "processing") return translate("canvasTools.nodes.mediaConversionNode.processing");
+    if (status === "completed") return translate("canvasTools.nodes.mediaConversionNode.done");
+    if (status === "stale") return translate("canvasTools.nodes.mediaConversionNode.inputChangedResultNeedsUpdating");
+    if (status === "unavailable") return translate("canvasTools.nodes.mediaConversionNode.localCapabilityUnavailable");
+    if (status === "skipped") return translate("canvasTools.nodes.mediaConversionNode.noHumanPoseDetected");
+    if (status === "error") return translate("account.settings.memory.decideFailed");
+    return translate("canvasTools.nodes.mediaConversionNode.notConvertedYet");
 }
 
 function localRuntimeNotice(error: LocalRuntimeClientError, connection: ReturnType<typeof useLocalRuntimeStore.getState>["connection"]) {
     if (connection === "unreachable") return LOCAL_RUNTIME_UNAVAILABLE_NOTICE;
-    if (error.code === "depth_model_missing") return "深度模型尚未安装，请先完成本地模型安装";
-    if (error.code === "lineart_model_missing") return "AI 线稿依赖或模型尚未安装，请先完成本地线稿模型安装";
-    if (error.code === "pose_model_missing") return "姿态模型或依赖尚未安装，请先完成本地姿态模型安装";
+    if (error.code === "depth_model_missing") return translate("canvasTools.nodes.mediaConversionNode.depthModelIsNotInstalledInstallTheLocalModelFirst");
+    if (error.code === "lineart_model_missing") return translate("canvasTools.nodes.mediaConversionNode.aILineArtDependenciesOrModelAreNotInstalledInstall");
+    if (error.code === "pose_model_missing") return translate("canvasTools.nodes.mediaConversionNode.poseModelOrDependenciesAreNotInstalledInstallTheLocal");
     return error.message;
 }
 

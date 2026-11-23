@@ -6,6 +6,7 @@ import { colorGradeCssFilter, DEFAULT_COLOR_GRADE, isNeutralColorGrade, type Can
 import { getNodeResourceKind } from "@/lib/canvas/node-registry";
 import type { CanvasTheme } from "@/lib/canvas-theme";
 import type { CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 type ColorGradeNodeContentProps = {
     node: CanvasNodeData;
@@ -13,10 +14,10 @@ type ColorGradeNodeContentProps = {
 };
 
 const SLIDERS: Array<{ key: keyof CanvasColorGrade; label: string; min: number; max: number }> = [
-    { key: "brightness", label: "亮度", min: 0, max: 200 },
-    { key: "contrast", label: "对比", min: 0, max: 200 },
-    { key: "saturate", label: "饱和", min: 0, max: 200 },
-    { key: "hueRotate", label: "色相", min: -180, max: 180 },
+    { key: "brightness", label: translate("canvasTools.nodes.colorGradeNode.brightness"), min: 0, max: 200 },
+    { key: "contrast", label: translate("canvasTools.nodes.colorGradeNode.contrast"), min: 0, max: 200 },
+    { key: "saturate", label: translate("canvasTools.nodes.colorGradeNode.saturation"), min: 0, max: 200 },
+    { key: "hueRotate", label: translate("canvasTools.nodes.colorGradeNode.hue"), min: -180, max: 180 },
 ];
 
 /**
@@ -39,7 +40,7 @@ export function ColorGradeNodeContent({ node, theme }: ColorGradeNodeContentProp
         return (
             <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-4 text-center" style={{ color: theme.node.muted }}>
                 <Palette className="size-5 opacity-60" />
-                <span style={{ fontSize: "var(--fs-label)" }}>连接一张图片即可调色</span>
+                <span style={{ fontSize: "var(--fs-label)" }}>{translate("canvasTools.nodes.colorGradeNode.connectAnImageToAdjustItsColors")}</span>
             </div>
         );
     }
@@ -50,9 +51,9 @@ export function ColorGradeNodeContent({ node, theme }: ColorGradeNodeContentProp
     return (
         <div className="flex h-full w-full flex-col overflow-hidden" style={{ background: theme.node.fill }}>
             <div className="relative min-h-0 flex-1">
-                <img src={url} alt={node.title || "调色"} className="h-full w-full object-contain" draggable={false} style={{ filter: colorGradeCssFilter(grade) }} />
+                <img src={url} alt={node.title || translate("canvasTools.nodes.colorGradeNode.colorGrading")} className="h-full w-full object-contain" draggable={false} style={{ filter: colorGradeCssFilter(grade) }} />
                 {isNeutralColorGrade(grade) ? (
-                    <span className="pointer-events-none absolute left-2 top-2 rounded bg-black/55 px-2 py-0.5 text-white" style={{ fontSize: "var(--fs-tiny)" }}>未调色</span>
+                    <span className="pointer-events-none absolute left-2 top-2 rounded bg-black/55 px-2 py-0.5 text-white" style={{ fontSize: "var(--fs-tiny)" }}>{translate("canvasTools.nodes.colorGradeNode.noColorAdjustments")}</span>
                 ) : null}
             </div>
 
@@ -84,7 +85,7 @@ export function ColorGradeNodeContent({ node, theme }: ColorGradeNodeContentProp
                         style={{ fontSize: "var(--fs-tiny)", color: theme.node.muted }}
                         onClick={() => updateMetadata?.(node.id, { colorGrade: DEFAULT_COLOR_GRADE })}
                     >
-                        <RotateCcw className="size-3" />复位
+                        <RotateCcw className="size-3" />{translate("canvasTools.nodes.colorGradeNode.reset")}
                     </button>
                 </div>
             ) : null}

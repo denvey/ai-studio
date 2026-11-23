@@ -7,6 +7,8 @@
 
 import type { AgentPermissionMode, AgentReasoningMode, AgentRun } from "@/services/api/agent";
 import { canvasResourceMentionToken, type CanvasResourceReference } from "@/lib/canvas/canvas-resource-references";
+import { translate } from "@/i18n";
+
 
 export const AGENT_OUTBOX_MAX_ITEMS = 5;
 /** 与后端 validateCloudAgentRequest 的提示词上限一致。 */
@@ -181,7 +183,7 @@ export function restoreAgentOutbox(stored: AgentOutbox | null, at = new Date().t
     if (!stored?.items.length) return EMPTY_AGENT_OUTBOX;
     const items = stored.items.map((item) => {
         if (item.status === "queued" || item.status === "failed") return item;
-        return { ...item, status: "queued" as const, error: item.status === "interjecting" ? "上次插话结果未确认；如果它已出现在对话里，会自动从队列移出" : item.error };
+        return { ...item, status: "queued" as const, error: item.status === "interjecting" ? translate("shared.canvas.agentOutbox.thePreviousInterjectionWasNotConfirmedItWillLeaveThe") : item.error };
     });
     return { version: 1, items, paused: stored.paused ?? { reason: "reloaded", at } };
 }
@@ -243,17 +245,17 @@ export type AgentOutboxInterjectContext = {
 
 /** 这一条现在能不能插进当前轮；返回不能的原因，用于按钮提示。 */
 export function agentOutboxInterjectBlocker(item: Pick<AgentOutboxItem, "text" | "status" | "requiresVision"> & { canvasId?: string }, ctx: AgentOutboxInterjectContext): string | null {
-    if (ctx.stopping) return "正在停止本轮";
-    if (!agentRunAcceptsInterjection(ctx.run)) return "本轮已结束，可作为下一轮发送";
+    if (ctx.stopping) return translate("shared.canvas.agentOutbox.stoppingThisRound");
+    if (!agentRunAcceptsInterjection(ctx.run)) return translate("shared.canvas.agentOutbox.thisRoundHasEndedSendAsTheNextRound");
     // 在画布 B 写的消息不能插进画布 A 正在运行的这一轮，否则会改动另一个画布（#881）。
-    if (item.canvasId && ctx.run?.canvasId && item.canvasId !== ctx.run.canvasId) return "这条写在另一个画布上，不能插进原画布正在运行的这一轮；回到原画布插话，或等本轮结束后在此页面发送";
-    if (ctx.canvasBusy) return "画布上有别的 Agent 在运行";
-    if (!ctx.connected) return "连接断开，恢复后才能插话";
-    if (ctx.requestPending) return "上一条提交结果待确认";
-    if (item.status === "editing") return "正在编辑";
-    if (item.status !== "queued" && item.status !== "failed") return "正在处理";
-    if (item.requiresVision) return "这条需要能看图的模型，只能作为下一轮发送";
-    if (agentTextLength(item.text) > AGENT_INTERJECTION_MAX_CHARS) return `超过 ${AGENT_INTERJECTION_MAX_CHARS} 字只能作为下一轮发送`;
+    if (item.canvasId && ctx.run?.canvasId && item.canvasId !== ctx.run.canvasId) return translate("shared.canvas.agentOutbox.thisMessageWasWrittenOnAnotherCanvasAndCannotInterrupt");
+    if (ctx.canvasBusy) return translate("shared.canvas.agentOutbox.anotherAgentIsRunningOnTheCanvas");
+    if (!ctx.connected) return translate("shared.canvas.agentOutbox.connectionLostReconnectBeforeInterjecting");
+    if (ctx.requestPending) return translate("shared.canvas.agentOutbox.thePreviousSubmissionIsAwaitingConfirmation");
+    if (item.status === "editing") return translate("shared.canvas.agentOutbox.editing");
+    if (item.status !== "queued" && item.status !== "failed") return translate("shared.canvas.agentOutbox.processing");
+    if (item.requiresVision) return translate("shared.canvas.agentOutbox.thisMessageRequiresAModelWithImageInputAndCan");
+    if (agentTextLength(item.text) > AGENT_INTERJECTION_MAX_CHARS) return translate("shared.canvas.agentOutbox.messagesLongerThanCharactersCanOnlyBeSentAsThe", { v0: String(AGENT_INTERJECTION_MAX_CHARS) });
     return null;
 }
 
@@ -273,21 +275,21 @@ export function agentComposerSubmitMode(ctx: { editing: boolean; retryingPending
 export function agentOutboxPauseLabel(paused: NonNullable<AgentOutbox["paused"]>, count: number) {
     switch (paused.reason) {
         case "stopped":
-            return "已暂停：你停止了本轮";
+            return translate("shared.canvas.agentOutbox.pausedYouStoppedThisRound");
         case "failed":
-            return "已暂停：上一轮没有完成";
+            return translate("shared.canvas.agentOutbox.pausedThePreviousRoundDidNotFinish");
         case "rejected":
-            return "已暂停：你拒绝了上一步操作";
+            return translate("shared.canvas.agentOutbox.pausedYouRejectedThePreviousOperation");
         case "question":
-            return "已暂停：Agent 在等你回答";
+            return translate("shared.canvas.agentOutbox.pausedAgentIsWaitingForYourAnswer");
         case "conflict":
-            return paused.detail ? `已暂停：${paused.detail}` : "已暂停：消息没有发出去";
+            return paused.detail ? translate("shared.canvas.agentOutbox.paused", { v0: String(paused.detail) }) : translate("shared.canvas.agentOutbox.pausedTheMessageWasNotSent");
         case "reloaded":
-            return `已暂停：上次有 ${count} 条排队消息没发出`;
+            return translate("shared.canvas.agentOutbox.pausedQueuedMessagesWereNotSentLastTime", { v0: String(count) });
         case "sync":
-            return "已暂停：画布还没同步完成";
+            return translate("shared.canvas.agentOutbox.pausedCanvasSyncIsIncomplete");
         case "user":
-            return "已暂停自动发送";
+            return translate("shared.canvas.agentOutbox.automaticSendingPaused");
     }
 }
 
@@ -296,10 +298,10 @@ export function agentOutboxPreview(text: string, references: readonly CanvasReso
     let preview = text;
     for (const reference of references) {
         const token = canvasResourceMentionToken(reference);
-        if (token && preview.includes(token)) preview = preview.split(token).join(`@${reference.label || reference.title || "引用"}`);
+        if (token && preview.includes(token)) preview = preview.split(token).join(`@${reference.label || reference.title || translate("shared.canvas.agentOutbox.references")}`);
     }
     return preview
-        .replace(/@\[[^\]]+\]/gu, "@引用")
+        .replace(/@\[[^\]]+\]/gu, translate("shared.canvas.agentOutbox.reference"))
         .replace(/\s+/gu, " ")
         .trim();
 }

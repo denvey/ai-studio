@@ -1,6 +1,7 @@
 import { useState, type ImgHTMLAttributes } from "react";
 import "./result-image.css";
 
+import { translate } from "@/i18n";
 export function CommerceProgressArtwork({ title, detail }: { title: string; detail: string }) {
     return (
         <span className="commerce-progress-artwork">
@@ -38,7 +39,7 @@ export function CommerceGeneratingArtwork({ queued, label }: { queued: boolean; 
             </span>
             <span className="commerce-generating-status">
                 <b aria-hidden="true" />
-                <span>{queued ? "排队中" : "正在生成"}</span>
+                <span>{queued ? translate("canvasPage.taskStatus.queued") : translate("ecommerce.resultImage.generating")}</span>
                 <em>{label}</em>
             </span>
         </span>
@@ -74,12 +75,12 @@ export function CommerceResultImage({ ratio, rotation = 0, frameRatio, ...props 
                 <span className="commerce-image-loading" role="status">
                     {state === "failed" ? (
                         <span>
-                            图片加载失败，请刷新重试
+                            {translate("ecommerce.resultImage.failedToLoadImageRefreshToRetry")}
                             <br />
-                            <small>已生成的作品仍然保留</small>
+                            <small>{translate("ecommerce.resultImage.generatedWorksAreStillSaved")}</small>
                         </span>
                     ) : (
-                        <CommerceProgressArtwork title="正在载入作品" detail="高清图片加载后自动呈现" />
+                        <CommerceProgressArtwork title={translate("ecommerce.resultImage.loadingWorks")} detail={translate("ecommerce.resultImage.theHighResolutionImageAppearsAutomaticallyOnceLoaded")} />
                     )}
                 </span>
             ) : null}

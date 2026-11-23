@@ -2,6 +2,8 @@ import { getActiveUserScope } from "@/lib/user-scope";
 import { localForageStorageForScope } from "@/lib/localforage-storage";
 import { http, apiBaseURL, ApiError } from "@/services/api/request";
 import type { OSSConnectionTestInput, OSSConnectionTestResult, OSSProvider, S3Preset } from "@/lib/oss-settings";
+import { translate } from "@/i18n";
+
 
 export type RemoteResource = {
     id: string;
@@ -308,7 +310,7 @@ async function uploadFileInChunks(file: Blob, name: string, kind: "image" | "vid
             if (attempt === CHUNK_UPLOAD_RETRIES - 1) throw error;
         }
     }
-    throw new Error("上传失败");
+    throw new Error(translate("library.assets.batch.uploadFailed"));
 }
 
 async function runChunkedUpload(file: Blob, name: string, kind: "image" | "video" | "audio" | "file", meta: ResourceUploadMeta | undefined, onProgress?: (uploadedBytes: number, totalBytes: number) => void) {
@@ -347,12 +349,12 @@ function normalizeUploadError(error: unknown): ResourceUploadError {
         const permanent = status !== undefined && !error.retryable;
         // 即使误超 50MB multipart 上限（后端 http.MaxBytesError），也给出可读中文而非英文裸错。
         if (status === 400 && /body too large|MaxBytes/i.test(error.message)) {
-            return new ResourceUploadError("文件过大，请使用小于 50MB 的文件或稍后重试", { status, permanent: true, cause: error });
+            return new ResourceUploadError(translate("shared.api.resources.theFileIsTooLargeUseAFileSmallerThan"), { status, permanent: true, cause: error });
         }
-        if (status === 413) return new ResourceUploadError("文件过大，无法上传", { status, permanent: true, cause: error });
-        return new ResourceUploadError(error.message || "上传失败", { status, permanent, cause: error });
+        if (status === 413) return new ResourceUploadError(translate("shared.api.resources.theFileIsTooLargeToUpload"), { status, permanent: true, cause: error });
+        return new ResourceUploadError(error.message || translate("library.assets.batch.uploadFailed"), { status, permanent, cause: error });
     }
-    return new ResourceUploadError(error instanceof Error ? error.message : "上传失败", { permanent: false, cause: error });
+    return new ResourceUploadError(error instanceof Error ? error.message : translate("library.assets.batch.uploadFailed"), { permanent: false, cause: error });
 }
 
 export async function importResourceFromUrl(url: string, kind: "image" | "video" | "audio" | "file", meta?: Omit<ResourceUploadMeta, "fileName">) {
@@ -383,7 +385,7 @@ export function getResource(id: string): Promise<RemoteResource> {
     const cacheKey = resourceCacheKey(id);
     const cached = resourceCache.get(cacheKey);
     if (cached) return Promise.resolve(cached);
-    if (missingResourceIds.has(cacheKey)) return Promise.reject(new Error("资源不存在或已被删除"));
+    if (missingResourceIds.has(cacheKey)) return Promise.reject(new Error(translate("shared.api.resources.theResourceDoesNotExistOrHasBeenDeleted")));
     const pending = resourceRequests.get(cacheKey);
     if (pending) return pending;
     const task = http
@@ -448,7 +450,7 @@ function enqueueResourceAccess(entry: Omit<PendingResourceAccess, "resolve" | "r
 
 async function completeResourceAccessBatchEntry(entry: PendingResourceAccess, item: ResourceAccessBatchItem | undefined) {
     if (entry.generation !== accessGeneration || entry.scope !== getActiveUserScope()) throw resourceAccessAbortError();
-    if (!item?.access?.url) throw new Error(item?.error?.msg || "后端未返回资源访问地址");
+    if (!item?.access?.url) throw new Error(item?.error?.msg || translate("shared.api.resources.theBackendReturnedNoResourceAccessURL"));
     const value = item.access;
     const cachedEntry = { value, expiresAt: resourceAccessCacheExpiry(value) } satisfies CachedResourceAccess;
     if (cachedEntry.expiresAt > Date.now()) {
@@ -502,7 +504,7 @@ async function flushResourceAccessBatch() {
 
 export async function getResourceAccess(storageKey: string | undefined, purpose: ResourceAccessPurpose = "display", variant: ResourceAccessVariant = "original", downloadName = "", fetchOptions: ResourceAccessFetchOptions = {}) {
     const id = resourceIdFromStorageKey(storageKey);
-    if (!id) throw new Error("当前媒体尚未上传到后端资源存储");
+    if (!id) throw new Error(translate("shared.api.resources.thisMediaHasNotBeenUploadedToBackendResourceStorage"));
     const scope = getActiveUserScope();
     const generation = accessGeneration;
     const key = `${scope}:${id}:${purpose}:${variant}:${downloadName}`;
@@ -542,7 +544,7 @@ export async function getResourceAccess(storageKey: string | undefined, purpose:
                 payload: { resourceId: id, purpose, variant, ...(downloadName ? { downloadName } : {}) },
             });
         } catch (error) {
-            if (error instanceof ApiError) throw new Error(error.message || "获取对象存储地址失败");
+            if (error instanceof ApiError) throw new Error(error.message || translate("shared.api.resources.failedToGetTheObjectStorageURL"));
             throw error;
         } finally {
             if (accessRequests.get(key) === request) accessRequests.delete(key);
@@ -610,7 +612,7 @@ export async function getResourceBlob(storageKey: string, purpose: ResourceAcces
     // relative to the platform origin.
     const credentials = access.delivery === "platform-local" || access.delivery === "platform-proxy" ? "include" : "omit";
     const response = await fetch(resolveResourceAccessURL(access.url), { credentials, mode: "cors", signal: AbortSignal.timeout(60_000) });
-    if (!response.ok) throw new Error(`资源读取失败（${response.status}）`);
+    if (!response.ok) throw new Error(translate("shared.api.resources.failedToReadResource", { v0: String(response.status) }));
     return response.blob();
 }
 

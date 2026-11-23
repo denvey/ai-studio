@@ -2,6 +2,7 @@ import { LocateFixed, LocateOff } from "lucide-react";
 
 import { canvasThemes } from "@/lib/canvas-theme";
 import { useActiveTheme } from "@/stores/canvas/use-canvas-theme-store";
+import { translate } from "@/i18n";
 
 /**
  * 画布规模 HUD：节点与连线计数。Agent 批量搭建或生成时数字随增量一起涨，
@@ -13,16 +14,16 @@ export function CanvasAgentHud({ nodeCount, connectionCount, followAgent, onFoll
     return (
         <div className="canvas-agent-hud" style={{ background: theme.toolbar.panel, borderColor: theme.toolbar.border, color: theme.node.muted }} data-canvas-no-zoom>
             <span className="canvas-agent-hud-stat" aria-live="polite">
-                节点 <strong style={{ color: theme.node.text }}>{nodeCount}</strong>
+                {translate("canvasTools.canvasAgentHud.node")} <strong style={{ color: theme.node.text }}>{nodeCount}</strong>
                 <span aria-hidden="true"> · </span>
-                连线 <strong style={{ color: theme.node.text }}>{connectionCount}</strong>
+                {translate("canvasTools.canvasAgentHud.connections")} <strong style={{ color: theme.node.text }}>{connectionCount}</strong>
             </span>
             <button
                 type="button"
                 className="canvas-agent-hud-follow"
                 aria-pressed={followAgent}
-                title={followAgent ? "镜头跟随 Agent：开（点击关闭）" : "镜头跟随 Agent：关（点击开启）"}
-                aria-label="镜头跟随 Agent"
+                title={followAgent ? translate("canvasTools.canvasAgentHud.followAgentOnClickToTurnOff") : translate("canvasTools.canvasAgentHud.followAgentOffClickToTurnOn")}
+                aria-label={translate("canvasTools.canvasAgentHud.followAgent")}
                 style={followAgent ? { color: theme.accent.primary } : undefined}
                 onClick={() => onFollowAgentChange(!followAgent)}
             >

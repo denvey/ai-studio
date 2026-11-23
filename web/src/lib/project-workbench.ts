@@ -1,4 +1,6 @@
 import type { ProjectDetail, ProjectSummary, ProjectUnit } from "@/services/api/projects";
+import { translate } from "@/i18n";
+
 
 export type ProjectActionTone = "default" | "attention" | "danger";
 
@@ -36,27 +38,27 @@ export function projectSummaryCompletion(summary: ProjectSummary) {
 }
 
 export function projectSummaryStage(summary: ProjectSummary) {
-    if (summary.project.status === "archived") return { label: "已归档", detail: "可在项目设置中恢复" };
-    if (!summary.unitCount) return { label: "准备故事", detail: "还没有剧情章节" };
-    if (summary.completedUnitCount === summary.unitCount) return { label: "章节已完成", detail: "可继续检查镜头与交付结果" };
-    if (!summary.canvasCount) return { label: "组织章节", detail: "下一步可建立项目画布" };
-    if (!summary.assetCount) return { label: "准备资产", detail: "补充角色、场景或画风" };
-    return { label: "制作中", detail: `${summary.completedUnitCount}/${summary.unitCount} 章已完成` };
+    if (summary.project.status === "archived") return { label: translate("account.feedback.archived"), detail: translate("shared.projectWorkbench.restoreInProjectSettings") };
+    if (!summary.unitCount) return { label: translate("shared.projectWorkbench.prepareStory"), detail: translate("shared.projectWorkbench.noStoryChaptersYet") };
+    if (summary.completedUnitCount === summary.unitCount) return { label: translate("shared.projectWorkbench.chaptersCompleted"), detail: translate("shared.projectWorkbench.reviewShotsAndDeliverables") };
+    if (!summary.canvasCount) return { label: translate("shared.projectWorkbench.organizeChapters"), detail: translate("shared.projectWorkbench.createAProjectCanvasNext") };
+    if (!summary.assetCount) return { label: translate("shared.projectWorkbench.prepareAssets"), detail: translate("shared.projectWorkbench.addCharactersScenesOrVisualStyles") };
+    return { label: translate("shared.drama.dramaFormat.inProduction"), detail: translate("shared.projectWorkbench.chaptersCompleted2", { v0: String(summary.completedUnitCount), v1: String(summary.unitCount) }) };
 }
 
 export function projectDetailStage(detail: ProjectDetail) {
-    if (detail.project.status === "archived") return { label: "已归档", detail: "恢复项目后可继续制作" };
+    if (detail.project.status === "archived") return { label: translate("account.feedback.archived"), detail: translate("shared.projectWorkbench.restoreTheProjectToResumeProduction") };
     const failedSteps = detail.workflows.flatMap((workflow) => workflow.steps).filter((step) => step.status === "failed").length;
-    if (failedSteps) return { label: "需要处理", detail: `${failedSteps} 个流程步骤失败` };
+    if (failedSteps) return { label: translate("shared.projectWorkbench.needsAttention"), detail: translate("shared.projectWorkbench.workflowStepsFailed", { v0: String(failedSteps) }) };
     const pendingCandidates = detail.assetCandidates.filter((candidate) => candidate.status === "pending_confirmation").length;
-    if (pendingCandidates) return { label: "资产确认", detail: `${pendingCandidates} 个候选待确认` };
-    if (!detail.units.length) return { label: "准备故事", detail: "添加或导入剧情章节" };
-    if (!detail.shots.length) return { label: "分镜准备", detail: "选择章节生成镜头" };
+    if (pendingCandidates) return { label: translate("shared.projectWorkbench.confirmAssets"), detail: translate("shared.projectWorkbench.candidatesAwaitingConfirmation", { v0: String(pendingCandidates) }) };
+    if (!detail.units.length) return { label: translate("shared.projectWorkbench.prepareStory"), detail: translate("shared.projectWorkbench.addOrImportStoryChapters") };
+    if (!detail.shots.length) return { label: translate("shared.projectWorkbench.prepareStoryboard"), detail: translate("shared.projectWorkbench.selectAChapterToGenerateShots") };
     const runningSteps = detail.workflows.flatMap((workflow) => workflow.steps).filter((step) => step.status === "running" || step.status === "review").length;
-    if (runningSteps) return { label: "制作中", detail: `${runningSteps} 个流程步骤正在推进` };
+    if (runningSteps) return { label: translate("shared.drama.dramaFormat.inProduction"), detail: translate("shared.projectWorkbench.workflowStepsInProgress", { v0: String(runningSteps) }) };
     const completedUnits = detail.units.filter((unit) => unit.status === "completed").length;
-    if (completedUnits === detail.units.length) return { label: "检查交付", detail: "章节已完成，可检查镜头与结果" };
-    return { label: "镜头制作", detail: `${detail.shots.length} 个镜头已建立` };
+    if (completedUnits === detail.units.length) return { label: translate("shared.projectWorkbench.reviewDeliverables"), detail: translate("shared.projectWorkbench.chaptersCompletedReviewTheShotsAndResults") };
+    return { label: translate("shared.projectWorkbench.shotProduction"), detail: translate("shared.projectWorkbench.shotsCreated", { v0: String(detail.shots.length) }) };
 }
 
 export function projectAttentionCount(detail: ProjectDetail) {
@@ -72,7 +74,7 @@ export function projectContinueTarget(detail: ProjectDetail): ProjectContinueTar
         return {
             href: `/canvas/${latestCanvas.id}`,
             title: latestCanvas.title,
-            context: "继续编辑项目画布",
+            context: translate("shared.projectWorkbench.continueEditingTheProjectCanvas"),
             updatedAt: latestCanvas.updatedAt,
         };
     }
@@ -80,14 +82,14 @@ export function projectContinueTarget(detail: ProjectDetail): ProjectContinueTar
         return {
             href: `/projects/${detail.project.id}/chapters/${latestUnit.id}`,
             title: latestUnit.title,
-            context: "继续处理剧情章节",
+            context: translate("shared.projectWorkbench.continueWorkingOnTheStoryChapter"),
             updatedAt: latestUnit.updatedAt,
         };
     }
     return {
         href: `/projects/${detail.project.id}/chapters`,
         title: detail.project.name,
-        context: "从剧情章节开始",
+        context: translate("shared.projectWorkbench.startWithStoryChapters"),
         updatedAt: detail.project.updatedAt,
     };
 }
@@ -99,10 +101,10 @@ export function projectNextActions(detail: ProjectDetail, limit = 4): ProjectWor
     if (detail.project.status === "archived") {
         return [{
             id: "restore-project",
-            title: "项目已归档",
-            description: "恢复后才能创建画布和提交生成任务。",
+            title: translate("shared.projectWorkbench.projectArchived"),
+            description: translate("shared.projectWorkbench.restoreTheProjectToCreateCanvasesAndSubmitGenerationTasks"),
             href: `${projectRoot}/settings`,
-            actionLabel: "前往恢复",
+            actionLabel: translate("shared.projectWorkbench.restoreProject"),
             tone: "attention",
         }];
     }
@@ -111,10 +113,10 @@ export function projectNextActions(detail: ProjectDetail, limit = 4): ProjectWor
     if (failedSteps.length) {
         actions.push({
             id: "failed-steps",
-            title: `处理 ${failedSteps.length} 个失败步骤`,
-            description: failedSteps[0].error?.trim() || "查看失败原因和输入后，仅重试受影响的任务。",
+            title: translate("shared.projectWorkbench.resolveFailedSteps", { v0: String(failedSteps.length) }),
+            description: failedSteps[0].error?.trim() || translate("shared.projectWorkbench.reviewTheErrorsAndInputsThenRetryTheAffectedTasks"),
             href: "/tasks?status=failed",
-            actionLabel: "查看失败任务",
+            actionLabel: translate("shared.projectWorkbench.viewFailedTasks"),
             tone: "danger",
         });
     }
@@ -124,10 +126,10 @@ export function projectNextActions(detail: ProjectDetail, limit = 4): ProjectWor
         const categories = new Set(pendingCandidates.map((candidate) => candidate.category));
         actions.push({
             id: "pending-assets",
-            title: `确认 ${pendingCandidates.length} 个资产候选`,
-            description: `${categories.size} 类角色、场景或制作资产需要确认后才能稳定复用。`,
+            title: translate("shared.projectWorkbench.confirmAssetCandidates", { v0: String(pendingCandidates.length) }),
+            description: translate("shared.projectWorkbench.categoriesOfCharacterSceneOrProductionAssetsNeedConfirmationBefore", { v0: String(categories.size) }),
             href: `${projectRoot}/assets`,
-            actionLabel: "去确认",
+            actionLabel: translate("shared.projectWorkbench.reviewCandidates"),
             tone: "attention",
         });
     }
@@ -135,10 +137,10 @@ export function projectNextActions(detail: ProjectDetail, limit = 4): ProjectWor
     if (!detail.units.length) {
         actions.push({
             id: "add-story",
-            title: "添加第一个剧情章节",
-            description: "导入小说、粘贴文本，或从空白章节开始。",
+            title: translate("shared.projectWorkbench.addYourFirstStoryChapter"),
+            description: translate("shared.projectWorkbench.importANovelPasteTextOrStartWithABlank"),
             href: `${projectRoot}/chapters`,
-            actionLabel: "添加章节",
+            actionLabel: translate("shared.projectWorkbench.addChapter"),
             tone: "default",
         });
     } else {
@@ -146,10 +148,10 @@ export function projectNextActions(detail: ProjectDetail, limit = 4): ProjectWor
         if (firstDraft) {
             actions.push({
                 id: `review-unit-${firstDraft.id}`,
-                title: `确认第 ${firstDraft.position + 1} 章内容`,
+                title: translate("shared.projectWorkbench.reviewChapterContent", { v0: String(firstDraft.position + 1) }),
                 description: firstDraft.title,
                 href: `${projectRoot}/chapters/${firstDraft.id}`,
-                actionLabel: "继续处理",
+                actionLabel: translate("canvasA.creative.continueWork"),
                 tone: "default",
             });
         }
@@ -159,10 +161,10 @@ export function projectNextActions(detail: ProjectDetail, limit = 4): ProjectWor
         if (firstUnitWithoutShots) {
             actions.push({
                 id: `storyboard-unit-${firstUnitWithoutShots.id}`,
-                title: `为第 ${firstUnitWithoutShots.position + 1} 章建立分镜`,
-                description: `${firstUnitWithoutShots.title}还没有镜头，可先生成分镜草稿再逐项调整。`,
+                title: translate("shared.projectWorkbench.createAStoryboardForChapter", { v0: String(firstUnitWithoutShots.position + 1) }),
+                description: translate("shared.projectWorkbench.hasNoShotsYetGenerateAStoryboardDraftThenRefine", { v0: String(firstUnitWithoutShots.title) }),
                 href: `${projectRoot}/chapters/${firstUnitWithoutShots.id}`,
-                actionLabel: "建立分镜",
+                actionLabel: translate("shared.projectWorkbench.createStoryboard"),
                 tone: "default",
             });
         }
@@ -171,10 +173,10 @@ export function projectNextActions(detail: ProjectDetail, limit = 4): ProjectWor
     if (!detail.canvases.length && detail.units.length) {
         actions.push({
             id: "create-canvas",
-            title: "建立第一张项目画布",
-            description: "把章节、分镜和参考资产放进同一个制作空间。",
+            title: translate("shared.projectWorkbench.createYourFirstProjectCanvas"),
+            description: translate("shared.projectWorkbench.bringChaptersStoryboardsAndReferenceAssetsIntoOneProductionSpace"),
             href: `${projectRoot}/canvases`,
-            actionLabel: "查看项目画布",
+            actionLabel: translate("shared.projectWorkbench.viewProjectCanvases"),
             tone: "default",
         });
     }
@@ -183,10 +185,10 @@ export function projectNextActions(detail: ProjectDetail, limit = 4): ProjectWor
         const target = projectContinueTarget(detail);
         actions.push({
             id: "continue-project",
-            title: "继续最近的制作内容",
+            title: translate("shared.projectWorkbench.continueYourLatestWork"),
             description: `${target.context}：${target.title}`,
             href: target.href,
-            actionLabel: "继续创作",
+            actionLabel: translate("shared.projectWorkbench.continueCreating"),
             tone: "default",
         });
     }
@@ -205,24 +207,24 @@ export function projectUnitStages(detail: ProjectDetail, limit = 8): ProjectUnit
             unit,
             content: contentStage(unit),
             assets: pendingCandidates
-                ? { label: `${pendingCandidates} 待确认`, state: "attention" }
+                ? { label: translate("shared.projectWorkbench.pending", { v0: String(pendingCandidates) }), state: "attention" }
                 : confirmedCandidates
-                  ? { label: `${confirmedCandidates} 已确认`, state: "completed" }
-                  : { label: "未识别", state: "idle" },
+                  ? { label: translate("shared.projectWorkbench.confirmed", { v0: String(confirmedCandidates) }), state: "completed" }
+                  : { label: translate("shared.projectWorkbench.notIdentified"), state: "idle" },
             storyboard: shots.length
-                ? { label: `${shots.length} 镜头`, state: shots.every((shot) => shot.status === "completed") ? "completed" : "active" }
-                : { label: "未开始", state: "idle" },
+                ? { label: translate("shared.projectWorkbench.shots", { v0: String(shots.length) }), state: shots.every((shot) => shot.status === "completed") ? "completed" : "active" }
+                : { label: translate("shared.drama.dramaFormat.notStarted"), state: "idle" },
             canvas: canvasCount
-                ? { label: `${canvasCount} 张`, state: "active" }
-                : { label: "未关联", state: "idle" },
+                ? { label: translate("shared.projectWorkbench.canvases", { v0: String(canvasCount) }), state: "active" }
+                : { label: translate("shared.projectWorkbench.notLinked"), state: "idle" },
         };
     });
 }
 
 function contentStage(unit: ProjectUnit): ProjectStageCell {
-    if (unit.status === "completed") return { label: "已完成", state: "completed" };
-    if (unit.status === "ready") return { label: "待制作", state: "active" };
-    return { label: "草稿", state: "attention" };
+    if (unit.status === "completed") return { label: translate("library.tasks.filter.succeeded"), state: "completed" };
+    if (unit.status === "ready") return { label: translate("shared.projectWorkbench.readyForProduction"), state: "active" };
+    return { label: translate("shared.projectWorkbench.draft"), state: "attention" };
 }
 
 function byPosition(left: ProjectUnit, right: ProjectUnit) {

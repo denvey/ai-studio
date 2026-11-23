@@ -12,6 +12,8 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { catalogIdOf, type CreationInspiration, type InspirationSourceId } from "@/lib/inspirations/catalog";
 import { CUSTOM_ID_PREFIX, isCustomInspiration, type InspirationOverride } from "@/lib/inspirations/resolve";
 import { localForageStorageForScope } from "@/lib/localforage-storage";
+import { translate } from "@/i18n";
+
 
 export const INSPIRATION_STORE_KEY = "open_ai_canvas:inspirations";
 /** 导入导出文件的格式版本，字段变化时递增并在这里做迁移。 */
@@ -65,7 +67,7 @@ type InspirationStore = {
 };
 
 function nonEmpty(value: unknown, field: string): string {
-    if (typeof value !== "string" || !value.trim()) throw new Error(`缺少必填字段 ${field}`);
+    if (typeof value !== "string" || !value.trim()) throw new Error(translate("shared.useInspirationStore.missingRequiredField", { v0: String(field) }));
     return value.trim();
 }
 
@@ -77,15 +79,15 @@ function asStringArray(value: unknown): string[] | undefined {
 
 /** 编辑器传来的草稿先按同一套规则收敛，不做「空字符串也写进去」的兜底。 */
 export function normalizeDraft(input: unknown): InspirationDraft {
-    if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("灵感内容格式不正确");
+    if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error(translate("shared.useInspirationStore.invalidInspirationContentFormat"));
     const raw = input as Record<string, unknown>;
-    if (raw.mode !== "text" && raw.mode !== "image" && raw.mode !== "video") throw new Error("创作类型只能是 text、image 或 video");
+    if (raw.mode !== "text" && raw.mode !== "image" && raw.mode !== "video") throw new Error(translate("shared.useInspirationStore.creationTypeMustBeTextImageOrVideo"));
     return {
-        title: nonEmpty(raw.title, "标题"),
+        title: nonEmpty(raw.title, translate("library.assets.form.title")),
         description: typeof raw.description === "string" ? raw.description.trim() : "",
-        image: nonEmpty(raw.image, "封面地址"),
+        image: nonEmpty(raw.image, translate("shared.inspirations.inspirationEditorModal.coverURL")),
         mode: raw.mode,
-        prompt: nonEmpty(raw.prompt, "提示词正文"),
+        prompt: nonEmpty(raw.prompt, translate("shared.inspirations.inspirationEditorModal.promptText")),
         ...(typeof raw.promptZh === "string" && raw.promptZh.trim() ? { promptZh: raw.promptZh.trim() } : {}),
         ...(typeof raw.category === "string" && raw.category.trim() ? { category: raw.category.trim() } : {}),
         ...(asStringArray(raw.tags) ? { tags: asStringArray(raw.tags) } : {}),
@@ -128,7 +130,7 @@ export const useInspirationStore = create<InspirationStore>()(
             },
 
             updateEntry: (id, patch) => {
-                if (!id) throw new Error("缺少要修改的灵感 ID");
+                if (!id) throw new Error(translate("shared.useInspirationStore.missingIDOfTheInspirationToEdit"));
                 const sanitized = Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined && value !== ""));
                 if (!Object.keys(sanitized).length) return;
                 if (isCustomInspiration(id)) {
@@ -139,7 +141,7 @@ export const useInspirationStore = create<InspirationStore>()(
             },
 
             removeEntry: (id) => {
-                if (!id) throw new Error("缺少要删除的灵感 ID");
+                if (!id) throw new Error(translate("shared.useInspirationStore.missingIDOfTheInspirationToDelete"));
                 if (isCustomInspiration(id)) {
                     set((state) => ({
                         custom: state.custom.filter((item) => catalogIdOf(item) !== id),
@@ -157,7 +159,7 @@ export const useInspirationStore = create<InspirationStore>()(
             restoreEntry: (id) => set((state) => ({ hidden: state.hidden.filter((item) => item !== id) })),
 
             toggleFavorite: (id) => {
-                if (!id) throw new Error("缺少要收藏的灵感 ID");
+                if (!id) throw new Error(translate("shared.useInspirationStore.missingIDOfTheInspirationToFavorite"));
                 set((state) => ({ favorites: state.favorites.includes(id) ? state.favorites.filter((item) => item !== id) : [id, ...state.favorites] }));
             },
 
@@ -179,12 +181,12 @@ export const useInspirationStore = create<InspirationStore>()(
                 try {
                     parsed = JSON.parse(text);
                 } catch {
-                    throw new Error("文件不是合法的 JSON");
+                    throw new Error(translate("shared.useInspirationStore.theFileIsNotValidJSON"));
                 }
-                if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("文件结构不是灵感导出格式");
+                if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error(translate("shared.useInspirationStore.theFileIsNotInInspirationExportFormat"));
                 const raw = parsed as Record<string, unknown>;
-                if (raw.version !== INSPIRATION_PAYLOAD_VERSION) throw new Error(`不支持的文件版本：${String(raw.version)}，当前支持 ${INSPIRATION_PAYLOAD_VERSION}`);
-                if (!Array.isArray(raw.custom)) throw new Error("文件缺少 custom 列表");
+                if (raw.version !== INSPIRATION_PAYLOAD_VERSION) throw new Error(translate("shared.useInspirationStore.unsupportedFileVersionCurrentlySupported", { v0: String(String(raw.version)), v1: String(INSPIRATION_PAYLOAD_VERSION) }));
+                if (!Array.isArray(raw.custom)) throw new Error(translate("shared.useInspirationStore.theFileIsMissingTheCustomList"));
 
                 const incoming = raw.custom.map(normalizeImportedEntry);
                 const entries = incoming.filter((item): item is CreationInspiration => item !== null);

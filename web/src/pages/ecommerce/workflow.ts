@@ -19,6 +19,7 @@ import { assertCommerceConsumerCopy, commerceTypographyInstruction } from "./con
 import { commercePlatformImageRule, commercePlatformListingMain } from "./platform-style";
 import { commerceRestrictedPhrase } from "./platform-knowledge";
 
+import { translate } from "@/i18n";
 export function manuallyEditedCommerceImage(original: EcommercePlan["images"][number], edited: EcommercePlan["images"][number]) {
     if (original.prompt === edited.prompt) return edited;
     return {
@@ -63,7 +64,7 @@ export function commerceRegenerationVariation(draft: EcommerceDraft, image: Ecom
 export function commercePlanningSource(task: GenerationTask): EcommerceDraft {
     const input = task.inputJson ? JSON.parse(task.inputJson) : null;
     const source = input?.metadata?.ecommerceDraft;
-    if (!source || !Array.isArray(source.references) || !Array.isArray(source.skus) || typeof source.productName !== "string") throw new Error("策划任务缺少提交时的参数快照，请重新策划");
+    if (!source || !Array.isArray(source.references) || !Array.isArray(source.skus) || typeof source.productName !== "string") throw new Error(translate("ecommerce.workflow.thePlanningTaskIsMissingItsSubmittedSettingsSnapshotReplan"));
     return { ...normalizeEcommerceReferenceGroups(source), creativeOptions: normalizeCreativeOptions(source) } as EcommerceDraft;
 }
 
@@ -207,9 +208,9 @@ export function commercePlanningPayload(draft: EcommerceDraft, maxImages: number
     draft = normalizeReferenceDraft(draft);
     const invalidType = typeValidation(draft);
     if (invalidType) throw new Error(invalidType);
-    if (!Number.isInteger(draft.count) || draft.count < 1 || draft.count > 30) throw new Error("生成数量须为 1–30 的整数");
+    if (!Number.isInteger(draft.count) || draft.count < 1 || draft.count > 30) throw new Error(translate("ecommerce.workflow.imageCountMustBeAWholeNumberFrom1To"));
     const references = activeCommerceReferences(draft);
-    if (maxImages < references.length) throw new Error(`后台指定的策划模型最多读取 ${maxImages} 张图片，当前提供 ${references.length} 张；请减少图片或联系管理员更换模型`);
+    if (maxImages < references.length) throw new Error(translate("ecommerce.workflow.theConfiguredPlanningModelCanReadAtMostImagesAre", { v0: String(maxImages), v1: String(references.length) }));
     return {
         prompt: plannerPrompt(draft, skillPrompt),
         referenceImages: references.map((reference) => ({ id: reference.resourceId, name: reference.name || reference.role, type: "image/*", dataUrl: "", storageKey: resourceStorageKey(reference.resourceId) })),
@@ -242,12 +243,12 @@ function commerceGenerationBaseReferences(draft: EcommerceDraft) {
 
 export function commerceImageReferences(draft: EcommerceDraft, image: EcommercePlan["images"][number], index: number, clone: boolean) {
     if (draft.referenceMode === "detail") {
-        if (!image.referenceScreen?.resourceId) throw new Error(`第${index + 1}屏尚未准备对应参考裁片`);
+        if (!image.referenceScreen?.resourceId) throw new Error(translate("ecommerce.workflow.theReferenceCropForScreenIsNotReady", { v0: String(index + 1) }));
         return [...commerceGenerationBaseReferences(draft).filter((ref) => ref.role !== "model" || commerceImageUsesModel(draft, image)), { resourceId: image.referenceScreen.resourceId, role: "style" as const, name: `第${index + 1}屏版式参考` }];
     }
     if (clone) {
         const template = commerceLayoutReferences(draft).filter((ref) => ref.role === "style")[index];
-        if (!template) throw new Error(`第 ${index + 1} 张缺少版式模板`);
+        if (!template) throw new Error(translate("ecommerce.workflow.imageIsMissingALayoutTemplate", { v0: String(index + 1) }));
         return [...draft.references.filter((ref) => ref.role === "primary" || (ref.role === "model" && commerceImageUsesModel(draft, image))), template];
     }
     return activeCommerceReferences(draft).filter((ref) => (ref.role !== "sku" || ref.resourceId === draft.skus.find((sku) => sku.id === image.skuId)?.resourceId) && (ref.role !== "model" || commerceImageUsesModel(draft, image)));
@@ -268,9 +269,9 @@ export function commerceRequiredImageReferenceCount(draft: EcommerceDraft, clone
 }
 
 export function assertCommerceImageReferenceCapacity(referenceCount: number, modelMaxImages: number) {
-    if (referenceCount > 20) throw new Error(`平台单次生图最多接收 20 张参考图片，当前需要 ${referenceCount} 张；请减少本次生图使用的商品图或借鉴图片`);
+    if (referenceCount > 20) throw new Error(translate("ecommerce.workflow.aGenerationRequestAcceptsAtMost20ReferenceImagesAre", { v0: String(referenceCount) }));
     const limit = Math.min(20, modelMaxImages);
-    if (referenceCount < 0 || referenceCount > limit) throw new Error(`当前图片模型最多接收 ${limit} 张参考图片，当前需要 ${referenceCount} 张；请更换模型或减少图片`);
+    if (referenceCount < 0 || referenceCount > limit) throw new Error(translate("ecommerce.workflow.theCurrentImageModelAcceptsAtMostReferenceImagesAre", { v0: String(limit), v1: String(referenceCount) }));
 }
 
 /**
@@ -294,12 +295,12 @@ export async function quoteCommerce(config: Config, draft: EcommerceDraft, count
     });
     const maxAgentRefs = modelCapabilityConfigFor(config, draft.agentModel).text?.references.maxImages || 0;
     const agentRefs = commercePlanningReferenceCount(draft);
-    if (planning && agentRefs > maxAgentRefs) throw new Error(`后台指定的策划模型最多读取 ${maxAgentRefs} 张图片，请减少参考图或联系管理员更换模型`);
+    if (planning && agentRefs > maxAgentRefs) throw new Error(translate("ecommerce.workflow.theConfiguredPlanningModelCanReadAtMostImagesRemove", { v0: String(maxAgentRefs) }));
     const agentRequest = systemModelQuoteRequest(config, draft.agentModel, "text", {
         capability: "text",
         input: { textCount: 1, imageCount: agentRefs, referenceImageCount: agentRefs, videoCount: 0, audioCount: 0, characterCount: 0 },
     });
-    if (!imageRequest || (planning && !agentRequest)) throw new Error("当前模型无法报价，请更换模型");
+    if (!imageRequest || (planning && !agentRequest)) throw new Error(translate("ecommerce.workflow.theCurrentModelCannotProvideAQuoteChooseAnotherModel"));
     const [image, agent] = await Promise.all([quoteModel(imageRequest), planning && agentRequest ? quoteModel(agentRequest) : Promise.resolve(null)]);
     const agentCost = agent?.quote.amountMicrocredits || 0;
     return { image: image.quote.amountMicrocredits / 1_000_000, agent: agentCost / 1_000_000, total: (image.quote.amountMicrocredits * count + agentCost) / 1_000_000 };
@@ -327,7 +328,7 @@ export async function submitCommercePlan(config: Config, draft: EcommerceDraft, 
 export async function settleCommercePlan(task: GenerationTask, _draft: EcommerceDraft, project: EcommerceProject) {
     if (task.status !== "succeeded") throw new Error(task.error || "策划任务未成功");
     const result = parseBackendGenerationResult(task);
-    if (!result.text) throw new Error("策划模型没有返回文本");
+    if (!result.text) throw new Error(translate("ecommerce.workflow.thePlanningModelReturnedNoText"));
     const source = commercePlanningSource(task);
     const plan = parsePlannerOutput(result.text, source);
     const nextDraft = { ...source, count: source.referenceMode === "detail" ? plan.images.length : source.count, planningTaskId: undefined };
@@ -343,12 +344,12 @@ export async function submitCommerceImages(config: Config, draft: EcommerceDraft
     for (const [index, image] of plan.images.entries()) {
         if (image.taskId || !commerceAllowsText(draft, image.imageType)) continue;
         const phrase = commerceRestrictedPhrase(image.copy || "");
-        if (phrase) throw new Error(`第${index + 1}张含高风险宣传词「${phrase}」，请改为有依据的具体描述后再生成`);
+        if (phrase) throw new Error(translate("ecommerce.workflow.imageContainsRiskyPromotionalWordingReplaceItWithASpecific", { v0: String(index + 1), v1: String(phrase) }));
     }
     plan = groundCommerceClaims(plan, draft);
     assertCommerceDetailRhythm(plan, draft);
     validateCommerceReferencePlan(plan, draft);
-    if (plan.images.length !== draft.count || plan.uncertainFacts.length) throw new Error("请核对策划数量与待确认商品事实后再生成");
+    if (plan.images.length !== draft.count || plan.uncertainFacts.length) throw new Error(translate("ecommerce.workflow.checkThePlanCountAndProductFactsAwaitingConfirmationBefore"));
     for (const image of plan.images) assertCommerceImageReferenceCapacity(commerceRequiredImageReferenceCount(draft, clone), modelCapabilityConfigFor(config, image.imageModel).image?.references.maxImages || 0);
     let current = project;
     let nextPlan = await prepareCommerceReferencePlan(draft, plan, {
@@ -360,10 +361,10 @@ export async function submitCommerceImages(config: Config, draft: EcommerceDraft
     const pending = nextPlan.images.flatMap((planned, index) => {
         if (planned.taskId) return [];
         const profile = modelCapabilityConfigFor(config, planned.imageModel).image;
-        if (!profile) throw new Error(`第 ${index + 1} 张图片模型不可用`);
+        if (!profile) throw new Error(translate("ecommerce.workflow.theModelForImageIsUnavailable", { v0: String(index + 1) }));
         const refs = commerceImageReferences(draft, planned, index, clone);
         assertCommerceImageReferenceCapacity(refs.length, profile.references.maxImages);
-        if (!profile.size.values.includes(planned.ratio) || (profile.resolution.supported && !profile.resolution.values.includes(planned.resolution))) throw new Error(`第 ${index + 1} 张的比例或分辨率不受支持`);
+        if (!profile.size.values.includes(planned.ratio) || (profile.resolution.supported && !profile.resolution.values.includes(planned.resolution))) throw new Error(translate("ecommerce.workflow.theAspectRatioOrResolutionForImageIsUnsupported", { v0: String(index + 1) }));
         const image = { ...planned, ratio: commerceGenerationRatio(config, draft, planned) };
         const parameters = commerceImageParameters(profile, image.ratio, image.resolution);
         return [{ image, index, refs, parameters, receiptKey: `ecommerce-task:${project.id}:${image.id}` }];

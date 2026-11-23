@@ -12,6 +12,7 @@ import { ImageParameterInput } from "@/components/image-parameter-fields";
 import { imageResolutionTiers } from "@/lib/image-size-presets";
 // 价格档分辨率按后端保存口径（2k→1440p、4k→2160p）取值，已存档位才能正确回显。
 import { normalizeTierResolution } from "@/lib/model-pricing";
+import { translate } from "@/i18n";
 
 export function PriceTierFields({
     index,
@@ -35,7 +36,8 @@ export function PriceTierFields({
     onRemove: () => void;
 }) {
     const billingMode = Form.useWatch(["priceTiers", index, "billingMode"], form) || "fixed_request";
-    const priceUnit = priceCurrencyUnit(Form.useWatch("priceCurrency", form));
+    const priceCurrency = Form.useWatch("priceCurrency", form);
+    const priceUnit = priceCurrencyUnit(priceCurrency);
     const matchMode = Form.useWatch(["priceTiers", index, "matchMode"], form) || "default";
     const priceConfigured = Form.useWatch(["priceTiers", index, "priceConfigured"], form) !== false;
     const tierEnabled = Form.useWatch(["priceTiers", index, "enabled"], form) !== false;
@@ -66,15 +68,15 @@ export function PriceTierFields({
                 <div className="admin-price-tier-card-heading">
                     <span className="admin-price-tier-card-index">{String(ordinal).padStart(2, "0")}</span>
                     <div className="admin-price-tier-card-heading-copy">
-                        <div className="admin-price-tier-card-title">{matchMode === "default" ? "默认价格" : `规格价格 ${ordinal}`}</div>
-                        <div className="admin-price-tier-card-summary">{matchMode === "default" ? "所有请求使用同一价格" : isVideo ? "按生成方式与分辨率匹配" : "按生成方式、画质、分辨率或尺寸匹配"}</div>
+                        <div className="admin-price-tier-card-title">{matchMode === "default" ? translate("admin.channelModelPriceTierFields.defaultPrice") : translate("admin.channelModelPriceTierFields.specificationPrice", { v0: String(ordinal) })}</div>
+                        <div className="admin-price-tier-card-summary">{matchMode === "default" ? translate("admin.channelModelPriceTierFields.useTheSamePriceForAllRequests") : isVideo ? translate("admin.channelModelPriceTierFields.matchByGenerationModeAndResolution") : translate("admin.channelModelPriceTierFields.matchByGenerationModeQualityResolutionOrSize")}</div>
                     </div>
                 </div>
                 <div className="admin-price-tier-card-actions">
                     <div className="admin-price-tier-toggle">
-                        <span title="关闭后保留配置，但不参与用户请求及计费匹配">可供用户使用</span>
+                        <span title={translate("admin.channelModelPriceTierFields.whenDisabledSettingsAreRetainedButExcludedFromUserRequests")}>{translate("admin.channelModelPriceTierFields.availableToUsers")}</span>
                         <Switch
-                            aria-label="可供用户使用"
+                            aria-label={translate("admin.channelModelPriceTierFields.availableToUsers")}
                             checked={priceConfigured && tierEnabled}
                             onChange={(checked) => {
                                 onDirty();
@@ -83,8 +85,8 @@ export function PriceTierFields({
                             }}
                         />
                     </div>
-                    <Button type="text" danger aria-label={`删除价格档 ${ordinal}`} icon={<Trash2 className="size-3.5" />} onClick={onRemove}>
-                        删除
+                    <Button type="text" danger aria-label={translate("admin.channelModelPriceTierFields.deletePriceTier", { v0: String(ordinal) })} icon={<Trash2 className="size-3.5" />} onClick={onRemove}>
+                        {translate("common.delete")}
                     </Button>
                 </div>
             </header>
@@ -92,17 +94,17 @@ export function PriceTierFields({
                 <section className="admin-price-tier-mode-row">
                     <div className="admin-price-tier-panel-heading">
                         <div>
-                            <h3>适用范围</h3>
-                            <p>选择全部请求，或按生成规格精确匹配。</p>
+                            <h3>{translate("admin.channelModelPriceTierFields.scope")}</h3>
+                            <p>{translate("admin.channelModelPriceTierFields.applyToAllRequestsOrMatchSpecificGenerationSettings")}</p>
                         </div>
                     </div>
                     <Form.Item className="admin-price-tier-mode-control mb-0" name={[index, "matchMode"]} rules={[{ required: true }]}>
                         <Segmented
                             block
-                            aria-label="价格规则适用范围"
+                            aria-label={translate("admin.channelModelPriceTierFields.pricingRuleScope")}
                             options={[
-                                { label: "统一价格", value: "default" },
-                                { label: "按规格定价", value: "advanced" },
+                                { label: translate("admin.channelModelPriceTierFields.flatPrice"), value: "default" },
+                                { label: translate("admin.channelModelPriceTierFields.specificationPricing"), value: "advanced" },
                             ]}
                         />
                     </Form.Item>
@@ -112,21 +114,21 @@ export function PriceTierFields({
                         <section className="admin-price-tier-panel admin-price-tier-conditions-panel">
                             <div className="admin-price-tier-panel-heading">
                                 <div>
-                                    <h3>匹配条件</h3>
-                                    <p>符合以下条件时使用这条价格，精确规则优先。</p>
+                                    <h3>{translate("admin.channelModelPriceTierFields.matchConditions")}</h3>
+                                    <p>{translate("admin.channelModelPriceTierFields.useThisPriceWhenTheFollowingConditionsMatchMoreSpecific")}</p>
                                 </div>
                             </div>
                             <div className="admin-price-tier-match-grid">
-                                <Form.Item className="mb-0" name={[index, "operation"]} label="生成方式" rules={[{ required: true, message: "请选择生成方式" }]}>
+                                <Form.Item className="mb-0" name={[index, "operation"]} label={translate("admin.channelModelPriceTierFields.generationMode")} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.selectAGenerationMode") }]}>
                                     <Select options={operationOptions(capability)} />
                                 </Form.Item>
                                 {isVideo ? (
-                                    <Form.Item className="mb-0" name={[index, "resolution"]} label="分辨率" rules={[{ required: true, message: "请选择分辨率" }]}>
-                                        <Select options={[{ label: "任意分辨率", value: "*" }, ...resolutionOptions.map((value) => ({ label: value.toUpperCase(), value: normalizeTierResolution(value) }))]} />
+                                    <Form.Item className="mb-0" name={[index, "resolution"]} label={translate("library.tasks.params.resolution")} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.selectAResolution") }]}>
+                                        <Select options={[{ label: translate("admin.channelModelPriceTierFields.anyResolution"), value: "*" }, ...resolutionOptions.map((value) => ({ label: value.toUpperCase(), value: normalizeTierResolution(value) }))]} />
                                     </Form.Item>
                                 ) : null}
                                 {isVideo && video?.processing ? (
-                                    <Form.Item className="mb-0" name={[index, "fpsBand"]} label="输出帧率档" tooltip="视频处理按输出帧率分档计价；保持原帧率时按 ≤30fps 档预扣">
+                                    <Form.Item className="mb-0" name={[index, "fpsBand"]} label={translate("admin.channelModelPriceTierFields.outputFrameRateTier")} tooltip={translate("admin.channelModelPriceTierFields.videoProcessingIsPricedByOutputFrameRateKeepingThe")}>
                                         <Select options={fpsBandOptions} />
                                     </Form.Item>
                                 ) : null}
@@ -140,27 +142,27 @@ export function PriceTierFields({
                                           ))
                                     : null}
                                 {isImage && !image?.parameters && (image?.resolution?.supported || (image && imageResolutionTiers(image).length > 0)) ? (
-                                    <Form.Item className="mb-0" name={[index, "imageResolution"]} label="上游分辨率" rules={[{ required: true, message: "请选择上游分辨率" }]}>
+                                    <Form.Item className="mb-0" name={[index, "imageResolution"]} label={translate("admin.channelModelPriceTierFields.upstreamResolution")} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.selectAnUpstreamResolution") }]}>
                                         <Select
                                             options={[
-                                                { label: "任意分辨率", value: "*" },
+                                                { label: translate("admin.channelModelPriceTierFields.anyResolution"), value: "*" },
                                                 ...[...new Set([...(image?.resolution?.supported ? image.resolution.values : imageResolutionTiers(image!)), "1.5k"])].map((value) => ({ label: value.toUpperCase(), value })),
                                             ]}
                                         />
                                     </Form.Item>
                                 ) : null}
                                 {isImage && !image?.parameters && image?.quality.supported ? (
-                                    <Form.Item className="mb-0" name={[index, "quality"]} label="画质" rules={[{ required: true, message: "请选择画质" }]}>
-                                        <Select options={[{ label: "任意画质", value: "*" }, ...image.quality.values.map((value) => ({ label: value.toUpperCase(), value }))]} />
+                                    <Form.Item className="mb-0" name={[index, "quality"]} label={translate("admin.channelModelPriceTierFields.quality")} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.selectAQuality") }]}>
+                                        <Select options={[{ label: translate("admin.channelModelPriceTierFields.anyQuality"), value: "*" }, ...image.quality.values.map((value) => ({ label: value.toUpperCase(), value }))]} />
                                     </Form.Item>
                                 ) : null}
                                 {isImage && !image?.parameters && image?.size.parameter !== "none" ? (
-                                    <Form.Item className="mb-0" name={[index, "size"]} label="画幅/尺寸">
-                                        <Input placeholder="任意，或 1:1、16:9、1024x1024" />
+                                    <Form.Item className="mb-0" name={[index, "size"]} label={translate("admin.channelModelPriceTierFields.aspectRatioSize")}>
+                                        <Input placeholder={translate("admin.channelModelPriceTierFields.anyOr111691024x1024")} />
                                     </Form.Item>
                                 ) : null}
-                                <Form.Item className="admin-price-tier-upstream mb-0" name={[index, "providerModelKey"]} label="命中后使用的上游模型 ID">
-                                    <Input placeholder="留空则使用模型默认上游 ID" />
+                                <Form.Item className="admin-price-tier-upstream mb-0" name={[index, "providerModelKey"]} label={translate("admin.channelModelPriceTierFields.upstreamModelIDForMatchingRequests")}>
+                                    <Input placeholder={translate("admin.channelModelPriceTierFields.leaveBlankToUseTheModelSDefaultUpstreamID")} />
                                 </Form.Item>
                             </div>
                         </section>
@@ -168,43 +170,43 @@ export function PriceTierFields({
                     <section className="admin-price-tier-panel admin-price-tier-selling-panel">
                         <div className="admin-price-tier-panel-heading">
                             <div>
-                                <h3>销售价格</h3>
-                                <p>{priceUnit === "积分" ? "设置用户完成一次生成实际消耗的积分。" : `按 ${priceUnit} 填写售价，扣费时按用户分组兑换比例换算为积分。`}</p>
+                                <h3>{translate("admin.channelModelPriceTierFields.sellingPrice")}</h3>
+                                <p>{priceCurrency !== "USD" && priceCurrency !== "CNY" ? translate("admin.channelModelPriceTierFields.setTheCreditsUsersSpendOnACompletedGeneration") : translate("admin.channelModelPriceTierFields.enterTheSellingPriceInChargesAreConvertedToCredits", { v0: String(priceUnit) })}</p>
                             </div>
                         </div>
                         <div className="admin-price-tier-billing-grid">
-                            <Form.Item className="admin-price-tier-billing-mode mb-0" name={[index, "billingMode"]} label="计费方式" rules={[{ required: true }]}>
+                            <Form.Item className="admin-price-tier-billing-mode mb-0" name={[index, "billingMode"]} label={translate("admin.channelModelPriceTierFields.billingMode")} rules={[{ required: true }]}>
                                 <Segmented
                                     className="w-full"
                                     options={[
-                                        { label: "按次", value: "fixed_request" },
-                                        { label: "按秒", value: "per_second", disabled: !isDurationPriced },
-                                        { label: isVideo ? "视频 Token" : "Token", value: "token", disabled: !tokenEnabled },
+                                        { label: translate("admin.channelModelPriceTierFields.perCall"), value: "fixed_request" },
+                                        { label: translate("admin.channelModelPriceTierFields.perSecond"), value: "per_second", disabled: !isDurationPriced },
+                                        { label: isVideo ? translate("admin.channelModelPriceTierFields.videoTokens") : "Token", value: "token", disabled: !tokenEnabled },
                                     ]}
                                 />
                             </Form.Item>
                             {billingMode === "token" ? (
                                 isVideo ? (
-                                    <Form.Item className="admin-price-tier-unit-price mb-0" name={[index, "outputTokenPrice"]} label={`${priceUnit} / 百万视频 Token`} rules={[{ required: true, message: "请输入视频 Token 价格" }]}>
+                                    <Form.Item className="admin-price-tier-unit-price mb-0" name={[index, "outputTokenPrice"]} label={translate("admin.channelModelPriceTierFields.millionVideoTokens", { v0: String(priceUnit) })} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheVideoTokenPrice") }]}>
                                         <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                                     </Form.Item>
                                 ) : (
                                     <div className="admin-price-tier-token-grid">
-                                        <Form.Item className="admin-price-tier-unit-price mb-0" name={[index, "inputTokenPrice"]} label={`输入 ${priceUnit} / 百万 Token`} rules={[{ required: true, message: "请输入输入 Token 价格" }]}>
+                                        <Form.Item className="admin-price-tier-unit-price mb-0" name={[index, "inputTokenPrice"]} label={translate("admin.channelModelPriceTierFields.inputMillionTokens", { v0: String(priceUnit) })} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheInputTokenPrice") }]}>
                                             <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                                         </Form.Item>
-                                        <Form.Item className="admin-price-tier-unit-price mb-0" name={[index, "outputTokenPrice"]} label={`输出 ${priceUnit} / 百万 Token`} rules={[{ required: true, message: "请输入输出 Token 价格" }]}>
+                                        <Form.Item className="admin-price-tier-unit-price mb-0" name={[index, "outputTokenPrice"]} label={translate("admin.channelModelPriceTierFields.outputMillionTokens", { v0: String(priceUnit) })} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheOutputTokenPrice") }]}>
                                             <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                                         </Form.Item>
-                                        <Form.Item className="admin-price-tier-unit-price mb-0" name={[index, "cachedTokenPrice"]} label={`缓存命中 ${priceUnit} / 百万 Token`} rules={[{ required: true, message: "请输入缓存命中价格" }]}>
+                                        <Form.Item className="admin-price-tier-unit-price mb-0" name={[index, "cachedTokenPrice"]} label={translate("admin.channelModelPriceTierFields.cacheReadMillionTokens", { v0: String(priceUnit) })} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheCacheReadPrice") }]}>
                                             <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                                         </Form.Item>
                                         <Form.Item
                                             className="admin-price-tier-unit-price mb-0"
                                             name={[index, "cacheWriteTokenPrice"]}
-                                            label={`缓存写入 ${priceUnit} / 百万 Token`}
-                                            tooltip="创建提示词缓存的输入 Token（如 Claude cache_creation）。0 表示不单独收费；预授权按输入价与缓存写入价中较高者估算。"
-                                            rules={[{ required: true, message: "请输入缓存写入价格" }]}
+                                            label={translate("admin.channelModelPriceTierFields.cacheWriteMillionTokens", { v0: String(priceUnit) })}
+                                            tooltip={translate("admin.channelModelPriceTierFields.inputTokensUsedToCreatePromptCachesEGClaude")}
+                                            rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheCacheWritePrice") }]}
                                         >
                                             <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                                         </Form.Item>
@@ -214,8 +216,8 @@ export function PriceTierFields({
                                 <Form.Item
                                     className="admin-price-tier-unit-price mb-0"
                                     name={[index, "unitPrice"]}
-                                    label={billingMode === "per_second" ? `每秒售价（${priceUnit}）` : `每次售价（${priceUnit}）`}
-                                    rules={[{ required: true, message: "请输入售价" }]}
+                                    label={billingMode === "per_second" ? translate("admin.channelModelPriceTierFields.sellingPricePerSecond", { v0: String(priceUnit) }) : translate("admin.channelModelPriceTierFields.sellingPricePerRequest", { v0: String(priceUnit) })}
+                                    rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheSellingPrice") }]}
                                 >
                                     <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                                 </Form.Item>
@@ -226,9 +228,9 @@ export function PriceTierFields({
                                 <Form.Item
                                     className="admin-price-tier-unit-price mb-0"
                                     name={[index, billingMode === "token" ? "referenceVideoOutputTokenPrice" : "referenceVideoUnitPrice"]}
-                                    label={billingMode === "token" ? `带参考视频 ${priceUnit} / 百万视频 Token` : `带参考视频每秒售价（${priceUnit}）`}
-                                    tooltip={billingMode === "token" ? "挂参考视频的请求按含参考视频时长的 Token 用量乘以此价格；不挂参考视频仍用上方价格。" : "挂参考视频的请求按（生成秒数 + 后端实测参考视频秒数）乘以此价格；不挂参考视频仍用上方价格。"}
-                                    rules={[{ required: true, message: "请输入带参考视频的价格" }]}
+                                    label={billingMode === "token" ? translate("admin.channelModelPriceTierFields.withReferenceVideoMillionVideoTokens", { v0: String(priceUnit) }) : translate("admin.channelModelPriceTierFields.pricePerSecondWithReferenceVideo", { v0: String(priceUnit) })}
+                                    tooltip={billingMode === "token" ? translate("admin.channelModelPriceTierFields.requestsWithReferenceVideosUseTokenUsageIncludingReferenceDuration") : translate("admin.channelModelPriceTierFields.requestsWithReferenceVideosUseGeneratedSecondsReferenceSecondsMeasured")}
+                                    rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterThePriceWithReferenceVideo") }]}
                                 >
                                     <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                                 </Form.Item>
@@ -236,10 +238,10 @@ export function PriceTierFields({
                         ) : null}
                         {isVideo && billingMode === "token" ? (
                             <div className="admin-price-tier-helper" role="note">
-                                <strong>视频 Token 计费</strong>
+                                <strong>{translate("admin.channelModelPriceTierFields.videoTokenBilling")}</strong>
                                 <span>
-                                    {referenceVideoBilling ? "估算：宽 × 高 × 24 帧/秒 ×（输出时长 + 参考视频时长）÷ 1024；挂参考视频时按带参考视频价格计费。" : "估算：宽 × 高 × 24 帧/秒 × 输出时长 ÷ 1024；参考视频不计费。"}
-                                    优先按上游有效用量结算，无用量时使用公式，授权预留 10% 会在结算后补扣或退回。
+                                    {referenceVideoBilling ? translate("admin.channelModelPriceTierFields.estimateWidthHeight24FpsOutputDurationReferenceVideoDuration") : translate("admin.channelModelPriceTierFields.estimateWidthHeight24FpsOutputDuration1024ReferenceVideos")}
+                                    {translate("admin.channelModelPriceTierFields.billingUsesValidUpstreamUsageWhenAvailableOtherwiseTheFormula")}
                                 </span>
                             </div>
                         ) : null}
@@ -251,8 +253,8 @@ export function PriceTierFields({
                         className="admin-price-tier-alert"
                         type="warning"
                         showIcon
-                        title="该统一价格档仍指向独立上游模型 ID"
-                        description={`命中此档的请求会优先使用「${staleTierUpstream}」，而不是模型默认上游「${modelUpstream}」。`}
+                        title={translate("admin.channelModelPriceTierFields.thisFlatPriceTierStillUsesASeparateUpstreamModel")}
+                        description={translate("admin.channelModelPriceTierFields.requestsMatchingThisTierUseInsteadOfTheModelS", { v0: String(staleTierUpstream), v1: String(modelUpstream) })}
                         action={
                             <Button
                                 size="small"
@@ -261,7 +263,7 @@ export function PriceTierFields({
                                     form.setFieldValue(["priceTiers", index, "providerModelKey"], "");
                                 }}
                             >
-                                清除并跟随模型
+                                {translate("admin.channelModelPriceTierFields.clearAndUseModelDefault")}
                             </Button>
                         }
                     />
@@ -276,18 +278,18 @@ function ImagePriceParameterInput({ field, value, onChange }: { field: import("@
     if (field.name === "imageResolution") {
         const standardChoices = ["1k", "1.5k", "2k", "4k"];
         const values = field.values?.length ? [...new Set([...field.values.map(String), "1.5k"])] : standardChoices;
-        return <Select allowClear placeholder="任意" value={value} options={[{ label: "任意分辨率", value: "*" }, ...values.map((v) => ({ label: v.toUpperCase(), value: v }))]} onChange={onChange} />;
+        return <Select allowClear placeholder={translate("admin.channelModelPriceTierFields.any")} value={value} options={[{ label: translate("admin.channelModelPriceTierFields.anyResolution"), value: "*" }, ...values.map((v) => ({ label: v.toUpperCase(), value: v }))]} onChange={onChange} />;
     }
     const typed = value === undefined || value === "" || value === "*" ? undefined : field.type === "boolean" ? value === "true" : field.type === "number" || field.type === "integer" ? Number(value) : value;
     if (field.type === "boolean")
         return (
             <Select
                 allowClear
-                placeholder="任意"
+                placeholder={translate("admin.channelModelPriceTierFields.any")}
                 value={value}
                 options={[
-                    { label: "开启", value: "true" },
-                    { label: "关闭", value: "false" },
+                    { label: translate("admin.channelModelPriceTierFields.on"), value: "true" },
+                    { label: translate("common.close"), value: "false" },
                 ]}
                 onChange={onChange}
             />
@@ -296,16 +298,16 @@ function ImagePriceParameterInput({ field, value, onChange }: { field: import("@
 }
 
 const fpsBandOptions = [
-    { label: "任意帧率", value: "*" },
+    { label: translate("admin.channelModelPriceTierFields.anyFrameRate"), value: "*" },
     { label: "≤30fps", value: "le30" },
     { label: "30–60fps", value: "le60" },
     { label: "60–120fps", value: "le120" },
 ];
 
 function operationOptions(capability: EditableCapability | undefined) {
-    const options = [{ label: "任意生成方式", value: "*" }];
-    if (capability === "image") return [...options, { label: "文生图", value: "text_to_image" }, { label: "图生图", value: "image_to_image" }];
-    if (capability === "video") return [...options, { label: "文生视频", value: "text_to_video" }, { label: "图生视频", value: "image_to_video" }, { label: "视频生视频", value: "video_to_video" }, { label: "画质增强", value: "enhance" }];
-    if (capability === "text") return [...options, { label: "文本生成", value: "text_generation" }];
+    const options = [{ label: translate("admin.channelModelPriceTierFields.anyGenerationMode"), value: "*" }];
+    if (capability === "image") return [...options, { label: translate("admin.channelModelPriceTierFields.textToImage"), value: "text_to_image" }, { label: translate("admin.channelModelPriceTierFields.imageToImage"), value: "image_to_image" }];
+    if (capability === "video") return [...options, { label: translate("admin.channelModelPriceTierFields.textToVideo"), value: "text_to_video" }, { label: translate("admin.channelModelPriceTierFields.imageToVideo"), value: "image_to_video" }, { label: translate("admin.channelModelPriceTierFields.videoToVideo"), value: "video_to_video" }, { label: translate("admin.channelModelPriceTierFields.qualityEnhancement"), value: "enhance" }];
+    if (capability === "text") return [...options, { label: translate("admin.channelModelPriceTierFields.textGeneration"), value: "text_generation" }];
     return options;
 }

@@ -1,5 +1,7 @@
 import { loadRasterImage } from "@/lib/image-raster";
 import { planImageTiles, resolveCropPixels, resolveUpscaleSize, type ImageCropRect, type ImageSplitParams, type ImageSplitPiece, type ImageUpscaleAlgorithm, type ImageUpscaleParams, type PixelSize } from "./image-operation-plan";
+import { translate } from "@/i18n";
+
 
 export { MAX_UPSCALE_LONG_EDGE, resolveUpscaleSize } from "./image-operation-plan";
 export type { ImageCropRect, ImageSplitParams, ImageSplitPiece, ImageUpscaleAlgorithm, ImageUpscaleParams } from "./image-operation-plan";
@@ -15,13 +17,13 @@ function renderPng(source: HTMLImageElement, command: RasterCommand): string {
     const output = document.createElement("canvas");
     Object.assign(output, command.output);
     const painter = output.getContext("2d");
-    if (painter === null) throw new Error("浏览器无法创建图片处理画布");
+    if (painter === null) throw new Error(translate("shared.canvas.canvasImageData.theBrowserCannotCreateAnImageProcessingCanvas"));
     const { region, sampling } = command;
     painter.imageSmoothingEnabled = sampling !== "nearest";
     painter.imageSmoothingQuality = sampling === "high" ? "high" : "low";
     painter.drawImage(source, region.x, region.y, region.width, region.height, 0, 0, output.width, output.height);
     const result = output.toDataURL("image/png");
-    if (!result.startsWith("data:image/png")) throw new Error("图片导出失败");
+    if (!result.startsWith("data:image/png")) throw new Error(translate("shared.canvas.canvasImageData.failedToExportImage"));
     return result;
 }
 
@@ -43,7 +45,7 @@ export async function splitDataUrl(source: string, grid: ImageSplitParams): Prom
 }
 
 export async function upscaleDataUrl(source: string, options: ImageUpscaleParams): Promise<string> {
-    if (!["nearest", "bilinear", "high"].includes(options.algorithm)) throw new RangeError("不支持的图片插值方式");
+    if (!["nearest", "bilinear", "high"].includes(options.algorithm)) throw new RangeError(translate("shared.canvas.canvasImageData.unsupportedImageInterpolationMethod"));
     const picture = await loadRasterImage(source);
     const size = dimensions(picture);
     return renderPng(picture, {

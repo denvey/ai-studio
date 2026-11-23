@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminTooltip } from "@/pages/admin/ui/controls";
 import { getAdminChannelModelHealth, type AdminChannelModelHealth } from "@/services/api/wallet";
 import { cn } from "@/lib/utils";
+import { currentLocale, translate } from "@/i18n";
 
 export function channelModelHealthKey(channelId: string, modelKey: string) {
     return `${channelId}\u0000${modelKey}`;
@@ -26,7 +27,7 @@ export function useChannelModelHealth(channelId?: string) {
         } catch (cause) {
             if (current !== sequence.current) return;
             setHealth(new Map());
-            setError(cause instanceof Error ? cause.message : "读取模型稳定性失败");
+            setError(cause instanceof Error ? cause.message : translate("admin.channelModelHealth.failedToLoadModelReliability"));
         } finally {
             if (current === sequence.current) setLoading(false);
         }
@@ -51,8 +52,8 @@ export function healthTone(rate: number | null | undefined, samples: number) {
 
 /** 24 小时成功率 + 最近 10 次结果（左旧右新）+ 调用次数；悬停显示 7 天成功率、P95 和最近一次失败。 */
 export function ChannelModelHealthCell({ health, loading }: { health?: AdminChannelModelHealth; loading?: boolean }) {
-    if (loading && !health) return <span className="text-xs text-foreground/35">读取中…</span>;
-    if (!health || health.requests7d === 0) return <span className="text-xs text-foreground/35">近 7 天无调用</span>;
+    if (loading && !health) return <span className="text-xs text-foreground/35">{translate("admin.channelModelHealth.loading")}</span>;
+    if (!health || health.requests7d === 0) return <span className="text-xs text-foreground/35">{translate("admin.channelModelHealth.noRequestsInThePast7Days")}</span>;
     const rate = health.successRate24h;
     const tone = healthTone(rate, health.requests24h);
     const slots = Array.from({ length: 10 }, (_, index) => {
@@ -62,27 +63,27 @@ export function ChannelModelHealthCell({ health, loading }: { health?: AdminChan
     const detail = (
         <div className="space-y-1 text-xs">
             <div>
-                近 24 小时：{health.requests24h} 次，成功 {health.succeeded24h}，失败 {health.failed24h}
+                {translate("admin.channelModelHealth.past24Hours")}{health.requests24h} {translate("admin.channelModelHealth.requestsSuccessful")} {health.succeeded24h}{translate("admin.channelModelHealth.failed")} {health.failed24h}
             </div>
             <div>
-                近 7 天成功率：{formatRate(health.successRate7d)}（{health.requests7d} 次）
+                {translate("admin.channelModelHealth.item7DaySuccessRate")}{formatRate(health.successRate7d)}（{health.requests7d} {translate("admin.channelModelHealth.requests")}
             </div>
-            <div>近 24 小时 P95 耗时：{health.requests24h ? formatDuration(health.p95DurationMs24h) : "--"}</div>
+            <div>{translate("admin.channelModelHealth.item24HourP95Latency")}{health.requests24h ? formatDuration(health.p95DurationMs24h) : "--"}</div>
             {health.lastFailedAt ? (
                 <div>
-                    最近失败：{new Date(health.lastFailedAt).toLocaleString("zh-CN", { hour12: false })}
+                    {translate("admin.channelModelHealth.latestFailure")}{new Date(health.lastFailedAt).toLocaleString(currentLocale(), { hour12: false })}
                     {health.lastErrorCode ? ` · ${health.lastErrorCode}` : ""}
                 </div>
             ) : null}
-            <div className="opacity-70">只统计模型生成请求；方块从左到右为最近 10 次，最右为最新。</div>
+            <div className="opacity-70">{translate("admin.channelModelHealth.includesModelGenerationRequestsOnlySquaresShowTheLast10")}</div>
         </div>
     );
     return (
         <AdminTooltip title={detail}>
-            <div className="admin-model-health" data-tone={tone} tabIndex={0} aria-label={`近 24 小时成功率 ${formatRate(rate)}，共 ${health.requests24h} 次调用`}>
+            <div className="admin-model-health" data-tone={tone} tabIndex={0} aria-label={translate("admin.channelModelHealth.item24HourSuccessRateAcrossRequests", { v0: String(formatRate(rate)), v1: String(health.requests24h) })}>
                 <div className="admin-model-health-head">
-                    <strong>{health.requests24h ? formatRate(rate) : "24h 无调用"}</strong>
-                    <span>{health.requests24h ? `${health.requests24h} 次` : `7 天 ${formatRate(health.successRate7d)}`}</span>
+                    <strong>{health.requests24h ? formatRate(rate) : translate("admin.channelModelHealth.noRequestsIn24h")}</strong>
+                    <span>{health.requests24h ? translate("admin.channelModelHealth.calls", { v0: String(health.requests24h) }) : translate("admin.channelModelHealth.item7Days", { v0: String(formatRate(health.successRate7d)) })}</span>
                 </div>
                 <div className="admin-model-health-track" aria-hidden="true">
                     {slots.map((value, index) => (
@@ -100,5 +101,5 @@ export function formatRate(rate: number | null | undefined) {
 
 function formatDuration(value: number) {
     if (!value) return "--";
-    return value >= 1000 ? `${(value / 1000).toFixed(1)} 秒` : `${value} ms`;
+    return value >= 1000 ? translate("admin.channelModelHealth.s", { v0: String((value / 1000).toFixed(1)) }) : `${value} ms`;
 }

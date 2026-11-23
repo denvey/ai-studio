@@ -1,3 +1,5 @@
+
+import { translate } from "@/i18n";
 // 短剧风格库：按“爆款题材 × 视觉媒介”组织。每个风格的 prompt 只描述全剧长期稳定的美术基线
 // （媒介、题材场景、色彩光影、服化道、禁用项），具体构图与动作由分镜决定。
 // 只有与题材确实匹配的内置样图才作为封面，其余使用风格主色生成的海报占位，避免误导。
@@ -21,12 +23,12 @@ export type DramaStyle = {
 type Spec = Omit<DramaStyle, "prompt" | "detail"> & { medium?: string; world: string; look: string; wardrobe: string; forbid?: string };
 
 export const DRAMA_STYLE_CATEGORIES: Array<{ key: "all" | "hot" | DramaStyleCategory; label: string }> = [
-    { key: "hot", label: "爆款" },
-    { key: "all", label: "全部" },
-    { key: "live", label: "真人短剧" },
-    { key: "3d", label: "3D 动画" },
-    { key: "2d", label: "2D 漫剧" },
-    { key: "art", label: "艺术风格" },
+    { key: "hot", label: translate("shared.drama.dramaStyles.popular") },
+    { key: "all", label: translate("canvasA.toolPicker.all") },
+    { key: "live", label: translate("shared.drama.dramaStyles.liveAction") },
+    { key: "3d", label: translate("shared.drama.dramaStyles.item3DAnimation") },
+    { key: "2d", label: translate("shared.drama.dramaStyles.item2DAnimation") },
+    { key: "art", label: translate("shared.drama.dramaStyles.artStyles") },
 ];
 
 const MEDIUM: Record<DramaStyleCategory, string> = {

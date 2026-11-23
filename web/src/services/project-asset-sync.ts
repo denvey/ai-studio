@@ -24,6 +24,8 @@ import { normalizeAssetCategory } from "@/lib/asset-category";
 import { runGenerationConsumer } from "@/services/generation-consumer-lifecycle";
 import { ASSET_STORE_KEY, flushAssetStorePersistence, generationAssetId, useAssetStore, type AssetCategory, type AssetStatus, type NewAsset } from "@/stores/use-asset-store";
 import type { CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 function throwIfAborted(signal?: AbortSignal) {
     if (signal?.aborted) throw new DOMException("The operation was aborted", "AbortError");
@@ -129,14 +131,14 @@ async function persistCanvasNodeAsset(options: EnsureCanvasNodeAssetOptions): Pr
     let created = false;
     if (!asset) {
         // 受管生成结果必须采用已登记的身份，不能以随机 ID 再建一份。
-        if (requiresMaterializedCanvasAsset(options.node, options.taskId)) throw new Error("生成素材尚未加载，请重新读取生成结果");
+        if (requiresMaterializedCanvasAsset(options.node, options.taskId)) throw new Error(translate("shared.projectAssetSync.generatedAssetsAreNotLoadedYetFetchTheGenerationResult"));
         const input = canvasNodeToAsset(options.node, { canvasId: options.canvasId, source: options.source, taskId: options.taskId });
-        if (!input) throw new Error("当前节点没有可保存的素材内容");
+        if (!input) throw new Error(translate("shared.projectAssetSync.thisNodeHasNoAssetContentToSave"));
         const assetId = store.addAsset(options.category ? { ...input, category: options.category } : input);
         asset = useAssetStore.getState().assets.find((item) => item.id === assetId);
         created = true;
     }
-    if (!asset) throw new Error("素材写入本地失败");
+    if (!asset) throw new Error(translate("shared.projectAssetSync.failedToWriteTheAssetLocally"));
     if (declaredCategory && asset.category !== declaredCategory) {
         store.updateAsset(asset.id, { category: declaredCategory });
         asset = useAssetStore.getState().assets.find((item) => item.id === asset?.id) || asset;
@@ -270,7 +272,7 @@ async function performCanvasProjectAssetLink(job: PendingCanvasProjectAssetLink,
         ensureCurrentScope();
         asset = useAssetStore.getState().assets.find((candidate) => candidate.id === job.assetId);
     }
-    if (!asset) throw new Error("素材写入本地失败");
+    if (!asset) throw new Error(translate("shared.projectAssetSync.failedToWriteTheAssetLocally"));
     const category = job.category as AssetCategory | undefined;
     const linkedProjectIds = Array.isArray(asset.metadata?.projectIds) ? asset.metadata.projectIds.filter((id): id is string => typeof id === "string") : [];
     if (linkedProjectIds.includes(job.domainProjectId)) {
@@ -393,7 +395,7 @@ async function storedGenerationImage(result: NonNullable<BackendGenerationResult
     throwIfAborted(signal);
     if (result.storageKey) {
         const url = await resolveImageUrl(result.storageKey, result.dataUrl);
-        if (!url) throw new Error("图片结果资源不可用");
+        if (!url) throw new Error(translate("create.page.imageResultUnavailable"));
         const meta = result.width && result.height ? undefined : await readImageMeta(url, signal);
         throwIfAborted(signal);
         return {
@@ -417,7 +419,7 @@ async function storedGenerationImage(result: NonNullable<BackendGenerationResult
     throwIfAborted(signal);
     const url = await resolveImageUrl(storageKey);
     throwIfAborted(signal);
-    if (!url) throw new Error("图片结果资源不可用");
+    if (!url) throw new Error(translate("create.page.imageResultUnavailable"));
     const meta = result.width && result.height ? undefined : await readImageMeta(url, signal);
     throwIfAborted(signal);
     return {
@@ -444,7 +446,7 @@ async function storedGenerationMedia(dataUrl: string, effectKey: string, mediaTy
     throwIfAborted(signal);
     const url = await resolveMediaUrl(storageKey);
     throwIfAborted(signal);
-    if (!url) throw new Error(`${mediaType === "video" ? "视频" : "音频"}结果资源不可用`);
+    if (!url) throw new Error(translate("shared.projectAssetSync.resultResourceIsUnavailable", { v0: String(mediaType === "video" ? "视频" : "音频") }));
     return {
         url,
         storageKey,
@@ -457,7 +459,7 @@ async function storedGenerationMedia(dataUrl: string, effectKey: string, mediaTy
 }
 
 async function cachedRemoteGenerationVideo(video: NonNullable<BackendGenerationResult["video"]>, signal?: AbortSignal) {
-    if (!video.storageKey) throw new Error("生成视频缺少云端资源标识");
+    if (!video.storageKey) throw new Error(translate("shared.projectAssetSync.theGeneratedVideoIsMissingACloudResourceIdentifier"));
     throwIfAborted(signal);
     // 后端任务成功即代表视频已作为资源持久化；登记素材只需要可用的展示地址。
     // 整段下载到浏览器只是本地缓存加速层：大视频超时或跨域下载失败不能让已落库的作品在页面上“消失”，
@@ -465,7 +467,7 @@ async function cachedRemoteGenerationVideo(video: NonNullable<BackendGenerationR
     void getCachedResourceBlob(video.storageKey).catch(() => undefined);
     const url = await resolveMediaUrl(video.storageKey, video.dataUrl);
     throwIfAborted(signal);
-    if (!url) throw new Error("生成视频资源地址为空，未标记为成功");
+    if (!url) throw new Error(translate("shared.projectAssetSync.theGeneratedVideoURLIsEmptyTheTaskHasNot"));
     return {
         url,
         storageKey: video.storageKey,
@@ -492,7 +494,7 @@ async function generationOutputAsset(input: Parameters<MaterializeGenerationTask
 
     if (input.output.mediaType === "image") {
         const image = result.images?.[input.output.outputIndex];
-        if (!image) throw new Error("生成任务缺少图片输出");
+        if (!image) throw new Error(translate("shared.projectAssetSync.theGenerationTaskHasNoImageOutput"));
         const stored = await storedGenerationImage(image, input.effectKey, scope, input.signal);
         return {
             kind: "image",
@@ -516,7 +518,7 @@ async function generationOutputAsset(input: Parameters<MaterializeGenerationTask
 
     if (input.output.mediaType === "video") {
         const video = result.video;
-        if (!video) throw new Error("生成任务缺少视频输出");
+        if (!video) throw new Error(translate("shared.projectAssetSync.theGenerationTaskHasNoVideoOutput"));
         const stored = video.storageKey
             ? await cachedRemoteGenerationVideo(video, input.signal)
             : await storedGenerationMedia(
@@ -533,7 +535,7 @@ async function generationOutputAsset(input: Parameters<MaterializeGenerationTask
                   scope,
                   input.signal,
               );
-        if (!stored.url) throw new Error("视频结果资源不可用");
+        if (!stored.url) throw new Error(translate("create.page.videoResultUnavailable"));
         return {
             kind: "video",
             title: "生成视频",
@@ -556,7 +558,7 @@ async function generationOutputAsset(input: Parameters<MaterializeGenerationTask
     }
 
     const audio = result.audio;
-    if (!audio) throw new Error("生成任务缺少音频输出");
+    if (!audio) throw new Error(translate("shared.projectAssetSync.theGenerationTaskHasNoAudioOutput"));
     const stored = audio.storageKey
         ? {
               url: await resolveMediaUrl(audio.storageKey, audio.dataUrl),
@@ -577,7 +579,7 @@ async function generationOutputAsset(input: Parameters<MaterializeGenerationTask
               scope,
               input.signal,
           );
-    if (!stored.url) throw new Error("音频结果资源不可用");
+    if (!stored.url) throw new Error(translate("shared.projectAssetSync.audioResultResourceUnavailable"));
     return {
         kind: "audio",
         title: "生成音频",
@@ -698,14 +700,14 @@ export async function materializeGenerationTaskAssets(task: GenerationTask, sign
         // 物化 effect 已完成但素材缺失：按同一 effectKey 重新登记。只在素材 ID 正是该 effectKey 派生的 ID 时补登，
         // 结果与原记录一致；来历不明的 ID 不重建，避免凭空生成新素材。
         const effectKey = materializeEffectKey(task.id, output.outputIndex);
-        if ((await generationAssetId(effectKey)) !== output.materializedAssetId) throw new Error("生成任务输出素材不存在");
+        if ((await generationAssetId(effectKey)) !== output.materializedAssetId) throw new Error(translate("shared.projectAssetSync.theGenerationTaskSOutputAssetDoesNotExist"));
         const result = await materializeGenerationOutput({ task: projected, output, effectKey, signal });
         ensureCurrentScope();
-        if (result.materializedAssetId !== output.materializedAssetId) throw new Error("生成任务输出素材不存在");
+        if (result.materializedAssetId !== output.materializedAssetId) throw new Error(translate("shared.projectAssetSync.theGenerationTaskSOutputAssetDoesNotExist"));
         availableIds.add(result.materializedAssetId);
     }
     const unavailableId = assetIds.find((id) => !new Set(useAssetStore.getState().assets.map((asset) => asset.id)).has(id));
-    if (unavailableId) throw new Error("生成任务输出素材不存在");
+    if (unavailableId) throw new Error(translate("shared.projectAssetSync.theGenerationTaskSOutputAssetDoesNotExist"));
     return materialized;
 }
 
@@ -738,7 +740,7 @@ export async function consumeGenerationTaskNode(
     }
     const materialized = await (dependencies.materialize ?? materializeGenerationTaskAssets)(task, dependencies.signal);
     const output = materialized.outputs?.find((candidate) => candidate.outputIndex === outputIndex);
-    if (!output?.materializedAssetId) throw new Error("生成任务输出尚未物化");
+    if (!output?.materializedAssetId) throw new Error(translate("shared.projectAssetSync.generationTaskOutputHasNotBeenMaterializedYet"));
     await (dependencies.attachNode ?? attachGenerationTaskNode)(
         materialized,
         nodeId,

@@ -1,40 +1,42 @@
+
+import { translate } from "@/i18n";
 export const CONTENT_MODERATION_ERROR_CODE = "sensitive_words_detected";
 
-export const CONTENT_MODERATION_MESSAGE = "内容审核未通过，本次平台积分未扣除或已退还。请修改提示词后重新生成。";
+export const CONTENT_MODERATION_MESSAGE = translate("shared.generationError.contentModerationFailedNoPlatformCreditsWereChargedOrThey");
 
-const UPSTREAM_LINK_PLACEHOLDER = "[链接已隐藏]";
-const UPSTREAM_HOST_PLACEHOLDER = "[地址已隐藏]";
+const UPSTREAM_LINK_PLACEHOLDER = translate("shared.generationError.linkHidden");
+const UPSTREAM_HOST_PLACEHOLDER = translate("shared.generationError.addressHidden");
 const UPSTREAM_URL_PATTERN = /https?:\/\/[^\s<>"'，。；）]+/gi;
 const UPSTREAM_NETWORK_OPERATION_PATTERN = /\b(?:dial|read|write|proxyconnect)\s+tcp\s+\S+/gi;
 const UPSTREAM_IPV4_PATTERN = /\b(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\b/g;
 const USER_VISIBLE_TASK_ID_PATTERN = /\btask[_-][a-z0-9][a-z0-9_-]{2,}\b/gi;
 
-const DEFAULT_GENERATION_ERROR_MESSAGE = "生成失败，请稍后重试。";
-const NETWORK_ERROR_MESSAGE = "网络异常。";
-const MODEL_CAPABILITY_ERROR_MESSAGE = "所选模型不支持当前生成方式或输入，请切换模型或调整输入后重试。";
-const MODEL_PARAMETER_ERROR_MESSAGE = "当前模型不支持这组参数或参考素材，请调整输入或切换模型后重试。";
-const MODEL_SERVICE_ERROR_MESSAGE = "模型服务处理失败，请稍后重试或换用其他模型。";
+const DEFAULT_GENERATION_ERROR_MESSAGE = translate("shared.generationError.generationFailedPleaseTryAgainLater");
+const NETWORK_ERROR_MESSAGE = translate("shared.generationError.networkError");
+const MODEL_CAPABILITY_ERROR_MESSAGE = translate("shared.generationError.theSelectedModelDoesNotSupportThisGenerationModeOr");
+const MODEL_PARAMETER_ERROR_MESSAGE = translate("shared.generationError.theCurrentModelDoesNotSupportTheseParametersOrReference");
+const MODEL_SERVICE_ERROR_MESSAGE = translate("shared.generationError.theModelServiceFailedToProcessTheRequestTryAgain");
 
 const REASON_MESSAGES: Record<string, string> = {
-    model_price_not_configured: "当前模型暂未配置价格，请换用其他模型或联系管理员。",
-    model_route_unavailable: "当前模型暂时没有可用渠道，请稍后重试或换用其他模型。",
+    model_price_not_configured: translate("shared.generationError.noPriceIsConfiguredForThisModelChooseAnotherModel"),
+    model_route_unavailable: translate("shared.generationError.noChannelsAreCurrentlyAvailableForThisModelTryAgain"),
     provider_request_failed: MODEL_SERVICE_ERROR_MESSAGE,
-    model_catalog_mismatch: "模型配置已更新，请重新选择模型后再试。",
-    invalid_model_selection: "模型选择无效，请重新选择模型后再试。",
-    quota_exceeded: "积分或额度不足，请充值后再试。",
-    storage_capacity_exceeded: "账号存储空间不足，请清理素材或购买存储空间后再试。",
-    storage_read_only: "账号已超出存储容量且宽限期已结束，当前为只读状态。请删除素材或购买存储空间。",
-    drama_budget_exhausted: "这部短剧已达到预算上限（含画布精修花费），请在短剧设置里提高预算后再生成。",
-    rate_limited: "请求过于频繁，请稍后再试。",
-    timeout: "模型服务响应超时，请稍后再试。",
-    bad_gateway: "模型服务暂时不可用，请稍后再试。",
-    unavailable: "模型服务暂时不可用，请稍后再试。",
-    upstream_dns_failed: "模型服务暂时不可用，请稍后再试。",
-    unauthorized: "当前登录状态或权限不足，请重新登录后再试。",
-    forbidden: "当前账号没有执行此操作的权限。",
-    failed_precondition: "当前请求条件不满足，请检查输入或换用其他模型。",
-    conflict: "请求状态已发生变化，请刷新后再试。",
-    internal: "系统暂时无法完成生成，请稍后再试。",
+    model_catalog_mismatch: translate("shared.generationError.modelSettingsHaveChangedSelectTheModelAgainAndRetry"),
+    invalid_model_selection: translate("shared.generationError.invalidModelSelectionSelectAModelAgainAndRetry"),
+    quota_exceeded: translate("shared.generationError.insufficientCreditsOrQuotaAddCreditsAndTryAgain"),
+    storage_capacity_exceeded: translate("shared.generationError.insufficientAccountStorageRemoveAssetsOrPurchaseStorageAndTry"),
+    storage_read_only: translate("shared.generationError.yourAccountHasExceededItsStorageCapacityAndTheGrace"),
+    drama_budget_exhausted: translate("shared.generationError.thisShortDramaHasReachedItsBudgetLimitIncludingCanvas"),
+    rate_limited: translate("shared.generationError.tooManyRequestsPleaseTryAgainLater"),
+    timeout: translate("shared.generationError.theModelServiceTimedOutPleaseTryAgainLater"),
+    bad_gateway: translate("shared.generationError.theModelServiceIsTemporarilyUnavailablePleaseTryAgainLater"),
+    unavailable: translate("shared.generationError.theModelServiceIsTemporarilyUnavailablePleaseTryAgainLater"),
+    upstream_dns_failed: translate("shared.generationError.theModelServiceIsTemporarilyUnavailablePleaseTryAgainLater"),
+    unauthorized: translate("shared.generationError.yourSessionOrPermissionsAreInsufficientSignInAgainAnd"),
+    forbidden: translate("shared.generationError.yourAccountDoesNotHavePermissionToPerformThisAction"),
+    failed_precondition: translate("shared.generationError.theRequestRequirementsAreNotMetCheckTheInputOr"),
+    conflict: translate("shared.generationError.theRequestStatusHasChangedRefreshAndTryAgain"),
+    internal: translate("shared.generationError.theSystemCannotCompleteGenerationRightNowPleaseTryAgain"),
 };
 
 // 用户可见文案（画布失败原因、积分流水备注）不能出现上游地址；
@@ -91,9 +93,9 @@ export function generationErrorMessage(error: unknown) {
     if (resourceStorageMessage) return resourceStorageMessage;
     if (isNetworkFailure(displayMessage)) return NETWORK_ERROR_MESSAGE;
     if (!providerMessage && !keepsProviderDetail(displayMessage)) {
-        if (hasHttpStatus(raw, 429)) return "服务当前繁忙，请稍后重试。";
-        if (hasHttpStatus(raw, 401, 403)) return "生成服务鉴权失败，请检查渠道配置。";
-        if (hasHttpStatus(raw, 404)) return "生成服务地址不可用，请检查渠道配置。";
+        if (hasHttpStatus(raw, 429)) return translate("shared.generationError.theServiceIsBusyRightNowPleaseTryAgainLater");
+        if (hasHttpStatus(raw, 401, 403)) return translate("shared.generationError.generationServiceAuthenticationFailedCheckTheChannelConfiguration");
+        if (hasHttpStatus(raw, 404)) return translate("shared.generationError.theGenerationServiceURLIsUnavailableCheckTheChannelConfiguration");
         if (hasHttpStatus(raw, 500, 502, 503, 504)) return REASON_MESSAGES.unavailable;
         if (containsInfrastructureDetails(raw)) return NETWORK_ERROR_MESSAGE;
     }
@@ -116,16 +118,16 @@ function sanitizeUserVisibleError(value: string) {
     const detail = index >= 0 ? redacted.slice(index + marker.length) : "";
     const actionable = actionableUpstreamReason(detail);
     const result = actionable ? `${prefix}${prefix ? "；" : ""}${actionable}` : prefix;
-    return result.replace(USER_VISIBLE_TASK_ID_PATTERN, "[任务标识已隐藏]");
+    return result.replace(USER_VISIBLE_TASK_ID_PATTERN, translate("shared.generationError.taskIDHidden"));
 }
 
 function actionableUpstreamReason(value: string) {
     const lower = value.toLowerCase();
     const image = lower.includes("image") || lower.includes("图片") || lower.includes("file") || lower.includes("参考图");
     const tooLarge = lower.includes("too large") || lower.includes("exceed") || lower.includes("超过") || lower.includes("25mb") || lower.includes("25 mb");
-    if (image && tooLarge) return "参考图片超过模型支持的大小限制，请压缩图片后重试。";
-    if (lower.includes("model_not_found") || lower.includes("model not found") || lower.includes("无可用渠道")) return "当前模型暂无可用渠道，请更换模型或联系管理员。";
-    if (image && (lower.includes("unsupported size") || lower.includes("图片尺寸不支持") || lower.includes("unsupported format") || lower.includes("图片格式不支持"))) return "参考图片的尺寸或格式不符合模型要求，请调整图片后重试。";
+    if (image && tooLarge) return translate("shared.generationError.theReferenceImageExceedsTheModelSSizeLimitCompress");
+    if (lower.includes("model_not_found") || lower.includes("model not found") || lower.includes("无可用渠道")) return translate("shared.generationError.noChannelsAreAvailableForThisModelChooseAnotherModel");
+    if (image && (lower.includes("unsupported size") || lower.includes("图片尺寸不支持") || lower.includes("unsupported format") || lower.includes("图片格式不支持"))) return translate("shared.generationError.theReferenceImageDimensionsOrFormatDoNotMeetThe");
     return "";
 }
 
@@ -139,7 +141,7 @@ export function generationErrorCode(error: unknown) {
 
 export function isContentModerationError(value: unknown) {
     const text = value instanceof Error ? value.message : String(value || "");
-    return text.toLowerCase().includes(CONTENT_MODERATION_ERROR_CODE) || text.includes("内容审核未通过");
+    return text.toLowerCase().includes(CONTENT_MODERATION_ERROR_CODE) || text.includes("内容审核未通过") || text.includes(CONTENT_MODERATION_MESSAGE) || /^content moderation failed\b/i.test(text);
 }
 
 export function unchangedModeratedPrompt(metadata: { errorDetails?: string; generationErrorCode?: string; failedPromptFingerprint?: string } | undefined, prompt: string) {
@@ -185,9 +187,8 @@ function isModelParameterFailure(value: string) {
 function isTechnicalProviderMessage(value: string) {
     const text = value.trim();
     if (!text) return false;
-    if (/(?:provider request failed|invalid_request_error|internal_server_error|bad_request|unauthorized|forbidden|not_found|upstream_error|request failed with status code|http\s*\d{3})/i.test(text)) return true;
-    // 纯英文的 SDK/网关错误通常不是面向终端用户的说明；中文供应商原因仍允许展示。
-    return !/[\u3400-\u9fff]/.test(text) && /^[\w .,:;_/'"()\-]+$/.test(text) && text.length > 18;
+    // 仅识别明确的 SDK / 网关格式；本地与后端的可读英文错误必须保留操作原因。
+    return /(?:provider request failed|invalid_request_error|internal_server_error|bad_request|upstream_error|request failed with status code|http\s*\d{3})/i.test(text) || /^(?:unauthorized|forbidden|not_found)(?:\s*[:：]|$)/i.test(text);
 }
 
 function keepsProviderDetail(value: string) {
@@ -249,9 +250,9 @@ function containsInfrastructureDetails(value: string) {
 
 function resourceStorageFailureMessage(value: string) {
     if (!value) return "";
-    if (/\bUserDisable\b/i.test(value)) return "对象存储账号已停用，请检查或更换对象存储配置。";
+    if (/\bUserDisable\b/i.test(value)) return translate("shared.generationError.theObjectStorageAccountIsDisabledCheckOrReplaceThe");
     if (/(?:参考(?:图片|媒体)上传失败|OSS 上传失败|对象存储|腾讯云 COS|七牛云|火山引擎 TOS)/i.test(value)) {
-        return "参考素材上传到对象存储失败，请检查对象存储配置后重试。";
+        return translate("shared.generationError.failedToUploadReferenceAssetsToObjectStorageCheckThe");
     }
     return "";
 }

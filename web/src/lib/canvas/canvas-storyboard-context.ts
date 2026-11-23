@@ -1,4 +1,6 @@
 import type { CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 export type StoryboardGenerationContext = {
     characters: Array<{
@@ -16,7 +18,7 @@ export function resolveStoryboardGenerationContext(nodes: CanvasNodeData[]): Sto
     // storyboard character cards and therefore participate in this check.
     const characterNodes = nodes.filter((node) => node.metadata?.workflowKind === "character" && node.metadata?.characterAssetId?.trim());
     const invalidCharacter = characterNodes.find((node) => !node.metadata?.characterAssetId?.trim() || !node.metadata?.characterVersionId?.trim() || !(node.metadata?.characterName || node.title).trim());
-    if (invalidCharacter) throw new Error(`角色卡“${invalidCharacter.metadata?.characterName || invalidCharacter.title || "未命名角色"}”版本未同步，请刷新角色资产后再生成分镜`);
+    if (invalidCharacter) throw new Error(translate("shared.canvas.canvasStoryboardContext.characterCardIsOutOfSyncRefreshCharacterAssetsBefore", { v0: String(invalidCharacter.metadata?.characterName || invalidCharacter.title || "未命名角色") }));
 
     return {
         characters: characterNodes.map((node) => ({

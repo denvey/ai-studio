@@ -1,4 +1,6 @@
 import { http } from "@/services/api/request";
+import { currentLocale, translate } from "@/i18n";
+
 
 /** 用户端分组徽章外观；none 不展示。 */
 export type UserGroupBadgeStyle = "none" | "vip" | "svip";
@@ -50,14 +52,14 @@ export type PublicUserGroup = {
 export const DEFAULT_USER_GROUP_CODE = "default";
 
 export const priceCurrencyOptions: Array<{ value: PriceCurrency; label: string }> = [
-    { value: "credits", label: "积分" },
-    { value: "USD", label: "USD 美元" },
-    { value: "CNY", label: "CNY 人民币" },
+    { value: "credits", label: translate("shell.credits") },
+    { value: "USD", label: translate("shared.api.userGroups.uSDUSDollar") },
+    { value: "CNY", label: translate("shared.api.userGroups.cNYChineseYuan") },
 ];
 
 /** 价格单位文案：积分计价显示「积分」，货币计价显示货币代码。 */
 export function priceCurrencyUnit(currency?: string) {
-    return currency === "USD" || currency === "CNY" ? currency : "积分";
+    return currency === "USD" || currency === "CNY" ? currency : translate("shell.credits");
 }
 
 export function listAdminUserGroups() {
@@ -83,5 +85,5 @@ export function userGroupCode(value?: string) {
 
 /** 倍率展示：10000 → "1"，8000 → "0.8"。 */
 export function formatRatioBasisPoints(value: number) {
-    return (value / 10_000).toLocaleString("zh-CN", { maximumFractionDigits: 4 });
+    return (value / 10_000).toLocaleString(currentLocale(), { maximumFractionDigits: 4 });
 }

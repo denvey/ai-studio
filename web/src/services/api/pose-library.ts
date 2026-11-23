@@ -1,5 +1,7 @@
 import { apiBaseURL, compactApiParams, http } from "./request";
 import type { RemoteResource } from "./resources";
+import { translate } from "@/i18n";
+
 
 /** 一次插入画布的姿势图上限，与后端 poselibrary.MaxUseItems 一致。 */
 export const POSE_LIBRARY_MAX_USE = 16;
@@ -170,7 +172,7 @@ export function previewPoseLibraryPack(text: string): PoseLibraryPackPreview {
     try {
         data = JSON.parse(text.replace(/^\uFEFF/, ""));
     } catch {
-        throw new Error("文件不是有效的 JSON");
+        throw new Error(translate("shared.api.poseLibrary.theFileIsNotValidJSON"));
     }
     const count = (systems: string[]) => {
         const counts = new Map<string, number>();
@@ -179,21 +181,21 @@ export function previewPoseLibraryPack(text: string): PoseLibraryPackPreview {
     };
     if (Array.isArray(data)) {
         const rows = data as Record<string, unknown>[];
-        if (!rows.length || typeof rows[0]?.id !== "string" || typeof rows[0]?.["姿势名称"] !== "string") throw new Error("不是 ai-pose-gallery-zh 的 data/pose-zh.json");
-        return { format: "ai-pose-gallery-zh", sourceName: "AI 姿势参考图库（ai-pose-gallery-zh）", baseUrl: POSE_LIBRARY_DEFAULT_BASE_URL, total: rows.length, systems: count(rows.map((row) => String(row["体系"] || "").trim())) };
+        if (!rows.length || typeof rows[0]?.id !== "string" || typeof rows[0]?.["姿势名称"] !== "string") throw new Error(translate("shared.api.poseLibrary.notDataPoseZhJsonFromAiPoseGalleryZh"));
+        return { format: "ai-pose-gallery-zh", sourceName: translate("shared.api.poseLibrary.aIPoseReferenceGalleryAiPoseGalleryZh"), baseUrl: POSE_LIBRARY_DEFAULT_BASE_URL, total: rows.length, systems: count(rows.map((row) => String(row["体系"] || "").trim())) };
     }
     const pack = data as { format?: unknown; source?: { name?: unknown; key?: unknown; baseUrl?: unknown }; items?: unknown };
     if (pack && pack.format === "yingce-pose-library" && Array.isArray(pack.items)) {
         const items = pack.items as Record<string, unknown>[];
         return {
             format: "yingce-pose-library",
-            sourceName: String(pack.source?.name || pack.source?.key || "自定义姿势包"),
+            sourceName: String(pack.source?.name || pack.source?.key || translate("shared.api.poseLibrary.customPosePack")),
             baseUrl: typeof pack.source?.baseUrl === "string" ? pack.source.baseUrl : "",
             total: items.length,
             systems: count(items.map((item) => String(item.system || "").trim())),
         };
     }
-    throw new Error("无法识别的姿势包格式");
+    throw new Error(translate("shared.api.poseLibrary.unrecognizedPosePackageFormat"));
 }
 
 /** 原始数据里的成人向体系默认不勾选，由站长确认后再导入。 */

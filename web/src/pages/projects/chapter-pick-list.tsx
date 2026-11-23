@@ -5,6 +5,7 @@ import { Button, Checkbox, InputNumber } from "antd";
 import { DEFAULT_SELECTED_CHAPTERS, toggleChapterRange } from "@/lib/drama/chapter-selection";
 
 import { formatCount } from "./drama-shared";
+import { translate } from "@/i18n";
 
 export type ChapterPickItem = {
     key: string;
@@ -29,7 +30,7 @@ export function ChapterPickList({
     onChange,
     previewIndex,
     onPreview,
-    quickLabel = "前",
+    quickLabel = translate("drama.chapterPickList.first"),
     className = "",
 }: {
     items: ChapterPickItem[];
@@ -64,25 +65,25 @@ export function ChapterPickList({
         <div className={`drama-chapter-pick ${className}`}>
             <div className="drama-chapter-pick-bar">
                 <span className="drama-chapter-pick-count" aria-live="polite">
-                    已选 <b>{formatCount(selected.size)}</b> / {formatCount(selectable.length)} 章 · {formatCount(pickedWords)} 字
+                    {translate("drama.chapterPickList.selected")} <b>{formatCount(selected.size)}</b> / {formatCount(selectable.length)} {translate("drama.chapterPickList.chapters")} {formatCount(pickedWords)} {translate("drama.chapterPickList.characters")}
                 </span>
                 <span className="drama-chapter-pick-quick">
                     {quickLabel}
-                    <InputNumber size="small" min={1} max={Math.max(1, selectable.length)} precision={0} value={quickCount} onChange={(value) => setQuickCount(value || 1)} aria-label={`${quickLabel}几章`} />章
+                    <InputNumber size="small" min={1} max={Math.max(1, selectable.length)} precision={0} value={quickCount} onChange={(value) => setQuickCount(value || 1)} aria-label={translate("drama.chapterPickList.chapters2", { v0: String(quickLabel) })} />{translate("drama.chapterPickList.chapters3")}
                     <Button size="small" disabled={!selectable.length} onClick={() => onChange(new Set(selectable.slice(0, quickCount)))}>
-                        选取
+                        {translate("drama.chapterPickList.select")}
                     </Button>
                 </span>
                 <span className="drama-chapter-pick-actions">
                     <Button size="small" type="text" disabled={selected.size === selectable.length} onClick={() => onChange(new Set(selectable))}>
-                        全选
+                        {translate("drama.chapterPickList.selectAll")}
                     </Button>
                     <Button size="small" type="text" disabled={!selected.size} onClick={() => onChange(new Set())}>
-                        清空
+                        {translate("canvasA.outbox.clear")}
                     </Button>
                 </span>
             </div>
-            <div ref={listRef} className="drama-chapter-list thin-scrollbar" aria-label="章节">
+            <div ref={listRef} className="drama-chapter-list thin-scrollbar" aria-label={translate("drama.chapterPickList.chapters4")}>
                 <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
                     {virtualizer.getVirtualItems().map((row) => {
                         const item = items[row.index];
@@ -92,7 +93,7 @@ export function ChapterPickList({
                                 <Checkbox
                                     checked={selected.has(index)}
                                     disabled={item.disabled}
-                                    aria-label={`选择 ${item.title}`}
+                                    aria-label={translate("drama.chapterPickList.choose", { v0: String(item.title) })}
                                     onChange={(event) => toggle(index, event.target.checked, Boolean((event.nativeEvent as MouseEvent | undefined)?.shiftKey))}
                                 />
                                 <button type="button" className={`drama-chapter-row ${item.warn ? "is-warn" : ""}`} aria-current={previewIndex === index ? "true" : undefined} onClick={() => onPreview?.(index)}>

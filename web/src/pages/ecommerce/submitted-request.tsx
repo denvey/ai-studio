@@ -2,9 +2,11 @@ import { CachedResourceImage } from "@/components/cached-resource-image";
 import { projectDraft, type EcommerceDraft, type EcommercePlan, type EcommerceProject } from "@/services/api/ecommerce";
 import { resourceFileUrl, resourceStorageKey } from "@/services/api/resources";
 import { modelOptionName } from "@/stores/use-config-store";
-import { imageSizeLabel, labelOf, languages, platforms } from "./catalog";
+import { imageSizeLabel, displayLabelOf, languages, platforms } from "./catalog";
+import { commerceUiText } from "./ui-text";
 import { writeCommerceImageTransfer } from "./image-transfer";
 
+import { translate } from "@/i18n";
 export function restoreSubmittedCommerceRequest(project: EcommerceProject | null, plan: EcommercePlan | null, cached?: EcommerceDraft | null): EcommerceDraft | null {
     if (cached !== undefined) return cached ? structuredClone(cached) : null;
     if (!project) return null;
@@ -21,9 +23,9 @@ export function CommerceSubmittedRequest({ draft }: { draft: EcommerceDraft | nu
     const references = draft.references.filter((ref) => ref.role !== "model");
     const count = draft.imageType === "sku" ? draft.skus.reduce((sum, sku) => sum + sku.count, 0) : draft.count;
     return (
-        <div className="commerce-request-message" aria-label="已发送的商品需求">
+        <div className="commerce-request-message" aria-label={translate("ecommerce.submittedRequest.submittedProductRequirements")}>
             <small>
-                特惠通道 · {labelOf(languages, draft.language)} · {labelOf(platforms, draft.platform)} · {modelOptionName(draft.imageModel)} · {draft.resolution.toUpperCase()} · {imageSizeLabel(draft.ratio)} · {count} 张
+                {translate("ecommerce.submittedRequest.specialRateChannel")} {displayLabelOf(languages, draft.language)} · {displayLabelOf(platforms, draft.platform)} · {modelOptionName(draft.imageModel)} · {draft.resolution.toUpperCase()} · {commerceUiText(imageSizeLabel(draft.ratio))} · {count} {translate("canvasA.characterLibrary.pageItem")}
             </small>
             {draft.instruction ? <div className="commerce-request-bubble">{draft.instruction}</div> : null}
             {references.length ? (
@@ -32,11 +34,11 @@ export function CommerceSubmittedRequest({ draft }: { draft: EcommerceDraft | nu
                         <CachedResourceImage
                             key={`${ref.resourceId}-${index}`}
                             storageKey={resourceStorageKey(ref.resourceId)}
-                            alt={`第 ${index + 1} 张商品参考图`}
+                            alt={translate("ecommerce.submittedRequest.productReferenceImage", { v0: String(index + 1) })}
                             loading="lazy"
                             decoding="async"
                             draggable
-                            onDragStart={(event) => writeCommerceImageTransfer(event.dataTransfer, { resourceId: ref.resourceId, name: ref.name || `商品参考图 ${index + 1}`, url: resourceFileUrl(ref.resourceId) })}
+                            onDragStart={(event) => writeCommerceImageTransfer(event.dataTransfer, { resourceId: ref.resourceId, name: ref.name || translate("ecommerce.submittedRequest.productReferenceImage2", { v0: String(index + 1) }), url: resourceFileUrl(ref.resourceId) })}
                         />
                     ))}
                 </div>

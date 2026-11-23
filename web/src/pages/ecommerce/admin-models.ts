@@ -4,6 +4,7 @@ import { getCommerceAgentSetting, type CommerceAgentModelRef, type CommerceAgent
 import { modelOptionName } from "@/stores/config-model-options";
 import { resolveModelChannel, selectableModelsByCapability, type AiConfig } from "@/stores/use-config-store";
 
+import { translate } from "@/i18n";
 const hasRef = (ref?: CommerceAgentModelRef | null) => Boolean(ref?.channelModelId || ref?.logicalModelId);
 
 /**
@@ -49,7 +50,7 @@ export function useCommerceAdminModels(config: AiConfig): CommerceAdminModels {
                 if (live) setSetting(value);
             })
             .catch(() => {
-                if (live) setLoadError("电商 Agent 模型配置读取失败，请刷新页面");
+                if (live) setLoadError(translate("ecommerce.adminModels.failedToReadEcommerceAgentModelSettingsRefreshThePage"));
             });
         return () => {
             live = false;
@@ -63,10 +64,10 @@ export function useCommerceAdminModels(config: AiConfig): CommerceAdminModels {
         const visionModel = hasRef(setting.vision) ? matchCommerceAdminModel(config, textModels, setting.vision) : planningModel;
         const problem = !planningModel
             ? hasRef(setting)
-                ? "后台指定的整套策划模型当前不可用，请联系管理员在「电商 Agent 配置」重新选择"
-                : "还没有可读商品图的文本模型，请联系管理员在「电商 Agent 配置」配置阶段模型"
+                ? translate("ecommerce.adminModels.theConfiguredFullSetPlanningModelIsUnavailableAskAn")
+                : translate("ecommerce.adminModels.noTextModelCanReadProductImagesAskAnAdministrator")
             : !visionModel
-              ? "后台指定的商品识别模型当前不可用，请联系管理员在「电商 Agent 配置」重新选择"
+              ? translate("ecommerce.adminModels.theConfiguredProductRecognitionModelIsUnavailableAskAnAdministrator")
               : "";
         return { planningModel, visionModel, loaded: true, problem };
     }, [setting, loadError, config, textModels]);

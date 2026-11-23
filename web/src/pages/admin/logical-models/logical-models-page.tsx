@@ -41,6 +41,8 @@ import {
     sanitizeDefaults,
     type CapabilityKind,
 } from "./model-routing-capabilities";
+import { translate } from "@/i18n";
+
 
 type RouteRuleRow = { channelModelId: string; enabled: boolean; priority: number; weight: number };
 type LogicalModelFormValues = {
@@ -67,7 +69,7 @@ export default function LogicalModelsPage() {
     const dirtyRef = useRef(false);
     const closeEditor = () => {
         if (saving) return;
-        if (dirtyRef.current) modal.confirm({ title: "放弃未保存的修改？", okText: "放弃修改", cancelText: "继续编辑", onOk: () => setEditingModel(undefined) });
+        if (dirtyRef.current) modal.confirm({ title: translate("adminPages.logicalModels.logicalModelsPage.discardUnsavedChanges"), okText: translate("adminPages.logicalModels.logicalModelsPage.discardChanges"), cancelText: translate("account.settings.prompts.switchCancel"), onOk: () => setEditingModel(undefined) });
         else setEditingModel(undefined);
     };
     const [keyword, setKeyword] = useState("");
@@ -104,7 +106,7 @@ export default function LogicalModelsPage() {
             setChannelNames(Object.fromEntries(channels.map((channel) => [channel.id, channel.name])));
             setChannelEnabled(Object.fromEntries(channels.map((channel) => [channel.id, channel.enabled !== false])));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "读取前台模型配置失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.logicalModels.logicalModelsPage.failedToLoadFrontendModelSettings"));
         } finally {
             setLoading(false);
         }
@@ -172,7 +174,7 @@ export default function LogicalModelsPage() {
         }
         if (values.enabled && !values.routes.length) {
             setEditorTab("routes");
-            message.error("请至少添加一条供应线路");
+            message.error(translate("adminPages.logicalModels.logicalModelsPage.addAtLeastOneProviderRoute"));
             return;
         }
         const currentSpec = normalizeCapabilitySpecForSources(values.capabilitySpec, modelSourceSpecs) || values.capabilitySpec;
@@ -188,9 +190,9 @@ export default function LogicalModelsPage() {
             await (editingModel ? updateAdminLogicalModel(editingModel.id, payload) : createAdminLogicalModel(payload));
             setEditingModel(undefined);
             await reload();
-            message.success(editingModel ? "前台模型已更新" : "前台模型已创建");
+            message.success(editingModel ? translate("adminPages.logicalModels.logicalModelsPage.frontendModelUpdated") : translate("adminPages.logicalModels.logicalModelsPage.frontendModelCreated"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "保存前台模型失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.logicalModels.logicalModelsPage.failedToSaveFrontendModel"));
         } finally {
             setSaving(false);
         }
@@ -200,9 +202,9 @@ export default function LogicalModelsPage() {
         try {
             await updateAdminLogicalModel(item.id, logicalModelPayload({ ...logicalModelToForm(item), enabled: !item.enabled }));
             await reload();
-            message.success(item.enabled ? "前台模型已停用" : "前台模型已启用");
+            message.success(item.enabled ? translate("adminPages.logicalModels.logicalModelsPage.frontendModelDisabled") : translate("adminPages.logicalModels.logicalModelsPage.frontendModelEnabled"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "更新模型状态失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.logicalModels.logicalModelsPage.failedToUpdateModelStatus"));
         }
     };
 
@@ -212,9 +214,9 @@ export default function LogicalModelsPage() {
             await deleteAdminLogicalModel(item.id);
             setModels((current) => current.filter((model) => model.id !== item.id));
             if (paginatedModels.length === 1 && page > 1) setPage(page - 1);
-            message.success("前台模型已归档");
+            message.success(translate("adminPages.logicalModels.logicalModelsPage.publicModelArchived"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "归档前台模型失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.logicalModels.logicalModelsPage.failedToArchiveFrontendModel"));
             throw error;
         } finally {
             setDeletingModelId(undefined);
@@ -238,7 +240,7 @@ export default function LogicalModelsPage() {
         try {
             setSimulationResult(await simulateAdminLogicalModel(simulatingModel.id, simulationIntent));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "路由模拟失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.logicalModels.logicalModelsPage.routeSimulationFailed"));
         } finally {
             setSimulating(false);
         }
@@ -246,7 +248,7 @@ export default function LogicalModelsPage() {
 
     const modelColumns: ColumnsType<AdminLogicalModel> = [
         {
-            title: "前台模型",
+            title: translate("adminPages.logicalModels.logicalModelsPage.publicModel"),
             dataIndex: "name",
             render: (_, item) => (
                 <div className="flex min-w-0 items-center gap-2">
@@ -258,41 +260,41 @@ export default function LogicalModelsPage() {
                 </div>
             ),
         },
-        { title: "类型", dataIndex: "capability", width: 90, render: (value: CapabilityKind) => capabilityLabel(value) },
-        { title: "创作端能力", width: 360, render: (_, item) => <CapabilitySummary spec={item.capabilitySpec} /> },
+        { title: translate("account.settings.runninghub.kind"), dataIndex: "capability", width: 90, render: (value: CapabilityKind) => capabilityLabel(value) },
+        { title: translate("adminPages.logicalModels.logicalModelsPage.creationCapabilities"), width: 360, render: (_, item) => <CapabilitySummary spec={item.capabilitySpec} /> },
         {
-            title: "供应线路",
+            title: translate("adminPages.logicalModels.logicalModelsPage.providerRoutes"),
             width: 110,
             render: (_, item) => (
                 <div className="text-xs">
-                    <div>{(item.routes || []).filter((route) => route.enabled && route.available).length} 条可用</div>
-                    <div className="text-foreground/45">共 {(item.routes || []).length} 条</div>
+                    <div>{(item.routes || []).filter((route) => route.enabled && route.available).length} {translate("adminPages.logicalModels.logicalModelsPage.available")}</div>
+                    <div className="text-foreground/45">{translate("adminPages.logicalModels.logicalModelsPage.total")} {(item.routes || []).length} {translate("account.layout.pagination.item")}</div>
                 </div>
             ),
         },
-        { title: "用户价格", width: 160, render: (_, item) => logicalPriceLabel(item) },
-        { title: "状态", width: 130, render: (_, item) => logicalModelStatusTag(item) },
+        { title: translate("adminPages.logicalModels.logicalModelsPage.userPrice"), width: 160, render: (_, item) => logicalPriceLabel(item) },
+        { title: translate("library.tasks.detail.status"), width: 130, render: (_, item) => logicalModelStatusTag(item) },
         {
-            title: "操作",
+            title: translate("account.settings.runninghub.actions"),
             width: 300,
             align: "right",
             render: (_, item) => (
                 <AdminRowActions
-                    primary={{ label: "编辑", icon: <Pencil className="size-3.5" />, onClick: () => openModel(item) }}
+                    primary={{ label: translate("account.settings.channels.edit"), icon: <Pencil className="size-3.5" />, onClick: () => openModel(item) }}
                     visibleActionCount={3}
                     actions={[
-                        { key: "simulate", label: "模拟线路", icon: <FlaskConical className="size-3.5" />, onClick: () => openSimulation(item) },
-                        { key: "toggle", label: item.enabled ? "停用" : "启用", onClick: () => void toggleModel(item) },
+                        { key: "simulate", label: translate("adminPages.logicalModels.logicalModelsPage.simulateRouting"), icon: <FlaskConical className="size-3.5" />, onClick: () => openSimulation(item) },
+                        { key: "toggle", label: item.enabled ? translate("adminPages.logicalModels.logicalModelsPage.disable") : translate("adminPages.logicalModels.logicalModelsPage.enable"), onClick: () => void toggleModel(item) },
                         {
                             key: "archive",
-                            label: "归档",
+                            label: translate("adminPages.logicalModels.logicalModelsPage.archive"),
                             icon: <Archive className="size-3.5" />,
                             danger: true,
                             disabled: deletingModelId === item.id,
                             confirm: {
-                                title: `归档前台模型“${item.name}”？`,
-                                description: "归档后模型将从公开目录中移除，不能在页面恢复；历史任务和版本记录会保留。排队中或进行中的任务仍在使用时无法归档。",
-                                okText: "确认归档",
+                                title: translate("adminPages.logicalModels.logicalModelsPage.archivePublicModel", { v0: String(item.name) }),
+                                description: translate("adminPages.logicalModels.logicalModelsPage.theModelWillBeRemovedFromThePublicCatalogAnd"),
+                                okText: translate("adminPages.logicalModels.logicalModelsPage.archive2"),
                             },
                             onClick: () => removeModel(item),
                         },
@@ -304,10 +306,10 @@ export default function LogicalModelsPage() {
 
     return (
         <AdminPageFrame
-            title="前台模型目录"
+            title={translate("adminPages.logicalModels.logicalModelsPage.publicModelCatalog")}
             actions={
                 <Button type="primary" icon={<Plus className="size-4" />} onClick={() => openModel()}>
-                    新增模型
+                    {translate("adminPages.logicalModels.logicalModelsPage.addModel")}
                 </Button>
             }
         >
@@ -321,14 +323,14 @@ export default function LogicalModelsPage() {
                             setKeyword(event.target.value);
                             setPage(1);
                         }}
-                        placeholder="搜索模型名称、代码或能力"
+                        placeholder={translate("adminPages.logicalModels.logicalModelsPage.searchModelNameCodeOrCapability")}
                         className="app-list-search"
                     />
                 }
                 toolbarActiveFilters={
                     keyword ? (
                         <AdminFilterChip
-                            label={`搜索：${keyword}`}
+                            label={translate("adminPages.logicalModels.logicalModelsPage.search", { v0: String(keyword) })}
                             onRemove={() => {
                                 setKeyword("");
                                 setPage(1);
@@ -342,7 +344,7 @@ export default function LogicalModelsPage() {
                     setPage(1);
                 }}
                 table={{ className: "admin-logical-model-table", rowKey: "id", size: "small", loading, pagination: false, columns: modelColumns, dataSource: paginatedModels, scroll: { x: 1050 } }}
-                empty={<AdminTableEmpty filtered={Boolean(deferredKeyword)} title="暂无模型" />}
+                empty={<AdminTableEmpty filtered={Boolean(deferredKeyword)} title={translate("adminPages.logicalModels.logicalModelsPage.noModelsYet")} />}
                 footer={
                     <PaginationBar
                         alwaysShow
@@ -361,8 +363,8 @@ export default function LogicalModelsPage() {
                 shell={AdminModal}
                 open={editingModel !== undefined}
                 busy={saving}
-                title={editingModel ? "编辑前台模型" : "新增前台模型"}
-                subtitle={editingModel?.name || "配置前台展示、供应线路与能力范围"}
+                title={editingModel ? translate("adminPages.logicalModels.logicalModelsPage.editPublicModel") : translate("adminPages.logicalModels.logicalModelsPage.addPublicModel")}
+                subtitle={editingModel?.name || translate("adminPages.logicalModels.logicalModelsPage.configurePublicDisplayProviderRoutesAndAvailableCapabilities")}
                 onClose={closeEditor}
                 activeKey={editorTab}
                 onTabChange={setEditorTab}
@@ -370,7 +372,7 @@ export default function LogicalModelsPage() {
                     <div className="model-editor-footer">
                         <label className="flex items-center gap-2">
                             <Switch
-                                aria-label="启用前台模型"
+                                aria-label={translate("adminPages.logicalModels.logicalModelsPage.enablePublicModel")}
                                 checked={modelEnabled}
                                 disabled={saving}
                                 onChange={(enabled) => {
@@ -378,14 +380,14 @@ export default function LogicalModelsPage() {
                                     modelForm.setFieldValue("enabled", enabled);
                                 }}
                             />
-                            模型启用 <span className="text-xs text-foreground/50">保存后生效</span>
+                            {translate("adminPages.logicalModels.logicalModelsPage.modelEnabled")} <span className="text-xs text-foreground/50">{translate("adminPages.logicalModels.logicalModelsPage.takesEffectAfterSaving")}</span>
                         </label>
                         <div className="model-editor-footer-actions">
                             <Button disabled={saving} onClick={closeEditor}>
-                                取消
+                                {translate("common.cancel")}
                             </Button>
                             <Button type="primary" loading={saving} onClick={() => void saveModel()}>
-                                {editingModel ? "保存修改" : "添加模型"}
+                                {editingModel ? translate("adminPages.logicalModels.logicalModelsPage.saveChanges") : translate("adminPages.logicalModels.logicalModelsPage.addModel2")}
                             </Button>
                         </div>
                     </div>
@@ -393,7 +395,7 @@ export default function LogicalModelsPage() {
                 items={[
                     {
                         key: "identity",
-                        label: "基本信息",
+                        label: translate("account.settings.modelConfig.tabBasic"),
                         children: (
                             <>
                                 {editingModel?.configurationError || editingModel?.availabilityError ? (
@@ -401,37 +403,37 @@ export default function LogicalModelsPage() {
                                         className="mb-4"
                                         type="warning"
                                         showIcon
-                                        message={editingModel.configurationError ? "当前供应线路无法覆盖全部创作端能力" : "当前供应线路暂不可结算"}
+                                        message={editingModel.configurationError ? translate("adminPages.logicalModels.logicalModelsPage.theCurrentProviderRoutesDoNotCoverAllCreationCapabilities") : translate("adminPages.logicalModels.logicalModelsPage.theCurrentProviderRoutesCannotBeBilledYet")}
                                         description={editingModel.configurationError || editingModel.availabilityError}
                                     />
                                 ) : null}
-                                <EditorSection icon={<Layers3 className="size-4" />} title="前台展示">
+                                <EditorSection icon={<Layers3 className="size-4" />} title={translate("adminPages.logicalModels.logicalModelsPage.publicDisplay")}>
                                     <div className="grid gap-3 sm:grid-cols-2">
-                                        <Form.Item name="name" label="显示名称" rules={[{ required: true, message: "请填写显示名称" }]}>
-                                            <Input placeholder="例如：Seedance 视频" />
+                                        <Form.Item name="name" label={translate("auth.register.displayName")} rules={[{ required: true, message: translate("adminPages.logicalModels.logicalModelsPage.enterADisplayName") }]}>
+                                            <Input placeholder={translate("adminPages.logicalModels.logicalModelsPage.forExampleSeedanceVideo")} />
                                         </Form.Item>
-                                        <Form.Item name="code" label="模型代码" rules={[{ required: true, message: "请填写模型代码" }]}>
-                                            <Input placeholder="例如：seedance-video" />
+                                        <Form.Item name="code" label={translate("adminPages.logicalModels.logicalModelsPage.modelCode")} rules={[{ required: true, message: translate("adminPages.logicalModels.logicalModelsPage.enterAModelCode") }]}>
+                                            <Input placeholder={translate("adminPages.logicalModels.logicalModelsPage.forExampleSeedanceVideo2")} />
                                         </Form.Item>
-                                        <Form.Item name="icon" label="模型 Logo">
+                                        <Form.Item name="icon" label={translate("adminPages.logicalModels.logicalModelsPage.modelLogo")}>
                                             <ModelIconPicker />
                                         </Form.Item>
                                     </div>
-                                    <Form.Item name="description" label="简短说明">
-                                        <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} placeholder="说明适合的创作场景，不描述供应渠道。" />
+                                    <Form.Item name="description" label={translate("adminPages.logicalModels.logicalModelsPage.shortDescription")}>
+                                        <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} placeholder={translate("adminPages.logicalModels.logicalModelsPage.describeSuitableCreativeUsesWithoutDescribingTheProviderChannel")} />
                                     </Form.Item>
-                                    <Form.Item name="capability" label="类型">
+                                    <Form.Item name="capability" label={translate("account.settings.runninghub.kind")}>
                                         <Segmented
                                             block
                                             options={[
-                                                { label: "文本", value: "text" },
-                                                { label: "图片", value: "image" },
-                                                { label: "视频", value: "video" },
-                                                { label: "音频", value: "audio" },
+                                                { label: translate("account.settings.modelConfig.capabilities.text"), value: "text" },
+                                                { label: translate("account.feedback.image"), value: "image" },
+                                                { label: translate("account.feedback.video"), value: "video" },
+                                                { label: translate("account.settings.modelConfig.capabilities.audio"), value: "audio" },
                                             ]}
                                         />
                                     </Form.Item>
-                                    <Form.Item name="sortOrder" label="前台排序">
+                                    <Form.Item name="sortOrder" label={translate("adminPages.logicalModels.logicalModelsPage.displayOrder")}>
                                         <InputNumber className="w-full" precision={0} />
                                     </Form.Item>
                                 </EditorSection>
@@ -440,13 +442,13 @@ export default function LogicalModelsPage() {
                     },
                     {
                         key: "routes",
-                        label: "供应线路",
+                        label: translate("adminPages.logicalModels.logicalModelsPage.providerRoutes"),
                         children: (
                             <>
-                                <EditorSection icon={<GitBranch className="size-4" />} title="供应线路">
+                                <EditorSection icon={<GitBranch className="size-4" />} title={translate("adminPages.logicalModels.logicalModelsPage.providerRoutes")}>
                                     <RouteFields channelModels={modelChannelModels} channelNames={channelNames} channelEnabled={channelEnabled} form={modelForm} capability={modelCapability} />
                                 </EditorSection>
-                                <EditorSection title="系统规格价格">
+                                <EditorSection title={translate("adminPages.logicalModels.logicalModelsPage.systemSpecificationPricing")}>
                                     <PricingFields />
                                 </EditorSection>
                             </>
@@ -454,15 +456,15 @@ export default function LogicalModelsPage() {
                     },
                     {
                         key: "capabilities",
-                        label: "能力与参数",
+                        label: translate("account.settings.modelConfig.tabCapabilities"),
                         children: (
                             <>
-                                <EditorSection title="创作端可选能力">
+                                <EditorSection title={translate("adminPages.logicalModels.logicalModelsPage.capabilitiesAvailableToCreators")}>
                                     <Form.Item name="capabilitySpec" noStyle>
                                         <CapabilityScopeEditor capability={modelCapability} sourceSpecs={modelSourceSpecs} mode="front" />
                                     </Form.Item>
                                 </EditorSection>
-                                <EditorSection title="默认参数">
+                                <EditorSection title={translate("adminPages.logicalModels.logicalModelsPage.defaultParameters")}>
                                     <Form.Item name="defaultOptions" noStyle>
                                         <DefaultOptionsEditor spec={modelCapabilitySpec} />
                                     </Form.Item>
@@ -493,7 +495,7 @@ export default function LogicalModelsPage() {
             </ModelEditorModal>
 
             <AdminModal
-                title={simulatingModel ? `供应线路匹配模拟 - ${simulatingModel.name}` : "供应线路匹配模拟"}
+                title={simulatingModel ? translate("adminPages.logicalModels.logicalModelsPage.providerRouteSimulation", { v0: String(simulatingModel.name) }) : translate("adminPages.logicalModels.logicalModelsPage.providerRouteSimulation2")}
                 open={Boolean(simulatingModel)}
                 className="workspace-modal workspace-modal-wide admin-simulation-modal"
                 centered
@@ -502,10 +504,10 @@ export default function LogicalModelsPage() {
                 styles={{ body: { maxHeight: "min(72vh, 720px)", overflowY: "auto" } }}
                 footer={[
                     <Button key="cancel" onClick={() => setSimulatingModel(undefined)}>
-                        关闭
+                        {translate("common.close")}
                     </Button>,
                     <Button key="submit" type="primary" icon={<FlaskConical className="size-4" />} loading={simulating} onClick={() => void runSimulation()}>
-                        模拟匹配
+                        {translate("adminPages.logicalModels.logicalModelsPage.simulateMatching")}
                     </Button>,
                 ]}
             >
@@ -513,7 +515,7 @@ export default function LogicalModelsPage() {
                     <div className="space-y-5">
                         {simulatingModel.capabilitySpec.operations?.length ? (
                             <label className="block">
-                                <span className="mb-1 block text-xs text-foreground/55">生成方式</span>
+                                <span className="mb-1 block text-xs text-foreground/55">{translate("adminPages.logicalModels.logicalModelsPage.generationMode")}</span>
                                 <Select
                                     className="w-full"
                                     value={simulationIntent.operation}
@@ -532,9 +534,9 @@ export default function LogicalModelsPage() {
                         {simulationResult ? (
                             <section className="pt-1">
                                 <div className="mb-3 flex items-center justify-between">
-                                    <h2 className="text-sm font-semibold">匹配结果</h2>
+                                    <h2 className="text-sm font-semibold">{translate("adminPages.logicalModels.logicalModelsPage.matchingResult")}</h2>
                                     <Tag variant="filled" color={simulationResult.productMatch.matched ? "success" : "error"}>
-                                        {simulationResult.productMatch.matched ? "请求能力通过" : "请求能力不匹配"}
+                                        {simulationResult.productMatch.matched ? translate("adminPages.logicalModels.logicalModelsPage.requestedCapabilitiesSupported") : translate("adminPages.logicalModels.logicalModelsPage.requestedCapabilitiesDoNotMatch")}
                                     </Tag>
                                 </div>
                                 {simulationResult.productMatch.reasons?.length ? <p className="mb-4 text-sm text-error">{simulationResult.productMatch.reasons.join("；")}</p> : null}
@@ -577,18 +579,18 @@ function RouteFields({
     capability: CapabilityKind;
 }) {
     const selectOptions = channelModels.map((item) => {
-        const unavailableReason = channelEnabled[item.channelId] === false ? "渠道已停用" : !item.enabled ? "渠道模型已停用" : "";
+        const unavailableReason = channelEnabled[item.channelId] === false ? translate("adminPages.logicalModels.logicalModelsPage.channelDisabled") : !item.enabled ? translate("adminPages.logicalModels.logicalModelsPage.channelModelDisabled") : "";
         return {
             value: item.id,
             label: `${channelNames[item.channelId]} / ${item.displayName || item.modelKey}${unavailableReason ? `（${unavailableReason}）` : ""}`,
             disabled: Boolean(unavailableReason),
             subtitle: item.providerModelKey || item.modelKey,
             details: [
-                { label: "渠道", value: channelNames[item.channelId] },
-                { label: "模型", value: item.displayName || item.modelKey },
-                { label: "上游 ID", value: item.providerModelKey || item.modelKey },
-                { label: "协议", value: item.protocol || "未配置" },
-                { label: "状态", value: unavailableReason || "可用" },
+                { label: translate("adminPages.logicalModels.logicalModelsPage.channel"), value: channelNames[item.channelId] },
+                { label: translate("canvasA.assetView.model"), value: item.displayName || item.modelKey },
+                { label: translate("adminPages.logicalModels.logicalModelsPage.upstreamID"), value: item.providerModelKey || item.modelKey },
+                { label: translate("adminPages.logicalModels.logicalModelsPage.protocol"), value: item.protocol || translate("account.layout.oss.cdnAuthNone") },
+                { label: translate("library.tasks.detail.status"), value: unavailableReason || translate("account.settings.channels.ready") },
             ],
         };
     });
@@ -602,9 +604,9 @@ function RouteFields({
                 return (
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs text-foreground/50">共 {fields.length} 条供应线路</span>
+                            <span className="text-xs text-foreground/50">{translate("adminPages.logicalModels.logicalModelsPage.total")} {fields.length} {translate("adminPages.logicalModels.logicalModelsPage.providerRoutes2")}</span>
                             <Button size="small" icon={<Plus className="size-3.5" />} disabled={!canAdd} onClick={() => add({ channelModelId: "", enabled: true, priority: 100, weight: 100 })}>
-                                添加供应线路
+                                {translate("adminPages.logicalModels.logicalModelsPage.addProviderRoute")}
                             </Button>
                         </div>
                         {fields.length ? (
@@ -618,17 +620,17 @@ function RouteFields({
                                         <div key={field.key} className="rounded-lg border border-border bg-muted/5 p-4">
                                             <div className="mb-2 flex items-center justify-between gap-2">
                                                 <div className="min-w-0">
-                                                    <div className="text-xs font-semibold">供应线路 {fields.indexOf(field) + 1}</div>
-                                                    <div className="mt-0.5 truncate text-xs text-foreground/50">{selected ? `${channelNames[selected.channelId]} / ${selected.displayName || selected.modelKey}` : "选择一个可承接请求的渠道模型"}</div>
+                                                    <div className="text-xs font-semibold">{translate("adminPages.logicalModels.logicalModelsPage.providerRoutes")} {fields.indexOf(field) + 1}</div>
+                                                    <div className="mt-0.5 truncate text-xs text-foreground/50">{selected ? `${channelNames[selected.channelId]} / ${selected.displayName || selected.modelKey}` : translate("adminPages.logicalModels.logicalModelsPage.selectAChannelModelThatCanHandleRequests")}</div>
                                                 </div>
                                                 <Button type="text" size="small" danger onClick={() => remove(field.name)}>
-                                                    移除
+                                                    {translate("canvasB.common.remove")}
                                                 </Button>
                                             </div>
-                                            <Form.Item name={[field.name, "channelModelId"]} rules={[{ required: true, message: "请选择渠道模型" }]} className="mb-3">
+                                            <Form.Item name={[field.name, "channelModelId"]} rules={[{ required: true, message: translate("adminPages.logicalModels.logicalModelsPage.selectAChannelModel") }]} className="mb-3">
                                                 <ChoiceBrowser
-                                                    label={`供应线路 ${fields.indexOf(field) + 1}`}
-                                                    placeholder="搜索渠道或模型"
+                                                    label={translate("adminPages.logicalModels.logicalModelsPage.providerRoute", { v0: String(fields.indexOf(field) + 1) })}
+                                                    placeholder={translate("adminPages.logicalModels.logicalModelsPage.searchChannelsOrModels")}
                                                     key={capability}
                                                     options={options}
                                                     onChange={(channelModelId) => {
@@ -647,13 +649,13 @@ function RouteFields({
                                                 />
                                             </Form.Item>
                                             <div className="flex items-end gap-2">
-                                                <Form.Item name={[field.name, "priority"]} label="优先级" className="mb-0 min-w-0 flex-1">
+                                                <Form.Item name={[field.name, "priority"]} label={translate("adminPages.logicalModels.logicalModelsPage.priority")} className="mb-0 min-w-0 flex-1">
                                                     <InputNumber className="w-full" precision={0} />
                                                 </Form.Item>
-                                                <Form.Item name={[field.name, "weight"]} label="权重" className="mb-0 min-w-0 flex-1">
+                                                <Form.Item name={[field.name, "weight"]} label={translate("adminPages.logicalModels.logicalModelsPage.weight")} className="mb-0 min-w-0 flex-1">
                                                     <InputNumber className="w-full" min={0} precision={0} />
                                                 </Form.Item>
-                                                <Form.Item name={[field.name, "enabled"]} label="启用" valuePropName="checked" className="mb-0 shrink-0">
+                                                <Form.Item name={[field.name, "enabled"]} label={translate("adminPages.logicalModels.logicalModelsPage.enable")} valuePropName="checked" className="mb-0 shrink-0">
                                                     <Switch />
                                                 </Form.Item>
                                             </div>
@@ -662,7 +664,7 @@ function RouteFields({
                                 })}
                             </div>
                         ) : null}
-                        {!fields.length ? <div className="rounded-md bg-muted/20 px-3 py-4 text-center text-xs text-foreground/50">尚未添加供应线路</div> : null}
+                        {!fields.length ? <div className="rounded-md bg-muted/20 px-3 py-4 text-center text-xs text-foreground/50">{translate("adminPages.logicalModels.logicalModelsPage.noProviderRoutesAddedYet")}</div> : null}
                     </div>
                 );
             }}
@@ -671,11 +673,11 @@ function RouteFields({
 }
 
 function logicalModelStatusTag(item: AdminLogicalModel) {
-    if (!item.enabled) return <AdminStatusBadge label="已停用" tone="neutral" />;
-    if (item.configurationError) return <AdminStatusBadge label="能力配置需调整" tone="warning" title={item.configurationError} />;
-    if (item.availabilityError) return <AdminStatusBadge label="线路价格需调整" tone="warning" title={item.availabilityError} />;
-    if (!item.available) return <AdminStatusBadge label="暂无可用线路" tone="warning" />;
-    return <AdminStatusBadge label="可用" tone="success" />;
+    if (!item.enabled) return <AdminStatusBadge label={translate("adminPages.logicalModels.logicalModelsPage.disabled")} tone="neutral" />;
+    if (item.configurationError) return <AdminStatusBadge label={translate("adminPages.logicalModels.logicalModelsPage.capabilitySettingsNeedAdjustment")} tone="warning" title={item.configurationError} />;
+    if (item.availabilityError) return <AdminStatusBadge label={translate("adminPages.logicalModels.logicalModelsPage.routePricingNeedsAdjustment")} tone="warning" title={item.availabilityError} />;
+    if (!item.available) return <AdminStatusBadge label={translate("adminPages.logicalModels.logicalModelsPage.noAvailableRoutes")} tone="warning" />;
+    return <AdminStatusBadge label={translate("account.settings.channels.ready")} tone="success" />;
 }
 
 function PricingFields() {
@@ -690,13 +692,13 @@ function PricingFields() {
             cachedPriceMicrocredits: 0,
         });
     }, [form]);
-    return <div className="rounded-md bg-muted/20 px-3 py-3 text-xs leading-5 text-foreground/55">价格、上游 SKU 和可用规格只在“系统渠道 / 模型管理”配置。前台模型只负责展示、能力范围和故障切换，不再保存第二份价格。</div>;
+    return <div className="rounded-md bg-muted/20 px-3 py-3 text-xs leading-5 text-foreground/55">{translate("adminPages.logicalModels.logicalModelsPage.configurePricesUpstreamSKUsAndAvailableSpecificationsOnlyInSystem")}</div>;
 }
 
 function logicalPriceLabel(item: AdminLogicalModel) {
     const priceTiers = item.priceTiers || [];
-    if (!priceTiers.length) return <span className="text-xs text-foreground/45">待配置系统规格价格</span>;
-    return <span className="text-xs">{priceTiers.length} 个系统规格档</span>;
+    if (!priceTiers.length) return <span className="text-xs text-foreground/45">{translate("adminPages.logicalModels.logicalModelsPage.systemSpecificationPricesNeedConfiguration")}</span>;
+    return <span className="text-xs">{priceTiers.length} {translate("adminPages.logicalModels.logicalModelsPage.systemSpecificationTiers")}</span>;
 }
 
 function logicalModelToForm(item: AdminLogicalModel): LogicalModelFormValues {
@@ -749,20 +751,20 @@ function hasCapabilityRules(spec?: CapabilitySpec) {
 function simulationColumns(): ColumnsType<RouteSimulationResult["candidates"][number]> {
     return [
         {
-            title: "供应线路",
+            title: translate("adminPages.logicalModels.logicalModelsPage.providerRoutes"),
             render: (_, candidate) => `${candidate.channelModelName}（${candidate.channelModelKey}）`,
         },
-        { title: "优先级", dataIndex: "priority", width: 80 },
-        { title: "权重", dataIndex: "weight", width: 70 },
+        { title: translate("adminPages.logicalModels.logicalModelsPage.priority"), dataIndex: "priority", width: 80 },
+        { title: translate("adminPages.logicalModels.logicalModelsPage.weight"), dataIndex: "weight", width: 70 },
         {
-            title: "结果",
+            title: translate("adminPages.logicalModels.logicalModelsPage.result"),
             width: 110,
             render: (_, candidate) => (
                 <Tag variant="filled" color={candidate.inPool ? "success" : candidate.blocked ? "warning" : "default"}>
-                    {candidate.inPool ? "进入候选池" : candidate.blocked ? "冷却中" : candidate.matched ? "低优先级" : "不匹配"}
+                    {candidate.inPool ? translate("adminPages.logicalModels.logicalModelsPage.includedInTheCandidatePool") : candidate.blocked ? translate("adminPages.logicalModels.logicalModelsPage.coolingDown") : candidate.matched ? translate("adminPages.logicalModels.logicalModelsPage.lowerPriority") : translate("adminPages.logicalModels.logicalModelsPage.noMatch")}
                 </Tag>
             ),
         },
-        { title: "原因", render: (_, candidate) => candidate.reasons?.join("；") || "-" },
+        { title: translate("adminPages.logicalModels.logicalModelsPage.reason"), render: (_, candidate) => candidate.reasons?.join("；") || "-" },
     ];
 }

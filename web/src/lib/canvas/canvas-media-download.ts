@@ -1,4 +1,6 @@
 import { CanvasNodeType, type CanvasNodeData, type CanvasNodeTypeId } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 const FILE_NAME_PART_LIMIT = 80;
 
@@ -38,7 +40,7 @@ export function isCanvasMediaCompositePending(node: CanvasNodeData) {
 }
 
 export function buildCanvasMediaDownloadFileName(canvasTitle: string, node: CanvasNodeData, now = new Date()) {
-    const canvasName = safeFileNamePart(canvasTitle, "未命名画布");
+    const canvasName = safeFileNamePart(canvasTitle, translate("canvasB.common.untitledCanvas"));
     const nodeName = safeFileNamePart(node.title, defaultNodeName(node.type));
     return `${canvasName}_${nodeName}_${formatDownloadDate(now)}.${canvasMediaFileExtension(node)}`;
 }
@@ -88,9 +90,9 @@ function formatDownloadDate(date: Date) {
 }
 
 function defaultNodeName(type: CanvasNodeTypeId) {
-    if (type === CanvasNodeType.Video) return "视频节点";
-    if (type === CanvasNodeType.Audio) return "音频节点";
-    return "图片节点";
+    if (type === CanvasNodeType.Video) return translate("shared.canvas.canvasMediaDownload.videoNode");
+    if (type === CanvasNodeType.Audio) return translate("shared.canvas.canvasMediaDownload.audioNode");
+    return translate("canvasA.assetTray.imageNodeFallback");
 }
 
 function defaultExtension(type: CanvasNodeTypeId) {

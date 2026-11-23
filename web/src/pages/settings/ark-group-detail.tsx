@@ -11,7 +11,7 @@ import { DeleteButton } from "@/components/ui/base/buttons/delete-button";
 import { Callout } from "@/components/ui/product/callout";
 import { refreshArkLibraryAssets } from "@/hooks/use-ark-library-reconcile";
 import { useCopyText } from "@/hooks/use-copy-text";
-import { currentLocale } from "@/i18n";
+import { translate, currentLocale } from "@/i18n";
 import { arkAssetStatusTone, arkGroupWritable, arkLibrarySubmissionBlockerKey, arkReviewRequired, formatArkDate, type ArkLibraryProgress } from "@/lib/ark-assets";
 import { ARK_ASSET_CATEGORY, ASSET_CATEGORY_LABELS, normalizeAssetCategory } from "@/lib/asset-category";
 import { cn } from "@/lib/utils";
@@ -32,7 +32,7 @@ import { ARK_IMAGE_ACCEPT, arkImageSizeProblem, uploadArkGroupImages } from "@/s
 import { useAssetStore, type Asset } from "@/stores/use-asset-store";
 
 const ARK_IMAGE_MAX_BYTES = 30 * 1024 * 1024;
-const PICKER_CATEGORY_LABELS: Record<string, string> = { all: "全部素材", ...ASSET_CATEGORY_LABELS };
+const PICKER_CATEGORY_LABELS: Record<string, string> = { all: translate("canvasA.assetPicker.allAssets"), ...ASSET_CATEGORY_LABELS };
 
 type Props = {
     group: ArkPortraitGroup;

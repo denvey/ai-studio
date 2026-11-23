@@ -6,6 +6,8 @@ import { getResourceBlob, isResourceUrl, resourceFileUrl, resourceIdFromStorageK
 import { getImageBlob } from "@/services/image-storage";
 import { getMediaBlob } from "@/services/file-storage";
 import { rebaseCanvasBatchInputSignatures } from "@/lib/canvas/canvas-batch-input-signature";
+import { translate } from "@/i18n";
+
 
 export function numberValue(value: unknown) {
     const number = Number(value);
@@ -119,7 +121,7 @@ async function ensureRemoteResourceReferencesValue<T>(value: T, uploaded: Map<st
 export function applyResourceReference(payload: Record<string, unknown>, storageKey: string, preserveTextContent = false) {
     const resourceId = resourceIdFromStorageKey(storageKey);
     if (!resourceId) {
-        throw new Error(`远端资源引用无效：${storageKey}`);
+        throw new Error(translate("shared.userDataSyncMedia.invalidRemoteResourceReference", { v0: String(storageKey) }));
     }
     const url = resourceFileUrl(resourceId);
     payload.storageKey = storageKey;
@@ -139,7 +141,7 @@ export function inlineMediaDataUrl(payload: Record<string, unknown>) {
 
 export async function uploadInlineDataUrl(dataUrl: string, identity: string) {
     const response = await fetch(dataUrl);
-    if (!response.ok) throw new Error("内嵌媒体读取失败");
+    if (!response.ok) throw new Error(translate("shared.userDataSyncMedia.failedToReadEmbeddedMedia"));
     const blob = await response.blob();
     const kind: "image" | "video" | "audio" | "file" = blob.type.startsWith("image/") ? "image" : blob.type.startsWith("video/") ? "video" : blob.type.startsWith("audio/") ? "audio" : "file";
     const resource = await uploadResourceFile(blob, kind, { idempotencyKey: identity });
@@ -153,7 +155,7 @@ export async function inlineMediaUploadIdentity(dataUrl: string) {
 
 export async function uploadLocalStorageKey(storageKey: string, payload: Record<string, unknown>) {
     const blob = storageKey.startsWith("image:") ? await getImageBlob(storageKey) : await getMediaBlob(storageKey);
-    if (!blob) throw new Error(`本地媒体不存在，无法同步：${storageKey}`);
+    if (!blob) throw new Error(translate("shared.userDataSyncMedia.localMediaDoesNotExistAndCannotBeSynced", { v0: String(storageKey) }));
     const kind = blob.type.startsWith("image/") ? "image" : blob.type.startsWith("video/") ? "video" : blob.type.startsWith("audio/") ? "audio" : "file";
     const resource = await uploadResourceFile(blob, kind, {
         width: numberValue(payload.naturalWidth) || numberValue(payload.width),

@@ -16,6 +16,7 @@ import { modelDisplayName, type AiConfig } from "@/stores/use-config-store";
 import { type CanvasConnection, type CanvasNodeData, type CanvasVideoEditOperation } from "@/types/canvas";
 import type { TimelineProject } from "@/types/timeline";
 import { Select } from "@/components/ui/base/select";
+import { translate } from "@/i18n";
 
 export type CanvasVideoSegmentItem = CanvasTimelineSegmentItem;
 
@@ -152,10 +153,10 @@ export function CanvasVideoSegmentDialog({ node, nodes, connections, open, mode,
             }
             setSegments(result.segments);
             setPrompt((current) => current || `按时间线截取的 ${result.segments.length} 段视频，保持画面主体与镜头，重新生成每一段`);
-            message.success(`已从时间线导入 ${result.segments.length} 个片段`);
+            message.success(translate("canvasTools.canvasVideoSegmentDialog.importedClipsFromTheTimeline", { v0: String(result.segments.length) }));
         } catch (error) {
             console.warn("时间线片段导入失败", error);
-            message.warning("读取时间线片段失败，请刷新后重试");
+            message.warning(translate("canvasTools.canvasVideoSegmentDialog.failedToLoadTimelineClipsRefreshAndTryAgain"));
         }
     };
 
@@ -170,16 +171,16 @@ export function CanvasVideoSegmentDialog({ node, nodes, connections, open, mode,
     const handleConfirm = () => {
         if (isVideoMode) {
             if (createsGenerationNodes && !model) {
-                message.warning("请选择视频模型");
+                message.warning(translate("canvasTools.canvasVideoSegmentDialog.selectAVideoModel"));
                 return;
             }
             if (!segments.length) {
-                message.warning("请至少添加一个截取片段");
+                message.warning(translate("canvasPage.mediaTools.addClipSegment"));
                 return;
             }
             for (const segment of segments) {
                 if (segment.endMs - segment.startMs < MIN_SEGMENT_MS) {
-                    message.warning("片段时长至少 0.1 秒");
+                    message.warning(translate("canvasTools.canvasVideoSegmentDialog.clipDurationMustBeAtLeast01Seconds"));
                     return;
                 }
             }
@@ -196,11 +197,11 @@ export function CanvasVideoSegmentDialog({ node, nodes, connections, open, mode,
             return;
         }
         if (!durationMs) {
-            message.warning("视频时长未就绪，请稍候再试");
+            message.warning(translate("canvasTools.canvasVideoSegmentDialog.videoDurationIsNotReadyPleaseTryAgainShortly"));
             return;
         }
         if (rangeMs.endMs - rangeMs.startMs < MIN_SEGMENT_MS) {
-            message.warning("片段时长至少 0.1 秒");
+            message.warning(translate("canvasTools.canvasVideoSegmentDialog.clipDurationMustBeAtLeast01Seconds"));
             return;
         }
         onConfirm({ mode: "audio", startMs: rangeMs.startMs, endMs: rangeMs.endMs });
@@ -212,8 +213,8 @@ export function CanvasVideoSegmentDialog({ node, nodes, connections, open, mode,
                 {isVideoMode ? <Scissors className="size-4" /> : <AudioLines className="size-4" />}
             </span>
             <div className="min-w-0">
-                <div className="truncate font-semibold leading-6">{isVideoMode ? "截取视频片段" : "从视频提取声音"}</div>
-                <div className="truncate text-xs opacity-45">{node.title || "视频节点"}</div>
+                <div className="truncate font-semibold leading-6">{isVideoMode ? translate("canvasPage.mediaTools.clipVideoTitle") : translate("canvasTools.canvasVideoSegmentDialog.extractAudioFromVideo")}</div>
+                <div className="truncate text-xs opacity-45">{node.title || translate("canvasTools.canvasVideoSegmentDialog.videoNode")}</div>
             </div>
         </div>
     );
@@ -241,7 +242,7 @@ export function CanvasVideoSegmentDialog({ node, nodes, connections, open, mode,
                             onError={() => setVideoError(true)}
                         />
                     ) : (
-                        <div className="grid h-40 w-full place-items-center text-xs opacity-60">{videoError ? "视频预览加载失败，请检查素材是否仍然可用" : "正在加载视频…"}</div>
+                        <div className="grid h-40 w-full place-items-center text-xs opacity-60">{videoError ? translate("canvasTools.canvasVideoSegmentDialog.couldNotLoadTheVideoPreviewCheckThatTheAsset") : translate("canvasTools.canvasVideoSegmentDialog.loadingVideo")}</div>
                     )}
                 </div>
 
@@ -251,12 +252,12 @@ export function CanvasVideoSegmentDialog({ node, nodes, connections, open, mode,
                             <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs" style={{ background: theme.accent.primarySoft + "1a", borderColor: theme.accent.primarySoft, color: theme.node.muted }}>
                                 <span className="min-w-0 flex-1">
                                     {hasEligibleModels
-                                        ? `当前默认模型${defaultModel ? `「${modelDisplayName(config, defaultModel)}」` : ""}不支持参考视频，已自动切换到「${modelDisplayName(config, firstEligibleModel)}」。`
-                                        : "当前配置中没有支持参考视频的视频模型，请先到设置里配置 Seedance / Agent Plan / NewAPI 渠道。"}
+                                        ? translate("canvasTools.canvasVideoSegmentDialog.theCurrentDefaultModelDoesNotSupportReferenceVideosSwitched", { v0: String(defaultModel ? `「${modelDisplayName(config, defaultModel)}」` : ""), v1: String(modelDisplayName(config, firstEligibleModel)) })
+                                        : translate("canvasTools.canvasVideoSegmentDialog.noConfiguredVideoModelSupportsReferenceVideosConfigureASeedance")}
                                 </span>
                                 {!hasEligibleModels ? (
                                     <Button size="small" type="primary" onClick={() => navigateToSettings({ section: "channels", continueCreation: true })}>
-                                        去设置配置渠道
+                                        {translate("canvasTools.canvasVideoSegmentDialog.configureChannelsInSettings")}
                                     </Button>
                                 ) : null}
                             </div>
@@ -264,17 +265,17 @@ export function CanvasVideoSegmentDialog({ node, nodes, connections, open, mode,
 
                         <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-2 text-sm">
-                                <span className="opacity-60">时长</span>
-                                <span>{durationSec ? formatSegmentTime(durationSec) : "未知"}</span>
-                                <span className="opacity-60">已选</span>
-                                <span>{segments.length} 段</span>
+                                <span className="opacity-60">{translate("canvasA.assetView.duration")}</span>
+                                <span>{durationSec ? formatSegmentTime(durationSec) : translate("canvasTools.canvasVideoSegmentDialog.unknown")}</span>
+                                <span className="opacity-60">{translate("canvasTools.canvasVideoSegmentDialog.selected")}</span>
+                                <span>{translate("canvasTools.inline.canvasVideoSegmentDialog.clips", { v0: String(segments.length) })}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Button size="small" icon={<Plus className="size-3.5" />} disabled={!durationSec} onClick={addManualSegment}>
-                                    添加片段
+                                    {translate("canvasTools.canvasVideoSegmentDialog.addClip")}
                                 </Button>
                                 <Button size="small" icon={<ListVideo className="size-3.5" />} disabled={!hasTimelineVideoClips} onClick={importTimelineSegments}>
-                                    从时间线导入
+                                    {translate("canvasTools.canvasVideoSegmentDialog.importFromTimeline")}
                                 </Button>
                             </div>
                         </div>
@@ -284,9 +285,9 @@ export function CanvasVideoSegmentDialog({ node, nodes, connections, open, mode,
                                 {segments.map((segment, index) => (
                                     <div key={segment.id} className="rounded-lg border px-2 py-2" style={{ borderColor: theme.toolbar.border }}>
                                         <div className="grid grid-cols-[auto_1fr_1fr_auto] items-center gap-2">
-                                            <span className="w-14 shrink-0 text-xs font-medium">片段 {index + 1}</span>
+                                            <span className="w-14 shrink-0 text-xs font-medium">{translate("canvasTools.inline.canvasVideoSegmentDialog.clip", { v0: String(index + 1) })}</span>
                                             <div className="flex min-w-0 items-center gap-1">
-                                                <span className="shrink-0 text-xs opacity-60">起点</span>
+                                                <span className="shrink-0 text-xs opacity-60">{translate("canvasTools.canvasVideoSegmentDialog.start")}</span>
                                                 <InputNumber
                                                     size="small"
                                                     min={0}
@@ -295,11 +296,11 @@ export function CanvasVideoSegmentDialog({ node, nodes, connections, open, mode,
                                                     value={segment.startMs / 1000}
                                                     onChange={(value) => updateSegment(segment.id, { startMs: Math.round((value ?? 0) * 1000) })}
                                                     className="w-full"
-                                                    aria-label={`片段 ${index + 1} 起点（秒）`}
+                                                    aria-label={translate("canvasTools.canvasVideoSegmentDialog.clipStartSeconds", { v0: String(index + 1) })}
                                                 />
                                             </div>
                                             <div className="flex min-w-0 items-center gap-1">
-                                                <span className="shrink-0 text-xs opacity-60">终点</span>
+                                                <span className="shrink-0 text-xs opacity-60">{translate("canvasTools.canvasVideoSegmentDialog.end")}</span>
                                                 <InputNumber
                                                     size="small"
                                                     min={0}
@@ -308,27 +309,27 @@ export function CanvasVideoSegmentDialog({ node, nodes, connections, open, mode,
                                                     value={segment.endMs / 1000}
                                                     onChange={(value) => updateSegment(segment.id, { endMs: Math.round((value ?? 0) * 1000) })}
                                                     className="w-full"
-                                                    aria-label={`片段 ${index + 1} 终点（秒）`}
+                                                    aria-label={translate("canvasTools.canvasVideoSegmentDialog.clipEndSeconds", { v0: String(index + 1) })}
                                                 />
                                             </div>
-                                            <Button size="small" type="text" danger icon={<Trash2 className="size-3.5" />} aria-label={`删除片段 ${index + 1}`} onClick={() => removeSegment(segment.id)} />
+                                            <Button size="small" type="text" danger icon={<Trash2 className="size-3.5" />} aria-label={translate("canvasTools.canvasVideoSegmentDialog.deleteClip", { v0: String(index + 1) })} onClick={() => removeSegment(segment.id)} />
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
                             <div className="rounded-lg border border-dashed px-3 py-3 text-xs opacity-55" style={{ borderColor: theme.toolbar.border }}>
-                                还没有片段：手动添加起点/终点，或从时间线导入该节点的已有片段。
+                                {translate("canvasTools.canvasVideoSegmentDialog.noClipsYetAddStartAndEndTimesManuallyOr")}
                             </div>
                         )}
 
                         <div className="rounded-xl px-3 py-2" style={{ background: theme.toolbar.itemHover }}>
                             <div className="mb-2 flex items-center justify-between gap-3">
                                 <div>
-                                    <div className="text-sm font-medium">截取后</div>
-                                    <div className="mt-0.5 text-xs opacity-45">默认只创建片段，生成由你稍后决定。</div>
+                                    <div className="text-sm font-medium">{translate("canvasTools.canvasVideoSegmentDialog.afterTrimming")}</div>
+                                    <div className="mt-0.5 text-xs opacity-45">{translate("canvasTools.canvasVideoSegmentDialog.onlyClipsAreCreatedByDefaultYouDecideWhenTo")}</div>
                                 </div>
-                                <Segmented size="small" value={videoAction} options={[{ label: "仅创建片段", value: "extract" }, { label: "创建生成节点", value: "create-generation-nodes" }]} onChange={(value) => setVideoAction(value as "extract" | "create-generation-nodes")} />
+                                <Segmented size="small" value={videoAction} options={[{ label: translate("canvasTools.canvasVideoSegmentDialog.createClipsOnly"), value: "extract" }, { label: translate("canvasTools.canvasVideoSegmentDialog.createGenerationNodes"), value: "create-generation-nodes" }]} onChange={(value) => setVideoAction(value as "extract" | "create-generation-nodes")} />
                             </div>
                         </div>
 
@@ -336,59 +337,59 @@ export function CanvasVideoSegmentDialog({ node, nodes, connections, open, mode,
                             <>
                                 <div className="grid gap-3 md:grid-cols-2">
                                     <label className="block min-w-0">
-                                        <div className="mb-2 text-sm font-medium">生成节点模型</div>
-                                        <ModelPicker config={config} value={resolvedModel} onChange={setModel} capability="video" requirements={modelRequirements} fullWidth onMissingConfig={() => message.warning("请先配置支持参考视频的视频模型")} />
+                                        <div className="mb-2 text-sm font-medium">{translate("canvasTools.canvasVideoSegmentDialog.generationNodeModel")}</div>
+                                        <ModelPicker config={config} value={resolvedModel} onChange={setModel} capability="video" requirements={modelRequirements} fullWidth onMissingConfig={() => message.warning(translate("canvasTools.canvasVideoSegmentDialog.configureAVideoModelThatSupportsReferenceVideosFirst"))} />
                                     </label>
                                     <label className="block min-w-0">
-                                        <div className="mb-2 text-sm font-medium">生成模式</div>
-                                        <Select className="w-full" size="small" value={operation} options={operationOptions} placeholder="选择生成模式" onChange={(value) => setOperation(value as CanvasVideoEditOperation)} />
+                                        <div className="mb-2 text-sm font-medium">{translate("canvasTools.canvasVideoSegmentDialog.generationMode")}</div>
+                                        <Select className="w-full" size="small" value={operation} options={operationOptions} placeholder={translate("canvasTools.canvasVideoSegmentDialog.selectGenerationMode")} onChange={(value) => setOperation(value as CanvasVideoEditOperation)} />
                                     </label>
                                 </div>
 
                                 <label className="block">
-                                    <div className="mb-2 text-sm font-medium">生成提示词</div>
-                                    <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} value={prompt} placeholder="描述后续要生成的视频内容…" onChange={(event) => setPrompt(event.target.value)} />
-                                    <div className="mt-1 text-xs opacity-45">每个片段会连接一个待生成视频节点，但不会自动提交任务。你可以继续调整参考素材、模型和提示词。</div>
+                                    <div className="mb-2 text-sm font-medium">{translate("canvasTools.canvasVideoSegmentDialog.generationPrompt")}</div>
+                                    <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} value={prompt} placeholder={translate("canvasTools.canvasVideoSegmentDialog.describeTheVideoYouWantToGenerateNext")} onChange={(event) => setPrompt(event.target.value)} />
+                                    <div className="mt-1 text-xs opacity-45">{translate("canvasTools.canvasVideoSegmentDialog.eachClipConnectsToAVideoNodeReadyForGeneration")}</div>
                                 </label>
                             </>
                         ) : (
-                            <div className="text-xs opacity-45">片段将作为独立视频节点创建并保持选中，不需要配置视频模型。</div>
+                            <div className="text-xs opacity-45">{translate("canvasTools.canvasVideoSegmentDialog.clipsWillBeCreatedAsIndependentVideoNodesAndRemain")}</div>
                         )}
                     </div>
                 ) : (
                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border px-3 py-2 text-sm" style={{ borderColor: theme.toolbar.border }}>
                         <div className="flex items-center gap-2">
-                            <span className="opacity-60">时长</span>
-                            <span>{durationSec ? formatSegmentTime(durationSec) : "未知"}</span>
+                            <span className="opacity-60">{translate("canvasA.assetView.duration")}</span>
+                            <span>{durationSec ? formatSegmentTime(durationSec) : translate("canvasTools.canvasVideoSegmentDialog.unknown")}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="opacity-60">起点</span>
-                            <InputNumber size="small" min={0} max={Math.max(0, durationSec - 0.1)} step={0.1} value={startSec} onChange={(value) => setStartSec(value ?? 0)} className="w-28" aria-label="片段起点（秒）" />
+                            <span className="opacity-60">{translate("canvasTools.canvasVideoSegmentDialog.start")}</span>
+                            <InputNumber size="small" min={0} max={Math.max(0, durationSec - 0.1)} step={0.1} value={startSec} onChange={(value) => setStartSec(value ?? 0)} className="w-28" aria-label={translate("canvasTools.canvasVideoSegmentDialog.clipStartSeconds2")} />
                             <Button
                                 size="small"
                                 type="text"
                                 icon={<SkipBack className="size-3.5" />}
-                                aria-label="跳转到起点"
+                                aria-label={translate("canvasTools.canvasVideoSegmentDialog.jumpToStart")}
                                 onClick={() => {
                                     if (videoRef.current) videoRef.current.currentTime = startSec;
                                 }}
                             />
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="opacity-60">终点</span>
-                            <InputNumber size="small" min={0} max={Math.max(0, durationSec)} step={0.1} value={endSec} onChange={(value) => setEndSec(value ?? 0)} className="w-28" aria-label="片段终点（秒）" />
+                            <span className="opacity-60">{translate("canvasTools.canvasVideoSegmentDialog.end")}</span>
+                            <InputNumber size="small" min={0} max={Math.max(0, durationSec)} step={0.1} value={endSec} onChange={(value) => setEndSec(value ?? 0)} className="w-28" aria-label={translate("canvasTools.canvasVideoSegmentDialog.clipEndSeconds2")} />
                             <Button
                                 size="small"
                                 type="text"
                                 icon={<SkipForward className="size-3.5" />}
-                                aria-label="跳转到终点"
+                                aria-label={translate("canvasTools.canvasVideoSegmentDialog.jumpToEnd")}
                                 onClick={() => {
                                     if (videoRef.current) videoRef.current.currentTime = endSec;
                                 }}
                             />
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="opacity-60">片段</span>
+                            <span className="opacity-60">{translate("canvasTools.canvasVideoSegmentDialog.clip")}</span>
                             <span>{formatSegmentTime((rangeMs.endMs - rangeMs.startMs) / 1000)}</span>
                         </div>
                         <Button
@@ -399,16 +400,16 @@ export function CanvasVideoSegmentDialog({ node, nodes, connections, open, mode,
                                 setEndSec(durationSec);
                             }}
                         >
-                            使用全部
+                            {translate("canvasTools.canvasVideoSegmentDialog.useAll")}
                         </Button>
-                        <div className="w-full text-xs opacity-45">提取的 MP3 会保存到素材库，并生成一个音频节点放在当前视频节点下游。</div>
+                        <div className="w-full text-xs opacity-45">{translate("canvasTools.canvasVideoSegmentDialog.theExtractedMP3WillBeSavedToTheAssetLibrary")}</div>
                     </div>
                 )}
 
                 <div className="flex items-center justify-end gap-2">
-                    <Button onClick={onClose}>取消</Button>
+                    <Button onClick={onClose}>{translate("common.cancel")}</Button>
                     <Button type="primary" icon={<Check className="size-4" />} disabled={isVideoMode ? !segments.length : !durationSec} onClick={handleConfirm}>
-                        {isVideoMode ? (createsGenerationNodes ? `截取 ${segments.length} 段并创建生成节点` : `截取 ${segments.length} 段`) : "提取音频"}
+                        {isVideoMode ? (createsGenerationNodes ? translate("canvasTools.canvasVideoSegmentDialog.trimClipsAndCreateGenerationNodes", { v0: String(segments.length) }) : translate("canvasTools.canvasVideoSegmentDialog.trimClips", { v0: String(segments.length) })) : translate("canvasPage.mediaTools.extractAudioTitle")}
                     </Button>
                 </div>
             </div>
@@ -418,18 +419,18 @@ export function CanvasVideoSegmentDialog({ node, nodes, connections, open, mode,
 
 function videoOperationLabel(operation: CanvasVideoEditOperation) {
     const labels: Record<CanvasVideoEditOperation, string> = {
-        text_to_video: "文生视频",
-        image_to_video: "图生视频",
-        reference_to_video: "全模态参考",
-        extend: "视频续写",
-        inpaint: "局部修改",
-        replace_element: "元素替换",
-        camera_motion: "运镜调整",
-        style_transfer: "风格迁移",
-        audio_to_video: "音频生视频",
-        compare_versions: "版本对比",
-        concat: "拼接成片",
-        enhance: "画质增强",
+        text_to_video: translate("canvasTools.canvasVideoSegmentDialog.textToVideo"),
+        image_to_video: translate("canvasTools.canvasVideoSegmentDialog.imageToVideo"),
+        reference_to_video: translate("canvasTools.canvasVideoSegmentDialog.multimodalReferences"),
+        extend: translate("canvasTools.canvasVideoSegmentDialog.videoContinuation"),
+        inpaint: translate("canvasTools.canvasVideoSegmentDialog.localEdit"),
+        replace_element: translate("canvasTools.canvasVideoSegmentDialog.elementReplacement"),
+        camera_motion: translate("canvasTools.canvasVideoSegmentDialog.cameraMoveAdjustment"),
+        style_transfer: translate("canvasTools.canvasVideoSegmentDialog.styleTransfer"),
+        audio_to_video: translate("canvasTools.canvasVideoSegmentDialog.audioToVideo"),
+        compare_versions: translate("canvasTools.canvasVideoSegmentDialog.versionComparison"),
+        concat: translate("canvasTools.canvasVideoSegmentDialog.combineIntoFinalVideo"),
+        enhance: translate("canvasTools.canvasVideoSegmentDialog.qualityEnhancement"),
     };
     return labels[operation] || operation;
 }

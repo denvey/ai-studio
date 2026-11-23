@@ -5,59 +5,88 @@ import { AlertTriangle } from "lucide-react";
 import { CachedResourceImage } from "@/components/cached-resource-image";
 import { getResourceAccess, resolveResourceAccessURL, resourceFileUrl, type ResourceAccessVariant } from "@/services/api/resources";
 import type { DramaEpisodeRow, DramaEpisodeStage, DramaMediaMode, DramaMediaStatus, DramaSourceFormat, DramaVideoContinuity } from "@/services/api/drama";
+import { currentLocale, translate } from "@/i18n";
 
 export const PIPELINE_STEPS: Array<{ key: Exclude<DramaEpisodeStage, "queued" | "review" | "done">; label: string }> = [
-    { key: "script", label: "剧本" },
-    { key: "prompts", label: "段提示词" },
-    { key: "video", label: "视频" },
-    { key: "render", label: "成片" },
+    { key: "script", label: translate("drama.dramaShared.script") },
+    { key: "prompts", label: translate("drama.dramaShared.segmentPrompts") },
+    { key: "video", label: translate("account.feedback.video") },
+    { key: "render", label: translate("drama.dramaShared.finalCut") },
 ];
 
 const STAGE_INDEX: Record<DramaEpisodeStage, number> = { queued: -1, script: 0, prompts: 1, review: 2, video: 2, render: 3, done: 4 };
 
 export const STAGE_LABEL: Record<DramaEpisodeStage, string> = {
-    queued: "排队中",
-    script: "改编剧本",
-    prompts: "撰写段提示词",
-    review: "等待审阅",
-    video: "生成视频",
-    render: "合成成片",
-    done: "已完成",
+    queued: translate("canvasPage.taskStatus.queued"),
+    script: translate("drama.dramaShared.adaptScript"),
+    prompts: translate("drama.dramaShared.writeSegmentPrompts"),
+    review: translate("drama.dramaShared.awaitingReview"),
+    video: translate("drama.dramaShared.generateVideo"),
+    render: translate("drama.dramaShared.renderFinalCut"),
+    done: translate("library.tasks.filter.succeeded"),
 };
 
 export { DRAMA_CAST_KIND_LABEL as CAST_KIND_LABEL, DRAMA_STATUS_LABEL as STATUS_LABEL, formatDramaCredits as formatCredits } from "@/lib/drama/drama-format";
 
+export const DIALOGUE_LANGUAGE_LABEL: Record<string, string> = {
+    中文普通话: translate("drama.labels.language.mandarin"),
+    粤语: translate("drama.labels.language.cantonese"),
+    英语: translate("drama.labels.language.english"),
+    日语: translate("drama.labels.language.japanese"),
+};
+
+const SHOT_VISUAL_LABEL: Record<string, string> = {
+    特写: translate("drama.labels.shotSize.closeUp"),
+    近景: translate("drama.labels.shotSize.mediumCloseUp"),
+    中景: translate("drama.labels.shotSize.medium"),
+    全景: translate("drama.labels.shotSize.full"),
+    远景: translate("drama.labels.shotSize.wide"),
+    固定: translate("drama.labels.camera.static"),
+    推: translate("drama.labels.camera.pushIn"),
+    拉: translate("drama.labels.camera.pullBack"),
+    摇: translate("drama.labels.camera.pan"),
+    跟: translate("drama.labels.camera.track"),
+    环绕: translate("drama.labels.camera.orbit"),
+    升降: translate("drama.labels.camera.crane"),
+    手持: translate("drama.labels.camera.handheld"),
+};
+
+/** 只翻译模型约定值的显示标签，保存与提交仍使用原值。 */
+export function shotVisualLabel(value: string | undefined) {
+    return SHOT_VISUAL_LABEL[value || ""] || value || "";
+}
+
 /** 段落衔接方式的文案：新建页与设置页共用。 */
 export const VIDEO_CONTINUITY_LABEL: Record<DramaVideoContinuity, { title: string; detail: string }> = {
-    tail_frame: { title: "尾帧续接", detail: "第 2 段起用上一段最后一帧做首帧，同集按顺序逐段生成，画面衔接更稳" },
-    parallel: { title: "并行出片", detail: "每段只按角色与场景参考图独立生成，同集各段一起提交，适合按班次批量出片的渠道" },
+    tail_frame: { title: translate("drama.dramaShared.lastFrameChaining"), detail: translate("drama.dramaShared.fromSegment2OnwardUseThePreviousSegmentSLast") },
+    parallel: { title: translate("drama.dramaShared.parallelGeneration"), detail: translate("drama.dramaShared.generateEachSegmentIndependentlyFromCharacterAndSceneReferencesAll") },
 };
 
 /** 生成节奏的文案：新建页与设置页共用。 */
 export const MEDIA_MODE_LABEL: Record<DramaMediaMode, { title: string; detail: string }> = {
-    manual: { title: "先出剧本与提示词，手动生成", detail: "只跑文本：作品圣经、分集、剧本、分镜、设定与各段视频提示词。确认后再逐集或全部生成参考图与视频" },
-    auto: { title: "全自动出片", detail: "剧本写好后直接生成参考图和带原声的段视频，一路跑到成片" },
+    manual: { title: translate("drama.dramaShared.prepareScriptsAndPromptsThenGenerateManually"), detail: translate("drama.dramaShared.generateTextOnlyStoryBibleEpisodePlanScriptsStoryboardsDesigns") },
+    auto: { title: translate("drama.dramaShared.fullyAutomaticProduction"), detail: translate("drama.dramaShared.afterTheScriptAutomaticallyGenerateReferencesAndSegmentVideosWith") },
 };
 
 /** 素材类型文案：新建页、追加单集与原文编辑共用。placeholder 是粘贴框的格式提示。 */
 export const SOURCE_FORMAT_LABEL: Record<DramaSourceFormat, { title: string; detail: string; placeholder: string; guide: string[] }> = {
     novel: {
-        title: "小说原文",
-        detail: "按原文改编成镜头，引号里的对白逐字保留",
-        placeholder: "粘贴小说正文。对白放在引号里，会逐字保留为台词。",
-        guide: ["引号“”「」里的对白逐字保留为台词", "叙述与心理描写改成可拍到的动作和表情", "需要旁白时只摘原文句子，不另写"],
+        title: translate("drama.dramaShared.novelSource"),
+        detail: translate("drama.dramaShared.adaptSourceTextIntoShotsPreservingQuotedDialogueWordFor"),
+        placeholder: translate("drama.dramaShared.pasteTheNovelTextDialogueInQuotationMarksWillBe"),
+        guide: [translate("drama.dramaShared.dialogueInOrIsPreservedWordForWord"), translate("drama.dramaShared.turnNarrationAndInnerThoughtsIntoFilmableActionsAndExpressions"), translate("drama.dramaShared.useOnlyOriginalSentencesForNarrationDoNotInventNew")],
     },
     script: {
-        title: "剧本",
-        detail: "已写好的剧情与台词，只拆镜头，台词一字不改",
-        placeholder: "粘贴本集剧本，例如：\n第1场 内景 客厅 夜\n△林晚推门而入。\n林晚（冷笑）：你怎么还在这里？\n顾言：我等你很久了。",
-        guide: ["一行一句：角色：台词，或 角色（表情）：台词", "△ 开头的行写动作与画面", "旁白写成 旁白：……；台词一字不改"],
+        title: translate("drama.dramaShared.script"),
+        detail: translate("drama.dramaShared.breakAnExistingScriptIntoShotsWithoutChangingAnyDialogue"),
+        placeholder: translate("drama.dramaShared.pasteTheEpisodeScriptExampleFormat1"),
+        guide: [translate("drama.dramaShared.oneLinePerUtteranceCharacterDialogueOrCharacterExpressionDialogue"), translate("drama.dramaShared.startActionAndVisualDescriptionLinesWith"), translate("drama.dramaShared.writeNarrationAsAllDialogueIsPreservedVerbatim")],
     },
     storyboard: {
-        title: "分镜",
-        detail: "已做好的分镜表，按原镜头转录；表格可直接导入",
-        placeholder: "粘贴分镜表（Markdown 表格或从表格软件复制的内容），第一行为表头，例如：\n| 场景 | 角色 | 景别 | 画面 | 台词 | 时长 |\n| 客厅 | 林晚 | 近景 | 林晚推门而入 | 林晚：你怎么还在这里？ | 3 |",
-        guide: ["第一行是表头：场景、角色、景别、运镜、画面、台词、时长、转场", "Markdown 表格或从 Excel 复制的内容直接导入，不经过模型", "一格多句台词用 <br> 分开，会拆成连续镜头"],
+        title: translate("account.welcome.chapters.shots.label"),
+        detail: translate("drama.dramaShared.importAnExistingStoryboardTableAndPreserveItsOriginalShots"),
+        placeholder: translate("drama.dramaShared.pasteAStoryboardTableInMarkdownOrCopiedFromA"),
+        guide: [translate("drama.dramaShared.theFirstRowContainsHeadersSceneCharacterShotSizeCamera"), translate("drama.dramaShared.importMarkdownTablesOrContentCopiedFromExcelDirectlyWithout"), translate("drama.dramaShared.separateMultipleDialogueLinesInACellWithBrTo")],
     },
 };
 
@@ -65,12 +94,11 @@ export const SOURCE_FORMAT_LABEL: Record<DramaSourceFormat, { title: string; det
 export function EpisodeGroupField({ value, onChange, chapterCount, error, disabled }: { value: number; onChange: (value: number) => void; chapterCount?: number; error?: string; disabled?: boolean }) {
     return (
         <div className="drama-episode-group">
-            <span>每</span>
-            <InputNumber size="small" min={1} max={12} precision={0} value={value} disabled={disabled} onChange={(next) => onChange(Math.max(1, Math.min(12, Number(next) || 1)))} aria-label="每集章数" />
-            <span>章一集</span>
+            <span>{translate("drama.dramaShared.chaptersPerEpisode")}</span>
+            <InputNumber size="small" min={1} max={12} precision={0} value={value} disabled={disabled} onChange={(next) => onChange(Math.max(1, Math.min(12, Number(next) || 1)))} aria-label={translate("drama.dramaShared.chaptersPerEpisode")} />
             {chapterCount ? (
                 <small>
-                    共 {chapterCount} 章 → {Math.ceil(chapterCount / value)} 集
+                    {translate("drama.sentences.episodeGroupTotal", { chapters: chapterCount, episodes: Math.ceil(chapterCount / value) })}
                 </small>
             ) : null}
             {error ? (
@@ -89,7 +117,7 @@ export function sourceFormatOf(value: string | undefined): DramaSourceFormat {
 
 export function SourceFormatPicker({ value, onChange, disabled, row }: { value: DramaSourceFormat; onChange: (value: DramaSourceFormat) => void; disabled?: boolean; row?: boolean }) {
     return (
-        <div className={`drama-media-modes ${row ? "is-row" : ""}`} role="radiogroup" aria-label="素材类型">
+        <div className={`drama-media-modes ${row ? "is-row" : ""}`} role="radiogroup" aria-label={translate("library.assets.page.kindFilter")}>
             {(Object.keys(SOURCE_FORMAT_LABEL) as DramaSourceFormat[]).map((format) => (
                 <button key={format} type="button" role="radio" aria-checked={value === format} className="drama-media-mode" disabled={disabled} onClick={() => onChange(format)}>
                     <span className="drama-radio" />
@@ -115,17 +143,17 @@ export function episodeTone(episode: DramaEpisodeRow): EpisodeTone {
 }
 
 export function episodeStatusText(episode: DramaEpisodeRow) {
-    if (episode.error) return "需要处理";
-    if (episode.awaitingMedia) return `剧本就绪 · ${episode.shotCount} 镜 · 待生成画面`;
-    if (episode.stage === "done" && episode.finalStale) return "已修改 · 待重新合成";
+    if (episode.error) return translate("drama.dramaShared.needsAttention");
+    if (episode.awaitingMedia) return translate("drama.dramaShared.scriptReadyShotsAwaitingVisuals", { v0: String(episode.shotCount) });
+    if (episode.stage === "done" && episode.finalStale) return translate("drama.dramaShared.modifiedAwaitingNewRender");
     const { stats } = episode;
     switch (episode.stage) {
         case "prompts":
-            return stats.segments ? `提示词 ${stats.promptReady}/${stats.segments}` : STAGE_LABEL.prompts;
+            return stats.segments ? translate("drama.dramaShared.prompts", { v0: String(stats.promptReady), v1: String(stats.segments) }) : STAGE_LABEL.prompts;
         case "video":
-            return stats.segments ? `视频 ${stats.videoReady}/${stats.segments}` : STAGE_LABEL.video;
+            return stats.segments ? translate("drama.dramaShared.videos", { v0: String(stats.videoReady), v1: String(stats.segments) }) : STAGE_LABEL.video;
         case "done":
-            return `已完成 · ${formatDuration(episode.durationMs)}`;
+            return translate("drama.dramaShared.completed", { v0: String(formatDuration(episode.durationMs)) });
     }
     return STAGE_LABEL[episode.stage];
 }
@@ -162,7 +190,7 @@ export function StagePips({ episode, size = "sm" }: { episode: DramaEpisodeRow; 
 export function formatDuration(ms: number) {
     const seconds = Math.max(0, Math.round(ms / 1000));
     const minutes = Math.floor(seconds / 60);
-    return minutes ? `${minutes}分${String(seconds % 60).padStart(2, "0")}秒` : `${seconds}秒`;
+    return minutes ? translate("drama.dramaShared.mS", { v0: String(minutes), v1: String(String(seconds % 60).padStart(2, "0")) }) : translate("drama.dramaShared.s", { v0: String(seconds) });
 }
 
 export function formatClock(ms: number) {
@@ -171,8 +199,9 @@ export function formatClock(ms: number) {
 }
 
 export function formatCount(value: number) {
-    if (value >= 10_000) return `${(value / 10_000).toFixed(value >= 100_000 ? 0 : 1)}万`;
-    return value.toLocaleString("zh-CN");
+    const locale = currentLocale();
+    if (locale === "zh-CN" && value >= 10_000) return `${(value / 10_000).toFixed(value >= 100_000 ? 0 : 1)}万`;
+    return new Intl.NumberFormat(locale, value >= 10_000 ? { notation: "compact", maximumFractionDigits: 1 } : undefined).format(value);
 }
 
 export function aspectRatioValue(aspect: string) {

@@ -1,4 +1,6 @@
 import { LocalRuntimeClientError } from "@/services/local-runtime-session";
+import { translate } from "@/i18n";
+
 
 export type LocalRuntimeModuleId = "canvas-agent" | "dreamina" | "portrait-clearance" | "depth-estimation" | "lineart-estimation" | "pose-estimation";
 export type LocalRuntimeScope = "runtime:status" | "runtime:revoke" | "canvas:connect" | "dreamina:status" | "dreamina:login" | "dreamina:logout" | "dreamina:run" | "dreamina:models" | "dreamina:generate" | "portrait:status" | "portrait:model" | "portrait:run" | "portrait:read" | "depth:status" | "depth:run" | "lineart:status" | "lineart:run" | "pose:status" | "pose:run";
@@ -143,11 +145,11 @@ function isModuleId(value: unknown): value is LocalRuntimeModuleId {
 }
 
 function invalidResponse(status: number) {
-    return new LocalRuntimeClientError("runtime_response_invalid", "本机运行时响应无效", status);
+    return new LocalRuntimeClientError("runtime_response_invalid", translate("shared.localRuntime.invalidResponseFromTheLocalRuntime"), status);
 }
 
 function publicRequestError(code: string) {
-    if (code === "session_required") return "本机会话已失效，请重新连接";
-    if (code === "scope_denied") return "本机会话权限不足";
-    return "本机运行时请求失败";
+    if (code === "session_required") return translate("shared.localRuntime.theLocalSessionHasExpiredReconnectToContinue");
+    if (code === "scope_denied") return translate("shared.localRuntime.theLocalSessionDoesNotHaveTheRequiredPermissions");
+    return translate("shared.localRuntimeSession.localRuntimeRequestFailed");
 }

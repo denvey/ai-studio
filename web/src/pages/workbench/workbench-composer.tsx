@@ -10,6 +10,8 @@ import type { WorkbenchKind, WorkbenchPromptPreset, WorkbenchReferenceSlot, Work
 import { workbenchMediaLabel } from "./workbench-catalog";
 import { workbenchRatioUsage, workbenchSceneTone, workbenchToolSubtitle, type InspirationGroup, type SceneTone } from "./workbench-presets";
 
+import { commerceUiText } from "../ecommerce/ui-text";
+import { currentLocale, translate } from "@/i18n";
 export type WorkbenchReference = {
     id: string;
     name: string;
@@ -78,31 +80,31 @@ export function SceneSection({
     onChoose: (tool: WorkbenchTool | null) => void;
     onRetry: () => void;
 }) {
-    const subtitle = tool ? workbenchToolSubtitle(tool) : kind === "image" ? "不套用场景模板，直接描述想要的商品画面" : "不套用场景模板，直接描述镜头里发生什么";
+    const subtitle = tool ? workbenchToolSubtitle(tool) : kind === "image" ? translate("ecommerce.workbench.workbenchComposer.describeYourDesiredProductSceneWithoutApplyingATemplate") : translate("ecommerce.workbench.workbenchComposer.describeWhatHappensInTheShotWithoutApplyingATemplate");
     return (
         <ComposerSection
-            title="出品场景"
-            hint={tool ? undefined : "自动套用模板与素材要求"}
+            title={translate("ecommerce.workbench.workbenchComposer.outputScenario")}
+            hint={tool ? undefined : translate("ecommerce.workbench.workbenchComposer.automaticallyAppliesTheTemplateAndAssetRequirements")}
             aside={
                 <Button size="small" type="text" className="wb-text-action" onClick={onOpenLibrary}>
-                    全部场景
+                    {translate("ecommerce.workbench.workbenchComposer.allScenarios")}
                     <ArrowRight className="size-3.5" />
                 </Button>
             }
         >
-            <button type="button" className="wb-scene-current" onClick={onOpenLibrary} aria-haspopup="dialog" title={tool ? `${tool.name}\n${subtitle}` : "选择出品场景"}>
+            <button type="button" className="wb-scene-current" onClick={onOpenLibrary} aria-haspopup="dialog" title={tool ? `${tool.name}\n${subtitle}` : translate("ecommerce.workbench.workbenchComposer.chooseAnOutputScenario")}>
                 <SceneGlyph tool={tool} kind={kind} size="lg" />
                 <span className="wb-scene-current-copy">
-                    <strong>{tool?.name || "自由创作"}</strong>
+                    <strong>{tool?.name || translate("ecommerce.workbench.workbenchComposer.freeCreation")}</strong>
                     <small>{subtitle}</small>
                 </span>
-                <span className="wb-scene-current-switch">更换</span>
+                <span className="wb-scene-current-switch">{translate("ecommerce.workbench.workbenchComposer.change")}</span>
             </button>
             {error ? (
                 <div className="wb-inline-error" role="alert">
                     <span>{error}</span>
                     <Button size="small" onClick={onRetry}>
-                        重试
+                        {translate("common.retry")}
                     </Button>
                 </div>
             ) : loading ? (
@@ -112,7 +114,7 @@ export function SceneSection({
                     ))}
                 </div>
             ) : quickTools.length ? (
-                <div className="wb-scene-chips" role="group" aria-label="常用场景">
+                <div className="wb-scene-chips" role="group" aria-label={translate("ecommerce.workbench.workbenchComposer.commonScenarios")}>
                     {quickTools.map((item) => (
                         <button key={item.id} type="button" className="wb-chip" aria-pressed={item.id === tool?.id} title={workbenchToolSubtitle(item) || item.name} onClick={() => onChoose(item.id === tool?.id ? null : item)}>
                             {item.name}
@@ -126,11 +128,11 @@ export function SceneSection({
 
 function slotRequirementText(slot: WorkbenchReferenceSlot) {
     const media = slot.mediaTypes.map(workbenchMediaLabel).join(" / ");
-    return slot.required || slot.minCount > 0 ? `${media} · 必填` : `${media} · 可选`;
+    return slot.required || slot.minCount > 0 ? translate("ecommerce.workbench.workbenchComposer.required2", { v0: String(media) }) : translate("ecommerce.workbench.workbenchComposer.optional", { v0: String(media) });
 }
 
 function roleLabel(role: WorkbenchReference["role"]) {
-    return role === "first_frame" ? "首帧" : role === "last_frame" ? "尾帧" : "参考";
+    return role === "first_frame" ? translate("ecommerce.workbench.workbenchComposer.openingFrame") : role === "last_frame" ? translate("ecommerce.workbench.workbenchComposer.endingFrame") : translate("ecommerce.workbench.workbenchComposer.reference");
 }
 
 function ReferenceThumb({ reference, kind, onRemove, onRoleChange }: { reference: WorkbenchReference; kind: WorkbenchKind; onRemove: () => void; onRoleChange: (role: WorkbenchReference["role"]) => void }) {
@@ -156,9 +158,9 @@ function ReferenceThumb({ reference, kind, onRemove, onRoleChange }: { reference
                         <Progress type="circle" percent={Math.round(reference.progress)} size={30} strokeWidth={10} showInfo={false} />
                     </span>
                 ) : null}
-                {reference.error ? <span className="wb-ref-error">上传失败</span> : null}
+                {reference.error ? <span className="wb-ref-error">{translate("library.assets.batch.uploadFailed")}</span> : null}
             </span>
-            <button type="button" className="wb-ref-remove" data-icon-only aria-label={`移除${reference.name}`} onClick={onRemove}>
+            <button type="button" className="wb-ref-remove" data-icon-only aria-label={translate("ecommerce.workbench.workbenchComposer.remove", { v0: String(reference.name) })} onClick={onRemove}>
                 <X />
             </button>
             {canChooseRole ? (
@@ -168,14 +170,14 @@ function ReferenceThumb({ reference, kind, onRemove, onRoleChange }: { reference
                         selectable: true,
                         selectedKeys: [reference.role],
                         items: [
-                            { key: "first_frame", label: "作为首帧" },
-                            { key: "last_frame", label: "作为尾帧" },
-                            { key: "reference", label: "作为参考图" },
+                            { key: "first_frame", label: translate("ecommerce.workbench.workbenchComposer.useAsOpeningFrame") },
+                            { key: "last_frame", label: translate("ecommerce.workbench.workbenchComposer.useAsEndingFrame") },
+                            { key: "reference", label: translate("ecommerce.workbench.workbenchComposer.useAsReferenceImage") },
                         ],
                         onClick: ({ key }) => onRoleChange(key as WorkbenchReference["role"]),
                     }}
                 >
-                    <button type="button" className="wb-ref-role" aria-label={`素材用途：${roleLabel(reference.role)}，点击更改`}>
+                    <button type="button" className="wb-ref-role" aria-label={translate("ecommerce.workbench.workbenchComposer.assetUseClickToChange", { v0: String(roleLabel(reference.role)) })}>
                         {roleLabel(reference.role)}
                         <ChevronDown />
                     </button>
@@ -253,9 +255,9 @@ function ReferenceGroup({
                     </span>
                 </button>
             )}
-            <button type="button" className="wb-ref-library" aria-label="从素材库选择" title={full ? "已达到数量上限" : "从素材库选择"} disabled={full} onClick={onOpenLibrary}>
+            <button type="button" className="wb-ref-library" aria-label={translate("ecommerce.workbench.workbenchComposer.chooseFromAssetLibrary")} title={full ? translate("ecommerce.workbench.workbenchComposer.limitReached") : translate("ecommerce.workbench.workbenchComposer.chooseFromAssetLibrary")} disabled={full} onClick={onOpenLibrary}>
                 <FolderOpen />
-                <small>素材库</small>
+                <small>{translate("canvasB.mention.assetLibrary")}</small>
             </button>
         </div>
     );
@@ -285,10 +287,10 @@ export function ReferenceSection({
     onClear: () => void;
 }) {
     const slots = tool?.inputContract?.slots || [];
-    const mediaHint = kind === "image" ? "支持拖拽、粘贴截图" : "图片 / 视频 / 音频，支持拖拽";
+    const mediaHint = kind === "image" ? translate("ecommerce.workbench.workbenchComposer.dragImagesOrPasteScreenshots") : translate("ecommerce.workbench.workbenchComposer.imagesVideosAudioDragToUpload");
     const clearAction = references.length ? (
         <Button size="small" type="text" className="wb-text-action" onClick={onClear}>
-            清空
+            {translate("canvasA.outbox.clear")}
         </Button>
     ) : null;
     const renderGroup = (items: WorkbenchReference[], options: { slotKey?: string; limit: number; label: string; detail: string }) => (
@@ -308,19 +310,19 @@ export function ReferenceSection({
     if (!slots.length) {
         if (unslottedLimit <= 0) {
             return (
-                <ComposerSection title={kind === "image" ? "商品素材" : "参考素材"} hint="当前模型不接受参考素材">
-                    <p className="wb-muted-note">换一个支持参考图的模型后，可以上传商品原图保持外观一致。</p>
+                <ComposerSection title={kind === "image" ? translate("ecommerce.workbench.workbenchComposer.productAssets") : translate("ecommerce.workbench.workbenchComposer.referenceAssets")} hint={translate("ecommerce.workbench.workbenchComposer.theCurrentModelDoesNotAcceptReferenceAssets")}>
+                    <p className="wb-muted-note">{translate("ecommerce.workbench.workbenchComposer.chooseAModelThatSupportsReferenceImagesThenUploadOriginal")}</p>
                 </ComposerSection>
             );
         }
         return (
-            <ComposerSection title={kind === "image" ? "商品素材" : "参考素材"} hint={`${references.length} / ${unslottedLimit} · ${mediaHint}`} aside={clearAction}>
-                {renderGroup(references, { limit: unslottedLimit, label: kind === "image" ? "上传商品图" : "上传参考素材", detail: kind === "image" ? "白底或实拍图，外观越清晰越好" : "图片可设为首帧或尾帧" })}
+            <ComposerSection title={kind === "image" ? translate("ecommerce.workbench.workbenchComposer.productAssets") : translate("ecommerce.workbench.workbenchComposer.referenceAssets")} hint={`${references.length} / ${unslottedLimit} · ${mediaHint}`} aside={clearAction}>
+                {renderGroup(references, { limit: unslottedLimit, label: kind === "image" ? translate("ecommerce.workbench.workbenchComposer.uploadProductImages") : translate("ecommerce.workbench.workbenchComposer.uploadReferenceAssets"), detail: kind === "image" ? translate("ecommerce.workbench.workbenchComposer.whiteBackgroundOrRealPhotosTheClearerTheAppearanceThe") : translate("ecommerce.workbench.workbenchComposer.imagesCanBeOpeningOrEndingFrames") })}
             </ComposerSection>
         );
     }
     return (
-        <ComposerSection title="商品素材" hint={mediaHint} aside={clearAction}>
+        <ComposerSection title={translate("ecommerce.workbench.workbenchComposer.productAssets")} hint={mediaHint} aside={clearAction}>
             <div className="wb-slot-list">
                 {slots.map((slot) => {
                     const items = references.filter((reference) => reference.slotKey === slot.key);
@@ -329,13 +331,13 @@ export function ReferenceSection({
                     return (
                         <div key={slot.key} className={cn("wb-slot", missing && "is-missing")}>
                             <div className="wb-slot-head">
-                                <strong>{slot.name || "参考素材"}</strong>
-                                <span className={cn("wb-badge", required && "is-required")}>{required ? "必填" : "可选"}</span>
+                                <strong>{slot.name || translate("ecommerce.workbench.workbenchComposer.referenceAssets")}</strong>
+                                <span className={cn("wb-badge", required && "is-required")}>{required ? translate("ecommerce.workbench.workbenchComposer.required") : translate("account.settings.diagnostics.optional")}</span>
                                 <small>
                                     {items.length} / {slot.maxCount}
                                 </small>
                             </div>
-                            {renderGroup(items, { slotKey: slot.key, limit: slot.maxCount, label: `上传${slot.name || "素材"}`, detail: slotRequirementText(slot) })}
+                            {renderGroup(items, { slotKey: slot.key, limit: slot.maxCount, label: translate("ecommerce.workbench.workbenchComposer.upload", { v0: String(slot.name || translate("ecommerce.workbench.workbenchComposer.asset")) }), detail: slotRequirementText(slot) })}
                         </div>
                     );
                 })}
@@ -371,18 +373,18 @@ export function PromptSection({
     const activeGroup = inspirations.find((item) => item.key === group) || inspirations[0];
     return (
         <ComposerSection
-            title="画面描述"
-            hint={kind === "image" ? "写清商品、场景、光线和需要保留的细节" : "写清主体动作、运镜、节奏和结尾画面"}
+            title={translate("ecommerce.workbench.workbenchComposer.frameDescription")}
+            hint={kind === "image" ? translate("ecommerce.workbench.workbenchComposer.describeTheProductSceneLightingAndDetailsToPreserve") : translate("ecommerce.workbench.workbenchComposer.describeSubjectActionsCameraMovementPacingAndTheEnding")}
             aside={
                 prompt ? (
                     <Button size="small" type="text" className="wb-text-action" onClick={onClear}>
-                        清空
+                        {translate("canvasA.outbox.clear")}
                     </Button>
                 ) : null
             }
         >
             {tool?.presets.length ? (
-                <div className="wb-preset-row" role="group" aria-label="场景提示词模板">
+                <div className="wb-preset-row" role="group" aria-label={translate("ecommerce.workbench.workbenchComposer.scenarioPromptTemplate")}>
                     {tool.presets.slice(0, 5).map((item) => (
                         <button key={item.id} type="button" className="wb-preset" aria-pressed={preset?.id === item.id} title={item.summary || item.name} onClick={() => onChoosePreset(item)}>
                             {preset?.id === item.id ? <Check /> : null}
@@ -395,27 +397,27 @@ export function PromptSection({
                 {editor}
                 <div className="wb-prompt-meta">
                     <span className={cn(prompt.length > maxChars * 0.9 && "is-warning")}>
-                        {prompt.length.toLocaleString("zh-CN")} / {maxChars.toLocaleString("zh-CN")}
+                        {prompt.length.toLocaleString(currentLocale())} / {maxChars.toLocaleString(currentLocale())}
                     </span>
-                    <span>输入 @ 引用素材 · ⌘ / Ctrl + Enter 生成</span>
+                    <span>{translate("ecommerce.workbench.workbenchComposer.typeToReferenceAssetsCtrlEnterToGenerate")}</span>
                 </div>
             </div>
             {activeGroup ? (
                 <div className="wb-inspire">
-                    <div className="wb-inspire-tabs" role="tablist" aria-label="灵感词分类">
+                    <div className="wb-inspire-tabs" role="tablist" aria-label={translate("ecommerce.workbench.workbenchComposer.inspirationPhraseCategories")}>
                         {inspirations.map((item) => (
                             <button key={item.key} type="button" role="tab" aria-selected={item.key === activeGroup.key} className={item.key === activeGroup.key ? "is-active" : ""} onClick={() => setGroup(item.key)}>
                                 {item.label}
                             </button>
                         ))}
                     </div>
-                    <div className="wb-inspire-chips" role="group" aria-label={`${activeGroup.label}灵感词，点击加入或移出描述`}>
+                    <div className="wb-inspire-chips" role="group" aria-label={translate("ecommerce.workbench.workbenchComposer.inspirationPhrasesClickToAddToOrRemoveFromThe", { v0: String(activeGroup.label) })}>
                         {activeGroup.phrases.map((phrase) => {
                             const active = promptHasPhrase(prompt, phrase);
                             return (
                                 <button key={phrase} type="button" className="wb-chip is-soft" aria-pressed={active} onClick={() => onTogglePhrase(phrase)}>
                                     {active ? <Check /> : null}
-                                    {phrase}
+                                    {commerceUiText(phrase)}
                                 </button>
                             );
                         })}
@@ -473,7 +475,7 @@ export function videoRatioOptions(ratios: string[]) {
     return ratios.map((value) => {
         const usage = workbenchRatioUsage("video", value);
         const match = /^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)$/.exec(value.trim());
-        return { value, label: value === "adaptive" ? "自适应" : value, ...(usage ? { caption: usage.label, title: usage.title } : {}), ...(match ? { ratio: Number(match[1]) / Number(match[2]) } : {}) };
+        return { value, label: value === "adaptive" ? translate("ecommerce.workbench.workbenchComposer.adaptive") : value, ...(usage ? { caption: usage.label, title: usage.title } : {}), ...(match ? { ratio: Number(match[1]) / Number(match[2]) } : {}) };
     });
 }
 
@@ -498,7 +500,7 @@ export function SwitchRow({ items }: { items: Array<{ key: string; label: string
 export function CountStepper({ kind, value, max, onChange }: { kind: WorkbenchKind; value: number; max: number; onChange: (value: number) => void }) {
     const limit = Math.max(1, max);
     const current = Math.min(limit, Math.max(1, Math.floor(value) || 1));
-    const unit = kind === "image" ? "张" : "条";
+    const unit = kind === "image" ? translate("canvasA.characterLibrary.pageItem") : translate("ecommerce.workbench.workbenchComposer.videos");
     const stepperActive = current >= 4;
     const [draft, setDraft] = useState(String(Math.max(4, current)));
     useEffect(() => {
@@ -511,7 +513,7 @@ export function CountStepper({ kind, value, max, onChange }: { kind: WorkbenchKi
     };
     const base = stepperActive ? current : Number(draft) || 4;
     return (
-        <div className="wb-count" role="group" aria-label={`生成数量，最多 ${limit} ${unit}`}>
+        <div className="wb-count" role="group" aria-label={translate("ecommerce.workbench.workbenchComposer.generationCountUpTo", { v0: String(limit), v1: String(unit) })}>
             {Array.from({ length: Math.min(3, limit) }, (_, index) => index + 1).map((item) => (
                 <button key={item} type="button" className={cn("wb-count-cell", current === item && "is-active")} aria-pressed={current === item} onClick={() => onChange(item)}>
                     {item}
@@ -522,7 +524,7 @@ export function CountStepper({ kind, value, max, onChange }: { kind: WorkbenchKi
                     <input
                         type="text"
                         inputMode="numeric"
-                        aria-label={`自定义数量（4 到 ${limit} ${unit}）`}
+                        aria-label={translate("ecommerce.workbench.workbenchComposer.customCount4To", { v0: String(limit), v1: String(unit) })}
                         value={draft}
                         onChange={(event) => setDraft(event.target.value.replace(/\D/g, "").slice(0, 2))}
                         onFocus={(event) => {
@@ -542,7 +544,7 @@ export function CountStepper({ kind, value, max, onChange }: { kind: WorkbenchKi
                         <button
                             type="button"
                             tabIndex={-1}
-                            aria-label={`增加 1 ${unit}`}
+                            aria-label={translate("ecommerce.workbench.workbenchComposer.add1", { v0: String(unit) })}
                             disabled={stepperActive && current >= limit}
                             onClick={(event) => {
                                 event.stopPropagation();
@@ -554,7 +556,7 @@ export function CountStepper({ kind, value, max, onChange }: { kind: WorkbenchKi
                         <button
                             type="button"
                             tabIndex={-1}
-                            aria-label={`减少 1 ${unit}`}
+                            aria-label={translate("ecommerce.workbench.workbenchComposer.remove1", { v0: String(unit) })}
                             disabled={stepperActive && current <= 1}
                             onClick={(event) => {
                                 event.stopPropagation();
@@ -589,8 +591,8 @@ export function ComposerFooter({
     disabledReason?: string;
     onSubmit: () => void;
 }) {
-    const unit = kind === "image" ? "张" : "条";
-    const label = count > 1 ? `生成 ${count} ${unit}` : kind === "image" ? "生成图片" : "生成视频";
+    const unit = kind === "image" ? translate("canvasA.characterLibrary.pageItem") : translate("ecommerce.workbench.workbenchComposer.videos");
+    const label = count > 1 ? translate("ecommerce.workbench.workbenchComposer.generate", { v0: String(count), v1: String(unit) }) : kind === "image" ? translate("ecommerce.workbench.workbenchComposer.generateImage") : translate("ecommerce.workbench.workbenchComposer.generateVideo");
     const button = (
         <Button className="wb-submit" type="primary" size="large" loading={busy} disabled={Boolean(disabledReason)} onClick={onSubmit}>
             <ArrowUp />
@@ -604,7 +606,7 @@ export function ComposerFooter({
                 <span>
                     <LayoutGrid />
                     {estimate ? `${count} ${unit} · ` : ""}
-                    {taskCount} 个任务{estimateDetail ? ` · ${estimateDetail}` : ""}
+                    {taskCount} {translate("ecommerce.workbench.workbenchComposer.tasks")}{estimateDetail ? ` · ${estimateDetail}` : ""}
                 </span>
             </div>
             {disabledReason ? (

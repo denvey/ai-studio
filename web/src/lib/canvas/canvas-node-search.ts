@@ -4,13 +4,7 @@ import type { AiConfig } from "@/stores/use-config-store";
 import { canvasNodeCreatedAt, canvasNodeUpdatedAt } from "@/lib/canvas/canvas-node-timestamps";
 import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
 import { nodeGenerationPrompt } from "@/lib/canvas/generation-contract";
-const searchTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-});
+import { currentLocale, translate } from "@/i18n";
 
 export function searchCanvasNodes(nodes: CanvasNodeData[], query: string, limit = 80, config?: AiConfig) {
     const keyword = query.trim().toLocaleLowerCase();
@@ -21,7 +15,7 @@ export function searchCanvasNodes(nodes: CanvasNodeData[], query: string, limit 
 }
 
 export function canvasNodeSearchContext(node: CanvasNodeData) {
-    const location = [node.metadata?.chapterTitle, typeof node.metadata?.shotIndex === "number" ? `镜头 ${node.metadata.shotIndex + 1}` : ""].filter(Boolean).join(" · ");
+    const location = [node.metadata?.chapterTitle, typeof node.metadata?.shotIndex === "number" ? translate("shared.canvas.canvasNodeSearch.shot", { v0: String(node.metadata.shotIndex + 1) }) : ""].filter(Boolean).join(" · ");
     const textContent = node.type === CanvasNodeType.Text || node.type === CanvasNodeType.Markdown || node.type === CanvasNodeType.Script || node.type === CanvasNodeType.Skill
         ? node.metadata?.content
         : undefined;
@@ -41,13 +35,20 @@ export function canvasNodeMaterialSummary(node: CanvasNodeData, config?: AiConfi
 }
 
 export function canvasNodeSearchTimes(node: CanvasNodeData) {
+    const searchTimeFormatter = new Intl.DateTimeFormat(currentLocale(), {
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+    });
     const createdAt = canvasNodeCreatedAt(node);
     const updatedAt = canvasNodeUpdatedAt(node);
     return {
         createdAt,
         updatedAt,
-        createdLabel: createdAt ? searchTimeFormatter.format(new Date(createdAt)) : "未记录",
-        updatedLabel: updatedAt ? searchTimeFormatter.format(new Date(updatedAt)) : "未记录",
+        createdLabel: createdAt ? searchTimeFormatter.format(new Date(createdAt)) : translate("shared.plugins.notRecorded"),
+        updatedLabel: updatedAt ? searchTimeFormatter.format(new Date(updatedAt)) : translate("shared.plugins.notRecorded"),
     };
 }
 
@@ -62,7 +63,7 @@ function canvasNodeSearchTerms(node: CanvasNodeData, config?: AiConfig) {
         node.metadata?.chapterTitle,
         node.metadata?.workflowTitle,
         node.metadata?.workflowDescription,
-        typeof node.metadata?.shotIndex === "number" ? `镜头 ${node.metadata.shotIndex + 1}` : "",
+        typeof node.metadata?.shotIndex === "number" ? translate("shared.canvas.canvasNodeSearch.shot", { v0: String(node.metadata.shotIndex + 1) }) : "",
         ...(node.metadata?.assetTags || []),
     ].filter((value): value is string => typeof value === "string" && Boolean(value));
 }
@@ -74,8 +75,8 @@ function timestampValue(value?: string) {
 
 function formatDuration(durationMs: number) {
     const seconds = Math.max(0, Math.round(durationMs / 1000));
-    if (seconds < 60) return `${seconds}秒`;
-    return `${Math.floor(seconds / 60)}分${seconds % 60}秒`;
+    if (seconds < 60) return translate("shared.canvas.canvasNodeSearch.s", { v0: String(seconds) });
+    return translate("shared.canvas.canvasNodeSearch.mS", { v0: String(Math.floor(seconds / 60)), v1: String(seconds % 60) });
 }
 
 function formatBytes(bytes: number) {

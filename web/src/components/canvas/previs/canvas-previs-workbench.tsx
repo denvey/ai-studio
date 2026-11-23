@@ -1,4 +1,4 @@
-import { cameraMoveOptions, poseEditBones, BoneRotationFields, shotSizeOptions, ObjectInspector, LightInspector, ShotInspector } from "./previs-inspectors";
+import { cameraMoveOptions, poseEditBones, BoneRotationFields, shotSizeOptions, ObjectInspector, LightInspector, ShotInspector, displayPrevisActorArchetypeLabel, displayPrevisPoseLabel } from "./previs-inspectors";
 import { snapPrevisTime, advancePrevisPlayhead, resolvePrevisKeyframeRecord, resolvePrevisObjectTransformEdit, resolvePrevisCameraMoveKeyframes, resolvePrevisCameraAlignment } from "@/lib/canvas/previs/previs-animation-semantics";
 import {
     interpolatePrevisTransform,
@@ -14,10 +14,8 @@ import {
     upsertPrevisBoneKeyframe,
     removePrevisSceneKeyframe,
     setPrevisSceneKeyframeEasing,
-    previsPoseLabel,
     previsBoneLabel,
     previsActorProfileForArchetype,
-    previsActorArchetypeLabel,
     uniquePrevisName,
 } from "@/lib/canvas/previs/previs-scene";
 import { dropPrevisObjectToGround, groundPrevisScene } from "@/lib/canvas/previs/previs-grounding";
@@ -58,10 +56,10 @@ import { Dropdown } from "antd";
 
 /** 场景面板顶部的四个添加入口，都打开同一个带预览的弹窗。 */
 const PREVIS_ADD_BUTTONS: Array<{ kind: PrevisAddKind; label: string; icon: typeof UserRound }> = [
-    { kind: "actor", label: "角色", icon: UserRound },
-    { kind: "prop", label: "道具", icon: Box },
-    { kind: "light", label: "灯光", icon: Lightbulb },
-    { kind: "camera", label: "机位", icon: Camera },
+    { kind: "actor", label: translate("account.welcome.chapters.world.label"), icon: UserRound },
+    { kind: "prop", label: translate("canvasTools.previs.canvasPrevisWorkbench.props"), icon: Box },
+    { kind: "light", label: translate("canvasTools.previs.canvasPrevisWorkbench.light"), icon: Lightbulb },
+    { kind: "camera", label: translate("canvasTools.previs.canvasPrevisWorkbench.cameraPosition"), icon: Camera },
 ];
 import { nanoid } from "nanoid";
 import { type PrevisShortcutAction, resolvePrevisShortcut, blocksPrevisShortcut, releasePrevisFocusAfterPointer, PREVIS_SHORTCUT_GUIDE, PREVIS_TOOL_LABELS } from "@/lib/canvas/previs/previs-shortcuts";
@@ -94,6 +92,8 @@ import { PREVIS_MODES, previsModeCapabilities } from "@/lib/canvas/previs/previs
 import { useActiveTheme } from "@/stores/canvas/use-canvas-theme-store";
 import type { CanvasNodeData } from "@/types/canvas";
 import type { PrevisCameraMove, PrevisRenderMode, PrevisScene, PrevisSceneOutput, PrevisTransform, PrevisVec3 } from "@/types/previs";
+import { translate } from "@/i18n";
+
 export { cameraMoveOptions, poseOptions, shotSizeOptions } from "./previs-inspectors";
 
 export function CanvasPrevisWorkbench({
@@ -283,7 +283,7 @@ export function CanvasPrevisWorkbench({
         next.shots = next.shots.map((shot) => ({ ...shot, fps: shot.fps || 24 }));
         // 旧数据可能有掉到地下的对象（例如误拖 gizmo 的 Y 轴）：打开时一次性拉回地面并提示。
         const grounded = groundPrevisScene(next);
-        if (grounded.fixed.length) message.info(`已将 ${grounded.fixed.slice(0, 3).join("、")}${grounded.fixed.length > 3 ? " 等" : ""} 放回地面`);
+        if (grounded.fixed.length) message.info(translate("canvasTools.previs.canvasPrevisWorkbench.placedBackOnTheGround", { v0: String(grounded.fixed.slice(0, 3).join("、")), v1: String(grounded.fixed.length > 3 ? (" " + translate("canvasTools.previs.canvasPrevisWorkbench.etc")) : "") }));
         stagedRef.current?.end("cancel");
         initializedSceneIdRef.current = scene.id;
         writeDraft(grounded.scene);
@@ -308,7 +308,7 @@ export function CanvasPrevisWorkbench({
         setSelectedLightId(null);
         setSelectedBone(null);
         setPlayhead(0);
-        message.info("Agent 已更新预演场景");
+        message.info(translate("canvasTools.previs.canvasPrevisWorkbench.agentUpdatedThePrevisScene"));
     }, [message, modal, open, scene, writeDraft]);
 
     const activeShot = draft?.shots?.find((item) => item.id === draft.activeShotId) || draft?.shots?.[0] || null;
@@ -510,7 +510,7 @@ export function CanvasPrevisWorkbench({
             try {
                 decision = resolvePrevisCloseOutcome(await saveController.prepareClose());
             } catch {
-                message.error("关闭前的保存检查失败，已留在预演台");
+                message.error(translate("canvasTools.previs.canvasPrevisWorkbench.saveCheckFailedBeforeClosingThePrevisWorkbenchRemainsOpen"));
                 closingRef.current = false;
                 return;
             }
@@ -521,10 +521,10 @@ export function CanvasPrevisWorkbench({
             }
             recordPrevisDiagnostic("PREVIS_CLOSE_BLOCKED", { sceneId: draftRef.current?.id, saveOutcome: "stay", revision: saveController.progress.revision });
             modal.confirm({
-                title: "保存未完成",
+                title: translate("canvasTools.previs.canvasPrevisWorkbench.saveIncomplete"),
                 content: decision.message,
-                okText: "放弃修改并关闭",
-                cancelText: "留在预演台",
+                okText: translate("canvasTools.previs.canvasPrevisWorkbench.discardChangesAndClose"),
+                cancelText: translate("canvasTools.previs.canvasPrevisWorkbench.stayInPrevisWorkbench"),
                 okButtonProps: { danger: true },
                 onOk: onClose,
             });
@@ -538,14 +538,14 @@ export function CanvasPrevisWorkbench({
         if (!source) return;
         const copy = structuredClone(source);
         copy.id = nanoid();
-        copy.name = `${source.name} 副本`;
+        copy.name = translate("canvasTools.previs.canvasPrevisWorkbench.copy", { v0: String(source.name) });
         copy.transform = { ...copy.transform, position: [source.transform.position[0] + 0.8, source.transform.position[1], source.transform.position[2] + 0.8] };
         copy.keyframes = copy.keyframes.map((keyframe) => ({ ...keyframe, id: nanoid() }));
         copy.boneTracks = copy.boneTracks?.map((track) => ({ ...track, keyframes: track.keyframes.map((keyframe) => ({ ...keyframe, id: nanoid() })) }));
         commit((current) => ({ ...current, objects: [...current.objects, copy] }));
         setSelectedObjectId(copy.id);
         setSelectedBone(null);
-        message.success("对象已复制");
+        message.success(translate("canvasTools.previs.canvasPrevisWorkbench.objectDuplicated"));
     };
     const updateLight = (id: string, patch: Partial<PrevisLight>) => commit((current) => ({ ...current, lights: current.lights.map((item) => (item.id === id ? { ...item, ...patch } : item)) }));
     const updateShot = (id: string, patch: Partial<PrevisShot>) => commit((current) => ({ ...current, shots: current.shots.map((item) => (item.id === id ? { ...item, ...patch } : item)) }));
@@ -562,7 +562,7 @@ export function CanvasPrevisWorkbench({
     };
     const removeCamera = (id: string) => {
         if (!draft || draft.cameras.length <= 1) {
-            message.warning("至少保留一台摄影机");
+            message.warning(translate("canvasTools.previs.canvasPrevisWorkbench.atLeastOneCameraIsRequired"));
             return;
         }
         const fallback = draft.cameras.find((item) => item.id !== id);
@@ -610,16 +610,16 @@ export function CanvasPrevisWorkbench({
         if (asset) addModelAsset(asset);
         try {
             await saveRemoteUserDataNow([]);
-            message.success("3D 模型已加入场景和素材库");
+            message.success(translate("canvasTools.previs.canvasPrevisWorkbench.item3DModelAddedToTheSceneAndAssetLibrary"));
         } catch (error) {
-            message.warning(localSavedRemotePendingMessage("3D 模型已加入场景和本机素材库", error));
+            message.warning(localSavedRemotePendingMessage(translate("canvasTools.previs.canvasPrevisWorkbench.item3DModelAddedToTheSceneAndLocalAssetLibrary"), error));
         }
     };
 
     const addBillboard = async (node: CanvasNodeData) => {
         const url = node.metadata?.content || node.metadata?.storageKey;
         if (!url) {
-            message.warning("该图片节点没有内容，无法添加到场景");
+            message.warning(translate("canvasTools.previs.canvasPrevisWorkbench.thisImageNodeHasNoContentAndCannotBeAdded"));
             return;
         }
         // 如果是 storageKey，需要解析成实际URL
@@ -632,15 +632,15 @@ export function CanvasPrevisWorkbench({
                 console.warn("解析图片URL失败，使用原URL:", error);
             }
         }
-        const billboard = createPrevisBillboard(node.title || "背板", actualUrl, node.metadata?.storageKey, node.id);
+        const billboard = createPrevisBillboard(node.title || translate("canvasTools.previs.canvasPrevisWorkbench.backdrop"), actualUrl, node.metadata?.storageKey, node.id);
         addObject(billboard);
-        message.success(`已添加背板：${node.title || "图片"}`);
+        message.success(translate("canvasTools.previs.canvasPrevisWorkbench.backdropAdded", { v0: String(node.title || translate("account.feedback.image")) }));
     };
     const setPanoramaEnvironment = (node: CanvasNodeData) => {
         const url = node.metadata?.content;
         if (!url) return;
         commit((current) => ({ ...current, environment: { mode: "panorama", url, storageKey: node.metadata?.storageKey, sourceNodeId: node.id, rotationY: 0, opacity: 1, exposure: 0, useAsLighting: false, lightingIntensity: 0.2 } }));
-        message.success("已设为 360° 背景；请确认图片是 2:1 全景图");
+        message.success(translate("canvasTools.previs.canvasPrevisWorkbench.setAs360BackgroundConfirmTheImageIsA2"));
     };
     const clearPanoramaEnvironment = () => commit((current) => ({ ...current, environment: { mode: "color" } }));
 
@@ -648,9 +648,9 @@ export function CanvasPrevisWorkbench({
         if (!compiledPrompt) return;
         try {
             await navigator.clipboard.writeText(compiledPrompt);
-            message.success("已复制可直接交给视频模型的提示词");
+            message.success(translate("canvasTools.previs.canvasPrevisWorkbench.copiedAPromptReadyForTheVideoModel"));
         } catch {
-            message.warning("当前浏览器不允许自动复制，请从提示词预览中手动复制");
+            message.warning(translate("canvasTools.previs.canvasPrevisWorkbench.automaticCopyingIsBlockedByThisBrowserCopyManuallyFrom"));
         }
     };
 
@@ -663,19 +663,19 @@ export function CanvasPrevisWorkbench({
         if (result.kind === "actor" || result.kind === "prop") {
             // 逐个经过 addObject：统一走放置锚点、碰撞避让与落地规则。
             result.objects.forEach((object) => addObject(object));
-            message.success(result.objects.length > 1 ? `已加入 ${result.objects.length} 个对象` : `已加入「${result.objects[0]?.name}」`);
+            message.success(result.objects.length > 1 ? translate("canvasTools.previs.canvasPrevisWorkbench.addedObjects", { v0: String(result.objects.length) }) : translate("canvasTools.previs.canvasPrevisWorkbench.added", { v0: String(result.objects[0]?.name) }));
             return;
         }
         if (result.kind === "light") {
             commit((current) => ({ ...current, lights: [...current.lights, result.light] }));
             setSelectedLightId(result.light.id);
-            message.success(`已加入「${result.light.name}」`);
+            message.success(translate("canvasTools.previs.canvasPrevisWorkbench.added", { v0: String(result.light.name) }));
             return;
         }
         commit((current) => ({ ...current, cameras: [...current.cameras, result.camera] }));
         if (activeShot) updateShot(activeShot.id, { cameraId: result.camera.id });
         selectSceneCamera(result.camera.id);
-        message.success(`已加入「${result.camera.name}」，可直接拖动机位；点底部 CAM 查看取景`);
+        message.success(translate("canvasTools.previs.canvasPrevisWorkbench.addedDragTheCameraPositionDirectlyClickCAMAtThe", { v0: String(result.camera.name) }));
     };
     const addCounts = {
         actors: draft?.objects.filter((item) => item.kind === "actor" || item.primitive === "character").length || 0,
@@ -686,7 +686,7 @@ export function CanvasPrevisWorkbench({
 
     const addShot = () => {
         if (!activeCamera) return;
-        const shot: PrevisShot = { id: nanoid(), name: `镜头 ${(draft?.shots.length || 0) + 1}`, cameraId: activeCamera.id, duration: 5, fps: 24, shotSize: "medium", cameraMove: "static", prompt: "" };
+        const shot: PrevisShot = { id: nanoid(), name: translate("canvasTools.previs.canvasPrevisWorkbench.shot3", { v0: String((draft?.shots.length || 0) + 1) }), cameraId: activeCamera.id, duration: 5, fps: 24, shotSize: "medium", cameraMove: "static", prompt: "" };
         commit((current) => ({ ...current, shots: [...current.shots, shot], activeShotId: shot.id }));
         setPlayhead(0);
     };
@@ -892,7 +892,7 @@ export function CanvasPrevisWorkbench({
                 objects: current.objects.map((item) => {
                     if (item.id !== id) return item;
                     const existing = item.motionClips || [];
-                    const motionClips = existing.length ? existing : animations.map((clip) => ({ id: nanoid(), name: clip.name || "动作片段", sourceAnimation: clip.name, start: 0, duration: Math.max(0.1, clip.duration), playbackRate: 1, loop: true }));
+                    const motionClips = existing.length ? existing : animations.map((clip) => ({ id: nanoid(), name: clip.name || translate("canvasTools.previs.canvasPrevisWorkbench.actionClip"), sourceAnimation: clip.name, start: 0, duration: Math.max(0.1, clip.duration), playbackRate: 1, loop: true }));
                     return { ...item, rig, motionClips };
                 }),
             }));
@@ -909,7 +909,7 @@ export function CanvasPrevisWorkbench({
             ...current,
             cameras: current.cameras.map((item) => (item.id === cameraId ? { ...item, keyframes: resolvePrevisCameraMoveKeyframes(item.keyframes, item.transform, cameraMoveTransform(item.transform, move), duration) } : item)),
         }));
-        message.success("已更新运镜首尾关键帧，可在动画模式继续编辑");
+        message.success(translate("canvasTools.previs.canvasPrevisWorkbench.updatedCameraMovementStartAndEndKeyframesContinueEditingIn"));
     };
 
     const alignCameraToView = () => {
@@ -917,7 +917,7 @@ export function CanvasPrevisWorkbench({
         const transform = viewportRef.current?.readCameraTransform();
         if (!transform) return;
         commit((current) => ({ ...current, cameras: current.cameras.map((item) => (item.id === activeCamera.id ? resolvePrevisCameraAlignment(item, transform, snappedPlayhead) : item)) }));
-        message.success("摄影机已对齐当前视图");
+        message.success(translate("canvasTools.previs.canvasPrevisWorkbench.cameraAlignedToTheCurrentView"));
     };
 
     const applyToCanvas = async () => {
@@ -928,15 +928,15 @@ export function CanvasPrevisWorkbench({
         setSaving(true);
         try {
             const beauty = await viewportRef.current.capture("beauty");
-            if (!isPrevisOutputSnapshotCurrent(draftRef.current, expected)) throw new Error("输出期间场景或镜头已变化，请重试");
+            if (!isPrevisOutputSnapshotCurrent(draftRef.current, expected)) throw new Error(translate("canvasTools.previs.canvasPrevisWorkbench.theSceneOrShotChangedDuringOutputPleaseTryAgain"));
             const prompt = compilePrevisPrompt(current, activeShot);
             // 先镜像最新 scene，再做 canvas 输出；失败时 draft 保留可继续重试。
             const next = touchPrevisScene(current);
             writeAndPublish(next);
             await onApply({ scene: next, shot: activeShot, prompt, beauty });
-            message.success("预演台构图已回写画布");
+            message.success(translate("canvasTools.previs.canvasPrevisWorkbench.previsCompositionWrittenBackToCanvas"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "预演台输出失败");
+            message.error(error instanceof Error ? error.message : translate("canvasTools.previs.canvasPrevisWorkbench.previsOutputFailed"));
         } finally {
             setSaving(false);
         }
@@ -952,16 +952,16 @@ export function CanvasPrevisWorkbench({
             // 录制按镜头时间独立求值，不再借用播放头：编辑状态与时间轴位置保持不变。
             const recordedVideo = await viewportRef.current.recordVideo(activeShot.duration, activeShot.fps, "clay");
             const clayVideo = recordedVideo.type === "video/mp4" ? recordedVideo : await transcodeVideoToMp4(recordedVideo);
-            if (!isPrevisOutputSnapshotCurrent(draftRef.current, expected)) throw new Error("录制期间场景或镜头已变化，请重试");
+            if (!isPrevisOutputSnapshotCurrent(draftRef.current, expected)) throw new Error(translate("canvasTools.previs.canvasPrevisWorkbench.theSceneOrShotChangedDuringRecordingPleaseTryAgain"));
             const next = touchPrevisScene(draftRef.current || current);
             writeAndPublish(next);
             const beauty = await viewportRef.current.capture("beauty");
-            if (!isPrevisOutputSnapshotCurrent(draftRef.current, { scene: next, shotId: expected.shotId })) throw new Error("输出期间场景或镜头已变化，请重试");
+            if (!isPrevisOutputSnapshotCurrent(draftRef.current, { scene: next, shotId: expected.shotId })) throw new Error(translate("canvasTools.previs.canvasPrevisWorkbench.theSceneOrShotChangedDuringOutputPleaseTryAgain"));
             await onApply({ scene: next, shot: activeShot, prompt: compilePrevisPrompt(next, activeShot), beauty, clayVideo, clayVideoMimeType: clayVideo.type });
             setLastClayExport({ shotId: expected.shotId, at: Date.now() });
-            message.success("白膜 MP4 视频已回写画布");
+            message.success(translate("canvasTools.previs.canvasPrevisWorkbench.clayRenderMP4VideoWrittenBackToCanvas"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "白膜视频导出失败");
+            message.error(error instanceof Error ? error.message : translate("canvasTools.previs.canvasPrevisWorkbench.couldNotExportTheClayRenderVideo"));
         } finally {
             setRecording(false);
         }
@@ -992,21 +992,21 @@ export function CanvasPrevisWorkbench({
             const depth = await viewportRef.current.capture("depth", { depthNear: range.near, depthFar: range.far });
             const recordedDepth = await viewportRef.current.recordVideo(activeShot.duration, activeShot.fps, "depth", { depthNear: range.near, depthFar: range.far });
             const depthVideo = recordedDepth.type === "video/mp4" ? recordedDepth : await transcodeVideoToMp4(recordedDepth);
-            if (!isPrevisOutputSnapshotCurrent(draftRef.current, expected)) throw new Error("捕捉期间场景或镜头已变化，请重试");
+            if (!isPrevisOutputSnapshotCurrent(draftRef.current, expected)) throw new Error(translate("canvasTools.previs.canvasPrevisWorkbench.theSceneOrShotChangedDuringCapturePleaseTryAgain"));
             const beauty = await viewportRef.current.capture("beauty");
             const next = touchPrevisScene(draftRef.current || current);
             writeAndPublish(next);
             await onApply({ scene: next, shot: activeShot, prompt: compilePrevisPrompt(next, activeShot), beauty, depth, depthVideo });
-            message.success(`深度图与深度视频已回写画布（${range.near}–${range.far} 米，近白远黑）`);
+            message.success(translate("canvasTools.previs.canvasPrevisWorkbench.depthImageAndVideoWrittenBackToCanvasMetersWhite", { v0: String(range.near), v1: String(range.far) }));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "深度捕捉失败");
+            message.error(error instanceof Error ? error.message : translate("canvasTools.previs.canvasPrevisWorkbench.depthCaptureFailed"));
         } finally {
             setDepthExporting(false);
         }
     };
 
-    const renderModeFileLabel = () => PREVIS_RENDER_MODE_LABELS.find((item) => item.value === renderMode)?.label || "预览";
-    const outputFileName = (suffix: string, extension: string) => `${(draftRef.current?.title || "预演").replace(/[\\/:*?"<>|]/g, "_")}-${activeShot?.name || "镜头"}-${suffix}.${extension}`;
+    const renderModeFileLabel = () => PREVIS_RENDER_MODE_LABELS.find((item) => item.value === renderMode)?.label || translate("account.feedback.preview");
+    const outputFileName = (suffix: string, extension: string) => `${(draftRef.current?.title || translate("canvasTools.previs.canvasPrevisWorkbench.previs")).replace(/[\\/:*?"<>|]/g, "_")}-${activeShot?.name || translate("canvasTools.previs.canvasPrevisWorkbench.shot2")}-${suffix}.${extension}`;
 
     /** 内置截图：当前渲染模式、镜头摄影机、镜头画幅，直接下载。 */
     async function downloadShotScreenshot() {
@@ -1015,9 +1015,9 @@ export function CanvasPrevisWorkbench({
             const range = renderMode === "depth" ? resolveShotDepthRange() : null;
             const blob = await viewportRef.current.capture(renderMode, { depthNear: range?.near, depthFar: range?.far });
             saveAs(blob, outputFileName(`${renderModeFileLabel()}-${formatPrevisTimecode(playhead, activeShot.fps).replaceAll(":", "")}`, "png"));
-            message.success("已保存当前镜头截图");
+            message.success(translate("canvasTools.previs.canvasPrevisWorkbench.currentShotScreenshotSaved"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "截图失败");
+            message.error(error instanceof Error ? error.message : translate("canvasTools.previs.canvasPrevisWorkbench.screenshotFailed"));
         }
     }
 
@@ -1030,10 +1030,10 @@ export function CanvasPrevisWorkbench({
         try {
             const range = renderMode === "depth" ? resolveShotDepthRange() : null;
             const blob = await viewportRef.current.recordVideo(activeShot.duration, activeShot.fps, renderMode, { depthNear: range?.near, depthFar: range?.far, signal: controller.signal });
-            saveAs(blob, outputFileName(`${renderModeFileLabel()}-录制`, blob.type.includes("mp4") ? "mp4" : "webm"));
-            message.success("镜头录制已保存");
+            saveAs(blob, outputFileName(translate("canvasTools.previs.canvasPrevisWorkbench.recording", { v0: String(renderModeFileLabel()) }), blob.type.includes("mp4") ? "mp4" : "webm"));
+            message.success(translate("canvasTools.previs.canvasPrevisWorkbench.shotRecordingSaved"));
         } catch (error) {
-            if (!controller.signal.aborted) message.error(error instanceof Error ? error.message : "录制失败");
+            if (!controller.signal.aborted) message.error(error instanceof Error ? error.message : translate("canvasTools.previs.canvasPrevisWorkbench.recordingFailed"));
         } finally {
             recordAbortRef.current = null;
             setScreenRecording(null);
@@ -1044,7 +1044,7 @@ export function CanvasPrevisWorkbench({
     const recordWindowToFile = async () => {
         if (screenRecording || recordAbortRef.current) return;
         if (!navigator.mediaDevices?.getDisplayMedia || typeof MediaRecorder === "undefined") {
-            message.error("当前浏览器不支持窗口录屏，请使用 Chrome 或 Edge");
+            message.error(translate("canvasTools.previs.canvasPrevisWorkbench.thisBrowserDoesNotSupportWindowRecordingUseChromeOr"));
             return;
         }
         const controller = new AbortController();
@@ -1069,7 +1069,7 @@ export function CanvasPrevisWorkbench({
                 return;
             }
             const mimeType = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/mp4", "video/webm"].find((type) => MediaRecorder.isTypeSupported(type));
-            if (!mimeType) throw new Error("当前浏览器没有可用的视频编码器");
+            if (!mimeType) throw new Error(translate("canvasTools.previs.canvasPrevisWorkbench.noVideoEncoderIsAvailableInThisBrowser"));
             const activeRecorder = (recorder = new MediaRecorder(stream, { mimeType }));
             const chunks: Blob[] = [];
             const stop = () => {
@@ -1079,7 +1079,7 @@ export function CanvasPrevisWorkbench({
                 if (event.data.size) chunks.push(event.data);
             };
             activeRecorder.onerror = () => {
-                failure = "窗口录屏编码失败";
+                failure = translate("canvasTools.previs.canvasPrevisWorkbench.windowRecordingEncodingFailed");
                 stop();
             };
             activeRecorder.onstop = () => {
@@ -1087,8 +1087,8 @@ export function CanvasPrevisWorkbench({
                 finish();
                 if (controller.signal.aborted) return;
                 const blob = new Blob(chunks, { type: activeRecorder.mimeType });
-                if (failure || !blob.size) message.error(failure || "录屏没有产生视频数据");
-                else saveAs(blob, outputFileName("窗口录屏", blob.type.includes("mp4") ? "mp4" : "webm"));
+                if (failure || !blob.size) message.error(failure || translate("canvasTools.previs.canvasPrevisWorkbench.screenRecordingProducedNoVideoData"));
+                else saveAs(blob, outputFileName(translate("canvasTools.previs.canvasPrevisWorkbench.windowRecording"), blob.type.includes("mp4") ? "mp4" : "webm"));
             };
             // 浏览器共享条停止与产品停止按钮共用收尾；取消或卸载不触发迟到下载。
             stream.getVideoTracks()[0]?.addEventListener("ended", stop, { once: true });
@@ -1099,7 +1099,7 @@ export function CanvasPrevisWorkbench({
             if (recorder && recorder.state !== "inactive") recorder.stop();
             finish();
             if (!controller.signal.aborted && !(error instanceof DOMException && ["NotAllowedError", "AbortError"].includes(error.name))) {
-                message.error(error instanceof Error ? error.message : "窗口录屏失败");
+                message.error(error instanceof Error ? error.message : translate("canvasTools.previs.canvasPrevisWorkbench.windowRecordingFailed"));
             }
         }
     };
@@ -1135,10 +1135,10 @@ export function CanvasPrevisWorkbench({
                 },
             });
             setMonitorOpen(true);
-            message.info("监看窗口已打开：拖到第二屏幕后按 F 全屏");
+            message.info(translate("canvasTools.previs.canvasPrevisWorkbench.monitorWindowOpenedMoveItToTheSecondScreenAnd"));
         } catch (error) {
             surface?.dispose();
-            message.error(error instanceof Error ? error.message : "无法打开监看窗口");
+            message.error(error instanceof Error ? error.message : translate("canvasTools.previs.canvasPrevisWorkbench.unableToOpenMonitorWindow"));
         }
     };
 
@@ -1169,7 +1169,7 @@ export function CanvasPrevisWorkbench({
     const handleGroundClick = useCallback(
         (point: PrevisGroundPoint) => {
             if (!selectedActor || !selectedObjectId) {
-                message.info("先在左侧列表选中一个演员，再点击地面落位");
+                message.info(translate("canvasTools.previs.canvasPrevisWorkbench.selectAnActorInTheLeftListThenClickThe"));
                 return;
             }
             setSelectedObjectId(selectedActor.id);
@@ -1177,7 +1177,7 @@ export function CanvasPrevisWorkbench({
                 ...selectedActor.transform,
                 position: [point.x, selectedActor.transform.position[1], point.z],
             });
-            message.success("演员已落位");
+            message.success(translate("canvasTools.previs.canvasPrevisWorkbench.actorPlaced"));
         },
         [handleObjectTransform, message, selectedActor],
     );
@@ -1190,7 +1190,7 @@ export function CanvasPrevisWorkbench({
             trajectorySessionRef.current = true;
             trajectoryPreviousViewModeRef.current = viewMode;
             if (viewMode !== "top") setViewMode("top");
-            message.info(trajectoryTarget ? `${trajectoryTarget.kind === "camera" ? "为摄影机绘制运镜路径" : "为角色绘制走位"}：按住地面拖动，松开完成，重新点击可取消` : "已进入画轨迹模式：请先在左侧选择演员或摄影机，再按住地面拖动");
+            message.info(trajectoryTarget ? translate("canvasTools.previs.canvasPrevisWorkbench.dragOnTheGroundAndReleaseToFinishClickAgain", { v0: String(trajectoryTarget.kind === "camera" ? translate("canvasTools.previs.canvasPrevisWorkbench.drawAMovementPathForTheCamera") : translate("canvasTools.previs.canvasPrevisWorkbench.drawABlockingPathForTheCharacter")) }) : translate("canvasTools.previs.canvasPrevisWorkbench.pathDrawingModeEnabledSelectAnActorOrCameraOn"));
             return;
         }
         if (!trajectoryDrawing && trajectorySessionRef.current) {
@@ -1204,7 +1204,7 @@ export function CanvasPrevisWorkbench({
             const shot = current?.shots.find((item) => item.id === current.activeShotId) || current?.shots[0];
             if (!current || !shot || points.length < 2) {
                 setTrajectoryDrawing(false);
-                if (points.length >= 2 && !trajectoryTarget) message.info("轨迹已绘制，但还没有选中的演员或摄影机；请先选择目标再重试");
+                if (points.length >= 2 && !trajectoryTarget) message.info(translate("canvasTools.previs.canvasPrevisWorkbench.pathDrawnButNoActorOrCameraIsSelectedSelect"));
                 return;
             }
             // 走位从当前播放头开始，按步行速度（1.4m/s）求时长：路线短就走得短，不再把任意长度的线
@@ -1236,7 +1236,7 @@ export function CanvasPrevisWorkbench({
             setSequencerVisible(true);
             setPlayhead(start);
             setPlaying(true);
-            message.success(`${selectedActor ? "走位" : "运镜路径"}已生成：${start.toFixed(1)}s 起，${duration.toFixed(1)}s 走完，正在播放预览`);
+            message.success(translate("canvasTools.previs.canvasPrevisWorkbench.generatedStartsAtSAndFinishesInSPlayingPreview", { v0: String(selectedActor ? translate("canvasTools.previs.canvasPrevisWorkbench.blocking") : translate("canvasTools.previs.canvasPrevisWorkbench.cameraPath")), v1: String(start.toFixed(1)), v2: String(duration.toFixed(1)) }));
         },
         [capabilities.timeline, commit, message, selectedActor, selectedCamera, setMode, setPlayhead, setPlaying, setSequencerVisible, snappedPlayhead, trajectoryTarget],
     );
@@ -1318,31 +1318,31 @@ export function CanvasPrevisWorkbench({
     return (
         <div data-canvas-previs-workbench data-canvas-no-zoom className="previs-desk fixed inset-0 z-[var(--z-toast)] flex min-h-0 min-w-0 flex-col overflow-hidden" style={workbenchThemeStyle}>
             <header className="previs-desk-header thin-scrollbar overflow-x-auto overflow-y-hidden">
-                <button type="button" className="previs-desk-icon-button" aria-label="关闭预演台" title="关闭预演台" onClick={closeWorkbench}>
+                <button type="button" className="previs-desk-icon-button" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.closePrevisWorkbench")} title={translate("canvasTools.previs.canvasPrevisWorkbench.closePrevisWorkbench")} onClick={closeWorkbench}>
                     <X className="size-4" />
                 </button>
                 <div className="previs-desk-brand">
                     <span className="previs-desk-logo" title={brandName}>
                         {brandName}
                     </span>
-                    <span className="previs-desk-brand-title">预演台</span>
-                    <span className="previs-desk-brand-sub">AI 短剧预演</span>
+                    <span className="previs-desk-brand-title">{translate("canvasTools.previs.canvasPrevisWorkbench.previsWorkbench")}</span>
+                    <span className="previs-desk-brand-sub">{translate("canvasTools.previs.canvasPrevisWorkbench.aIDramaPrevis")}</span>
                 </div>
                 <span className="previs-desk-divider" />
-                <input className="previs-desk-scene-title" aria-label="场景标题" value={draft.title} onChange={(event) => replaceWithoutHistory((current) => ({ ...current, title: event.target.value }))} />
+                <input className="previs-desk-scene-title" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.sceneTitle")} value={draft.title} onChange={(event) => replaceWithoutHistory((current) => ({ ...current, title: event.target.value }))} />
                 <div className="previs-desk-history">
-                    <button type="button" aria-label="撤销" title="撤销 Ctrl+Z" disabled={!history.length} onClick={undo}>
+                    <button type="button" aria-label={translate("account.settings.memory.actors.restore")} title={translate("canvasTools.previs.canvasPrevisWorkbench.undoCtrlZ")} disabled={!history.length} onClick={undo}>
                         <Undo2 className="size-4" />
                     </button>
-                    <button type="button" aria-label="重做" title="重做 Ctrl+Shift+Z" disabled={!future.length} onClick={redo}>
+                    <button type="button" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.redo")} title={translate("canvasTools.previs.canvasPrevisWorkbench.redoCtrlShiftZ")} disabled={!future.length} onClick={redo}>
                         <Redo2 className="size-4" />
                     </button>
                 </div>
-                <div className="previs-desk-context-summary" aria-label="当前工作上下文">
+                <div className="previs-desk-context-summary" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.currentWorkContext")}>
                     <span className="previs-desk-context-dot" />
-                    <span>{selectedActor ? `角色 · ${selectedActor.name}` : selectedLight ? `灯光 · ${selectedLight.name}` : selectedCameraId ? `机位 · ${selectedCamera?.name || activeCamera?.name || "摄影机"}` : `镜头 · ${activeShot.name}`}</span>
+                    <span>{selectedActor ? translate("canvasTools.previs.canvasPrevisWorkbench.character", { v0: String(selectedActor.name) }) : selectedLight ? translate("canvasTools.previs.canvasPrevisWorkbench.light2", { v0: String(selectedLight.name) }) : selectedCameraId ? translate("canvasTools.previs.canvasPrevisWorkbench.camera", { v0: String(selectedCamera?.name || activeCamera?.name || translate("canvasTools.previs.canvasPrevisWorkbench.camera2")) }) : translate("canvasTools.previs.canvasPrevisWorkbench.shot", { v0: String(activeShot.name) })}</span>
                 </div>
-                <nav className="previs-mode-switch" aria-label="预演台模式">
+                <nav className="previs-mode-switch" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.previsWorkbenchMode")}>
                     {PREVIS_MODES.map((item) => (
                         <button
                             key={item.mode}
@@ -1367,23 +1367,23 @@ export function CanvasPrevisWorkbench({
                 {saveController.progress.status === "error" ? (
                     <button type="button" className="previs-desk-header-action" onClick={() => void saveController.retrySave()}>
                         <Save className="size-3.5" />
-                        重试保存
+                        {translate("library.tasks.row.retrySave")}
                     </button>
                 ) : null}
                 {onboardingScope ? (
-                    <button type="button" className="previs-desk-icon-button" aria-label="重新开始引导" title="重新开始引导" onClick={() => setOnboardingRestartSignal((value) => value + 1)}>
+                    <button type="button" className="previs-desk-icon-button" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.restartGuide")} title={translate("canvasTools.previs.canvasPrevisWorkbench.restartGuide")} onClick={() => setOnboardingRestartSignal((value) => value + 1)}>
                         <Lightbulb className="size-4" />
                     </button>
                 ) : null}
-                <Select className="previs-desk-header-select" aria-label="预览模式" value={renderMode} options={renderModeOptions} onChange={(value: PrevisRenderMode) => setRenderMode(value)} size="small" />
-                <button type="button" className="previs-desk-header-action" title="截图：当前渲染模式 · 镜头摄影机 (P)" onClick={() => void downloadShotScreenshot()}>
+                <Select className="previs-desk-header-select" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.previewMode")} value={renderMode} options={renderModeOptions} onChange={(value: PrevisRenderMode) => setRenderMode(value)} size="small" />
+                <button type="button" className="previs-desk-header-action" title={translate("canvasTools.previs.canvasPrevisWorkbench.screenshotCurrentRenderModeShotCameraP")} onClick={() => void downloadShotScreenshot()}>
                     <Aperture className="size-3.5" />
-                    截图
+                    {translate("canvasTools.previs.canvasPrevisWorkbench.screenshot")}
                 </button>
                 {screenRecording ? (
                     <button type="button" className="previs-desk-header-action is-recording" aria-pressed onClick={stopScreenRecording}>
                         <RecordDot className="size-3.5" />
-                        停止录制
+                        {translate("canvasTools.previs.canvasPrevisWorkbench.stopRecording")}
                     </button>
                 ) : (
                     <Dropdown
@@ -1392,32 +1392,32 @@ export function CanvasPrevisWorkbench({
                         classNames={{ root: "previs-add-menu-overlay" }}
                         menu={{
                             items: [
-                                { key: "shot", label: "录制镜头画面（镜头摄影机，按镜头时长）", onClick: () => void recordShotToFile() },
-                                { key: "window", label: "录制预演台窗口（含面板与操作过程）", onClick: () => void recordWindowToFile() },
+                                { key: "shot", label: translate("canvasTools.previs.canvasPrevisWorkbench.recordShotViewShotCameraForTheShotDuration"), onClick: () => void recordShotToFile() },
+                                { key: "window", label: translate("canvasTools.previs.canvasPrevisWorkbench.recordPrevisWorkbenchWindowIncludingPanelsAndActions"), onClick: () => void recordWindowToFile() },
                             ],
                         }}
                     >
-                        <button type="button" className="previs-desk-header-action" title="录制镜头画面或预演台窗口">
+                        <button type="button" className="previs-desk-header-action" title={translate("canvasTools.previs.canvasPrevisWorkbench.recordShotViewOrPrevisWorkbenchWindow")}>
                             <RecordDot className="size-3.5" />
-                            录屏
+                            {translate("canvasTools.previs.canvasPrevisWorkbench.recordScreen")}
                         </button>
                     </Dropdown>
                 )}
-                <button type="button" className={`previs-desk-header-action ${monitorOpen ? "is-active" : ""}`} aria-pressed={monitorOpen} title={monitorOpen ? "关闭第二屏监看" : "投放到第二屏幕：独立窗口显示镜头画面"} onClick={toggleMonitor}>
+                <button type="button" className={`previs-desk-header-action ${monitorOpen ? "is-active" : ""}`} aria-pressed={monitorOpen} title={monitorOpen ? translate("canvasTools.previs.canvasPrevisWorkbench.closeSecondScreenMonitor") : translate("canvasTools.previs.canvasPrevisWorkbench.sendToSecondScreenShowShotViewInASeparate")} onClick={toggleMonitor}>
                     <MonitorUp className="size-3.5" />
-                    {monitorOpen ? "关闭监看" : "第二屏"}
+                    {monitorOpen ? translate("canvasTools.previs.canvasPrevisWorkbench.closeMonitor") : translate("canvasTools.previs.canvasPrevisWorkbench.secondScreen")}
                 </button>
                 <button type="button" className="previs-desk-header-action" onClick={() => void exportClayVideo()} disabled={recording || depthExporting}>
                     <Video className="size-3.5" />
-                    生成白膜
+                    {translate("canvasTools.previs.canvasPrevisWorkbench.generateClayRender")}
                 </button>
-                <button type="button" className="previs-desk-header-action" onClick={() => void exportDepthPass()} disabled={recording || depthExporting} title="捕捉深度图与深度视频（近白远黑，镜头摄影机）">
+                <button type="button" className="previs-desk-header-action" onClick={() => void exportDepthPass()} disabled={recording || depthExporting} title={translate("canvasTools.previs.canvasPrevisWorkbench.captureDepthImageAndVideoWhiteNearBlackFarShot")}>
                     <Layers className="size-3.5" />
-                    {depthExporting ? "捕捉中…" : "深度捕捉"}
+                    {depthExporting ? translate("canvasTools.previs.canvasPrevisWorkbench.capturing") : translate("canvasTools.previs.canvasPrevisWorkbench.depthCapture")}
                 </button>
                 <button type="button" className="previs-desk-header-action is-primary" onClick={() => void applyToCanvas()} disabled={saving}>
                     <Save className="size-3.5" />
-                    回写构图
+                    {translate("canvasTools.previs.canvasPrevisWorkbench.writeBackComposition")}
                 </button>
             </header>
 
@@ -1426,28 +1426,28 @@ export function CanvasPrevisWorkbench({
                 <aside className={`pv-panel pv-panel--left thin-scrollbar ${scenePanelOpen ? "is-open" : ""}`}>
                     <div className="pv-panel-header">
                         <div className="pv-panel-header__title">
-                            <span className="pv-panel-header__label">场景</span>
+                            <span className="pv-panel-header__label">{translate("canvasTools.previs.canvasPrevisWorkbench.scene")}</span>
                             <span className="pv-panel-header__count">{draft.objects.length + draft.cameras.length}</span>
                         </div>
                         <div className="pv-panel-header__actions">
-                            <button type="button" className="pv-icon-btn" aria-label="添加到场景" title="添加角色、道具、灯光或机位" onClick={() => openAddDialog("actor")}>
+                            <button type="button" className="pv-icon-btn" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.addToScene")} title={translate("canvasTools.previs.canvasPrevisWorkbench.addCharactersPropsLightsOrCameras")} onClick={() => openAddDialog("actor")}>
                                 <Plus className="size-4" />
                             </button>
-                            <button type="button" className="pv-icon-btn pv-panel-close" aria-label="关闭场景面板" title="关闭场景面板" onClick={() => setScenePanelOpen(false)}>
+                            <button type="button" className="pv-icon-btn pv-panel-close" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.closeScenePanel")} title={translate("canvasTools.previs.canvasPrevisWorkbench.closeScenePanel")} onClick={() => setScenePanelOpen(false)}>
                                 <X className="size-3.5" />
                             </button>
                         </div>
                     </div>
                     <label className="pv-scene-search">
                         <Search className="size-3.5" />
-                        <input aria-label="搜索场景对象" value={sceneQuery} onChange={(event) => setSceneQuery(event.target.value)} placeholder="搜索对象、机位、灯光…" />
+                        <input aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.searchSceneObjects")} value={sceneQuery} onChange={(event) => setSceneQuery(event.target.value)} placeholder={translate("canvasTools.previs.canvasPrevisWorkbench.searchObjectsCamerasLights")} />
                         {sceneQuery ? (
-                            <button type="button" aria-label="清除搜索" onClick={() => setSceneQuery("")}>
+                            <button type="button" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.clearSearch")} onClick={() => setSceneQuery("")}>
                                 <X className="size-3" />
                             </button>
                         ) : null}
                     </label>
-                    <div className="pv-add-row" role="group" aria-label="添加到场景">
+                    <div className="pv-add-row" role="group" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.addToScene")}>
                         {PREVIS_ADD_BUTTONS.map((item) => (
                             <button key={item.kind} type="button" className="pv-add-row__btn" onClick={() => openAddDialog(item.kind)}>
                                 <item.icon className="size-3.5" />
@@ -1459,7 +1459,7 @@ export function CanvasPrevisWorkbench({
                     {visibleSceneActors.length > 0 ? (
                         <section className="pv-entity-section">
                             <div className="pv-entity-section__label">
-                                角色{" "}
+                                {translate("account.welcome.chapters.world.label")}{" "}
                                 <span>
                                     {visibleSceneActors.length}
                                     {visibleSceneActors.length !== sceneActors.length ? `/${sceneActors.length}` : ""}
@@ -1477,11 +1477,11 @@ export function CanvasPrevisWorkbench({
                                             <span className="pv-entity-row__info">
                                                 <span className="pv-entity-row__name">{actor.name}</span>
                                                 <span className="pv-entity-row__meta">
-                                                    {previsActorArchetypeLabel(actor.archetype)} · {actor.pose ? previsPoseLabel(actor.pose) : "站立"}
+                                                    {displayPrevisActorArchetypeLabel(actor.archetype)} · {displayPrevisPoseLabel(actor.pose || "stand")}
                                                 </span>
                                             </span>
                                         </button>
-                                        <button type="button" className="pv-entity-row__del" aria-label={`删除 ${actor.name}`} onClick={() => removeObject(actor.id)}>
+                                        <button type="button" className="pv-entity-row__del" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.delete", { v0: String(actor.name) })} onClick={() => removeObject(actor.id)}>
                                             <X className="size-3" />
                                         </button>
                                     </div>
@@ -1491,9 +1491,9 @@ export function CanvasPrevisWorkbench({
                     ) : (
                         <div className="pv-empty-hint">
                             <UserRound className="size-5 opacity-30" />
-                            <span>还没有角色</span>
+                            <span>{translate("canvasTools.previs.canvasPrevisWorkbench.noCharactersYet")}</span>
                             <button type="button" className="pv-btn pv-btn--accent pv-btn--sm" onClick={() => openAddDialog("actor")}>
-                                添加角色
+                                {translate("canvasTools.previs.canvasPrevisWorkbench.addCharacter")}
                             </button>
                         </div>
                     )}
@@ -1501,7 +1501,7 @@ export function CanvasPrevisWorkbench({
                     <section className="pv-entity-section">
                         <div className="pv-entity-section__label">
                             <span>
-                                机位{" "}
+                                {translate("canvasTools.previs.canvasPrevisWorkbench.cameraPosition")}{" "}
                                 <span className="pv-entity-section__count">
                                     {visibleCameras.length}
                                     {visibleCameras.length !== draft.cameras.length ? `/${draft.cameras.length}` : ""}
@@ -1523,10 +1523,10 @@ export function CanvasPrevisWorkbench({
                                                 {camera.focalLength}mm · f/{camera.aperture}
                                             </span>
                                         </span>
-                                        {isViewed ? <span className="pv-entity-row__badge">{isActiveShotCamera ? "当前" : "查看"}</span> : null}
+                                        {isViewed ? <span className="pv-entity-row__badge">{isActiveShotCamera ? translate("canvasB.mediaVersion.current") : translate("canvasTools.previs.canvasPrevisWorkbench.view")}</span> : null}
                                     </button>
                                     {draft.cameras.length > 1 ? (
-                                        <button type="button" className="pv-entity-row__del" aria-label={`删除 ${camera.name}`} onClick={() => removeCamera(camera.id)}>
+                                        <button type="button" className="pv-entity-row__del" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.delete", { v0: String(camera.name) })} onClick={() => removeCamera(camera.id)}>
                                             <X className="size-3" />
                                         </button>
                                     ) : null}
@@ -1538,7 +1538,7 @@ export function CanvasPrevisWorkbench({
                     {visibleSceneProps.length > 0 ? (
                         <section className="pv-entity-section">
                             <div className="pv-entity-section__label">
-                                道具{" "}
+                                {translate("canvasTools.previs.canvasPrevisWorkbench.props")}{" "}
                                 <span>
                                     {visibleSceneProps.length}
                                     {visibleSceneProps.length !== sceneProps.length ? `/${sceneProps.length}` : ""}
@@ -1551,12 +1551,12 @@ export function CanvasPrevisWorkbench({
                                         <span className="pv-entity-row__info">
                                             <span className="pv-entity-row__name">{obj.name}</span>
                                             <span className="pv-entity-row__meta">
-                                                {obj.kind === "billboard" ? "背板" : obj.kind === "model" ? "模型" : obj.primitive === "plane" ? "平面" : obj.primitive === "sphere" ? "球体" : obj.primitive === "cylinder" ? "圆柱" : "几何体"} ·{" "}
+                                                {obj.kind === "billboard" ? translate("canvasTools.previs.canvasPrevisWorkbench.backdrop") : obj.kind === "model" ? translate("canvasA.assetView.model") : obj.primitive === "plane" ? translate("canvasTools.previs.canvasPrevisWorkbench.plane") : obj.primitive === "sphere" ? translate("canvasTools.previs.canvasPrevisWorkbench.sphere") : obj.primitive === "cylinder" ? translate("canvasTools.previs.canvasPrevisWorkbench.cylinder") : translate("canvasTools.previs.canvasPrevisWorkbench.geometry")} ·{" "}
                                                 {obj.transform.scale.map((v) => v.toFixed(1)).join("×")}m
                                             </span>
                                         </span>
                                     </button>
-                                    <button type="button" className="pv-entity-row__del" aria-label={`删除 ${obj.name}`} onClick={() => removeObject(obj.id)}>
+                                    <button type="button" className="pv-entity-row__del" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.delete", { v0: String(obj.name) })} onClick={() => removeObject(obj.id)}>
                                         <X className="size-3" />
                                     </button>
                                 </div>
@@ -1566,7 +1566,7 @@ export function CanvasPrevisWorkbench({
 
                     {imageNodes.length > 0 ? (
                         <section className="pv-entity-section">
-                            <div className="pv-entity-section__label">背景图片</div>
+                            <div className="pv-entity-section__label">{translate("canvasTools.previs.canvasPrevisWorkbench.backgroundImage")}</div>
                             <div className="pv-bg-list">
                                 {imageNodes.slice(0, 4).map((node) => {
                                     const linked = draft.objects.find((o) => o.sourceNodeId === node.id);
@@ -1579,22 +1579,22 @@ export function CanvasPrevisWorkbench({
                                                 onMouseDown={stopPrevisEntityPointer}
                                                 onPointerDown={stopPrevisEntityPointer}
                                                 onClick={() => (linked ? selectSceneObject(linked.id) : void addBillboard(node))}
-                                                title={node.title || "画布图片"}
+                                                title={node.title || translate("canvasTools.previs.canvasPrevisWorkbench.canvasImage")}
                                             >
                                                 {node.metadata?.content ? <img src={node.metadata.content} alt="" className="pv-bg-row__img" /> : <ImageIcon className="size-3.5 opacity-50" />}
-                                                <span className="pv-bg-row__name">{node.title || "图片"}</span>
+                                                <span className="pv-bg-row__name">{node.title || translate("account.feedback.image")}</span>
                                             </button>
                                             <div className="pv-bg-row__btns">
-                                                <button type="button" className={`pv-bg-btn ${isPanorama ? "pv-bg-btn--active" : ""}`} title="设为360°背景" onClick={() => setPanoramaEnvironment(node)}>
+                                                <button type="button" className={`pv-bg-btn ${isPanorama ? "pv-bg-btn--active" : ""}`} title={translate("canvasTools.previs.canvasPrevisWorkbench.setAs360Background")} onClick={() => setPanoramaEnvironment(node)}>
                                                     360°
                                                 </button>
                                                 {linked ? (
-                                                    <button type="button" className="pv-bg-btn pv-bg-btn--danger" title="移除" onClick={() => removeObject(linked.id)}>
+                                                    <button type="button" className="pv-bg-btn pv-bg-btn--danger" title={translate("canvasB.common.remove")} onClick={() => removeObject(linked.id)}>
                                                         <X className="size-3" />
                                                     </button>
                                                 ) : (
-                                                    <button type="button" className="pv-bg-btn" title="加入场景" onClick={() => void addBillboard(node)}>
-                                                        加入
+                                                    <button type="button" className="pv-bg-btn" title={translate("canvasTools.previs.canvasPrevisWorkbench.addToScene2")} onClick={() => void addBillboard(node)}>
+                                                        {translate("canvasA.skillLibrary.add")}
                                                     </button>
                                                 )}
                                             </div>
@@ -1604,9 +1604,9 @@ export function CanvasPrevisWorkbench({
                             </div>
                             {draft.environment?.mode === "panorama" ? (
                                 <div className="pv-panorama-badge">
-                                    <span>360° 全景已启用</span>
+                                    <span>{translate("canvasTools.previs.canvasPrevisWorkbench.item360PanoramaEnabled")}</span>
                                     <button type="button" onClick={clearPanoramaEnvironment}>
-                                        移除
+                                        {translate("canvasB.common.remove")}
                                     </button>
                                 </div>
                             ) : null}
@@ -1616,7 +1616,7 @@ export function CanvasPrevisWorkbench({
                     {visibleLights.length > 0 ? (
                         <section className="pv-entity-section">
                             <div className="pv-entity-section__label">
-                                灯光{" "}
+                                {translate("canvasTools.previs.canvasPrevisWorkbench.light")}{" "}
                                 <span>
                                     {visibleLights.length}
                                     {visibleLights.length !== draft.lights.length ? `/${draft.lights.length}` : ""}
@@ -1639,11 +1639,11 @@ export function CanvasPrevisWorkbench({
                                         <span className="pv-entity-row__info">
                                             <span className="pv-entity-row__name">{light.name}</span>
                                             <span className="pv-entity-row__meta">
-                                                {light.type === "directional" ? "平行光" : light.type === "point" ? "点光源" : light.type === "spot" ? "聚光" : "环境"} × {light.intensity.toFixed(1)}
+                                                {light.type === "directional" ? translate("canvasTools.previs.canvasPrevisWorkbench.directionalLight") : light.type === "point" ? translate("canvasTools.previs.canvasPrevisWorkbench.pointLight") : light.type === "spot" ? translate("canvasTools.previs.canvasPrevisWorkbench.spotlight") : translate("canvasTools.previs.canvasPrevisWorkbench.environment")} × {light.intensity.toFixed(1)}
                                             </span>
                                         </span>
                                     </button>
-                                    <button type="button" className="pv-entity-row__del" aria-label={`删除 ${light.name}`} onClick={() => removeLight(light.id)}>
+                                    <button type="button" className="pv-entity-row__del" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.delete", { v0: String(light.name) })} onClick={() => removeLight(light.id)}>
                                         <X className="size-3" />
                                     </button>
                                 </div>
@@ -1696,14 +1696,14 @@ export function CanvasPrevisWorkbench({
                             {trajectoryTarget ? (
                                 <>
                                     <span>
-                                        正在为「{trajectoryTarget.name}」绘制{trajectoryTarget.kind === "camera" ? "运镜路径" : "走位"}
+                                        {translate("canvasTools.inline.canvasPrevisWorkbench.drawingFor", { v0: String(trajectoryTarget.name), v1: String(trajectoryTarget.kind === "camera" ? translate("canvasTools.previs.canvasPrevisWorkbench.cameraPath") : translate("canvasTools.previs.canvasPrevisWorkbench.blocking")) })}
                                     </span>
-                                    <small>按住地面拖动，松开完成 · 再点按钮取消</small>
+                                    <small>{translate("canvasTools.previs.canvasPrevisWorkbench.dragOnTheGroundAndReleaseToFinishClickThe")}</small>
                                 </>
                             ) : (
                                 <>
-                                    <span>请先选择演员或摄影机</span>
-                                    <small>左侧列表选择目标后，再按住地面拖动绘制轨迹</small>
+                                    <span>{translate("canvasTools.previs.canvasPrevisWorkbench.selectAnActorOrCameraFirst")}</span>
+                                    <small>{translate("canvasTools.previs.canvasPrevisWorkbench.selectATargetInTheLeftListThenDragOn")}</small>
                                 </>
                             )}
                         </div>
@@ -1744,10 +1744,10 @@ export function CanvasPrevisWorkbench({
                         onToggleShortcutHelp={() => setShortcutHelpOpen((value) => !value)}
                     />
                     {shortcutHelpOpen ? (
-                        <div className="pv-shortcut-panel" role="dialog" aria-label="预演台快捷键" data-canvas-no-zoom>
+                        <div className="pv-shortcut-panel" role="dialog" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.previsWorkbenchShortcuts")} data-canvas-no-zoom>
                             <div className="pv-shortcut-panel__head">
-                                <span>快捷键</span>
-                                <button type="button" className="pv-icon-btn" aria-label="关闭快捷键说明" onClick={() => setShortcutHelpOpen(false)}>
+                                <span>{translate("canvasTools.previs.canvasPrevisWorkbench.shortcuts")}</span>
+                                <button type="button" className="pv-icon-btn" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.closeKeyboardShortcuts")} onClick={() => setShortcutHelpOpen(false)}>
                                     <X className="size-3.5" />
                                 </button>
                             </div>
@@ -1774,23 +1774,23 @@ export function CanvasPrevisWorkbench({
                 <aside className={`pv-panel pv-panel--right thin-scrollbar ${inspectorOpen ? "is-open" : ""}`}>
                     <div className="pv-panel-header">
                         <div className="pv-panel-header__title">
-                            <span className="pv-panel-header__sub">{selectedObject ? (selectedObject.kind === "actor" || selectedObject.primitive === "character" ? "角色" : "道具") : selectedLight ? "灯光" : "镜头"}</span>
+                            <span className="pv-panel-header__sub">{selectedObject ? (selectedObject.kind === "actor" || selectedObject.primitive === "character" ? translate("account.welcome.chapters.world.label") : translate("canvasTools.previs.canvasPrevisWorkbench.props")) : selectedLight ? translate("canvasTools.previs.canvasPrevisWorkbench.light") : translate("canvasTools.previs.canvasPrevisWorkbench.shot2")}</span>
                         </div>
                         <div className="pv-panel-header__actions">
                             {selectedObject || selectedLight ? (
                                 <button
                                     type="button"
                                     className="pv-inspector-back"
-                                    title="取消选择，回到镜头设置"
+                                    title={translate("canvasTools.previs.canvasPrevisWorkbench.deselectAndReturnToShotSettings")}
                                     onClick={() => {
                                         setSelectedObjectId(null);
                                         setSelectedLightId(null);
                                     }}
                                 >
-                                    返回镜头
+                                    {translate("canvasTools.previs.canvasPrevisWorkbench.backToShot")}
                                 </button>
                             ) : null}
-                            <button type="button" className="pv-icon-btn pv-mobile-inspector-close" aria-label="关闭属性面板" title="关闭属性面板" onClick={() => setInspectorOpen(false)}>
+                            <button type="button" className="pv-icon-btn pv-mobile-inspector-close" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.closePropertiesPanel")} title={translate("canvasTools.previs.canvasPrevisWorkbench.closePropertiesPanel")} onClick={() => setInspectorOpen(false)}>
                                 <X className="size-3.5" />
                             </button>
                         </div>
@@ -1842,7 +1842,7 @@ export function CanvasPrevisWorkbench({
                     </div>
 
                     <div className="pv-inspector-footer">
-                        <div className="pv-shot-list" aria-label="镜头列表">
+                        <div className="pv-shot-list" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.shotList")}>
                             {draft.shots.map((shot, index) => (
                                 <button
                                     key={shot.id}
@@ -1858,16 +1858,16 @@ export function CanvasPrevisWorkbench({
                                     <small>{shot.duration}s</small>
                                 </button>
                             ))}
-                            <button type="button" className="pv-shot-list__add" aria-label="新增镜头" title="新增镜头" onClick={addShot}>
+                            <button type="button" className="pv-shot-list__add" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.addShot")} title={translate("canvasTools.previs.canvasPrevisWorkbench.addShot")} onClick={addShot}>
                                 <Plus className="size-3.5" />
                             </button>
                         </div>
                         <details className="pv-prompt-preview">
                             <summary className="pv-prompt-preview__label">
-                                生成提示词
+                                {translate("canvasTools.previs.canvasPrevisWorkbench.generationPrompt")}
                                 <span
                                     className={`pv-output-dot ${lastClayExport?.shotId === activeShot.id ? "pv-output-dot--done" : recording ? "pv-output-dot--recording" : ""}`}
-                                    title={lastClayExport?.shotId === activeShot.id ? "白膜视频已生成" : recording ? "正在录制白膜视频" : "尚未生成白膜视频"}
+                                    title={lastClayExport?.shotId === activeShot.id ? translate("canvasTools.previs.canvasPrevisWorkbench.clayRenderVideoGenerated") : recording ? translate("canvasTools.previs.canvasPrevisWorkbench.recordingClayRenderVideo") : translate("canvasTools.previs.canvasPrevisWorkbench.noClayRenderVideoGeneratedYet")}
                                 />
                                 <button
                                     type="button"
@@ -1877,10 +1877,10 @@ export function CanvasPrevisWorkbench({
                                         void copyCompiledPrompt();
                                     }}
                                 >
-                                    复制
+                                    {translate("canvasB.common.copy")}
                                 </button>
                             </summary>
-                            <div className="pv-prompt-preview__text">{compiledPrompt || "提示词将在生成时自动编译"}</div>
+                            <div className="pv-prompt-preview__text">{compiledPrompt || translate("canvasTools.previs.canvasPrevisWorkbench.promptWillBeCompiledAutomaticallyDuringGeneration")}</div>
                         </details>
                     </div>
                 </aside>
@@ -1928,7 +1928,7 @@ export function CanvasPrevisWorkbench({
                 onChange={(event) => {
                     const file = event.target.files?.[0];
                     event.target.value = "";
-                    void uploadModel(file).catch((error) => message.error(error instanceof Error ? error.message : "模型上传失败"));
+                    void uploadModel(file).catch((error) => message.error(error instanceof Error ? error.message : translate("canvasTools.previs.canvasPrevisWorkbench.modelUploadFailed")));
                 }}
             />
             <PrevisAddDialog
@@ -1949,11 +1949,11 @@ export function CanvasPrevisWorkbench({
 
 /** 渲染视图全集。实际可选项由当前模式的 capabilities.renderModes 过滤。 */
 const PREVIS_RENDER_MODE_LABELS: Array<{ label: string; value: PrevisRenderMode }> = [
-    { label: "预览", value: "beauty" },
-    { label: "彩色白膜", value: "clay" },
-    { label: "骨骼", value: "pose" },
-    { label: "深度", value: "depth" },
-    { label: "法线", value: "normal" },
+    { label: translate("account.feedback.preview"), value: "beauty" },
+    { label: translate("canvasTools.previs.canvasPrevisWorkbench.coloredClayRender"), value: "clay" },
+    { label: translate("canvasTools.previs.canvasPrevisWorkbench.rig"), value: "pose" },
+    { label: translate("canvasC.previsMonitor.mode.depth"), value: "depth" },
+    { label: translate("canvasC.previsMonitor.mode.normal"), value: "normal" },
 ];
 
 function cameraMoveTransform(transform: PrevisTransform, move: PrevisCameraMove): PrevisTransform {

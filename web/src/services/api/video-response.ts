@@ -2,23 +2,25 @@ import axios from "axios";
 import { readFileAsDataUrl } from "@/lib/image-utils";
 
 import type { ApiEnvelope, ApiVideoResponse, RequestOptions, SeedanceTask, VideoGenerationResult } from "./video-contracts";
+import { translate } from "@/i18n";
+
 
 export function videoTaskId(payload: { id?: string; request_id?: string; task_id?: string }) {
     return payload.id || payload.request_id || payload.task_id || "";
 }
 
 export function unwrapVideoResponse(payload: ApiVideoResponse) {
-    return unwrapEnvelope(payload, "接口没有返回视频任务");
+    return unwrapEnvelope(payload, translate("shared.api.videoResponse.theAPIReturnedNoVideoTask"));
 }
 
 export function unwrapSeedanceTask(payload: ApiEnvelope<SeedanceTask>) {
-    return unwrapEnvelope(payload, "Seedance 接口没有返回任务");
+    return unwrapEnvelope(payload, translate("shared.api.videoResponse.theSeedanceAPIReturnedNoTask"));
 }
 
 export function unwrapEnvelope<T>(payload: ApiEnvelope<T>, emptyMessage: string): T {
     if (!payload) throw new Error(emptyMessage);
     if (typeof payload === "object" && "code" in payload && typeof payload.code === "number") {
-        if (payload.code !== 0) throw new Error(payload.msg || "请求失败");
+        if (payload.code !== 0) throw new Error(payload.msg || translate("errors.requestFailed"));
         if (!payload.data) throw new Error(emptyMessage);
         return payload.data;
     }
@@ -26,18 +28,18 @@ export function unwrapEnvelope<T>(payload: ApiEnvelope<T>, emptyMessage: string)
 }
 
 export function readAxiosError(error: unknown, fallback: string) {
-    if (axios.isCancel(error)) return "请求已取消";
+    if (axios.isCancel(error)) return translate("errors.canceled");
     if (axios.isAxiosError<{ error?: { message?: string }; msg?: string; code?: number }>(error)) {
         const responseData = error.response?.data;
         return responseData?.msg || responseData?.error?.message || statusMessage(error.response?.status, fallback);
     }
-    if (error instanceof DOMException && error.name === "AbortError") return "请求已取消";
+    if (error instanceof DOMException && error.name === "AbortError") return translate("errors.canceled");
     return error instanceof Error ? error.message : fallback;
 }
 
 export function statusMessage(status: number | undefined, fallback: string) {
-    if (status === 401 || status === 403) return "鉴权失败，请检查 API Key、套餐权限或模型权限";
-    if (status === 429) return "请求被限流或额度不足，请稍后重试";
+    if (status === 401 || status === 403) return translate("shared.api.videoResponse.authenticationFailedCheckYourAPIKeyPlanPermissionsOrModel");
+    if (status === 429) return translate("shared.api.videoResponse.theRequestWasRateLimitedOrYourQuotaIsExhausted");
     return status ? `${fallback}（${status}）` : fallback;
 }
 
@@ -49,7 +51,7 @@ export async function assertVideoBlob(blob: Blob) {
     } catch {
         return;
     }
-    if (typeof payload.code === "number" && payload.code !== 0) throw new Error(payload.msg || "视频下载失败");
+    if (typeof payload.code === "number" && payload.code !== 0) throw new Error(payload.msg || translate("shared.api.videoResponse.videoDownloadFailed"));
     if (payload.error?.message) throw new Error(payload.error.message);
 }
 
@@ -76,7 +78,7 @@ export async function blobToDataUrl(blob: Blob) {
     try {
         return await readFileAsDataUrl(blob);
     } catch {
-        throw new Error("读取本地素材失败");
+        throw new Error(translate("shared.api.videoResponse.failedToReadTheLocalAsset"));
     }
 }
 

@@ -12,6 +12,8 @@ import remarkGfm from "remark-gfm";
 import { formatSkillCount, formatSkillDate, skillCategoryLabel } from "@/pages/skills/skill-catalog";
 import { splitSkillFrontmatter, type SkillFrontmatter } from "@/pages/skills/skill-frontmatter";
 import { getSkillFile, listSkillFiles, skillFileRawURL, type Skill, type SkillCategory, type SkillPackageFile, type SkillPackageFileContent } from "@/services/api/skills";
+import { translate } from "@/i18n";
+
 
 type PreviewMode = "preview" | "source";
 
@@ -46,7 +48,7 @@ export function SkillDetailModal({ skill, loading, mutating, categories, onClose
             .catch((error) => {
                 if (cancelled) return;
                 setFiles([]);
-                setFilesError(error instanceof Error ? error.message : "技能文件加载失败");
+                setFilesError(error instanceof Error ? error.message : translate("shared.skills.skillDetailDrawer.failedToLoadSkillFiles"));
             })
             .finally(() => {
                 if (!cancelled) setFilesLoading(false);
@@ -67,7 +69,7 @@ export function SkillDetailModal({ skill, loading, mutating, categories, onClose
             .catch((error) => {
                 if (cancelled) return;
                 setContent(null);
-                setContentError(error instanceof Error ? error.message : "文件读取失败");
+                setContentError(error instanceof Error ? error.message : translate("shared.skills.skillDetailDrawer.failedToReadFile"));
             })
             .finally(() => { if (!cancelled) setContentLoading(false); });
         return () => { cancelled = true; };
@@ -101,31 +103,31 @@ export function SkillDetailModal({ skill, loading, mutating, categories, onClose
                     <header className="skill-package-header">
                         <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2 text-[var(--fs-label)] text-foreground/45">
-                                <span>{skillCategoryLabel(skill.tag, categories)}</span><span aria-hidden="true">/</span><span>{sourceLabel(skill.sourceType)}</span><span aria-hidden="true">/</span><span>v{skill.version || "1"}</span><span aria-hidden="true">/</span><span>更新于 {formatSkillDate(skill.updatedAt)}</span>
+                                <span>{skillCategoryLabel(skill.tag, categories)}</span><span aria-hidden="true">/</span><span>{sourceLabel(skill.sourceType)}</span><span aria-hidden="true">/</span><span>v{skill.version || "1"}</span><span aria-hidden="true">/</span><span>{translate("shared.skills.skillDetailDrawer.updated")} {formatSkillDate(skill.updatedAt)}</span>
                             </div>
                             <h1 className="mt-1 truncate text-[var(--fs-heading-lg)] font-semibold text-foreground">{skill.skillName}</h1>
                             <p className="mt-1 line-clamp-2 max-w-4xl text-sm leading-5 text-foreground/58">{skill.description}</p>
                         </div>
                         <div className="skill-package-actions">
-                            {skill.sourceType === "github" && skill.isOwner ? <Tooltip title={skill.syncError || "从 GitHub 检查并同步最新提交"}><Button loading={mutating} icon={<RefreshCw className="size-4" />} onClick={() => onSync(skill)}>同步</Button></Tooltip> : null}
-                            {skill.isOwner ? <Tooltip title="编辑名称、简介、分类和展示信息"><Button icon={<Info className="size-4" />} onClick={() => onEdit(skill)}>技能信息</Button></Tooltip> : null}
+                            {skill.sourceType === "github" && skill.isOwner ? <Tooltip title={skill.syncError || translate("shared.skills.skillDetailDrawer.checkAndSyncTheLatestCommitsFromGitHub")}><Button loading={mutating} icon={<RefreshCw className="size-4" />} onClick={() => onSync(skill)}>{translate("shared.skills.skillDetailDrawer.sync")}</Button></Tooltip> : null}
+                            {skill.isOwner ? <Tooltip title={translate("shared.skills.skillDetailDrawer.editNameSummaryCategoryAndDisplayInformation")}><Button icon={<Info className="size-4" />} onClick={() => onEdit(skill)}>{translate("shared.skills.skillDetailDrawer.skillInformation")}</Button></Tooltip> : null}
                             {skill.isOwner && skill.sourceType !== "github" ? (
-                                <Button icon={<Pencil className="size-4" />} onClick={() => onOpenWorkbench(skill)}>编辑</Button>
+                                <Button icon={<Pencil className="size-4" />} onClick={() => onOpenWorkbench(skill)}>{translate("account.settings.channels.edit")}</Button>
                             ) : (
-                                <Tooltip title="在工作台中只读浏览全部文件"><Button icon={<Code2 className="size-4" />} onClick={() => onOpenWorkbench(skill)}>工作台</Button></Tooltip>
+                                <Tooltip title={translate("shared.skills.skillDetailDrawer.browseAllFilesReadOnlyInTheWorkbench")}><Button icon={<Code2 className="size-4" />} onClick={() => onOpenWorkbench(skill)}>{translate("account.welcome.navWorkbench")}</Button></Tooltip>
                             )}
-                            <Button loading={mutating} icon={<Heart className={`size-4 ${skill.isLike ? "fill-current text-rose-500" : ""}`} />} onClick={() => onLike(skill)}>{skill.isLike ? "已收藏" : "收藏"}</Button>
-                            <Button type={skill.isAdded ? "default" : "primary"} loading={mutating} disabled={skill.isOwner} icon={skill.isAdded ? <Check className="size-4" /> : <Plus className="size-4" />} onClick={() => onAdd(skill)}>{skill.isOwner ? "我的技能" : skill.isAdded ? "已加入" : "加入技能"}</Button>
+                            <Button loading={mutating} icon={<Heart className={`size-4 ${skill.isLike ? "fill-current text-rose-500" : ""}`} />} onClick={() => onLike(skill)}>{skill.isLike ? translate("shared.skills.skillDetailDrawer.favorited") : translate("shared.skills.skillDetailDrawer.favorite")}</Button>
+                            <Button type={skill.isAdded ? "default" : "primary"} loading={mutating} disabled={skill.isOwner} icon={skill.isAdded ? <Check className="size-4" /> : <Plus className="size-4" />} onClick={() => onAdd(skill)}>{skill.isOwner ? translate("shared.skills.skillDetailDrawer.mySkills") : skill.isAdded ? translate("shared.skills.skillDetailDrawer.joined") : translate("shared.skills.skillDetailDrawer.joinSkill")}</Button>
                         </div>
                     </header>
 
                     <div className="skill-package-workspace">
-                        <aside className="skill-package-sidebar" aria-label="技能文件">
+                        <aside className="skill-package-sidebar" aria-label={translate("library.workbench.explorer.tree")}>
                             <div className="skill-package-sidebar-summary">
-                                <span><FileArchive className="size-3.5" />{skill.fileCount || files.length} 个文件</span>
+                                <span><FileArchive className="size-3.5" />{skill.fileCount || files.length} {translate("shared.skills.skillDetailDrawer.files")}</span>
                                 <span>{formatBytes(skill.totalBytes)}</span>
                             </div>
-                            <Input allowClear size="small" value={pathFilter} onChange={(event) => setPathFilter(event.target.value)} placeholder="筛选文件…" prefix={<File className="size-3.5 text-foreground/30" />} />
+                            <Input allowClear size="small" value={pathFilter} onChange={(event) => setPathFilter(event.target.value)} placeholder={translate("shared.skills.skillDetailDrawer.filterFiles")} prefix={<File className="size-3.5 text-foreground/30" />} />
                             <div className="skill-package-tree thin-scrollbar">
                                 {filesLoading || loading ? <Skeleton active title={false} paragraph={{ rows: 10 }} /> : filesError ? <div className="skill-package-empty">{filesError}</div> : treeData.length ? (
                                     <Tree
@@ -139,24 +141,24 @@ export function SkillDetailModal({ skill, loading, mutating, categories, onClose
                                         switcherIcon={({ expanded, isLeaf }) => isLeaf ? null : <ChevronRight aria-hidden="true" className={`skill-package-tree-chevron size-3.5 ${expanded ? "is-expanded" : ""}`} />}
                                         onSelect={(keys, info) => { if (!info.node.children?.length && keys[0]) setActivePath(String(keys[0])); }}
                                     />
-                                ) : <div className="skill-package-empty">没有匹配文件</div>}
+                                ) : <div className="skill-package-empty">{translate("shared.skills.skillDetailDrawer.noMatchingFiles")}</div>}
                             </div>
                             <div className="skill-package-sidebar-footer">
-                                <span className="inline-flex items-center gap-1"><Users className="size-3.5" />{formatSkillCount(skill.addedCount)} 人加入</span>
-                                <span>{skill.isPrivate ? "仅自己可见" : "公开"}</span>
+                                <span className="inline-flex items-center gap-1"><Users className="size-3.5" />{formatSkillCount(skill.addedCount)} {translate("shared.skills.skillDetailDrawer.joined2")}</span>
+                                <span>{skill.isPrivate ? translate("shared.skills.skillDetailDrawer.visibleToMeOnly") : translate("shared.skills.skillDetailDrawer.public")}</span>
                             </div>
                         </aside>
 
                         <main className="skill-package-preview">
                             <div className="skill-package-preview-toolbar">
-                                <div className="min-w-0 flex-1 truncate font-mono text-xs text-foreground/58">{activePath || "请选择文件"}</div>
-{canPreviewMarkdown ? <SegmentedControl size="sm" value={previewMode} onChange={(value) => setPreviewMode(value as PreviewMode)} options={[{ value: "preview", label: <span className="inline-flex items-center gap-1"><FileText className="size-3.5" />预览</span> }, { value: "source", label: <span className="inline-flex items-center gap-1"><Code2 className="size-3.5" />源码</span> }]} /> : null}
-                                {activePath ? <Tooltip title="打开原始文件"><a className="skill-package-raw-link" href={skillFileRawURL(skill.skillId, activePath)} target="_blank" rel="noreferrer" aria-label="打开原始文件"><ExternalLink className="size-4" /></a></Tooltip> : null}
+                                <div className="min-w-0 flex-1 truncate font-mono text-xs text-foreground/58">{activePath || translate("shared.skills.skillDetailDrawer.selectAFile")}</div>
+{canPreviewMarkdown ? <SegmentedControl size="sm" value={previewMode} onChange={(value) => setPreviewMode(value as PreviewMode)} options={[{ value: "preview", label: <span className="inline-flex items-center gap-1"><FileText className="size-3.5" />{translate("account.feedback.preview")}</span> }, { value: "source", label: <span className="inline-flex items-center gap-1"><Code2 className="size-3.5" />{translate("shared.skills.skillDetailDrawer.source")}</span> }]} /> : null}
+                                {activePath ? <Tooltip title={translate("shared.skills.skillDetailDrawer.openOriginalFile")}><a className="skill-package-raw-link" href={skillFileRawURL(skill.skillId, activePath)} target="_blank" rel="noreferrer" aria-label={translate("shared.skills.skillDetailDrawer.openOriginalFile")}><ExternalLink className="size-4" /></a></Tooltip> : null}
                             </div>
                             <div className="skill-package-preview-body thin-scrollbar">
                                 {contentLoading ? <Skeleton active paragraph={{ rows: 18 }} /> : contentError ? <div className="skill-package-empty">{contentError}</div> : content && selectedFile ? (
                                     <SkillFilePreview skill={skill} file={selectedFile} content={content} mode={previewMode} filePaths={filePaths} onNavigate={setActivePath} />
-                                ) : <div className="skill-package-empty">从左侧选择一个文件</div>}
+                                ) : <div className="skill-package-empty">{translate("shared.skills.skillDetailDrawer.selectAFileOnTheLeft")}</div>}
                             </div>
                         </main>
                     </div>
@@ -172,7 +174,7 @@ function SkillFilePreview({ skill, file, content, mode, filePaths, onNavigate }:
         if (file.kind === "image") return <div className="skill-package-media-stage"><img src={rawURL} alt={file.path} /></div>;
         if (file.kind === "video") return <div className="skill-package-media-stage"><video src={rawURL} controls playsInline preload="metadata" /></div>;
         if (file.kind === "audio") return <div className="skill-package-media-stage"><audio src={rawURL} controls preload="metadata" /></div>;
-        return <div className="skill-package-empty"><FileArchive className="mb-3 size-9" /><div>该文件不支持在线预览</div><a className="mt-3 inline-flex items-center gap-1 text-foreground underline" href={rawURL} target="_blank" rel="noreferrer">打开原始文件<ExternalLink className="size-3.5" /></a></div>;
+        return <div className="skill-package-empty"><FileArchive className="mb-3 size-9" /><div>{translate("shared.skills.skillDetailDrawer.onlinePreviewIsUnavailableForThisFile")}</div><a className="mt-3 inline-flex items-center gap-1 text-foreground underline" href={rawURL} target="_blank" rel="noreferrer">{translate("shared.skills.skillDetailDrawer.openOriginalFile")}<ExternalLink className="size-3.5" /></a></div>;
     }
     if (file.kind === "markdown" && mode === "preview") {
         return <SkillMarkdown source={content.content} currentPath={file.path} filePaths={filePaths} onNavigate={onNavigate} />;
@@ -180,13 +182,13 @@ function SkillFilePreview({ skill, file, content, mode, filePaths, onNavigate }:
     return <pre className="skill-package-source"><code>{content.content}</code></pre>;
 }
 
-const FRONTMATTER_PRIMARY_LABELS: Record<string, string> = { name: "名称", description: "描述", version: "版本" };
+const FRONTMATTER_PRIMARY_LABELS: Record<string, string> = { name: translate("shared.skills.skillDetailDrawer.name"), description: translate("shared.skills.skillDetailDrawer.description"), version: translate("canvasA.assetView.version") };
 
 function SkillFrontmatterPanel({ frontmatter }: { frontmatter: SkillFrontmatter }) {
     if (!frontmatter.entries) {
         return (
-            <section className="mb-6" aria-label="技能元数据">
-                <div className="mb-1 text-[var(--fs-caption)] text-foreground/45">元数据（无法解析，显示原文）</div>
+            <section className="mb-6" aria-label={translate("shared.skills.skillDetailDrawer.skillMetadata")}>
+                <div className="mb-1 text-[var(--fs-caption)] text-foreground/45">{translate("shared.skills.skillDetailDrawer.metadataCouldNotParseShowingRawText")}</div>
                 <pre>
                     <code>{frontmatter.raw}</code>
                 </pre>
@@ -197,7 +199,7 @@ function SkillFrontmatterPanel({ frontmatter }: { frontmatter: SkillFrontmatter 
     const others = frontmatter.entries.filter((entry) => !(entry.key in FRONTMATTER_PRIMARY_LABELS));
     if (!primary.length && !others.length) return null;
     return (
-        <section className="mb-6 rounded-[var(--r-md)] border border-foreground/10 bg-foreground/[0.03] px-4 py-3 text-[var(--fs-caption)] leading-5" aria-label="技能元数据">
+        <section className="mb-6 rounded-[var(--r-md)] border border-foreground/10 bg-foreground/[0.03] px-4 py-3 text-[var(--fs-caption)] leading-5" aria-label={translate("shared.skills.skillDetailDrawer.skillMetadata")}>
             {primary.length ? (
                 <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1">
                     {primary.map((entry) => (
@@ -210,7 +212,7 @@ function SkillFrontmatterPanel({ frontmatter }: { frontmatter: SkillFrontmatter 
             ) : null}
             {others.length ? (
                 <details className={primary.length ? "mt-2" : undefined}>
-                    <summary className="cursor-pointer select-none text-foreground/45">其他字段（{others.length}）</summary>
+                    <summary className="cursor-pointer select-none text-foreground/45">{translate("shared.skills.skillDetailDrawer.otherFields")}{others.length}）</summary>
                     <dl className="mt-1 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1">
                         {others.map((entry, index) => (
                             <Fragment key={`${entry.key}-${index}`}>
@@ -245,7 +247,7 @@ export function SkillMarkdown({ source, currentPath, filePaths, onNavigate }: { 
                         if (isExternalURL(src)) return <img src={src} alt={alt || ""} loading="lazy" />;
                         const target = resolveSkillPath(currentPath, src || "");
                         if (target && filePaths.has(target)) return <button type="button" className="skill-package-inline-file" onClick={() => onNavigate(target)}><FileImage className="size-4" />{alt || target}</button>;
-                        return <span className="skill-package-inline-missing">{alt || src || "图片"}</span>;
+                        return <span className="skill-package-inline-missing">{alt || src || translate("account.feedback.image")}</span>;
                     },
                 }}
             >{body}</ReactMarkdown>
@@ -320,8 +322,8 @@ function isExternalURL(value?: string) {
 
 function sourceLabel(source: string) {
     if (source === "github") return "GitHub";
-    if (source === "zip") return "ZIP 技能包";
-    if (source === "builtin") return "内置技能";
+    if (source === "zip") return translate("shared.skills.skillInstallModal.zIPSkillPackage");
+    if (source === "builtin") return translate("shared.skills.skillDetailDrawer.builtInSkill");
     return "Markdown";
 }
 

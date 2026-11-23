@@ -2,6 +2,8 @@ import axios from "axios";
 import { nanoid } from "nanoid";
 import { consumeJsonEvents } from "@/lib/json-event-stream";
 import type { ChatCompletionPayload, ChatCompletionStreamState, GeminiPart, GeminiPayload, GeminiStreamState, ImageApiResponse, ResponseApiPayload, ResponseStreamState, ResponseToolCall, ToolResponseResult } from "@/services/api/image-contracts";
+import { translate } from "@/i18n";
+
 
 type TextSink = (text: string) => void;
 type TextState = { text: string; reasoning: string };
@@ -15,7 +17,7 @@ function text(value: unknown): string {
 }
 
 function assertEnvelope(payload: { code?: number; msg?: string }) {
-    if (typeof payload.code === "number" && payload.code !== 0) throw new Error(payload.msg || "请求失败");
+    if (typeof payload.code === "number" && payload.code !== 0) throw new Error(payload.msg || translate("errors.requestFailed"));
 }
 
 function imagesFrom(sources: Iterable<string | undefined | null>, emptyMessage: string) {
@@ -44,7 +46,7 @@ export function parseImagePayload(payload: ImageApiResponse) {
             yield encoded ? `data:image/png;base64,${encoded}` : text(item.url);
         }
     }
-    return imagesFrom(sources(), "接口没有返回图片");
+    return imagesFrom(sources(), translate("shared.api.imageResponse.theAPIReturnedNoImage"));
 }
 
 export function parseChatCompletionPayload(payload: ChatCompletionPayload): ToolResponseResult {
@@ -95,7 +97,7 @@ export function parseGeminiImagePayload(payload: GeminiPayload) {
             yield inline?.data ? `data:${mime || "image/png"};base64,${inline.data}` : part.fileData?.fileUri;
         }
     }
-    return imagesFrom(sources(), "Gemini 接口没有返回图片");
+    return imagesFrom(sources(), translate("shared.api.imageResponse.theGeminiAPIReturnedNoImage"));
 }
 
 export function responseErrorMessage(value: unknown) {
@@ -109,21 +111,21 @@ export function validateResponsePayload(payload: ResponseApiPayload) {
 }
 
 export function validateGeminiPayload(payload: GeminiPayload) {
-    const failure = payload.error?.message || (payload.promptFeedback?.blockReason ? `Gemini 拒绝了本次请求：${payload.promptFeedback.blockReason}` : "");
+    const failure = payload.error?.message || (payload.promptFeedback?.blockReason ? translate("shared.api.imageResponse.geminiRejectedThisRequest", { v0: String(payload.promptFeedback.blockReason) }) : "");
     if (failure) throw new Error(failure);
 }
 
 export function readStatusError(status: number | undefined, fallback: string) {
     const known: Record<number, string> = {
-        401: "鉴权失败，请检查 API Key、套餐权限或模型权限",
-        403: "鉴权失败，请检查 API Key、套餐权限或模型权限",
-        429: "请求被限流或额度不足，请稍后重试",
+        401: translate("shared.api.imageResponse.authenticationFailedCheckYourAPIKeyPlanPermissionsOrModel"),
+        403: translate("shared.api.imageResponse.authenticationFailedCheckYourAPIKeyPlanPermissionsOrModel"),
+        429: translate("shared.api.imageResponse.theRequestWasRateLimitedOrYourQuotaIsExhausted"),
     };
     return status ? known[status] || `${fallback}：${status}` : fallback;
 }
 
 export function readAxiosError(error: unknown, fallback: string) {
-    if (axios.isCancel(error) || (error instanceof DOMException && error.name === "AbortError")) return "请求已取消";
+    if (axios.isCancel(error) || (error instanceof DOMException && error.name === "AbortError")) return translate("errors.canceled");
     if (!axios.isAxiosError(error)) return error instanceof Error ? error.message : fallback;
     const payload = record(error.response?.data);
     return text(payload.msg) || text(record(payload.error).message) || readStatusError(error.response?.status, fallback);
@@ -147,7 +149,7 @@ export async function readJsonPayload<T>(response: Response, fallback: string): 
     try {
         return JSON.parse(body) as T;
     } catch {
-        const detail = /^\s*(?:<!doctype|<html)/i.test(body) ? "后端代理返回了前端网页，请检查 VITE_CANVAS_BACKEND_URL 和反向代理配置" : `${fallback}：接口没有返回有效 JSON`;
+        const detail = /^\s*(?:<!doctype|<html)/i.test(body) ? translate("shared.api.imageResponse.theBackendProxyReturnedTheFrontendPageCheckVITECANVAS") : translate("shared.api.imageResponse.theAPIReturnedNoValidJSON", { v0: String(fallback) });
         throw new Error(detail);
     }
 }

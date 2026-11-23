@@ -1,6 +1,9 @@
 import { createClientUUID } from "@/lib/client-id";
 import { scopedLocalStorage } from "@/lib/user-scope";
 import { apiBaseURL } from "@/services/api/request";
+import { localizedApiErrorMessage } from "@/services/api/error-codes";
+import { translate } from "@/i18n";
+
 
 // 短剧导出由后端校验后流式返回 ZIP。用隐藏表单提交到 iframe：大文件交给浏览器下载管理器，
 // 不在页面内存里拼包；校验失败时 iframe 收到 JSON 信封，读出 msg 交给调用方提示。
@@ -11,13 +14,13 @@ function submitArchiveForm(path: string, fields: Array<[string, string]>, onErro
     const frame = document.createElement("iframe");
     frame.name = `drama-export-${createClientUUID()}`;
     frame.hidden = true;
-    frame.title = "短剧导出下载";
+    frame.title = translate("shared.dramaExport.shortDramaExportDownload");
     frame.onload = () => {
         try {
             const raw = frame.contentDocument?.body?.textContent;
             if (!raw) return;
             const failure = JSON.parse(raw) as { code?: number; msg?: string };
-            if (failure.code) onError(failure.msg || "导出失败，请重试");
+            if (failure.code) onError(localizedApiErrorMessage(undefined, failure.msg || translate("shared.dramaExport.exportFailedTryAgain")));
             frame.remove();
         } catch {
             /* 附件响应交给浏览器下载管理器；移除 iframe 可能中断仍在传输的大文件，所以保留。 */
@@ -82,8 +85,8 @@ export function defaultJianyingDraftRoot() {
 /** 与后端 jianying.NormalizeRoot 同口径的前置校验，只用于即时提示。 */
 export function jianyingDraftRootProblem(value: string) {
     const root = value.trim();
-    if (!root) return "请填写剪映草稿目录";
-    if (root.includes("你的用户名")) return "请把路径里的「你的用户名」换成电脑上的实际用户名";
-    if (!root.startsWith("/") && !/^[A-Za-z]:[\\/]/.test(root)) return "需要绝对路径，例如 /Users/name/Movies/… 或 C:\\Users\\name\\…";
+    if (!root) return translate("shared.dramaExport.enterTheJianyingDraftDirectory");
+    if (root.includes("你的用户名")) return translate("shared.dramaExport.replaceInThePathWithYourActualComputerUsername");
+    if (!root.startsWith("/") && !/^[A-Za-z]:[\\/]/.test(root)) return translate("shared.dramaExport.enterAnAbsolutePathSuchAsUsersNameMoviesOr");
     return "";
 }

@@ -5,6 +5,7 @@
 import { ApiError } from "@/services/api/request";
 import { type AnnouncementLevel, type AnnouncementStatus, listAdminAnnouncements, type SystemAnnouncement } from "@/services/api/announcements";
 import type { AnnouncementPendingReview } from "./admin-announcement-safety";
+import { currentLocale, translate } from "@/i18n";
 
 export type AnnouncementFormValues = {
     title: string;
@@ -27,24 +28,24 @@ export type PendingAnnouncement =
 export const DEFAULT_ANNOUNCEMENT: AnnouncementFormValues = { title: "", content: "", imageResourceId: "", level: "info", pinned: false };
 
 export const levelOptions: Array<{ value: AnnouncementLevel; label: string }> = [
-    { value: "info", label: "平台通知" },
-    { value: "success", label: "状态恢复" },
-    { value: "warning", label: "服务提醒" },
-    { value: "critical", label: "重要通知" },
+    { value: "info", label: translate("account.ui.announcements.levels.info") },
+    { value: "success", label: translate("account.ui.announcements.levels.success") },
+    { value: "warning", label: translate("account.ui.announcements.levels.warning") },
+    { value: "critical", label: translate("account.ui.announcements.levels.critical") },
 ];
 
 export const levelMeta: Record<AnnouncementLevel, { label: string; tone: "info" | "success" | "warning" | "error"; guidance: string }> = {
-    info: { label: "平台通知", tone: "info", guidance: "常规功能、活动或规则说明。" },
-    success: { label: "状态恢复", tone: "success", guidance: "此前受影响的服务已经恢复。" },
-    warning: { label: "服务提醒", tone: "warning", guidance: "可能影响使用，需要用户留意。" },
-    critical: { label: "重要通知", tone: "error", guidance: "高优先级事件或必须执行的操作。" },
+    info: { label: translate("account.ui.announcements.levels.info"), tone: "info", guidance: translate("admin.adminAnnouncementResults.generalInformationAboutFeaturesEventsOrRules") },
+    success: { label: translate("account.ui.announcements.levels.success"), tone: "success", guidance: translate("admin.adminAnnouncementResults.previouslyAffectedServicesHaveRecovered") },
+    warning: { label: translate("account.ui.announcements.levels.warning"), tone: "warning", guidance: translate("admin.adminAnnouncementResults.mayAffectUsageAndRequiresUsersAttention") },
+    critical: { label: translate("account.ui.announcements.levels.critical"), tone: "error", guidance: translate("admin.adminAnnouncementResults.highPriorityEventsOrRequiredActions") },
 };
 
 export function formatDateTime(value?: string | null) {
     if (!value) return "--";
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "--";
-    return new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).format(date).replaceAll("/", "-");
+    return new Intl.DateTimeFormat(currentLocale(), { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).format(date).replaceAll("/", "-");
 }
 
 export function isMutationResultUncertain(error: unknown) {
@@ -70,16 +71,16 @@ export function assertAnnouncementMutationResult(
         announcement?.pinned === expectedContent.pinned &&
         (announcement?.imageResourceId || "") === (expectedContent.imageResourceId || "");
     if (!announcement || typeof announcement.id !== "string" || !announcement.id || (expectedId && announcement.id !== expectedId) || announcement.status !== expectedStatus || !validPublishedAt || !validClosedAt || !contentMatches) {
-        throw new Error("服务返回的公告状态不完整，无法确认操作结果");
+        throw new Error(translate("admin.adminAnnouncementResults.theServerReturnedAnIncompleteAnnouncementStatusTheResultCould"));
     }
 }
 
 export function assertAnnouncementListResult(result: unknown, expectedPage: number, expectedPageSize: number) {
     if (!isRecord(result) || !Array.isArray(result.announcements) || !Number.isInteger(result.total) || (result.total as number) < 0 || result.page !== expectedPage || result.pageSize !== expectedPageSize) {
-        throw new Error("公告列表返回格式不完整");
+        throw new Error(translate("admin.adminAnnouncementResults.theAnnouncementListResponseIsIncomplete"));
     }
     const announcements = result.announcements.map((value) => normalizeAnnouncementListItem(value));
-    if ((result.total as number) < announcements.length) throw new Error("公告列表总数与当前页数据不一致");
+    if ((result.total as number) < announcements.length) throw new Error(translate("admin.adminAnnouncementResults.theAnnouncementTotalDoesNotMatchTheCurrentPageData"));
     return { announcements, total: result.total as number, page: expectedPage, pageSize: expectedPageSize };
 }
 
@@ -101,7 +102,7 @@ export function normalizeAnnouncementListItem(value: unknown): SystemAnnouncemen
         !isValidDateTimeString(value.updatedAt) ||
         (value.closedAt !== null && value.closedAt !== undefined && !isValidDateTimeString(value.closedAt))
     ) {
-        throw new Error("公告列表包含无法识别的记录");
+        throw new Error(translate("admin.adminAnnouncementResults.theAnnouncementListContainsUnrecognizedRecords"));
     }
     return {
         id: value.id,
@@ -129,7 +130,7 @@ export async function inspectPendingReview(review: AnnouncementPendingReview) {
             const data = assertAnnouncementListResult(await listAdminAnnouncements({ keyword: title, page: targetPage, pageSize: 100 }), targetPage, 100);
             data.announcements.forEach((announcement) => candidates.set(announcement.id, announcement));
             if (targetPage >= Math.max(1, Math.ceil(data.total / data.pageSize))) break;
-            if (targetPage === 50) throw new Error("同名匹配记录过多，无法安全定位目标；请稍后重试。");
+            if (targetPage === 50) throw new Error(translate("admin.adminAnnouncementResults.tooManyRecordsShareThisNameToIdentifyTheTarget"));
             targetPage += 1;
         }
     }
@@ -137,7 +138,7 @@ export async function inspectPendingReview(review: AnnouncementPendingReview) {
     const records = Array.from(candidates.values());
     if (review.targetId) {
         const target = records.find((announcement) => announcement.id === review.targetId);
-        if (!target) return `按请求前后标题检索后，未找到目标 ID ${review.targetId}。该请求可能未生效，请结合完整列表再人工确认。`;
+        if (!target) return translate("admin.adminAnnouncementResults.targetIDWasNotFoundUsingTheTitlesBeforeAnd", { v0: String(review.targetId) });
         const contentMatches =
             target.title === review.title &&
             target.content === review.content &&
@@ -146,7 +147,7 @@ export async function inspectPendingReview(review: AnnouncementPendingReview) {
             (review.imageResourceId === undefined || (target.imageResourceId || "") === review.imageResourceId);
         const expectedStatus: AnnouncementStatus = review.operation === "close" ? "closed" : "active";
         const statusMatches = target.status === expectedStatus;
-        return `已定位目标 ID ${target.id}：当前为${target.status === "active" ? "发布中" : "已关闭"}，标题、正文与类型${contentMatches ? "与请求一致" : "与请求不一致"}，${statusMatches ? "状态符合预期" : "状态不符合预期"}。`;
+        return translate("admin.adminAnnouncementResults.foundTargetIDCurrentlyTitleBodyAndType", { v0: String(target.id), v1: String(target.status === "active" ? translate("admin.adminAnnouncementResults.published") : translate("account.feedback.status.closed")), v2: String(contentMatches ? translate("admin.adminAnnouncementResults.matchTheRequest") : translate("admin.adminAnnouncementResults.doNotMatchTheRequest")), v3: String(statusMatches ? translate("admin.adminAnnouncementResults.statusMatchesExpectations") : translate("admin.adminAnnouncementResults.statusDoesNotMatchExpectations")) });
     }
 
     const requestedAt = new Date(review.requestedAt).getTime();
@@ -159,18 +160,18 @@ export async function inspectPendingReview(review: AnnouncementPendingReview) {
             (review.imageResourceId === undefined || (announcement.imageResourceId || "") === review.imageResourceId) &&
             new Date(announcement.publishedAt).getTime() >= requestedAt - 5 * 60_000,
     );
-    if (!matchingRecords.length) return "未找到请求时间附近与标题、正文和类型完全一致的新公告；该发布请求可能未生效。";
+    if (!matchingRecords.length) return translate("admin.adminAnnouncementResults.noNewAnnouncementNearTheRequestTimeExactlyMatchesThe");
     const resultSummary = matchingRecords
         .slice(0, 3)
-        .map((announcement) => `${announcement.id} · ${formatDateTime(announcement.publishedAt)} · ${announcement.status === "active" ? "发布中" : "已关闭"}`)
+        .map((announcement) => `${announcement.id} · ${formatDateTime(announcement.publishedAt)} · ${announcement.status === "active" ? translate("admin.adminAnnouncementResults.published") : translate("account.feedback.status.closed")}`)
         .join("；");
-    return `找到 ${matchingRecords.length} 条与请求内容完全一致的近期记录：${resultSummary}${matchingRecords.length > 3 ? "；其余记录请在列表中核对" : ""}。`;
+    return translate("admin.adminAnnouncementResults.foundRecentRecordsExactlyMatchingTheRequest", { v0: String(matchingRecords.length), v1: String(resultSummary), v2: String(matchingRecords.length > 3 ? translate("admin.adminAnnouncementResults.reviewTheRemainingRecordsInTheList") : "") });
 }
 
 export function formatPendingReviewOperation(operation: AnnouncementPendingReview["operation"]) {
-    if (operation === "create") return "发布新公告";
-    if (operation === "update") return "编辑并重新发布";
-    return "关闭公告";
+    if (operation === "create") return translate("admin.adminAnnouncementResults.publishNewAnnouncement");
+    if (operation === "update") return translate("admin.adminAnnouncementResults.editAndRepublish");
+    return translate("admin.adminAnnouncementResults.closeAnnouncement");
 }
 
 export function isRecord(value: unknown): value is Record<string, unknown> {

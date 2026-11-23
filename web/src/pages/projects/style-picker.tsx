@@ -4,6 +4,8 @@ import { Check, Flame, Info, Search, X } from "lucide-react";
 import { DRAMA_STYLE_CATEGORIES, DRAMA_STYLES, filterDramaStyles, styleCoverBackground, type DramaStyleCategory } from "@/lib/drama/drama-styles";
 
 import { DramaStyleDetailModal } from "./style-detail-modal";
+import { dramaStyleDisplay, filterDramaStyleDisplay } from "./style-copy";
+import { translate } from "@/i18n";
 
 type CategoryKey = "all" | "hot" | DramaStyleCategory;
 
@@ -11,39 +13,40 @@ type CategoryKey = "all" | "hot" | DramaStyleCategory;
 export function DramaStylePicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
     const [category, setCategory] = useState<CategoryKey>("hot");
     const [query, setQuery] = useState("");
-    const styles = useMemo(() => filterDramaStyles(query ? "all" : category, query), [category, query]);
-    const selected = DRAMA_STYLES.find((style) => style.id === value);
+    const styles = useMemo(() => filterDramaStyleDisplay(query ? "all" : category, query), [category, query]);
+    const selectedStyle = DRAMA_STYLES.find((style) => style.id === value);
+    const selected = selectedStyle ? dramaStyleDisplay(selectedStyle) : undefined;
     const [detailId, setDetailId] = useState<string | null>(null);
     const counts = useMemo(() => Object.fromEntries(DRAMA_STYLE_CATEGORIES.map((item) => [item.key, filterDramaStyles(item.key, "").length])), []);
     return (
         <section className="drama-styles">
             <div className="drama-styles-head">
                 <div className="min-w-0">
-                    <h2>视觉风格</h2>
+                    <h2>{translate("drama.stylePicker.visualStyle")}</h2>
                     <p>
                         {selected ? (
                             <>
-                                已选 <b>{selected.name}</b> · {selected.description}
+                                {translate("drama.stylePicker.selected")} <b>{selected.name}</b> · {selected.description}
                                 <button type="button" className="drama-styles-detail-link" onClick={() => setDetailId(selected.id)}>
-                                    查看详情
+                                    {translate("library.tasks.row.viewDetail")}
                                 </button>
                             </>
                         ) : (
-                            "决定全剧角色、场景和镜头的统一画风"
+                            translate("drama.stylePicker.setsAConsistentVisualStyleForCharactersScenesAndShots")
                         )}
                     </p>
                 </div>
                 <label className="drama-search drama-styles-search">
                     <Search className="size-3.5 shrink-0 opacity-40" />
-                    <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索题材，如 霸总、仙侠" aria-label="搜索风格" />
+                    <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={translate("drama.stylePicker.searchGenresSuchAsCEORomanceOrXianxia")} aria-label={translate("canvasA.toolPicker.style.search")} />
                     {query ? (
-                        <button type="button" onClick={() => setQuery("")} aria-label="清空搜索">
+                        <button type="button" onClick={() => setQuery("")} aria-label={translate("canvasA.toolPicker.clearSearch")}>
                             <X className="size-3.5 opacity-40" />
                         </button>
                     ) : null}
                 </label>
             </div>
-            <div className="drama-styles-tabs" role="tablist" aria-label="风格分类">
+            <div className="drama-styles-tabs" role="tablist" aria-label={translate("drama.stylePicker.styleCategories")}>
                 {DRAMA_STYLE_CATEGORIES.map((item) => (
                     <button
                         key={item.key}
@@ -62,7 +65,7 @@ export function DramaStylePicker({ value, onChange }: { value: string; onChange:
                     </button>
                 ))}
             </div>
-            <div className="drama-style-grid thin-scrollbar" role="radiogroup" aria-label="视觉风格">
+            <div className="drama-style-grid thin-scrollbar" role="radiogroup" aria-label={translate("drama.stylePicker.visualStyle")}>
                 {styles.map((style) => {
                     const active = style.id === value;
                     return (
@@ -75,7 +78,7 @@ export function DramaStylePicker({ value, onChange }: { value: string; onChange:
                                         </span>
                                     ) : null}
                                     {style.hot ? (
-                                        <span className="drama-style-hot" title="爆款">
+                                        <span className="drama-style-hot" title={translate("drama.stylePicker.popular")}>
                                             <Flame className="size-2.5" />
                                         </span>
                                     ) : null}
@@ -90,13 +93,13 @@ export function DramaStylePicker({ value, onChange }: { value: string; onChange:
                                     </span>
                                 </span>
                             </button>
-                            <button type="button" className="drama-style-info" aria-label={`查看“${style.name}”详情`} title="查看详情" onClick={() => setDetailId(style.id)}>
+                            <button type="button" className="drama-style-info" aria-label={translate("drama.stylePicker.viewDetailsFor", { v0: String(style.name) })} title={translate("library.tasks.row.viewDetail")} onClick={() => setDetailId(style.id)}>
                                 <Info className="size-3" />
                             </button>
                         </div>
                     );
                 })}
-                {!styles.length ? <div className="col-span-full py-10 text-center text-[var(--fs-label)] text-foreground/45">没有找到“{query}”相关的风格</div> : null}
+                {!styles.length ? <div className="col-span-full py-10 text-center text-[var(--fs-label)] text-foreground/45">{translate("drama.sentences.noMatchingStyles", { query })}</div> : null}
             </div>
             <DramaStyleDetailModal
                 styleId={detailId}

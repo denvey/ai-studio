@@ -15,29 +15,30 @@ import { useEffectiveConfig } from "@/stores/use-config-store";
 import { useUserStore } from "@/stores/use-user-store";
 import { dramaSegmentQuoteMissing, dramaSegmentVideoRequirements, dramaVideoOptionFor, SEGMENT_NO_QUOTE_HINT } from "./segment-quote";
 
-import { CAST_KIND_LABEL, formatCredits, mediaBusy, MediaThumb } from "../drama-shared";
+import { CAST_KIND_LABEL, formatCredits, mediaBusy, MediaThumb, shotVisualLabel } from "../drama-shared";
 import { promptReady, secondsLabel, SegmentStatus, SegmentVideo, videoWaitLabel } from "./segment-parts";
 import { DramaTakeList } from "./take-list";
 import { CanvasResourceMentionTextarea } from "@/components/canvas/canvas-resource-mention-textarea";
 import type { CanvasResourceReference } from "@/lib/canvas/canvas-resource-references";
+import { translate } from "@/i18n";
 
 const SHOT_SIZES = ["特写", "近景", "中景", "全景", "远景"];
 const CAMERAS = ["固定", "推", "拉", "摇", "跟", "环绕", "升降", "手持"];
 
 const PROMPT_NOTICE: Record<DramaSegment["promptStatus"], string> = {
-    none: "还没有撰写本段视频提示词",
-    queued: "排队撰写中…",
-    running: "正在撰写本段视频提示词…",
+    none: translate("drama.studio.segmentDialog.thisSegmentSVideoPromptHasNotBeenWrittenYet"),
+    queued: translate("drama.studio.segmentDialog.queuedForWriting"),
+    running: translate("drama.studio.segmentDialog.writingThisSegmentSVideoPrompt"),
     ready: "",
-    stale: "本段镜头或设定改过，提示词已过期，请重新撰写",
-    failed: "撰写失败",
+    stale: translate("drama.studio.segmentDialog.shotsOrDesignsInThisSegmentChangedThePromptIs"),
+    failed: translate("drama.studio.segmentDialog.writingFailed"),
 };
 
 const OPERATION_LABEL: Record<DramaSegment["request"]["operation"], string> = {
-    image_to_video: "图生视频（上一段尾帧作首帧）",
-    reference_to_video: "参考图生视频",
-    text_to_video: "文生视频",
-    "": "未确定",
+    image_to_video: translate("drama.studio.segmentDialog.imageToVideoPreviousSegmentSLastFrameAsFirst"),
+    reference_to_video: translate("drama.studio.segmentDialog.referenceToVideo"),
+    text_to_video: translate("drama.studio.segmentDialog.textToVideo"),
+    "": translate("drama.studio.segmentDialog.undetermined"),
 };
 
 type Props = {
@@ -116,32 +117,32 @@ export function SegmentDialog({
             centered
             width="min(1360px, calc(100vw - 48px))"
             rootClassName="drama-root drama-sd-root"
-            aria-label={segment ? `第 ${segment.index + 1} 段` : "剧情段"}
+            aria-label={segment ? translate("drama.studio.segmentDialog.segment", { v0: String(segment.index + 1) }) : translate("drama.studio.segmentDialog.storySegment")}
         >
             {segment && detail ? (
                 <div className="drama-sd">
                     <header className="drama-sd-head">
                         <div className="min-w-0">
                             <div className="drama-eyebrow">
-                                第 {detail.episode.number} 集 · 第 {segment.index + 1} / {segments.length} 段 · 镜头 {shots.length ? `${shots[0].position + 1}–${shots[shots.length - 1].position + 1}` : "—"}
+                                {translate("drama.sentences.segmentMeta", { episode: detail.episode.number, segment: segment.index + 1, total: segments.length, shots: shots.length ? `${shots[0].position + 1}–${shots[shots.length - 1].position + 1}` : "—" })}
                             </div>
                             <div className="drama-sd-title">
                                 <h2>{segment.title}</h2>
-                                <span className="drama-sdx-total">总时长 {secondsLabel(segment.durationMs)}</span>
+                                <span className="drama-sdx-total">{translate("drama.studio.segmentDialog.totalDuration")} {secondsLabel(segment.durationMs)}</span>
                                 <SegmentStatus segment={segment} />
                             </div>
                         </div>
                         <div className="drama-sd-nav">
                             <Button icon={<Brush className="size-4" />} loading={canvasOpening} onClick={() => onOpenCanvas(segment)}>
-                                在画布中精修
+                                {translate("drama.studio.segmentDialog.refineOnCanvas")}
                             </Button>
-                            <Tooltip title="上一段">
-                                <Button icon={<ChevronLeft className="size-4" />} aria-label="上一段" disabled={position <= 0} onClick={() => onNavigate(segments[position - 1].index)} />
+                            <Tooltip title={translate("drama.studio.segmentDialog.previousSegment")}>
+                                <Button icon={<ChevronLeft className="size-4" />} aria-label={translate("drama.studio.segmentDialog.previousSegment")} disabled={position <= 0} onClick={() => onNavigate(segments[position - 1].index)} />
                             </Tooltip>
-                            <Tooltip title="下一段">
-                                <Button icon={<ChevronRight className="size-4" />} aria-label="下一段" disabled={position >= segments.length - 1} onClick={() => onNavigate(segments[position + 1].index)} />
+                            <Tooltip title={translate("drama.studio.segmentDialog.nextSegment")}>
+                                <Button icon={<ChevronRight className="size-4" />} aria-label={translate("drama.studio.segmentDialog.nextSegment")} disabled={position >= segments.length - 1} onClick={() => onNavigate(segments[position + 1].index)} />
                             </Tooltip>
-                            <Button type="text" icon={<X className="size-4" />} aria-label="关闭" onClick={onClose} />
+                            <Button type="text" icon={<X className="size-4" />} aria-label={translate("common.close")} onClick={onClose} />
                         </div>
                     </header>
                     <div className="drama-sdx-body">
@@ -160,10 +161,10 @@ export function SegmentDialog({
                             <SegmentPrompt segment={segment} castById={castById} writing={writing} onSave={(override) => onSavePrompt(segment, override)} onWrite={() => onWritePrompt(segment)} />
                             <ReferenceBoard key={segment.id} segment={segment} shots={shots} castById={castById} busy={busy} onSave={(patch) => onSaveReferences(segment, patch)} onOpenCast={onOpenCast} />
                             <SegmentReceipt segment={segment} />
-                            <section className="drama-sdx-section" aria-label="本段镜头">
+                            <section className="drama-sdx-section" aria-label={translate("drama.studio.segmentDialog.shotsInThisSegment")}>
                                 <div className="drama-sdx-section-head">
-                                    <strong>本段镜头</strong>
-                                    <small>改动镜头后本段提示词与视频需要重新生成</small>
+                                    <strong>{translate("drama.studio.segmentDialog.shotsInThisSegment")}</strong>
+                                    <small>{translate("drama.studio.segmentDialog.editingShotsRequiresRegeneratingThisSegmentSPromptAndVideo")}</small>
                                 </div>
                                 <ol className="drama-sdx-shots">
                                     {shots.map((item, index) => (
@@ -185,22 +186,22 @@ export function SegmentDialog({
                                 </ol>
                             </section>
                         </main>
-                        <aside className="drama-sdx-side thin-scrollbar" aria-label="本段视频">
+                        <aside className="drama-sdx-side thin-scrollbar" aria-label={translate("drama.studio.segmentDialog.segmentVideo")}>
                             <div className="drama-sdx-side-head">
-                                <strong>第 {segment.index + 1} 段视频</strong>
+                                <strong>{translate("drama.sentences.segmentVideo", { number: segment.index + 1 })}</strong>
                                 <SegmentStatus segment={segment} />
                             </div>
                             <SegmentVideo segment={segment} aspectRatio={aspectRatio} />
                             {segment.videoStatus === "failed" && segment.videoError ? (
                                 <div className="drama-sd-error">
-                                    <strong>{segment.videoReprocessable ? "视频已生成，后处理失败" : "视频生成失败"}</strong>
+                                    <strong>{segment.videoReprocessable ? translate("drama.studio.segmentDialog.videoGeneratedButPostProcessingFailed") : translate("drama.studio.segmentDialog.videoGenerationFailed")}</strong>
                                     <span>{segment.videoError}</span>
                                     {segment.videoReprocessable ? (
                                         <>
-                                            <span>重新处理只针对这条已生成的视频，不会重新生成或扣费。</span>
+                                            <span>{translate("drama.studio.segmentDialog.reprocessingOnlyAffectsThisGeneratedVideoItWillNotRegenerate")}</span>
                                             <div className="drama-sd-error-actions">
                                                 <Button size="small" icon={<RotateCcw className="size-3.5" />} loading={reprocessing} disabled={busy} onClick={() => onReprocess(segment)}>
-                                                    重新处理视频
+                                                    {translate("drama.studio.segmentDialog.reprocessVideo")}
                                                 </Button>
                                             </div>
                                         </>
@@ -209,18 +210,18 @@ export function SegmentDialog({
                             ) : null}
                             {segment.videoStatus === "queued" && segment.videoWait ? (
                                 <div className="drama-sd-error is-wait" role="status">
-                                    <strong>视频尚未提交</strong>
+                                    <strong>{translate("drama.studio.segmentDialog.videoNotSubmittedYet")}</strong>
                                     <span>{segment.videoWait}</span>
                                 </div>
                             ) : null}
                             <dl className="drama-sdx-facts">
                                 <div>
-                                    <dt>进入成片</dt>
-                                    <dd>{segment.videoSeconds ? `${segment.videoSeconds} 秒` : "—"}</dd>
+                                    <dt>{translate("drama.studio.segmentDialog.includedInFinalCut")}</dt>
+                                    <dd>{segment.videoSeconds ? translate("drama.studio.segmentDialog.s", { v0: String(segment.videoSeconds) }) : "—"}</dd>
                                 </div>
                                 <div>
-                                    <dt>上次花费</dt>
-                                    <dd>{segment.videoJob ? `${formatCredits(segment.videoJob.costMicrocredits)} 积分` : "—"}</dd>
+                                    <dt>{translate("drama.studio.segmentDialog.previousCost")}</dt>
+                                    <dd>{segment.videoJob ? translate("drama.studio.segmentDialog.credits", { v0: String(formatCredits(segment.videoJob.costMicrocredits)) }) : "—"}</dd>
                                 </div>
                             </dl>
                             <DramaTakeList projectId={detail.episode.projectId} ownerId={segment.id} kind="video" />
@@ -269,26 +270,26 @@ function SegmentToolbar({
         ? segment.videoStatus === "queued" && segment.videoWait
             ? videoWaitLabel(segment.videoWait)
             : segment.request.firstFramePending
-              ? `排队中 · 等第 ${segment.index} 段`
-              : "视频生成中"
+              ? translate("drama.studio.segmentDialog.queuedWaitingForSegment", { v0: String(segment.index) })
+              : translate("drama.studio.segmentDialog.generatingVideo")
         : segment.videoResourceId && segment.videoStatus !== ""
-          ? "重新生成视频"
-          : "生成本段视频";
+          ? translate("drama.studio.segmentDialog.regenerateVideo")
+          : translate("drama.studio.segmentDialog.generateSegmentVideo");
     return (
-        <section className="drama-sdx-toolbar" aria-label="生成设置">
+        <section className="drama-sdx-toolbar" aria-label={translate("drama.studio.segmentDialog.generationSettings")}>
             <div className="drama-sdx-toolbar-row">
-                <DramaModelPicker capability="video" size="sm" value={choice} onChange={setChoice} placeholder="视频模型" className="drama-sdx-model" aspectRatio={aspectRatio} videoResolution={videoResolution} />
-                <Tooltip title={segment.request.maxVideoSeconds ? `按本段镜头时长生成；模型单次最长 ${segment.request.maxVideoSeconds} 秒` : "按本段镜头时长生成"}>
+                <DramaModelPicker capability="video" size="sm" value={choice} onChange={setChoice} placeholder={translate("drama.studio.segmentDialog.videoModel")} className="drama-sdx-model" aspectRatio={aspectRatio} videoResolution={videoResolution} />
+                <Tooltip title={segment.request.maxVideoSeconds ? translate("drama.studio.segmentDialog.usesThisSegmentSShotDurationModelLimitSecondsPer", { v0: String(segment.request.maxVideoSeconds) }) : translate("drama.studio.segmentDialog.usesThisSegmentSShotDuration")}>
                     <span className="drama-sdx-chip">{segment.request.seconds ? `${segment.request.seconds}s` : secondsLabel(segment.durationMs)}</span>
                 </Tooltip>
-                <Tooltip title="画幅随作品设置，开工后不能修改">
+                <Tooltip title={translate("drama.studio.segmentDialog.aspectRatioFollowsTheProductionSettingsAndCannotChangeAfter")}>
                     <span className="drama-sdx-chip">{aspectRatio}</span>
                 </Tooltip>
-                {changed ? <span className="drama-sdx-chip is-accent">本段换模型</span> : null}
+                {changed ? <span className="drama-sdx-chip is-accent">{translate("drama.studio.segmentDialog.changeSegmentModel")}</span> : null}
             </div>
             <div className="drama-sdx-toolbar-row">
                 <Button size="small" icon={<PenLine className="size-3.5" />} loading={writing} disabled={busy || writingNow} onClick={onWritePrompt}>
-                    {segment.promptStatus === "none" ? "撰写提示词" : "重新撰写提示词"}
+                    {segment.promptStatus === "none" ? translate("drama.studio.segmentDialog.writePrompt") : translate("drama.studio.segmentDialog.rewritePrompt")}
                 </Button>
                 <Button
                     size="small"
@@ -296,12 +297,12 @@ function SegmentToolbar({
                     disabled={!segment.videoPrompt}
                     onClick={() =>
                         void navigator.clipboard.writeText(sent).then(
-                            () => message.success("已复制发送全文"),
-                            () => message.error("复制失败"),
+                            () => message.success(translate("drama.studio.segmentDialog.fullSubmittedTextCopied")),
+                            () => message.error(translate("canvasB.common.copyFailed")),
                         )
                     }
                 >
-                    复制发送全文
+                    {translate("drama.studio.segmentDialog.copyFullSubmittedText")}
                 </Button>
                 <span className="drama-sdx-spacer" />
                 <Button
@@ -314,10 +315,10 @@ function SegmentToolbar({
                     {generateLabel}
                 </Button>
             </div>
-            {!promptReady(segment) && !running ? <p className="drama-sdx-hint">提示词就绪后才能生成视频</p> : null}
-            {changed && chosenAudioLimit !== undefined ? <p className="drama-sdx-hint">所选模型{chosenAudioLimit ? `最多支持 ${chosenAudioLimit} 个参考音色` : "不支持参考音色"}；参考面板的发送状态在模型应用后更新。</p> : null}
+            {!promptReady(segment) && !running ? <p className="drama-sdx-hint">{translate("drama.studio.segmentDialog.thePromptMustBeReadyBeforeGeneratingAVideo")}</p> : null}
+            {changed && chosenAudioLimit !== undefined ? <p className="drama-sdx-hint">{translate("drama.studio.segmentDialog.selectedModel")}{chosenAudioLimit ? translate("drama.studio.segmentDialog.supportsUpToReferenceVoices", { v0: String(chosenAudioLimit) }) : translate("drama.studio.segmentDialog.doesNotSupportReferenceVoices")}{translate("drama.studio.segmentDialog.referencePanelSubmissionStatusesUpdateAfterTheModelIsApplied")}</p> : null}
             {quoteMissing && !running ? <p className="drama-sdx-hint is-error">{SEGMENT_NO_QUOTE_HINT}</p> : null}
-            {segment.request.unknownReferences?.length ? <p className="drama-sdx-hint is-error">提示词里的 {segment.request.unknownReferences.join("、")} 不是本段的参考图，改正编号后才能生成视频</p> : null}
+            {segment.request.unknownReferences?.length ? <p className="drama-sdx-hint is-error">{translate("drama.studio.segmentDialog.inThePrompt")} {segment.request.unknownReferences.join("、")} {translate("drama.studio.segmentDialog.isNotAReferenceForThisSegmentCorrectTheNumber")}</p> : null}
         </section>
     );
 }
@@ -330,30 +331,30 @@ function SegmentReceipt({ segment }: { segment: DramaSegment }) {
     const references = request.references.length;
     const sent = request.references.filter((ref) => ref.sent).length;
     const first = segment.index === 0 && !request.firstFrameResourceId && !request.firstFramePending;
-    const promptText = segment.custom ? "已手动改写" : { none: "未撰写", queued: "排队撰写", running: "撰写中", ready: "已就绪", stale: "已过期，需要重新撰写", failed: "撰写失败" }[segment.promptStatus];
+    const promptText = segment.custom ? translate("drama.studio.segmentDialog.editedManually") : { none: translate("drama.studio.segmentDialog.notWritten"), queued: translate("drama.studio.segmentDialog.queuedForWriting2"), running: translate("drama.studio.segmentDialog.writing"), ready: translate("drama.studio.segmentDialog.ready"), stale: translate("drama.studio.segmentDialog.outdatedRewriteRequired"), failed: translate("drama.studio.segmentDialog.writingFailed") }[segment.promptStatus];
     // 读到视频模型能力时才有画面与声音参数（aspectRatio 与它们一起填写）。
     const outputRows: ReceiptRow[] = request.aspectRatio
         ? [
               {
                   tone: request.size || request.resolution ? "ok" : "warn",
-                  label: "画面",
-                  value: request.resolution ? `${request.aspectRatio}（按 ${request.resolution} 出片）` : request.size ? request.aspectRatio : `${request.aspectRatio}（所选模型给不出这个画幅）`,
+                  label: translate("drama.studio.segmentDialog.visuals"),
+                  value: request.resolution ? translate("drama.studio.segmentDialog.generatedAt", { v0: String(request.aspectRatio), v1: String(request.resolution) }) : request.size ? request.aspectRatio : translate("drama.studio.segmentDialog.unsupportedByTheSelectedModel", { v0: String(request.aspectRatio) }),
               },
-              { tone: request.generateAudio ? "ok" : "warn", label: "声音", value: request.generateAudio ? "模型同步生成对白与音效" : "所选模型不出声，本段视频没有对白与音效" },
+              { tone: request.generateAudio ? "ok" : "warn", label: translate("canvasA.characterStudio.tabVoice"), value: request.generateAudio ? translate("drama.studio.segmentDialog.theModelGeneratesDialogueAndSoundEffectsWithTheVideo") : translate("drama.studio.segmentDialog.theSelectedModelHasNoAudioOutputThisSegmentVideo") },
           ]
         : [];
     const rows: ReceiptRow[] = [
-        { tone: sent === references ? "ok" : "warn", label: "参考图实发", value: `${sent}/${references} 张${references > sent ? "（未附图的按文字设定生成）" : ""}` },
-        { tone: first || request.firstFrameResourceId ? "ok" : "warn", label: "首帧", value: first ? "开场段，无首帧" : request.firstFrameResourceId ? `第 ${segment.index} 段视频最后一帧` : `等第 ${segment.index} 段视频生成` },
-        { tone: "info", label: "生成方式", value: OPERATION_LABEL[request.operation] },
-        { tone: "info", label: "时长", value: `${request.seconds || Math.round(segment.durationMs / 1000)} 秒${request.maxVideoSeconds ? `（模型单次最长 ${request.maxVideoSeconds} 秒）` : ""}` },
+        { tone: sent === references ? "ok" : "warn", label: translate("drama.studio.segmentDialog.referencesSent"), value: translate("drama.studio.segmentDialog.images", { v0: String(sent), v1: String(references), v2: String(references > sent ? translate("drama.studio.segmentDialog.missingImagesUseTextDesigns") : "") }) },
+        { tone: first || request.firstFrameResourceId ? "ok" : "warn", label: translate("canvasC.videoPromptTools.startFrame"), value: first ? translate("drama.studio.segmentDialog.openingSegmentNoFirstFrame") : request.firstFrameResourceId ? translate("drama.studio.segmentDialog.lastFrameOfSegmentVideo", { v0: String(segment.index) }) : translate("drama.studio.segmentDialog.waitingForSegmentVideo", { v0: String(segment.index) }) },
+        { tone: "info", label: translate("drama.studio.segmentDialog.generationMethod"), value: OPERATION_LABEL[request.operation] },
+        { tone: "info", label: translate("canvasA.assetView.duration"), value: translate("drama.studio.segmentDialog.seconds", { v0: String(request.seconds || Math.round(segment.durationMs / 1000)), v1: String(request.maxVideoSeconds ? translate("drama.studio.segmentDialog.modelLimitSPerGeneration", { v0: String(request.maxVideoSeconds) }) : "") }) },
         ...outputRows,
-        { tone: "info", label: "视频模型", value: segment.videoModel?.label || "作品默认" },
-        { tone: promptReady(segment) ? "ok" : "warn", label: "提示词", value: promptText },
+        { tone: "info", label: translate("drama.studio.segmentDialog.videoModel"), value: segment.videoModel?.label || translate("drama.studio.segmentDialog.productionDefault") },
+        { tone: promptReady(segment) ? "ok" : "warn", label: translate("canvasA.assetView.prompt"), value: promptText },
     ];
     return (
-        <section className="drama-sdx-receipt" aria-label="生成依据回执">
-            <strong>生成依据回执</strong>
+        <section className="drama-sdx-receipt" aria-label={translate("drama.studio.segmentDialog.generationInputReceipt")}>
+            <strong>{translate("drama.studio.segmentDialog.generationInputReceipt")}</strong>
             <ul>
                 {rows.map((row) => (
                     <li key={row.label} className={`is-${row.tone}`}>
@@ -428,44 +429,44 @@ function ShotCard({
         [castById],
     );
     const rows: Array<[string, string]> = [
-        ["景别", [shot.shotSize, shot.camera ? `运镜 ${shot.camera}` : "", shot.transition && shot.transition !== "cut" && shot.position > 0 ? `转场 ${TRANSITION_LABEL[shot.transition]}` : ""].filter(Boolean).join(" · ")],
-        ["场景", shot.scene],
-        ["画面", shot.imagePrompt],
-        ["动作", shot.action],
-        ["运动", shot.videoPrompt],
-        ["对白", shot.dialogue ? `${shot.speaker || "旁白"}：${shot.dialogue}` : "无"],
+        [translate("drama.studio.segmentDialog.shotSize"), [shotVisualLabel(shot.shotSize), shot.camera ? translate("drama.studio.segmentDialog.camera", { v0: shotVisualLabel(shot.camera) }) : "", shot.transition && shot.transition !== "cut" && shot.position > 0 ? translate("drama.studio.segmentDialog.transition2", { v0: String(TRANSITION_LABEL[shot.transition]) }) : ""].filter(Boolean).join(" · ")],
+        [translate("drama.studio.segmentDialog.scene"), shot.scene],
+        [translate("drama.studio.segmentDialog.visuals"), shot.imagePrompt],
+        [translate("drama.studio.segmentDialog.motion"), shot.action],
+        [translate("drama.studio.segmentDialog.movement"), shot.videoPrompt],
+        [translate("drama.studio.segmentDialog.dialogue2"), shot.dialogue ? `${shot.speaker || translate("drama.studio.segmentDialog.narration")}：${shot.dialogue}` : translate("canvasB.common.none")],
     ];
     return (
         <li className={`drama-sdx-shot ${editing ? "is-editing" : ""}`}>
             <div className="drama-sdx-shot-head">
                 <b className="drama-sdx-shot-index">{number}</b>
-                <span className="drama-sdx-chip">{shot.dialogue ? "对话镜头" : "动作镜头"}</span>
+                <span className="drama-sdx-chip">{shot.dialogue ? translate("drama.studio.segmentDialog.dialogueShot") : translate("drama.studio.segmentDialog.actionShot")}</span>
                 <span className="drama-sdx-shot-time">
                     {secondsLabel(startMs)}–{secondsLabel(startMs + shot.durationMs)}
                 </span>
                 <span className="drama-sdx-shot-duration">{secondsLabel(shot.durationMs)}</span>
                 <span className="drama-sdx-spacer" />
                 {onInsert ? (
-                    <Tooltip title="在后面插入空镜头">
+                    <Tooltip title={translate("drama.studio.segmentDialog.insertEmptyShotAfter")}>
                         <Button size="small" icon={<Plus className="size-3.5" />} disabled={busy} onClick={() => onInsert("after")}>
-                            镜
+                            {translate("drama.studio.segmentDialog.shots")}
                         </Button>
                     </Tooltip>
                 ) : null}
                 {onDelete ? (
-                    <Tooltip title={deletable ? "删除镜头" : "剧情段唯一的镜头不能删"}>
+                    <Tooltip title={deletable ? translate("drama.studio.segmentDialog.deleteShot") : translate("drama.studio.segmentDialog.theSegmentSOnlyShotCannotBeDeleted")}>
                         <Button
                             size="small"
                             icon={<Trash2 className="size-3.5" />}
-                            aria-label="删除镜头"
+                            aria-label={translate("drama.studio.segmentDialog.deleteShot")}
                             disabled={busy || !deletable}
                             onClick={() =>
                                 modal.confirm({
-                                    title: `删除镜头 ${number}？`,
-                                    content: "删除后本段提示词与视频需要重新生成。",
-                                    okText: "删除",
+                                    title: translate("drama.studio.segmentDialog.deleteShot2", { v0: String(number) }),
+                                    content: translate("drama.studio.segmentDialog.theSegmentSPromptAndVideoWillNeedRegenerationAfter"),
+                                    okText: translate("common.delete"),
                                     okButtonProps: { danger: true },
-                                    cancelText: "取消",
+                                    cancelText: translate("common.cancel"),
                                     centered: true,
                                     onOk: onDelete,
                                 })
@@ -474,7 +475,7 @@ function ShotCard({
                     </Tooltip>
                 ) : null}
                 <Button size="small" type={editing ? "primary" : "default"} icon={<Pencil className="size-3.5" />} aria-pressed={editing} onClick={onEdit}>
-                    {editing ? "完成" : "编辑"}
+                    {editing ? translate("account.payment.done") : translate("account.settings.channels.edit")}
                 </Button>
             </div>
             {editing ? (
@@ -537,7 +538,7 @@ function SegmentPrompt({ segment, castById, writing, onSave, onWrite }: { segmen
                     nodeId: "",
                     kind: "image",
                     label: ref.label,
-                    title: `${ref.name} · ${CAST_KIND_LABEL[ref.kind]}${ref.sent ? "" : "（未附图）"}`,
+                    title: `${ref.name} · ${CAST_KIND_LABEL[ref.kind]}${ref.sent ? "" : translate("drama.studio.segmentDialog.imageNotAttached")}`,
                     storageKey: resourceId ? `resource:${resourceId}` : undefined,
                     mentionToken: ref.label,
                     active: true,
@@ -560,31 +561,31 @@ function SegmentPrompt({ segment, castById, writing, onSave, onWrite }: { segmen
         onSave(next === segment.generated.trim() ? "" : next);
     };
     return (
-        <section className="drama-sdx-section drama-sdx-prompt" aria-label="完整视频提示词">
+        <section className="drama-sdx-section drama-sdx-prompt" aria-label={translate("drama.studio.segmentDialog.fullVideoPrompt")}>
             <div className="drama-sdx-section-head">
-                <strong>完整视频提示词</strong>
-                {segment.custom ? <span className="drama-sdx-chip is-accent">已手动改写</span> : null}
-                <small>正文里的“参考图N”对应本段参考图；输入 @ 插入参考图，双击引用放大查看</small>
+                <strong>{translate("drama.studio.segmentDialog.fullVideoPrompt")}</strong>
+                {segment.custom ? <span className="drama-sdx-chip is-accent">{translate("drama.studio.segmentDialog.editedManually")}</span> : null}
+                <small>{translate("drama.studio.segmentDialog.nInTheTextRefersToThisSegmentSReferences")}</small>
                 {segment.custom ? (
                     <Button size="small" type="text" icon={<RotateCcw className="size-3.5" />} onClick={() => onSave("")}>
-                        恢复模型版本
+                        {translate("drama.studio.segmentDialog.restoreModelVersion")}
                     </Button>
                 ) : null}
             </div>
             {notice && segment.videoPrompt ? <PromptNotice segment={segment} text={notice} /> : null}
             {request.header ? (
-                <div className="drama-sdx-prefix" aria-label="提交时加在开头的参考图说明">
+                <div className="drama-sdx-prefix" aria-label={translate("drama.studio.segmentDialog.referenceInstructionsPrependedOnSubmission")}>
                     <div className="drama-sdx-prefix-head">
-                        <span>提交时自动加在开头</span>
+                        <span>{translate("drama.studio.segmentDialog.prependedAutomaticallyOnSubmission")}</span>
                         <button type="button" className="drama-sdx-link" aria-expanded={showHeader} onClick={() => setShowHeader((value) => !value)}>
-                            {showHeader ? "收起原文" : "查看原文"}
+                            {showHeader ? translate("drama.studio.segmentDialog.hideSource") : translate("drama.studio.segmentDialog.viewSourceText")}
                         </button>
                     </div>
                     <div className="drama-sdx-prefix-refs">
-                        {segment.index > 0 ? <span className="drama-sdx-prefix-ref is-frame">首帧 · 上一段最后一帧（不占编号）</span> : null}
+                        {segment.index > 0 ? <span className="drama-sdx-prefix-ref is-frame">{translate("drama.studio.segmentDialog.firstFrameLastFrameOfPreviousSegmentNotNumbered")}</span> : null}
                         {request.references.map((ref, index) => {
                             const resourceId = ref.resourceId || castById.get(ref.castId)?.imageResourceId;
-                            const caption = ref.sent ? `${ref.label}：${ref.name}` : `${ref.label}（${ref.name}）未附图，按文字设定生成`;
+                            const caption = ref.sent ? `${ref.label}：${ref.name}` : translate("drama.studio.segmentDialog.imageNotAttachedGeneratedFromTextDesign", { v0: String(ref.label), v1: String(ref.name) });
                             const chip = (
                                 <span
                                     key={ref.castId || ref.resourceId}
@@ -627,7 +628,7 @@ function SegmentPrompt({ segment, castById, writing, onSave, onWrite }: { segmen
                         {segment.promptStatus === "failed" && segment.promptError ? `：${segment.promptError}` : ""}
                     </span>
                     <Button size="small" type="primary" icon={<PenLine className="size-3.5" />} loading={writing} onClick={onWrite}>
-                        {segment.promptStatus === "none" ? "让模型撰写" : "重新撰写"}
+                        {segment.promptStatus === "none" ? translate("drama.studio.segmentDialog.writeWithModel") : translate("drama.studio.segmentDialog.rewrite")}
                     </Button>
                 </div>
             ) : null}
@@ -642,11 +643,11 @@ function SegmentPrompt({ segment, castById, writing, onSave, onWrite }: { segmen
                         onSubmit={commit}
                         sendOnEnter={false}
                         onContentSizeChange={setEditorHeight}
-                        mentionMenuLabels={{ connected: "本段参考图" }}
+                        mentionMenuLabels={{ connected: translate("drama.studio.segmentDialog.segmentReferenceImages") }}
                         className="drama-sdx-editor-input thin-scrollbar"
                         style={{ color: "var(--foreground)" }}
-                        aria-label="完整视频提示词"
-                        placeholder="也可以直接在这里手写本段完整视频提示词；输入 @ 引用参考图，失焦保存。开头的参考图说明由系统自动追加。"
+                        aria-label={translate("drama.studio.segmentDialog.fullVideoPrompt")}
+                        placeholder={translate("drama.studio.segmentDialog.youCanAlsoWriteTheFullSegmentVideoPromptHere")}
                         onBlur={commit}
                         onKeyDown={(event) => {
                             if (event.key === "Escape" && dirty) {
@@ -660,27 +661,27 @@ function SegmentPrompt({ segment, castById, writing, onSave, onWrite }: { segmen
                 <div className="drama-sd-empty">
                     <Loader2 className="size-5 animate-spin" aria-hidden />
                     <span>{notice}</span>
-                    <small>写好后自动显示</small>
+                    <small>{translate("drama.studio.segmentDialog.appearsAutomaticallyWhenReady")}</small>
                 </div>
             )}
             {usage.unknown.length ? (
                 <p className="drama-sg-note is-error" role="alert">
-                    正文里的 {usage.unknown.join("、")} 不是本段的参考图（本段共 {request.references.length} 张），生成视频前请改成正确的编号或用 @ 重新插入。
+                    {translate("drama.sentences.unknownSegmentReference", { references: usage.unknown.join(", "), count: request.references.length })}
                 </p>
             ) : draft && unmentioned.length ? (
-                <p className="drama-sg-note">正文还没有引用 {unmentioned.map((ref) => `${ref.label}（${ref.name}）`).join("、")}；参考图仍会随请求发送，在正文里写明谁是谁，视频模型才不会认错。</p>
+                <p className="drama-sg-note">{translate("drama.sentences.unmentionedReferences", { references: unmentioned.map((ref) => `${ref.label} (${ref.name})`).join(", ") })}</p>
             ) : null}
             {overLimit ? (
                 <p className="drama-sg-note is-error" role="alert">
-                    连同开头的参考图说明共 {sentChars} 个字符，超过视频模型上限 {request.promptMaxChars} 个字符。
-                    {segment.custom ? "手动改写的版本需要精简后才能生成视频。" : "生成视频时会按上限自动重新撰写，不会截断。"}
+                    {translate("drama.sentences.segmentCharacterLimit", { count: sentChars, limit: request.promptMaxChars })}
+                    {segment.custom ? translate("drama.studio.segmentDialog.shortenTheManuallyEditedPromptBeforeGeneratingAVideo") : translate("drama.studio.segmentDialog.thePromptWillBeRewrittenToFitTheLimitBefore")}
                 </p>
             ) : null}
             <div className="drama-sd-pane-foot">
-                {dirty ? <span className="is-dirty">未保存 · 失焦或 ⌘↵ 保存，Esc 放弃</span> : <span>直接修改正文，失焦自动保存</span>}
-                <span className={overLimit ? "is-over" : undefined} title="与视频模型校验口径一致：开头的参考图说明 + 正文">
-                    发送全文 {sentChars}
-                    {request.promptMaxChars ? ` / ${request.promptMaxChars}` : ""} 字
+                {dirty ? <span className="is-dirty">{translate("drama.studio.segmentDialog.unsavedLeaveTheFieldOrPressToSaveEscTo")}</span> : <span>{translate("drama.studio.segmentDialog.editTheTextDirectlyChangesSaveWhenFocusLeavesThe")}</span>}
+                <span className={overLimit ? "is-over" : undefined} title={translate("drama.studio.segmentDialog.usesTheVideoModelSValidationRuleReferenceInstructionsPrompt")}>
+                    {translate("drama.studio.segmentDialog.fullSubmittedText")} {sentChars}
+                    {request.promptMaxChars ? ` / ${request.promptMaxChars}` : ""} {translate("drama.studio.segmentDialog.characters2")}
                 </span>
             </div>
         </section>
@@ -704,17 +705,17 @@ function PromptNotice({ segment, text }: { segment: DramaSegment; text: ReactNod
 export function ShotEditor({ shot, onPatch }: { shot: DramaShot; onPatch: (patch: DramaShotPatch) => void }) {
     return (
         <div className="drama-sd-form">
-            <FieldText label="台词" value={shot.dialogue} placeholder="无台词" onSave={(value) => onPatch({ dialogue: value })} />
+            <FieldText label={translate("drama.studio.segmentDialog.dialogue")} value={shot.dialogue} placeholder={translate("drama.studio.segmentDialog.noDialogue")} onSave={(value) => onPatch({ dialogue: value })} />
             <div className="drama-sd-row">
                 <label className="drama-sd-field">
                     <span className="drama-sd-label">
-                        <span>说话人</span>
+                        <span>{translate("drama.studio.segmentDialog.speaker")}</span>
                     </span>
                     <Input
                         defaultValue={shot.speaker}
                         key={`${shot.id}-speaker-${shot.speaker}`}
-                        placeholder="旁白"
-                        aria-label="说话人"
+                        placeholder={translate("drama.studio.segmentDialog.narration")}
+                        aria-label={translate("drama.studio.segmentDialog.speaker")}
                         onBlur={(event) => {
                             if (event.target.value.trim() !== shot.speaker) onPatch({ speaker: event.target.value });
                         }}
@@ -722,7 +723,7 @@ export function ShotEditor({ shot, onPatch }: { shot: DramaShot; onPatch: (patch
                 </label>
                 <label className="drama-sd-field">
                     <span className="drama-sd-label">
-                        <span>时长</span>
+                        <span>{translate("canvasA.assetView.duration")}</span>
                     </span>
                     <InputNumber
                         key={`${shot.id}-${shot.durationMs}`}
@@ -732,8 +733,8 @@ export function ShotEditor({ shot, onPatch }: { shot: DramaShot; onPatch: (patch
                         step={0.5}
                         precision={1}
                         defaultValue={shot.durationMs / 1000}
-                        suffix="秒"
-                        aria-label="镜头时长"
+                        suffix={translate("account.settings.models.unitSecond")}
+                        aria-label={translate("drama.studio.segmentDialog.shotDuration")}
                         onBlur={(event) => {
                             const seconds = Number(event.target.value);
                             if (Number.isFinite(seconds) && Math.abs(seconds * 1000 - shot.durationMs) >= 50) onPatch({ durationSeconds: seconds });
@@ -745,36 +746,36 @@ export function ShotEditor({ shot, onPatch }: { shot: DramaShot; onPatch: (patch
             <div className="drama-sd-row is-three">
                 <label className="drama-sd-field">
                     <span className="drama-sd-label">
-                        <span>景别</span>
+                        <span>{translate("drama.studio.segmentDialog.shotSize")}</span>
                     </span>
-                    <Select className="w-full" value={shot.shotSize || undefined} placeholder="自动" aria-label="景别" options={SHOT_SIZES.map((value) => ({ value, label: value }))} onChange={(value) => onPatch({ shotSize: value })} />
+                    <Select className="w-full" value={shot.shotSize || undefined} placeholder={translate("account.layout.oss.auto")} aria-label={translate("drama.studio.segmentDialog.shotSize")} options={SHOT_SIZES.map((value) => ({ value, label: shotVisualLabel(value) }))} onChange={(value) => onPatch({ shotSize: value })} />
                 </label>
                 <label className="drama-sd-field">
                     <span className="drama-sd-label">
-                        <span>运镜</span>
+                        <span>{translate("canvasA.toolPicker.motion.short")}</span>
                     </span>
-                    <Select className="w-full" value={shot.camera || undefined} placeholder="自动" aria-label="运镜" options={CAMERAS.map((value) => ({ value, label: value }))} onChange={(value) => onPatch({ camera: value })} />
+                    <Select className="w-full" value={shot.camera || undefined} placeholder={translate("account.layout.oss.auto")} aria-label={translate("canvasA.toolPicker.motion.short")} options={CAMERAS.map((value) => ({ value, label: shotVisualLabel(value) }))} onChange={(value) => onPatch({ camera: value })} />
                 </label>
                 <label className="drama-sd-field">
                     <span className="drama-sd-label">
-                        <span>转场</span>
+                        <span>{translate("drama.studio.segmentDialog.transition")}</span>
                     </span>
                     <Select
                         className="w-full"
                         value={(shot.transition || "cut") as DramaTransition}
-                        aria-label="转场"
+                        aria-label={translate("drama.studio.segmentDialog.transition")}
                         options={(Object.keys(TRANSITION_LABEL) as DramaTransition[]).map((value) => ({ value, label: TRANSITION_LABEL[value] }))}
                         disabled={shot.position === 0}
                         onChange={(value) => onPatch({ transition: value })}
                     />
                 </label>
             </div>
-            <FieldText label="动作" value={shot.action} rows={2} onSave={(value) => onPatch({ action: value })} />
-            <FieldText label="起幅画面" value={shot.imagePrompt} rows={2} onSave={(value) => onPatch({ imagePrompt: value })} />
+            <FieldText label={translate("drama.studio.segmentDialog.motion")} value={shot.action} rows={2} onSave={(value) => onPatch({ action: value })} />
+            <FieldText label={translate("drama.studio.segmentDialog.openingFrame")} value={shot.imagePrompt} rows={2} onSave={(value) => onPatch({ imagePrompt: value })} />
             {shot.sourceQuote ? (
                 <div className="drama-sd-quote">
                     <span className="drama-sd-label">
-                        <span>原文</span>
+                        <span>{translate("drama.studio.segmentDialog.sourceText")}</span>
                     </span>
                     <p>「{shot.sourceQuote}」</p>
                 </div>
@@ -790,7 +791,7 @@ function FieldText({ label, value, placeholder, rows = 1, onSave }: { label: str
         <label className="drama-sd-field">
             <span className="drama-sd-label">
                 <span>{label}</span>
-                {draft !== value ? <small className="is-dirty">未保存</small> : null}
+                {draft !== value ? <small className="is-dirty">{translate("account.settings.prompts.unsaved")}</small> : null}
             </span>
             <Input.TextArea
                 value={draft}

@@ -2,10 +2,11 @@ import { Check, LoaderCircle } from "lucide-react";
 import type { CommerceFlowStep } from "./flow";
 
 /** 作品区顶部的流程进度：每一步一个圆点，当前步写明正在做什么、下一步做什么。 */
+import { translate } from "@/i18n";
 export function CommerceFlowSteps({ steps }: { steps: CommerceFlowStep[] }) {
     const current = steps.find((step) => step.status === "current");
     return (
-        <nav className="commerce-flow" aria-label="创作流程">
+        <nav className="commerce-flow" aria-label={translate("ecommerce.flowSteps.creativeWorkflow")}>
             <ol>
                 {steps.map((step, index) => (
                     <li key={step.key} className={`commerce-flow-step is-${step.status}`} aria-current={step.status === "current" ? "step" : undefined}>

@@ -1,4 +1,6 @@
 import type { CanvasResourceReference } from "@/lib/canvas/canvas-resource-references";
+import { translate } from "@/i18n";
+
 
 export type AgentCanvasAction = { nodeId: string; title: string; nodeType: string; action: string; fields?: string[]; resultTitle?: string; targetNodeId?: string; targetTitle?: string; targetNodeType?: string };
 
@@ -67,14 +69,14 @@ export function agentCanvasActions(toolName: string, detail: unknown, references
 }
 
 export function agentCanvasActionLabel(action: AgentCanvasAction) {
-    const kind = ({ image: "图片", video: "视频", audio: "音频", text: "文本", markdown: "Markdown", script: "分镜", character: "角色卡" } as Record<string, string>)[action.nodeType] || "";
+    const kind = ({ image: translate("account.feedback.image"), video: translate("account.feedback.video"), audio: translate("account.settings.modelConfig.capabilities.audio"), text: translate("account.settings.modelConfig.capabilities.text"), markdown: "Markdown", script: translate("account.welcome.chapters.shots.label"), character: translate("canvasA.characterNode.card") } as Record<string, string>)[action.nodeType] || "";
     if (action.action === "referenced" && action.targetTitle) {
-        const targetKind = ({ image: "图片", video: "视频", audio: "音频", text: "文本", markdown: "Markdown", script: "分镜", character: "角色卡" } as Record<string, string>)[action.targetNodeType || ""] || "";
-        return `建立引用：${kind}节点《${action.title}》 → ${targetKind}节点《${action.targetTitle}》`;
+        const targetKind = ({ image: translate("account.feedback.image"), video: translate("account.feedback.video"), audio: translate("account.settings.modelConfig.capabilities.audio"), text: translate("account.settings.modelConfig.capabilities.text"), markdown: "Markdown", script: translate("account.welcome.chapters.shots.label"), character: translate("canvasA.characterNode.card") } as Record<string, string>)[action.targetNodeType || ""] || "";
+        return translate("shared.canvas.agentCanvasActions.createReferenceNodeNode", { v0: String(kind), v1: String(action.title), v2: String(targetKind), v3: String(action.targetTitle) });
     }
     // read 的动词必须是"存在式"：canvas_get_state 只读到清单，说成"读取了图片节点"会被读成看过画面。
-    const verb = ({ created: "创建了", updated: "更新了", referenced: "引用了", read: "画布上有", viewed: "查看了", reused: "复用观察：", generating: "已提交生成：", generated: "已生成", failed: "生成未完成：" } as Record<string, string>)[action.action] || "定位";
-    const fieldText = action.fields?.length ? `（修改：${action.fields.join("、")}）` : "";
-    const titleText = action.resultTitle ? `，名称改为《${action.resultTitle}》` : "";
-    return `${verb}${kind}节点《${action.title}》${fieldText}${titleText}`;
+    const verb = ({ created: translate("shared.canvas.agentCanvasActions.created"), updated: translate("shared.canvas.agentCanvasActions.updated"), referenced: translate("shared.canvas.agentCanvasActions.referenced"), read: translate("shared.canvas.agentCanvasActions.canvasContains"), viewed: translate("shared.canvas.agentCanvasActions.viewed"), reused: translate("shared.canvas.agentCanvasActions.reusedObservation"), generating: translate("shared.canvas.agentCanvasActions.generationSubmitted"), generated: translate("shared.canvas.agentCanvasActions.generated"), failed: translate("shared.canvas.agentCanvasActions.generationIncomplete") } as Record<string, string>)[action.action] || translate("shared.canvas.agentCanvasActions.locate");
+    const fieldText = action.fields?.length ? translate("shared.canvas.agentCanvasActions.changes", { v0: String(action.fields.join("、")) }) : "";
+    const titleText = action.resultTitle ? translate("shared.canvas.agentCanvasActions.renamedTo", { v0: String(action.resultTitle) }) : "";
+    return translate("shared.canvas.agentCanvasActions.node", { v0: String(verb), v1: String(kind), v2: String(action.title), v3: String(fieldText), v4: String(titleText) });
 }

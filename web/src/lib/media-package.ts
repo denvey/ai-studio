@@ -2,6 +2,8 @@ import { createZip } from "@/lib/zip";
 import { getImageBlob } from "@/services/image-storage";
 import { getMediaBlob } from "@/services/file-storage";
 import type { CanvasExportAsset } from "@/types/canvas-export";
+import { translate } from "@/i18n";
+
 
 /** UTF-8 percent encoding keeps distinct storage IDs distinct inside an archive. */
 export function packageSegment(value: string): string {
@@ -15,7 +17,7 @@ export class MediaPackage {
     private readonly entries = new Map<string, BlobPart>();
 
     put(path: string, data: BlobPart): void {
-        if (this.entries.has(path)) throw new Error(`导出文件路径重复：${path}`);
+        if (this.entries.has(path)) throw new Error(translate("shared.mediaPackage.duplicateExportFilePath", { v0: String(path) }));
         this.entries.set(path, data);
     }
 

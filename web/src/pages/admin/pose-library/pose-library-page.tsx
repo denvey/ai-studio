@@ -31,12 +31,14 @@ import { AdminSearchInput } from "../components/admin-search-input";
 import { AdminDataTable, AdminRowActions, AdminStatTile, AdminStatusBadge, AdminTableEmpty, PaginationBar } from "../components/admin-ui";
 import { AdminModal } from "../ui/overlays";
 import { AdminCheckbox, AdminSwitch, Callout } from "../ui/controls";
+import { translate } from "@/i18n";
+
 
 const SYNC_BATCH = 12;
 const statusLabels: Record<AdminPoseLibraryItem["status"], { label: string; tone: "success" | "warning" | "error" }> = {
-    ready: { label: "已同步", tone: "success" },
-    pending: { label: "待同步", tone: "warning" },
-    failed: { label: "同步失败", tone: "error" },
+    ready: { label: translate("canvasPage.syncStatus.synced"), tone: "success" },
+    pending: { label: translate("adminPages.poseLibrary.poseLibraryPage.pendingSync"), tone: "warning" },
+    failed: { label: translate("adminPages.poseLibrary.poseLibraryPage.syncFailed"), tone: "error" },
 };
 
 type SyncProgress = { running: boolean; succeeded: number; failed: number; lastError?: string };
@@ -47,9 +49,9 @@ export function PoseLibrarySystems({ systems, sourceName, onBulk }: { systems: A
         <section className="rounded-[var(--card-radius)] bg-[var(--library-surface)] p-4">
             <details className="pose-library-systems">
                 <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
-                    <span>按体系管理</span>
+                    <span>{translate("adminPages.poseLibrary.poseLibraryPage.manageByCollection")}</span>
                     <span className="text-xs font-normal text-[var(--text-secondary)]">
-                        {systems.length} 个体系 · 共 {systems.reduce((sum, item) => sum + item.total, 0)} 条 · 已启用 {systems.reduce((sum, item) => sum + item.enabled, 0)} 条
+                        {systems.length} {translate("adminPages.poseLibrary.poseLibraryPage.collectionsTotal")} {systems.reduce((sum, item) => sum + item.total, 0)} {translate("adminPages.poseLibrary.poseLibraryPage.itemsEnabled")} {systems.reduce((sum, item) => sum + item.enabled, 0)} {translate("account.layout.pagination.item")}
                     </span>
                 </summary>
                 <div className="mt-2 max-h-60 overflow-y-auto pr-1">
@@ -61,27 +63,27 @@ export function PoseLibrarySystems({ systems, sourceName, onBulk }: { systems: A
                                         {item.system}
                                         {isAdultPoseSystem(item.system) ? (
                                             <span className="ml-2">
-                                                <AdminStatusBadge label="成人向" tone="warning" />
+                                                <AdminStatusBadge label={translate("adminPages.poseLibrary.poseLibraryPage.adultOriented")} tone="warning" />
                                             </span>
                                         ) : null}
                                     </div>
                                     <div className="text-xs text-[var(--text-secondary)]">
-                                        {sourceName.get(item.sourceKey) || item.sourceKey} · 共 {item.total} · 已同步 {item.ready} · 启用 {item.enabled}
+                                        {sourceName.get(item.sourceKey) || item.sourceKey} {translate("adminPages.poseLibrary.poseLibraryPage.total")} {item.total} {translate("adminPages.poseLibrary.poseLibraryPage.synced")} {item.ready} {translate("adminPages.poseLibrary.poseLibraryPage.enabled")} {item.enabled}
                                     </div>
                                 </div>
                                 <Button size="small" disabled={item.enabled === item.total} onClick={() => onBulk("enable", item)}>
-                                    全部启用
+                                    {translate("adminPages.poseLibrary.poseLibraryPage.enableAll")}
                                 </Button>
                                 <Button size="small" disabled={item.enabled === 0} onClick={() => onBulk("disable", item)}>
-                                    全部停用
+                                    {translate("adminPages.poseLibrary.poseLibraryPage.disableAll")}
                                 </Button>
                                 {item.sourceKey !== "custom" ? (
-                                    <Button size="small" title="数据目录丢失或来源图片更新后，放回待同步再点「同步图片」" onClick={() => onBulk("resync", item)}>
-                                        重新同步
+                                    <Button size="small" title={translate("adminPages.poseLibrary.poseLibraryPage.ifTheDataDirectoryIsLostOrSourceImagesChange")} onClick={() => onBulk("resync", item)}>
+                                        {translate("adminPages.poseLibrary.poseLibraryPage.resync")}
                                     </Button>
                                 ) : null}
                                 <Button size="small" danger onClick={() => onBulk("delete", item)}>
-                                    删除
+                                    {translate("common.delete")}
                                 </Button>
                             </div>
                         ))}
@@ -138,9 +140,9 @@ export default function PoseLibraryAdminPage() {
                 setSync({ ...progress });
                 if (result.processed === 0 || result.stats.pending === 0) break;
             }
-            message.success(`同步完成：成功 ${progress.succeeded} 张${progress.failed ? `，失败 ${progress.failed} 张` : ""}`);
+            message.success(translate("adminPages.poseLibrary.poseLibraryPage.syncCompleteSucceeded", { v0: String(progress.succeeded), v1: String(progress.failed ? translate("adminPages.poseLibrary.poseLibraryPage.failed2", { v0: String(progress.failed) }) : "") }));
         } catch (error) {
-            if (!controller.signal.aborted) message.error(error instanceof Error ? error.message : "图片同步失败");
+            if (!controller.signal.aborted) message.error(error instanceof Error ? error.message : translate("adminPages.poseLibrary.poseLibraryPage.imageSyncFailed"));
         } finally {
             syncAbortRef.current = null;
             setSync({ ...progress, running: false });
@@ -149,23 +151,23 @@ export default function PoseLibraryAdminPage() {
     };
 
     const runBulk = (action: PoseLibraryBulkAction, target: AdminPoseLibrarySystem) => {
-        const verb = { enable: "启用", disable: "停用", delete: "删除", resync: "放回待同步" }[action];
+        const verb = { enable: translate("adminPages.poseLibrary.poseLibraryPage.enable"), disable: translate("adminPages.poseLibrary.poseLibraryPage.disable"), delete: translate("common.delete"), resync: translate("adminPages.poseLibrary.poseLibraryPage.markAsPendingSync") }[action];
         const execute = async () => {
             try {
                 const result = await bulkPoseLibraryItems({ action, sourceKey: target.sourceKey, system: target.system });
-                message.success(`已${verb} ${result.affected} 条`);
+                message.success(translate("adminPages.poseLibrary.poseLibraryPage.items", { v0: String(verb), v1: String(result.affected) }));
                 reload();
             } catch (error) {
-                message.error(error instanceof Error ? error.message : `批量${verb}失败`);
+                message.error(error instanceof Error ? error.message : translate("adminPages.poseLibrary.poseLibraryPage.bulkFailed", { v0: String(verb) }));
             }
         };
         if (action !== "delete") return void execute();
         modal.confirm({
-            title: `删除「${target.system}」的 ${target.total} 条姿势？`,
-            content: "会同时删除本站已同步的图片文件；用户已插入画布的姿势图是各自的副本，不受影响。需要时可重新导入。",
-            okText: "确认删除",
+            title: translate("adminPages.poseLibrary.poseLibraryPage.deletePosesIn", { v0: String(target.system), v1: String(target.total) }),
+            content: translate("adminPages.poseLibrary.poseLibraryPage.syncedImageFilesOnThisSiteWillAlsoBeDeleted"),
+            okText: translate("account.ui.delete.confirm"),
             okButtonProps: { danger: true },
-            cancelText: "取消",
+            cancelText: translate("common.cancel"),
             onOk: execute,
         });
     };
@@ -175,23 +177,23 @@ export default function PoseLibraryAdminPage() {
             await updatePoseLibraryItem(item.id, { enabled });
             reload();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "更新失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.poseLibrary.poseLibraryPage.updateFailed"));
         }
     };
 
     const remove = async (item: AdminPoseLibraryItem) => {
         try {
             await deletePoseLibraryItem(item.id);
-            message.success("姿势已删除");
+            message.success(translate("adminPages.poseLibrary.poseLibraryPage.poseDeleted"));
             reload();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "删除失败");
+            message.error(error instanceof Error ? error.message : translate("library.picker.deleteFailed"));
         }
     };
 
     const columns: ColumnsType<AdminPoseLibraryItem> = [
         {
-            title: "图片",
+            title: translate("account.feedback.image"),
             width: 76,
             render: (_, item) =>
                 item.status === "ready" ? (
@@ -201,7 +203,7 @@ export default function PoseLibraryAdminPage() {
                 ),
         },
         {
-            title: "姿势",
+            title: translate("adminPages.poseLibrary.poseLibraryPage.pose"),
             render: (_, item) => (
                 <div className="min-w-0">
                     <div className="truncate font-medium">
@@ -214,28 +216,28 @@ export default function PoseLibraryAdminPage() {
                 </div>
             ),
         },
-        { title: "视角", dataIndex: "angle", width: 80, align: "center" },
+        { title: translate("adminPages.poseLibrary.poseLibraryPage.view"), dataIndex: "angle", width: 80, align: "center" },
         {
-            title: "同步",
+            title: translate("adminPages.poseLibrary.poseLibraryPage.sync"),
             width: 110,
             align: "center",
             render: (_, item) => <AdminStatusBadge label={statusLabels[item.status]?.label || item.status} tone={statusLabels[item.status]?.tone} title={item.error || undefined} />,
         },
-        { title: "启用", width: 80, align: "center", render: (_, item) => <AdminSwitch size="sm" checked={item.enabled} aria-label={`启用 ${item.name}`} onChange={(checked) => void toggleEnabled(item, checked)} /> },
+        { title: translate("adminPages.poseLibrary.poseLibraryPage.enable"), width: 80, align: "center", render: (_, item) => <AdminSwitch size="sm" checked={item.enabled} aria-label={translate("adminPages.poseLibrary.poseLibraryPage.enable2", { v0: String(item.name) })} onChange={(checked) => void toggleEnabled(item, checked)} /> },
         {
-            title: "操作",
+            title: translate("account.settings.runninghub.actions"),
             width: 170,
             align: "center",
             render: (_, item) => (
                 <AdminRowActions
-                    primary={{ label: "编辑", icon: <Pencil className="size-3.5" />, onClick: () => setEditing(item) }}
+                    primary={{ label: translate("account.settings.channels.edit"), icon: <Pencil className="size-3.5" />, onClick: () => setEditing(item) }}
                     actions={[
                         {
                             key: "delete",
-                            label: "删除",
+                            label: translate("common.delete"),
                             icon: <Trash2 className="size-3.5" />,
                             danger: true,
-                            confirm: { title: `删除「${item.name}（${item.angle}）」？`, description: "本站保存的图片一并删除，用户画布里已插入的副本不受影响。", okText: "确认删除" },
+                            confirm: { title: translate("adminPages.poseLibrary.poseLibraryPage.delete", { v0: String(item.name), v1: String(item.angle) }), description: translate("adminPages.poseLibrary.poseLibraryPage.imagesSavedOnThisSiteWillAlsoBeDeletedCopies"), okText: translate("account.ui.delete.confirm") },
                             onClick: () => remove(item),
                         },
                     ]}
@@ -247,48 +249,48 @@ export default function PoseLibraryAdminPage() {
     const readyPercent = stats?.total ? Math.round((stats.ready / stats.total) * 100) : 0;
     return (
         <AdminPageFrame
-            title="姿势库"
-            description="画布「姿势库」的数据来源。代码仓库不带任何姿势图片：站长导入元数据后，把图片同步到本站数据目录。"
+            title={translate("adminPages.poseLibrary.poseLibraryPage.poseLibrary")}
+            description={translate("adminPages.poseLibrary.poseLibraryPage.theSourceOfTheCanvasPoseLibraryTheRepositoryIncludes")}
             actions={
                 <div className="flex flex-wrap gap-2">
                     <Button icon={<RefreshCw className="size-4" />} loading={query.isFetching && !sync?.running} onClick={reload}>
-                        刷新
+                        {translate("common.refresh")}
                     </Button>
                     <Button icon={<Plus className="size-4" />} onClick={() => setCreateOpen(true)}>
-                        新增姿势
+                        {translate("adminPages.poseLibrary.poseLibraryPage.addPose")}
                     </Button>
                     <Button type="primary" icon={<FileJson className="size-4" />} onClick={() => setImportOpen(true)}>
-                        导入数据
+                        {translate("adminPages.poseLibrary.poseLibraryPage.importData")}
                     </Button>
                 </div>
             }
         >
             <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <AdminStatTile label="姿势图总数" value={stats?.total ?? "—"} detail={stats?.disabled ? `${stats.disabled} 张已停用` : undefined} />
-                <AdminStatTile label="已同步" value={stats?.ready ?? "—"} detail={stats?.total ? `${readyPercent}%` : undefined} />
-                <AdminStatTile label="待同步" value={stats?.pending ?? "—"} />
-                <AdminStatTile label="同步失败" value={stats?.failed ?? "—"} />
+                <AdminStatTile label={translate("adminPages.poseLibrary.poseLibraryPage.totalPoseImages")} value={stats?.total ?? "—"} detail={stats?.disabled ? translate("adminPages.poseLibrary.poseLibraryPage.imagesDisabled", { v0: String(stats.disabled) }) : undefined} />
+                <AdminStatTile label={translate("canvasPage.syncStatus.synced")} value={stats?.ready ?? "—"} detail={stats?.total ? `${readyPercent}%` : undefined} />
+                <AdminStatTile label={translate("adminPages.poseLibrary.poseLibraryPage.pendingSync")} value={stats?.pending ?? "—"} />
+                <AdminStatTile label={translate("adminPages.poseLibrary.poseLibraryPage.syncFailed")} value={stats?.failed ?? "—"} />
             </section>
 
             <section className="rounded-[var(--card-radius)] bg-[var(--library-surface)] p-4">
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="min-w-0 flex-1">
-                        <div className="text-sm font-medium">图片同步</div>
-                        <p className="mt-1 text-xs text-[var(--text-secondary)]">服务器按导入时填写的来源地址下载缩略图和原图，保存到数据目录 pose-library/。每批 {SYNC_BATCH} 条，可随时停止，下次继续。</p>
+                        <div className="text-sm font-medium">{translate("adminPages.poseLibrary.poseLibraryPage.imageSync")}</div>
+                        <p className="mt-1 text-xs text-[var(--text-secondary)]">{translate("adminPages.poseLibrary.poseLibraryPage.theServerDownloadsThumbnailsAndFullSizeImagesFromThe")} {SYNC_BATCH} {translate("adminPages.poseLibrary.poseLibraryPage.itemsStopAtAnyTimeAndResumeLater")}</p>
                     </div>
                     {sync?.running ? (
                         <Button icon={<Square className="size-3.5" />} onClick={() => syncAbortRef.current?.abort()}>
-                            停止
+                            {translate("adminPages.poseLibrary.poseLibraryPage.stop")}
                         </Button>
                     ) : (
                         <>
                             {stats?.failed ? (
                                 <Button icon={<RotateCcw className="size-4" />} onClick={() => void runSync(true)}>
-                                    重试失败（{stats.failed}）
+                                    {translate("adminPages.poseLibrary.poseLibraryPage.retryFailed")}{stats.failed}）
                                 </Button>
                             ) : null}
                             <Button type="primary" icon={<CloudDownload className="size-4" />} disabled={!stats?.pending} onClick={() => void runSync(false)}>
-                                同步图片{stats?.pending ? `（${stats.pending}）` : ""}
+                                {translate("adminPages.poseLibrary.poseLibraryPage.syncImages")}{stats?.pending ? `（${stats.pending}）` : ""}
                             </Button>
                         </>
                     )}
@@ -300,8 +302,8 @@ export default function PoseLibraryAdminPage() {
                 ) : null}
                 {sync ? (
                     <p className="mt-2 text-xs text-[var(--text-secondary)]">
-                        {sync.running ? "同步中" : "上次同步"}：成功 {sync.succeeded}，失败 {sync.failed}
-                        {sync.lastError ? ` · 最近错误：${sync.lastError}` : ""}
+                        {sync.running ? translate("adminPages.poseLibrary.poseLibraryPage.syncing") : translate("adminPages.poseLibrary.poseLibraryPage.lastSync")}{translate("adminPages.poseLibrary.poseLibraryPage.succeeded")} {sync.succeeded}{translate("adminPages.poseLibrary.poseLibraryPage.failed")} {sync.failed}
+                        {sync.lastError ? translate("adminPages.poseLibrary.poseLibraryPage.latestError", { v0: String(sync.lastError) }) : ""}
                     </p>
                 ) : null}
             </section>
@@ -315,8 +317,8 @@ export default function PoseLibraryAdminPage() {
                         className="app-list-search"
                         prefix={<Search className="size-4 text-foreground/40" />}
                         value={keyword}
-                        placeholder="搜索名称、分类或编号"
-                        aria-label="搜索姿势"
+                        placeholder={translate("adminPages.poseLibrary.poseLibraryPage.searchNameCategoryOrID")}
+                        aria-label={translate("adminPages.poseLibrary.poseLibraryPage.searchPoses")}
                         onValueChange={(value) => {
                             setKeyword(value);
                             setPage(1);
@@ -327,34 +329,34 @@ export default function PoseLibraryAdminPage() {
                 toolbarFilters={
                     <>
                         <Select
-                            ariaLabel="来源"
+                            ariaLabel={translate("canvasA.assetView.origin")}
                             className="w-52"
                             value={source}
-                            options={[{ value: "", label: "全部来源" }, ...sources.map((item) => ({ value: item.key, label: item.name }))]}
+                            options={[{ value: "", label: translate("adminPages.poseLibrary.poseLibraryPage.allSources") }, ...sources.map((item) => ({ value: item.key, label: item.name }))]}
                             onChange={(value: string) => {
                                 setSource(value);
                                 setPage(1);
                             }}
                         />
                         <Select
-                            ariaLabel="体系"
+                            ariaLabel={translate("adminPages.poseLibrary.poseLibraryPage.collection")}
                             className="w-48"
                             value={system}
-                            options={[{ value: "", label: "全部体系" }, ...Array.from(new Set(systems.map((item) => item.system))).map((name) => ({ value: name, label: name }))]}
+                            options={[{ value: "", label: translate("adminPages.poseLibrary.poseLibraryPage.allCollections") }, ...Array.from(new Set(systems.map((item) => item.system))).map((name) => ({ value: name, label: name }))]}
                             onChange={(value: string) => {
                                 setSystem(value);
                                 setPage(1);
                             }}
                         />
                         <Select
-                            ariaLabel="同步状态"
+                            ariaLabel={translate("adminPages.poseLibrary.poseLibraryPage.syncStatus")}
                             className="w-32"
                             value={status}
                             options={[
-                                { value: "", label: "全部状态" },
-                                { value: "ready", label: "已同步" },
-                                { value: "pending", label: "待同步" },
-                                { value: "failed", label: "同步失败" },
+                                { value: "", label: translate("library.ark.expiry.all") },
+                                { value: "ready", label: translate("canvasPage.syncStatus.synced") },
+                                { value: "pending", label: translate("adminPages.poseLibrary.poseLibraryPage.pendingSync") },
+                                { value: "failed", label: translate("adminPages.poseLibrary.poseLibraryPage.syncFailed") },
                             ]}
                             onChange={(value: string) => {
                                 setStatus(value);
@@ -370,7 +372,7 @@ export default function PoseLibraryAdminPage() {
                     setStatus("");
                     setPage(1);
                 }}
-                empty={<AdminTableEmpty filtered={filtered} title={filtered ? "没有匹配的姿势" : "还没有导入姿势"} description={filtered ? "调整筛选条件后重试。" : "点击右上角「导入数据」，上传 ai-pose-gallery-zh 的 data/pose-zh.json。"} />}
+                empty={<AdminTableEmpty filtered={filtered} title={filtered ? translate("adminPages.poseLibrary.poseLibraryPage.noMatchingPoses") : translate("adminPages.poseLibrary.poseLibraryPage.noPosesImportedYet")} description={filtered ? translate("adminPages.poseLibrary.poseLibraryPage.adjustTheFiltersAndTryAgain") : translate("adminPages.poseLibrary.poseLibraryPage.clickImportDataInTheTopRightAndUploadData")} />}
                 footer={
                     <PaginationBar
                         alwaysShow
@@ -447,7 +449,7 @@ function PoseLibraryImportModal({ open, onClose, onImported }: { open: boolean; 
             setSelected(new Set(parsed.systems.filter((item) => !isAdultPoseSystem(item.name)).map((item) => item.name)));
             setBaseUrl(parsed.baseUrl || (parsed.format === "ai-pose-gallery-zh" ? POSE_LIBRARY_DEFAULT_BASE_URL : ""));
         } catch (cause) {
-            setError(cause instanceof Error ? cause.message : "文件无法解析");
+            setError(cause instanceof Error ? cause.message : translate("adminPages.poseLibrary.poseLibraryPage.unableToParseFile"));
         }
     };
 
@@ -456,12 +458,12 @@ function PoseLibraryImportModal({ open, onClose, onImported }: { open: boolean; 
         setImporting(true);
         try {
             const result = await importPoseLibrary({ file, baseUrl, systems: Array.from(selected) });
-            message.success(`导入完成：新增 ${result.created}，更新 ${result.updated}${result.skipped ? `，跳过 ${result.skipped}` : ""}。接下来点击「同步图片」。`);
+            message.success(translate("adminPages.poseLibrary.poseLibraryPage.importCompleteAddedUpdatedNextClickSyncImages", { v0: String(result.created), v1: String(result.updated), v2: String(result.skipped ? translate("adminPages.poseLibrary.poseLibraryPage.skipped", { v0: String(result.skipped) }) : "") }));
             if (result.invalid?.length) message.warning(result.invalid.join("；"));
             reset();
             onImported();
         } catch (cause) {
-            message.error(cause instanceof Error ? cause.message : "导入失败");
+            message.error(cause instanceof Error ? cause.message : translate("adminPages.poseLibrary.poseLibraryPage.importFailed"));
         } finally {
             setImporting(false);
         }
@@ -475,41 +477,41 @@ function PoseLibraryImportModal({ open, onClose, onImported }: { open: boolean; 
     };
     return (
         <AdminModal
-            title="导入姿势数据"
+            title={translate("adminPages.poseLibrary.poseLibraryPage.importPoseData")}
             open={open}
             centered
             width="min(640px, calc(100vw - 32px))"
             keyboard={!importing}
             mask={{ closable: !importing }}
             styles={{ body: { maxHeight: "calc(100dvh - 220px)", overflowY: "auto" } }}
-            cancelText="取消"
+            cancelText={translate("common.cancel")}
             cancelButtonProps={{ disabled: importing }}
-            okText={selectedCount ? `导入 ${selectedCount} 条` : "导入"}
+            okText={selectedCount ? translate("adminPages.poseLibrary.poseLibraryPage.importItems", { v0: String(selectedCount) }) : translate("account.settings.memory.actors.seed")}
             okButtonProps={{ disabled: !preview || !selected.size || !baseUrl.trim() }}
             confirmLoading={importing}
             onOk={() => void submit()}
             onCancel={close}
         >
             <div className="space-y-4">
-                <Callout title="从 ai-pose-gallery-zh 导入">
+                <Callout title={translate("adminPages.poseLibrary.poseLibraryPage.importFromAiPoseGalleryZh")}>
                     <ol className="list-decimal space-y-1 pl-4">
                         <li>
-                            打开{" "}
+                            {translate("canvasB.common.open")}{" "}
                             <a href={`${POSE_LIBRARY_UPSTREAM_REPO}/blob/main/data/pose-zh.json`} target="_blank" rel="noopener noreferrer">
                                 data/pose-zh.json
                             </a>
-                            ，点「Download raw file」下载（约 0.6 MB，只有元数据，不含图片）。
+                            {translate("adminPages.poseLibrary.poseLibraryPage.thenClickDownloadRawFileAbout06MBMetadata")}
                         </li>
-                        <li>在下面选择这个文件，勾选要导入的体系。成人向体系默认不勾选。</li>
-                        <li>导入后回到列表点「同步图片」，服务器把图片下载到本站数据目录。</li>
+                        <li>{translate("adminPages.poseLibrary.poseLibraryPage.selectThisFileBelowAndChooseTheCollectionsToImport")}</li>
+                        <li>{translate("adminPages.poseLibrary.poseLibraryPage.afterImportingReturnToTheListAndClickSyncImages")}</li>
                     </ol>
-                    <p className="mt-2">也支持影策通用姿势包（format: yingce-pose-library），格式见文档「姿势库」。</p>
+                    <p className="mt-2">{translate("adminPages.poseLibrary.poseLibraryPage.yingcePosePackagesFormatYingcePoseLibraryAreAlsoSupported")}</p>
                 </Callout>
 
                 <div>
                     <input ref={inputRef} type="file" accept="application/json,.json" className="hidden" onChange={(event) => void choose(event.target.files?.[0])} />
                     <Button icon={<Upload className="size-4" />} onClick={() => inputRef.current?.click()}>
-                        {file ? "重新选择文件" : "选择 JSON 文件"}
+                        {file ? translate("adminPages.poseLibrary.poseLibraryPage.chooseAnotherFile") : translate("adminPages.poseLibrary.poseLibraryPage.chooseJSONFile")}
                     </Button>
                     {file ? <span className="ml-3 text-sm text-[var(--text-secondary)]">{file.name}</span> : null}
                     {error ? (
@@ -523,7 +525,7 @@ function PoseLibraryImportModal({ open, onClose, onImported }: { open: boolean; 
                     <>
                         <div>
                             <div className="text-sm font-medium">{preview.sourceName}</div>
-                            <div className="mt-1 text-xs text-[var(--text-secondary)]">共 {preview.total} 条，按体系选择：</div>
+                            <div className="mt-1 text-xs text-[var(--text-secondary)]">{translate("adminPages.poseLibrary.poseLibraryPage.total2")} {preview.total} {translate("adminPages.poseLibrary.poseLibraryPage.itemsSelectByCollection")}</div>
                             <div className="mt-2 space-y-2">
                                 {preview.systems.map((item) => (
                                     <div key={item.name} className="flex items-center gap-2">
@@ -540,20 +542,20 @@ function PoseLibraryImportModal({ open, onClose, onImported }: { open: boolean; 
                                         >
                                             {item.name}（{item.count}）
                                         </AdminCheckbox>
-                                        {isAdultPoseSystem(item.name) ? <AdminStatusBadge label="成人向" tone="warning" /> : null}
+                                        {isAdultPoseSystem(item.name) ? <AdminStatusBadge label={translate("adminPages.poseLibrary.poseLibraryPage.adultOriented")} tone="warning" /> : null}
                                     </div>
                                 ))}
                             </div>
                             {preview.systems.some((item) => isAdultPoseSystem(item.name) && selected.has(item.name)) ? (
                                 <Callout tone="warning" className="mt-3">
-                                    已勾选成人向体系。导入后对站点所有登录用户可见，请确认符合本站用户协议和当地法规；之后也可在「按体系管理」里停用。
+                                    {translate("adminPages.poseLibrary.poseLibraryPage.adultCollectionsAreSelectedImportedPosesWillBeVisibleTo")}
                                 </Callout>
                             ) : null}
                         </div>
                         <div>
-                            <div className="mb-1 text-sm font-medium">图片来源地址</div>
+                            <div className="mb-1 text-sm font-medium">{translate("adminPages.poseLibrary.poseLibraryPage.imageSourceURL")}</div>
                             <Input value={baseUrl} placeholder="https://example.com/ai-pose-gallery-zh/" onChange={(event) => setBaseUrl(event.target.value)} />
-                            <p className="mt-1 text-xs text-[var(--text-secondary)]">JSON 里的 thumbs/…、img/… 会拼在这个地址后面下载。默认是作者演示站；服务器访问不了时，把仓库的 thumbs/ 和 img/ 目录传到自己的对象存储或静态站，再填那个地址。</p>
+                            <p className="mt-1 text-xs text-[var(--text-secondary)]">{translate("adminPages.poseLibrary.poseLibraryPage.theThumbsAndImgPathsInTheJSONAreAppended")}</p>
                         </div>
                     </>
                 ) : null}
@@ -575,18 +577,18 @@ function PoseLibraryItemModal({ open, item, systems, onClose, onSaved }: { open:
     const save = async () => {
         const values = await form.validateFields();
         if (!item && !file) {
-            message.warning("请选择姿势图片");
+            message.warning(translate("adminPages.poseLibrary.poseLibraryPage.pleaseSelectAPoseImage"));
             return;
         }
         setSaving(true);
         try {
             if (item) await updatePoseLibraryItem(item.id, values);
             else if (file) await createPoseLibraryItem({ ...values, file });
-            message.success(item ? "姿势已更新" : "姿势已新增");
+            message.success(item ? translate("adminPages.poseLibrary.poseLibraryPage.poseUpdated") : translate("adminPages.poseLibrary.poseLibraryPage.poseAdded"));
             setFile(null);
             onSaved();
         } catch (cause) {
-            message.error(cause instanceof Error ? cause.message : "保存失败");
+            message.error(cause instanceof Error ? cause.message : translate("account.settings.memory.saveFailed"));
         } finally {
             setSaving(false);
         }
@@ -594,10 +596,10 @@ function PoseLibraryItemModal({ open, item, systems, onClose, onSaved }: { open:
 
     return (
         <AdminModal
-            title={item ? "编辑姿势" : "新增姿势"}
+            title={item ? translate("adminPages.poseLibrary.poseLibraryPage.editPose") : translate("adminPages.poseLibrary.poseLibraryPage.addPose")}
             open={open}
-            okText="保存"
-            cancelText="取消"
+            okText={translate("common.save")}
+            cancelText={translate("common.cancel")}
             confirmLoading={saving}
             onOk={() => void save()}
             onCancel={() => {
@@ -606,33 +608,33 @@ function PoseLibraryItemModal({ open, item, systems, onClose, onSaved }: { open:
                 onClose();
             }}
             afterOpenChange={(visible) => {
-                if (visible) form.setFieldsValue({ name: item?.name || "", system: item?.system || "站点自建", category: item?.category || "", angle: item?.angle || "正面", code: item?.code || "" });
+                if (visible) form.setFieldsValue({ name: item?.name || "", system: item?.system || translate("adminPages.poseLibrary.poseLibraryPage.siteCreated"), category: item?.category || "", angle: item?.angle || translate("adminPages.poseLibrary.poseLibraryPage.front"), code: item?.code || "" });
             }}
         >
             <Form form={form} layout="vertical" requiredMark={false}>
                 {item ? null : (
-                    <Form.Item label="姿势图片" extra="JPEG / PNG / WebP，20 MB 以内，建议白底素体全身图；缩略图自动生成。">
+                    <Form.Item label={translate("adminPages.poseLibrary.poseLibraryPage.poseImage")} extra={translate("adminPages.poseLibrary.poseLibraryPage.jPEGPNGWebPUpTo20MBAFullBody")}>
                         <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event) => setFile(event.target.files?.[0] || null)} />
                         <Button icon={<Upload className="size-4" />} onClick={() => inputRef.current?.click()}>
-                            {file ? file.name : "选择图片"}
+                            {file ? file.name : translate("account.settings.profile.selectImage")}
                         </Button>
                     </Form.Item>
                 )}
-                <Form.Item name="name" label="名称" rules={[{ required: true, whitespace: true, message: "请填写名称" }]}>
-                    <Input maxLength={160} placeholder="例如：自然站立" />
+                <Form.Item name="name" label={translate("adminPages.poseLibrary.poseLibraryPage.name")} rules={[{ required: true, whitespace: true, message: translate("adminPages.poseLibrary.poseLibraryPage.pleaseEnterAName") }]}>
+                    <Input maxLength={160} placeholder={translate("adminPages.poseLibrary.poseLibraryPage.forExampleNaturalStandingPose")} />
                 </Form.Item>
                 <div className="grid gap-3 sm:grid-cols-2">
-                    <Form.Item name="system" label="体系" rules={[{ required: true, whitespace: true, message: "请填写体系" }]}>
-                        <AutoComplete options={systemOptions} placeholder="例如：全身单人・标准系" />
+                    <Form.Item name="system" label={translate("adminPages.poseLibrary.poseLibraryPage.collection")} rules={[{ required: true, whitespace: true, message: translate("adminPages.poseLibrary.poseLibraryPage.pleaseEnterACollection") }]}>
+                        <AutoComplete options={systemOptions} placeholder={translate("adminPages.poseLibrary.poseLibraryPage.forExampleSingleFullBodyStandard")} />
                     </Form.Item>
-                    <Form.Item name="category" label="分类" rules={[{ required: true, whitespace: true, message: "请填写分类" }]}>
-                        <Input maxLength={80} placeholder="例如：站姿" />
+                    <Form.Item name="category" label={translate("library.picker.category")} rules={[{ required: true, whitespace: true, message: translate("adminPages.poseLibrary.poseLibraryPage.pleaseEnterACategory") }]}>
+                        <Input maxLength={80} placeholder={translate("adminPages.poseLibrary.poseLibraryPage.forExampleStanding")} />
                     </Form.Item>
-                    <Form.Item name="angle" label="视角">
+                    <Form.Item name="angle" label={translate("adminPages.poseLibrary.poseLibraryPage.view")}>
                         <Select options={POSE_LIBRARY_ANGLES.map((value) => ({ value, label: value }))} />
                     </Form.Item>
-                    <Form.Item name="code" label="编号" extra={item ? undefined : "编号相同的多张图合并为同一姿势的不同视角。"}>
-                        <Input maxLength={40} placeholder="可选，例如 C001" />
+                    <Form.Item name="code" label={translate("adminPages.poseLibrary.poseLibraryPage.iD")} extra={item ? undefined : translate("adminPages.poseLibrary.poseLibraryPage.imagesWithTheSameIDAreMergedAsDifferentViews")}>
+                        <Input maxLength={40} placeholder={translate("adminPages.poseLibrary.poseLibraryPage.optionalForExampleC001")} />
                     </Form.Item>
                 </div>
             </Form>

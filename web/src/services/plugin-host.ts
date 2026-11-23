@@ -2,6 +2,8 @@ import { requestToolResponse, type ResponseFunctionTool, type ResponseInputMessa
 import { pluginStorageFor } from "@/lib/plugins/plugin-storage";
 import type { AiConfig } from "@/stores/use-config-store";
 import type { PluginHostContext, PluginInstallation, PluginTextRequest, RegisteredPlugin } from "@/lib/plugins/plugin-types";
+import { translate } from "@/i18n";
+
 
 export function createPluginHostContext(plugin: RegisteredPlugin, installation: PluginInstallation, aiConfig: AiConfig): PluginHostContext {
     const permissions = new Set(plugin.manifest.permissions);
@@ -14,7 +16,7 @@ export function createPluginHostContext(plugin: RegisteredPlugin, installation: 
             ai: {
                 text: {
                     requestToolResponse: async (request: PluginTextRequest) => {
-                        if (!permissions.has("ai.text")) throw new Error("插件没有调用文本模型的权限");
+                        if (!permissions.has("ai.text")) throw new Error(translate("shared.pluginHost.thePluginDoesNotHavePermissionToCallTextModels"));
                         const response = await requestToolResponse(
                             { ...aiConfig, model: request.model?.trim() || aiConfig.textModel },
                             request.messages as ResponseInputMessage[],

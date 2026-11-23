@@ -5,6 +5,7 @@ import { useUpstreamNodes } from "@/components/canvas/canvas-node-graph-context"
 import { getNodeResourceKind } from "@/lib/canvas/node-registry";
 import type { CanvasTheme } from "@/lib/canvas-theme";
 import type { CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 type MarkdownNodeContentProps = {
     node: CanvasNodeData;
@@ -28,7 +29,7 @@ export function MarkdownNodeContent({ node, theme }: MarkdownNodeContentProps) {
         return (
             <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-4 text-center" style={{ color: theme.node.muted }}>
                 <FileText className="size-5 opacity-60" />
-                <span style={{ fontSize: "var(--fs-label)" }}>连接文本节点，或双击编辑 Markdown</span>
+                <span style={{ fontSize: "var(--fs-label)" }}>{translate("canvasTools.nodes.markdownNode.connectATextNodeOrDoubleClickToEditMarkdown")}</span>
             </div>
         );
     }

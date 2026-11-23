@@ -5,6 +5,8 @@
 
 import { getRegisteredPlugin } from "@/lib/plugins/plugin-registry";
 import type { EditorPluginPermission, EditorSlotKind } from "@/lib/plugins/plugin-types";
+import { translate } from "@/i18n";
+
 
 /** 每个编辑器插槽所需的最小权限域；新增插槽必须补表，否则会因找不到权限而拒绝渲染。 */
 export const EDITOR_SLOT_REQUIRED_PERMISSION: Record<EditorSlotKind, EditorPluginPermission> = {
@@ -55,9 +57,9 @@ export function pluginMayRenderEditorSlot(pluginId: string, slot: EditorSlotKind
 export function assertEditorPermission(pluginId: string, permission: EditorPluginPermission): void {
     const permissions = pluginPermissions(pluginId);
     if (permissions === null) {
-        throw new Error(`插件 ${pluginId} 未注册，无法代发 ${permission} 命令`);
+        throw new Error(translate("shared.plugins.pluginPermissionCheck.pluginIsNotRegisteredAndCannotIssueTheCommand", { v0: String(pluginId), v1: String(permission) }));
     }
     if (!permissions.has(permission)) {
-        throw new Error(`插件 ${pluginId} 缺少 ${permission} 权限，命令已被拒绝`);
+        throw new Error(translate("shared.plugins.pluginPermissionCheck.pluginLacksPermissionTheCommandWasRejected", { v0: String(pluginId), v1: String(permission) }));
     }
 }

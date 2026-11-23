@@ -24,6 +24,7 @@ import { CanvasNodeType, type CanvasNodeData, type CanvasNodeMetadata, type Canv
 import { buildImageToolbarTools } from "./canvas-image-toolbar-tools";
 import { CanvasGridSplitPicker } from "./canvas-grid-split-picker";
 import { useCanvasNodeResizeMotion } from "./canvas-node-resize-motion";
+import { translate } from "@/i18n";
 
 type CanvasNodeToolbarProps = {
     node: CanvasNodeData | null;
@@ -275,10 +276,10 @@ export function CanvasNodeToolbar({
     const copyImagePrompt = (target: CanvasNodeData) => {
         const prompt = nodeGenerationPrompt(target).trim();
         if (!prompt) {
-            message.warning("暂无可复制的提示词");
+            message.warning(translate("canvasTools.canvasNodeToolbar.noPromptToCopy"));
             return;
         }
-        copyText(prompt, "提示词已复制");
+        copyText(prompt, translate("canvasTools.canvasNodeToolbar.promptCopied"));
     };
     const imageTools = buildImageToolbarTools(node, { onUpload, onToggleFreeResize, onAnnotate, onAnnotationEdit, onTextEdit, onRegionEdit, onRemoveBackground, onLayerDecomposition, onEmotion, onPortraitTexture, onCrop, onUpscale, onSuperResolve, onAngle, onLighting, onPanorama, onPrevis, onViewImage, onCopyPrompt: copyImagePrompt, onReversePrompt, onNineGrid });
 
@@ -350,7 +351,7 @@ export function CanvasNodeToolbar({
     const workspaceTools = narrow ? [] : inGroup("workspace");
     const utilityTools = narrow ? [] : inGroup("utility");
     const moreTools = [...(narrow ? [...primary.filter(tool => !primaryTools.includes(tool)), ...inGroup("workspace"), ...inGroup("utility")] : []), ...inGroup("more")];
-    const processMenuLabel = compact ? "工具" : isVideo ? "视频工具" : isImage ? "图片工具" : isAudio ? "音频处理" : "文本调整";
+    const processMenuLabel = compact ? translate("canvasA.focusBar.tools") : isVideo ? translate("canvasTools.canvasNodeToolbar.videoTools") : isImage ? translate("canvasTools.canvasNodeToolbar.imageTools") : isAudio ? translate("canvasTools.canvasNodeToolbar.audioProcessing") : translate("canvasTools.canvasNodeToolbar.textAdjustments");
     const handleMenuOpenChange = (menuId: string, open: boolean) => {
         setOpenMenuId((current) => open ? menuId : current === menuId ? null : current);
         if (open) onKeep(node.id);
@@ -375,23 +376,23 @@ export function CanvasNodeToolbar({
         >
             <div
                 role="toolbar"
-                aria-label="节点快捷工具"
+                aria-label={translate("canvasTools.canvasNodeToolbar.nodeQuickTools")}
                 className="canvas-node-toolbar-dock flex h-11 max-w-full items-center gap-0.5 overflow-visible rounded-[var(--dock-radius-tight)] border px-2 backdrop-blur-2xl"
                 style={{ ...dockStyle, borderColor: "color-mix(in srgb, currentColor 8%, transparent)" }}
             >
                 {primaryTools.map((tool) => <NodeDockToolButton key={tool.id} tool={tool} iconOnly={narrow} />)}
                 {/* 直接编辑类（primary）与生成/调整菜单分组，长工具条更易扫读。 */}
                 {primaryTools.length > 0 && (adjustTools.length || cameraTools.length || sheetTools.length || processTools.length) ? <span aria-hidden className="aceternity-dock-separator mx-1 h-5 w-px shrink-0" /> : null}
-                {adjustTools.length ? <NodeDockMenuButton menuId="adjust" label="画面调整" icon={<Palette className="size-3.5" />} tools={adjustTools} openMenuId={openMenuId} onOpenChange={handleMenuOpenChange} /> : null}
-                {cameraTools.length ? <NodeDockMenuButton menuId="camera" label="镜头" icon={<Camera className="size-3.5" />} tools={cameraTools} openMenuId={openMenuId} onOpenChange={handleMenuOpenChange} /> : null}
-                {sheetTools.length ? <NodeDockMenuButton menuId="sheet" label="宫格与设定" icon={<Grid3x3 className="size-3.5" />} tools={sheetTools} openMenuId={openMenuId} onOpenChange={handleMenuOpenChange} /> : null}
+                {adjustTools.length ? <NodeDockMenuButton menuId="adjust" label={translate("canvasTools.canvasNodeToolbar.imageAdjustments")} icon={<Palette className="size-3.5" />} tools={adjustTools} openMenuId={openMenuId} onOpenChange={handleMenuOpenChange} /> : null}
+                {cameraTools.length ? <NodeDockMenuButton menuId="camera" label={translate("canvasTools.canvasNodeToolbar.shot")} icon={<Camera className="size-3.5" />} tools={cameraTools} openMenuId={openMenuId} onOpenChange={handleMenuOpenChange} /> : null}
+                {sheetTools.length ? <NodeDockMenuButton menuId="sheet" label={translate("canvasTools.canvasNodeToolbar.gridsAndSettings")} icon={<Grid3x3 className="size-3.5" />} tools={sheetTools} openMenuId={openMenuId} onOpenChange={handleMenuOpenChange} /> : null}
                 {processTools.length ? <NodeDockMenuButton menuId="process" label={processMenuLabel} icon={isVideo ? <Wrench className="size-3.5" /> : <SlidersHorizontal className="size-3.5" />} tools={processTools} openMenuId={openMenuId} onOpenChange={handleMenuOpenChange} split={hasImage && !simpleMode ? { node, onSplit } : undefined} /> : null}
                 {workspaceTools.length ? <span aria-hidden className="aceternity-dock-separator mx-1 h-5 w-px shrink-0" /> : null}
                 {workspaceTools.map((tool) => <NodeDockToolButton key={tool.id} tool={tool} />)}
                 {utilityTools.length || moreTools.length ? <span aria-hidden className="aceternity-dock-separator mx-1 h-5 w-px shrink-0" /> : null}
                 {utilityTools.map((tool) => <NodeDockToolButton key={tool.id} tool={tool} iconOnly />)}
                 {moreTools.length ? (
-                    <NodeDockMenuButton menuId="more" label="更多" icon={<Ellipsis className="size-3.5" />} tools={moreTools} openMenuId={openMenuId} onOpenChange={handleMenuOpenChange} placement="topRight" iconOnly />
+                    <NodeDockMenuButton menuId="more" label={translate("canvasA.creative.more")} icon={<Ellipsis className="size-3.5" />} tools={moreTools} openMenuId={openMenuId} onOpenChange={handleMenuOpenChange} placement="topRight" iconOnly />
                 ) : null}
             </div>
         </div>
@@ -477,10 +478,10 @@ function NodeDockMenuButton({ menuId, label, icon, tools, openMenuId, onOpenChan
     const splitEntry = split ? tools.find((tool) => tool.id === "split") : undefined;
     const sections = new Map<string, ToolbarTool[]>();
     for (const tool of tools) {
-        const section = tool.danger ? "危险操作" : tool.section || "常用操作";
+        const section = tool.danger ? translate("canvasTools.canvasNodeToolbar.dangerousActions") : tool.section || translate("canvasB.imageTools.sectionCommon");
         sections.set(section, [...(sections.get(section) || []), tool]);
     }
-    const items: MenuProps["items"] = [...sections].sort(([left], [right]) => Number(left === "危险操作") - Number(right === "危险操作")).map(([section, entries]) => ({
+    const items: MenuProps["items"] = [...sections].sort(([left], [right]) => Number(left === translate("canvasTools.canvasNodeToolbar.dangerousActions")) - Number(right === translate("canvasTools.canvasNodeToolbar.dangerousActions"))).map(([section, entries]) => ({
         type: "group", key: section, label: section,
         children: entries.map((tool) => {
             const isSplit = Boolean(splitEntry && split && tool.id === "split");
@@ -611,7 +612,7 @@ export function CanvasNodeInfoModal({ node, open, onClose, onMetadataChange, rea
     const [assetCategory, setAssetCategory] = useState<CanvasAssetCategory>("other");
     const imageBytes = node?.type === CanvasNodeType.Image && node.metadata?.content ? getDataUrlByteSize(node.metadata.content) : 0;
     const batchCount = node?.type === CanvasNodeType.Image ? node.metadata?.batchChildIds?.length || 0 : 0;
-    const nodeTypeLabel = node?.type === CanvasNodeType.Text ? "文本" : node?.type === CanvasNodeType.Script ? "分镜脚本" : node?.type === CanvasNodeType.Skill ? "技能" : node?.type === CanvasNodeType.Image ? "图片" : node?.type === CanvasNodeType.Video ? "视频" : node?.type === CanvasNodeType.Audio ? "音频" : node?.type === CanvasNodeType.Drawing ? "绘图" : node?.type === CanvasNodeType.Frame ? "背板" : "生成配置";
+    const nodeTypeLabel = node?.type === CanvasNodeType.Text ? translate("account.settings.modelConfig.capabilities.text") : node?.type === CanvasNodeType.Script ? translate("canvasTools.canvasNodeToolbar.storyboard") : node?.type === CanvasNodeType.Skill ? translate("nav.sidebar.skills") : node?.type === CanvasNodeType.Image ? translate("account.feedback.image") : node?.type === CanvasNodeType.Video ? translate("account.feedback.video") : node?.type === CanvasNodeType.Audio ? translate("account.settings.modelConfig.capabilities.audio") : node?.type === CanvasNodeType.Drawing ? translate("canvasA.drawingModal.defaultTitle") : node?.type === CanvasNodeType.Frame ? translate("canvasTools.canvasNodeToolbar.backdrop") : translate("canvasTools.canvasNodeToolbar.generationSettings");
     useEffect(() => {
         setAssetTags(node?.metadata?.assetTags || []);
         setAssetTagInput("");
@@ -648,7 +649,7 @@ export function CanvasNodeInfoModal({ node, open, onClose, onMetadataChange, rea
     const title = (
         <div className="canvas-node-inspector-title">
             <div className="min-w-0">
-                <div className="text-[var(--fs-heading-lg)] font-semibold">节点信息</div>
+                <div className="text-[var(--fs-heading-lg)] font-semibold">{translate("canvasTools.canvasNodeToolbar.nodeInfo")}</div>
                 {node ? <div className="canvas-node-inspector-id">{node.id}</div> : null}
             </div>
         </div>
@@ -669,39 +670,39 @@ export function CanvasNodeInfoModal({ node, open, onClose, onMetadataChange, rea
                 <div className="canvas-node-inspector" style={{ color: theme.node.text }}>
                         <div className="thin-scrollbar canvas-node-inspector-scroll">
                             <section className="canvas-node-inspector-section">
-                                <div className="canvas-node-inspector-section-heading"><span>基础信息</span><em>{node.metadata?.status || "idle"}</em></div>
+                                <div className="canvas-node-inspector-section-heading"><span>{translate("canvasTools.canvasNodeToolbar.basicInformation")}</span><em>{node.metadata?.status || "idle"}</em></div>
                                 <div className="canvas-node-inspector-facts">
-                                    <InfoRow label="类型" value={nodeTypeLabel} />
-                                    <InfoRow label="尺寸" value={`${Math.round(node.width)} x ${Math.round(node.height)}`} />
-                                    <InfoRow label="位置" value={`${Math.round(node.position.x)}, ${Math.round(node.position.y)}`} />
-                                    {batchCount > 1 ? <InfoRow label="图片组" value={`${batchCount} 张`} /> : null}
-                                    {imageBytes ? <InfoRow label="图片大小" value={formatBytes(imageBytes)} /> : null}
+                                    <InfoRow label={translate("account.settings.runninghub.kind")} value={nodeTypeLabel} />
+                                    <InfoRow label={translate("canvasTools.canvasNodeToolbar.size")} value={`${Math.round(node.width)} x ${Math.round(node.height)}`} />
+                                    <InfoRow label={translate("canvasTools.canvasNodeToolbar.position")} value={`${Math.round(node.position.x)}, ${Math.round(node.position.y)}`} />
+                                    {batchCount > 1 ? <InfoRow label={translate("canvasTools.canvasNodeToolbar.imageGroup")} value={translate("canvasTools.counts.images", { v0: String(batchCount) })} /> : null}
+                                    {imageBytes ? <InfoRow label={translate("canvasTools.canvasNodeToolbar.imageSize")} value={formatBytes(imageBytes)} /> : null}
                                 </div>
                             </section>
 
                             {node.type === CanvasNodeType.Image ? (
                                 <section className="canvas-node-inspector-section">
-                                    <div className="canvas-node-inspector-section-heading"><span>项目资产分类</span></div>
+                                    <div className="canvas-node-inspector-section-heading"><span>{translate("canvasTools.canvasNodeToolbar.projectAssetCategory")}</span></div>
                                     <div className="canvas-node-inspector-options">
                                         {assetCategoryOptions.map((option) => {
                                             const active = assetCategory === option.value;
                                             return <button key={option.value} type="button" disabled={readOnly} aria-pressed={active} onClick={() => saveAssetCategory(option.value)} className={active ? "is-active" : ""}>{option.label}</button>;
                                         })}
                                     </div>
-                                    <p className="canvas-node-inspector-help">生成后会按此分类进入项目资产；角色、场景和画风工作流会自动预填。</p>
+                                    <p className="canvas-node-inspector-help">{translate("canvasTools.canvasNodeToolbar.resultsLandInProjectAssetsUnderThisCategoryCharacterScene")}</p>
                                 </section>
                             ) : null}
 
                             {nodeGenerationPrompt(node) ? (
                                 <section className="canvas-node-inspector-section">
-                                    <div className="canvas-node-inspector-section-heading"><span>提示词</span></div>
+                                    <div className="canvas-node-inspector-section-heading"><span>{translate("canvasA.assetView.prompt")}</span></div>
                                     <div className="canvas-node-inspector-copy canvas-node-inspector-prompt">{nodeGenerationPrompt(node)}</div>
                                 </section>
                             ) : null}
 
                             {nodeGenerationRows(node, producedModelLabel(config, node.metadata?.producedModel)).length ? (
                                 <section className="canvas-node-inspector-section">
-                                    <div className="canvas-node-inspector-section-heading"><span>生成信息</span></div>
+                                    <div className="canvas-node-inspector-section-heading"><span>{translate("canvasB.imageTools.sectionGenerationInfo")}</span></div>
                                     <div className="canvas-node-inspector-facts">
                                         {nodeGenerationRows(node, producedModelLabel(config, node.metadata?.producedModel)).map((item) => <InfoRow key={item.label} label={item.label} value={item.value} />)}
                                     </div>
@@ -710,9 +711,9 @@ export function CanvasNodeInfoModal({ node, open, onClose, onMetadataChange, rea
 
                             {node.type === CanvasNodeType.Skill && node.metadata?.skillSnapshot ? (
                                 <section className="canvas-node-inspector-section">
-                                    <div className="canvas-node-inspector-section-heading"><span>技能模板</span></div>
+                                    <div className="canvas-node-inspector-section-heading"><span>{translate("canvasTools.canvasNodeToolbar.skillTemplate")}</span></div>
                                     <div className="canvas-node-inspector-copy">{node.metadata.skillSnapshot.template}</div>
-                                    {node.metadata.skillSnapshot.outputContract ? <><div className="canvas-node-inspector-subheading">输出约束</div><div className="canvas-node-inspector-copy">{node.metadata.skillSnapshot.outputContract}</div></> : null}
+                                    {node.metadata.skillSnapshot.outputContract ? <><div className="canvas-node-inspector-subheading">{translate("canvasTools.canvasNodeToolbar.outputConstraints")}</div><div className="canvas-node-inspector-copy">{node.metadata.skillSnapshot.outputContract}</div></> : null}
                                 </section>
                             ) : null}
 
@@ -720,23 +721,23 @@ export function CanvasNodeInfoModal({ node, open, onClose, onMetadataChange, rea
                                 <section className="canvas-node-inspector-section">
                                     <div className="canvas-node-inspector-section-heading">
                                         <div>
-                                            <span>资产标签</span>
-                                            <p>一条标签描述一个角色、环境、道具或镜头用途。</p>
+                                            <span>{translate("canvasTools.canvasNodeToolbar.assetTags")}</span>
+                                            <p>{translate("canvasTools.canvasNodeToolbar.oneTagPerCharacterEnvironmentPropOrShotPurpose")}</p>
                                         </div>
-                                        <em>{assetTags.length} 条</em>
+                                        <em>{translate("canvasTools.inline.canvasNodeToolbar.entries", { v0: String(assetTags.length) })}</em>
                                     </div>
                                     {readOnly ? (
-                                        <div className="canvas-node-inspector-notice">分享画布为只读，标签无法编辑。</div>
+                                        <div className="canvas-node-inspector-notice">{translate("canvasTools.canvasNodeToolbar.sharedCanvasesAreReadOnlyTagsCannotBeEdited")}</div>
                                     ) : (
                                         <div className="canvas-node-inspector-tag-editor">
                                             <Input
                                                 value={assetTagInput}
-                                                placeholder="例如：角色: 张三"
+                                                placeholder={translate("canvasTools.canvasNodeToolbar.forExampleCharacterZhangSan")}
                                                 onChange={(event) => setAssetTagInput(event.target.value)}
                                                 onPressEnter={addAssetTag}
                                             />
                                             <Button type="primary" icon={<Plus className="size-4" />} disabled={!assetTagInput.trim()} onClick={addAssetTag}>
-                                                加入
+                                                {translate("canvasA.skillLibrary.add")}
                                             </Button>
                                         </div>
                                     )}
@@ -748,7 +749,7 @@ export function CanvasNodeInfoModal({ node, open, onClose, onMetadataChange, rea
                                                 </Tag>
                                             ))
                                         ) : (
-                                            <span className="canvas-node-inspector-empty-label">{readOnly ? "暂无标签" : "还没有标签，输入后点击“加入”或按 Enter。"}</span>
+                                            <span className="canvas-node-inspector-empty-label">{readOnly ? translate("canvasTools.canvasNodeToolbar.noTags") : translate("canvasTools.canvasNodeToolbar.noTagsYetTypeOneAndClickAddOrPress")}</span>
                                         )}
                                     </div>
                                 </section>
@@ -793,22 +794,22 @@ function nodeGenerationRows(node: CanvasNodeData, producedModelText: string) {
         const totalSeconds = Math.max(0, Math.round(value / 1000));
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
-        add("耗时", minutes ? `${minutes}分 ${seconds}秒` : `${seconds}秒`);
+        add(translate("library.tasks.detail.duration"), minutes ? translate("canvasTools.canvasNodeToolbar.mS", { v0: String(minutes), v1: String(seconds) }) : translate("canvasTools.canvasNodeToolbar.s", { v0: String(seconds) }));
     };
 
-    add("产出模型", producedModelText);
-    add("生成尺寸", metadata.size);
-    add("分辨率", metadata.vquality || metadata.quality);
-    add("秒数", metadata.seconds ? `${metadata.seconds} 秒` : undefined);
-    add("生成声音", metadata.generateAudio === undefined ? undefined : metadata.generateAudio === "true" ? "开启" : "关闭");
-    add("水印", metadata.watermark === undefined ? undefined : metadata.watermark === "true" ? "开启" : "关闭");
+    add(translate("canvasTools.canvasNodeToolbar.outputModel"), producedModelText);
+    add(translate("canvasTools.canvasNodeToolbar.generationDimensions"), metadata.size);
+    add(translate("library.tasks.params.resolution"), metadata.vquality || metadata.quality);
+    add(translate("canvasTools.canvasNodeToolbar.seconds"), metadata.seconds ? translate("canvasTools.canvasNodeToolbar.s2", { v0: String(metadata.seconds) }) : undefined);
+    add(translate("library.tasks.params.audio"), metadata.generateAudio === undefined ? undefined : metadata.generateAudio === "true" ? translate("canvasTools.canvasNodeToolbar.enable") : translate("common.close"));
+    add(translate("library.tasks.params.watermark"), metadata.watermark === undefined ? undefined : metadata.watermark === "true" ? translate("canvasTools.canvasNodeToolbar.enable") : translate("common.close"));
     if (metadata.references?.length) {
         const referenceNames = metadata.references.slice(0, 3).map((reference) => reference.split("/").pop() || reference).join("、");
-        add("引用素材", `${metadata.references.length} 个${referenceNames ? `（${referenceNames}${metadata.references.length > 3 ? "…" : ""}）` : ""}`);
+        add(translate("canvasTools.canvasNodeToolbar.referenceAssets"), translate("canvasTools.assetCountByKind", { v0: String(metadata.references.length), v1: String(referenceNames ? `（${referenceNames}${metadata.references.length > 3 ? "…" : ""}）` : "") }));
     }
-    addTime("创建时间", metadata.taskCreatedAt);
-    addTime("开始时间", metadata.taskStartedAt);
-    addTime("完成时间", metadata.taskCompletedAt);
+    addTime(translate("library.tasks.detail.createdAt"), metadata.taskCreatedAt);
+    addTime(translate("library.tasks.detail.startedAt"), metadata.taskStartedAt);
+    addTime(translate("library.tasks.detail.completedAt"), metadata.taskCompletedAt);
     addDuration(metadata.taskDurationMs);
     return rows;
 }

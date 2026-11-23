@@ -7,6 +7,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as
 import { WorkflowFieldMappingEditor } from "@/components/workflow-field-mapping-editor";
 import type { WorkflowFieldMapping, WorkflowGraphPreview } from "@/stores/use-config-store";
 import { Select } from "@/components/ui/base/select";
+import { translate } from "@/i18n";
+
 
 type WorkflowNode = {
     id: string;
@@ -36,7 +38,7 @@ const rowGap = 20;
 const graphPadding = 24;
 const allEnabledFieldsNodeId = "__all_enabled_fields__";
 
-export function WorkflowGraphEditor({ workflowJson, workflowGraph, fields, onChange, disabled = false, emptyDescription = "尚未读取到工作流拓扑" }: WorkflowGraphEditorProps) {
+export function WorkflowGraphEditor({ workflowJson, workflowGraph, fields, onChange, disabled = false, emptyDescription = translate("shared.workflowGraphEditor.workflowTopologyNotLoadedYet") }: WorkflowGraphEditorProps) {
     const graph = useMemo(() => buildWorkflowGraph(workflowJson, workflowGraph), [workflowGraph, workflowJson]);
     const [selectedNodeId, setSelectedNodeId] = useState("");
     const [scale, setScale] = useState(1);
@@ -139,52 +141,52 @@ export function WorkflowGraphEditor({ workflowJson, workflowGraph, fields, onCha
             <aside className="workflow-graph-sidebar">
                 <div className="workflow-graph-summary">
                     <span>
-                        <small>节点</small>
+                        <small>{translate("shared.workflowGraphEditor.node")}</small>
                         <strong>{graph.nodes.length}</strong>
                     </span>
                     <span>
-                        <small>字段</small>
+                        <small>{translate("shared.workflowGraphEditor.field")}</small>
                         <strong>
                             {enabledFields.length} / {fields.length}
                         </strong>
                     </span>
                     <span>
-                        <small>素材</small>
+                        <small>{translate("nav.tools.assets")}</small>
                         <strong>{mediaFieldCount(enabledFields)}</strong>
                     </span>
                 </div>
                 <div className="flex flex-wrap gap-1">
                     <Button size="small" type="text" icon={<PowerOff className="size-3.5" />} danger disabled={disabled || enabledControllableCount === 0} onClick={() => updateAllFields(false)}>
-                        关闭全部开关
+                        {translate("shared.workflowGraphEditor.disableAllToggles")}
                     </Button>
                     <Button size="small" type="text" icon={<Power className="size-3.5" />} disabled={disabled || enabledControllableCount === controllableFields.length} onClick={() => updateAllFields(true)}>
-                        开启全部开关
+                        {translate("shared.workflowGraphEditor.enableAllToggles")}
                     </Button>
                 </div>
                 <label className="workflow-graph-node-select">
-                    <span>正在设置的节点</span>
+                    <span>{translate("shared.workflowGraphEditor.nodeBeingConfigured")}</span>
                     <Select
                         showSearch
                         value={selectedNodeId || undefined}
-                        placeholder="选择节点"
+                        placeholder={translate("shared.workflowGraphEditor.selectNodes")}
                         optionFilterProp="label"
-                        options={[{ label: `全部已开启字段 · ${enabledFields.length}`, value: allEnabledFieldsNodeId }, ...graph.nodes.map((node) => ({ label: `${node.title} · #${node.id}`, value: node.id }))]}
+                        options={[{ label: translate("shared.workflowGraphEditor.allEnabledFields", { v0: String(enabledFields.length) }), value: allEnabledFieldsNodeId }, ...graph.nodes.map((node) => ({ label: `${node.title} · #${node.id}`, value: node.id }))]}
                         onChange={setSelectedNodeId}
                     />
                 </label>
                 <div className="workflow-graph-selected-heading">
-                    <strong>{selectedNodeId === allEnabledFieldsNodeId ? "全部已开启字段" : selectedNode?.title || "工作流字段"}</strong>
-                    <span>{selectedNodeId === allEnabledFieldsNodeId ? `${enabledFields.length} 个字段` : selectedNode ? `${selectedNode.classType} · #${selectedNode.id}` : "选择右侧节点进行设置"}</span>
+                    <strong>{selectedNodeId === allEnabledFieldsNodeId ? translate("shared.workflowGraphEditor.allEnabledFields2") : selectedNode?.title || translate("shared.workflowGraphEditor.workflowFields")}</strong>
+                    <span>{selectedNodeId === allEnabledFieldsNodeId ? translate("shared.workflowGraphEditor.fields", { v0: String(enabledFields.length) }) : selectedNode ? `${selectedNode.classType} · #${selectedNode.id}` : translate("shared.workflowGraphEditor.selectANodeOnTheRightToConfigureIt")}</span>
                 </div>
                 <WorkflowFieldMappingEditor fields={selectedFields} disabled={disabled} onChange={updateSelectedFields} />
             </aside>
 
             <section className="workflow-graph-stage">
                 <div className="workflow-graph-controls">
-                    <IconButton size="sm" variant="ghost" icon={ZoomOut} aria-label="缩小工作流" onClick={() => zoom(-1)} />
+                    <IconButton size="sm" variant="ghost" icon={ZoomOut} aria-label={translate("shared.workflowGraphEditor.zoomOutWorkflow")} onClick={() => zoom(-1)} />
                     <span>{Math.round(scale * 100)}%</span>
-                    <IconButton size="sm" variant="ghost" icon={ZoomIn} aria-label="放大工作流" onClick={() => zoom(1)} />
-                    <IconButton size="sm" variant="ghost" icon={Maximize} aria-label="适应窗口" onClick={fitGraph} />
+                    <IconButton size="sm" variant="ghost" icon={ZoomIn} aria-label={translate("shared.workflowGraphEditor.zoomInWorkflow")} onClick={() => zoom(1)} />
+                    <IconButton size="sm" variant="ghost" icon={Maximize} aria-label={translate("shared.workflowGraphEditor.fitToWindow")} onClick={fitGraph} />
                 </div>
                 <div
                     ref={viewportRef}

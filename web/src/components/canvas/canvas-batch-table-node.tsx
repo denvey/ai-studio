@@ -25,6 +25,7 @@ import { generationErrorMessage } from "@/lib/generation-error";
 import { BATCH_COLUMN_HEADER_HEIGHT, BATCH_ROW_HEIGHT, batchOutputResultPending, batchRowInputChanged, type BatchScroll } from "@/lib/canvas/canvas-batch-references";
 import { batchRenderedRowIndices, batchVisibleRowRange, BATCH_VIRTUAL_ROW_THRESHOLD } from "@/lib/canvas/canvas-batch-window";
 import { sameBatchReferenceNode } from "@/lib/canvas/canvas-batch-row-equality";
+import { translate } from "@/i18n";
 
 type ReferenceCell = { rowId: string; columnIndex: number };
 
@@ -57,8 +58,8 @@ type Props = {
 };
 
 const OPERATION_OPTIONS = [
-    { value: "try_on", label: "批量换装" },
-    { value: "creative", label: "创意生图" },
+    { value: "try_on", label: translate("canvasTools.canvasBatchTableNode.batchOutfitChange") },
+    { value: "creative", label: translate("canvasTools.canvasBatchTableNode.creativeImageGeneration") },
 ] satisfies Array<{ value: CanvasBatchOperation; label: string }>;
 
 const CONCURRENCY_OPTIONS = [1, 5, 10] as const;
@@ -228,54 +229,54 @@ export function CanvasBatchTableNodeContent({ node, nodes, connections, batch, t
             <div className="shrink-0 overflow-hidden rounded-t-[inherit] border-b" style={{ borderColor: theme.node.stroke, background: subtleSurface }}>
                 <div data-canvas-batch-drag className="flex h-11 cursor-grab items-center gap-2 px-3 active:cursor-grabbing">
                     <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden" onPointerDown={(event) => event.stopPropagation()}>
-                        <BatchChoiceGroup ariaLabel="批量任务类型" theme={theme} disabled={readOnly} options={OPERATION_OPTIONS} value={table.operation} onChange={(operation) => onPatchTable({ operation: operation as CanvasBatchOperation })} />
+                        <BatchChoiceGroup ariaLabel={translate("canvasTools.canvasBatchTableNode.batchTaskType")} theme={theme} disabled={readOnly} options={OPERATION_OPTIONS} value={table.operation} onChange={(operation) => onPatchTable({ operation: operation as CanvasBatchOperation })} />
                         <div className="flex h-8 shrink-0 items-center gap-2 rounded-lg px-2" style={{ background: theme.node.panel }}>
-                            <span className="font-medium" style={{ color: theme.node.muted }}>并发</span>
-                            <BatchChoiceGroup ariaLabel="并发数" theme={theme} disabled={readOnly} compact options={CONCURRENCY_OPTIONS.map((value) => ({ value, label: String(value) }))} value={table.concurrency} onChange={(concurrency) => onPatchTable({ concurrency: Number(concurrency) })} />
+                            <span className="font-medium" style={{ color: theme.node.muted }}>{translate("canvasTools.canvasBatchTableNode.concurrency")}</span>
+                            <BatchChoiceGroup ariaLabel={translate("canvasTools.canvasBatchTableNode.concurrentTasks")} theme={theme} disabled={readOnly} compact options={CONCURRENCY_OPTIONS.map((value) => ({ value, label: String(value) }))} value={table.concurrency} onChange={(concurrency) => onPatchTable({ concurrency: Number(concurrency) })} />
                         </div>
                         <div className="flex h-8 shrink-0 items-center gap-0.5 rounded-lg px-2" style={{ background: theme.node.panel, color: theme.node.muted }}>
-                            <span className="pr-1">{referenceColumns.length}/{MAX_BATCH_REFERENCE_COLUMNS} 组参考</span>
+                            <span className="pr-1">{translate("canvasTools.inline.canvasBatchTableNode.referenceGroups", { v0: String(referenceColumns.length), v1: String(MAX_BATCH_REFERENCE_COLUMNS) })}</span>
                             {!readOnly ? (
                                 <>
-                                    <Tooltip title={referenceColumns.length <= MIN_BATCH_REFERENCE_COLUMNS ? "至少保留 1 组参考图" : "减少一组参考图"}>
-                                        <button type="button" aria-label="减少一组参考图" className="grid size-5 place-items-center rounded-md transition-colors hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-1 dark:hover:bg-white/10" style={{ color: theme.node.text }} disabled={referenceColumns.length <= MIN_BATCH_REFERENCE_COLUMNS} onClick={onRemoveReferenceColumn}>
+                                    <Tooltip title={referenceColumns.length <= MIN_BATCH_REFERENCE_COLUMNS ? translate("canvasPage.batchTable.minReferenceColumns") : translate("canvasTools.canvasBatchTableNode.removeAReferenceImageGroup")}>
+                                        <button type="button" aria-label={translate("canvasTools.canvasBatchTableNode.removeAReferenceImageGroup")} className="grid size-5 place-items-center rounded-md transition-colors hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-1 dark:hover:bg-white/10" style={{ color: theme.node.text }} disabled={referenceColumns.length <= MIN_BATCH_REFERENCE_COLUMNS} onClick={onRemoveReferenceColumn}>
                                             <Minus className="size-3.5" />
                                         </button>
                                     </Tooltip>
-                                    <Tooltip title={referenceColumns.length >= MAX_BATCH_REFERENCE_COLUMNS ? `最多支持 ${MAX_BATCH_REFERENCE_COLUMNS} 组参考图` : `新增参考图 ${referenceColumns.length + 1}`}>
-                                        <button type="button" aria-label={`新增参考图 ${referenceColumns.length + 1}`} className="grid size-5 place-items-center rounded-md transition-colors hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-1 dark:hover:bg-white/10" style={{ color: theme.node.text }} disabled={referenceColumns.length >= MAX_BATCH_REFERENCE_COLUMNS} onClick={onAddReferenceColumn}>
+                                    <Tooltip title={referenceColumns.length >= MAX_BATCH_REFERENCE_COLUMNS ? translate("canvasTools.canvasBatchTableNode.upToReferenceImageGroups", { v0: String(MAX_BATCH_REFERENCE_COLUMNS) }) : translate("canvasTools.canvasBatchTableNode.addReferenceImage", { v0: String(referenceColumns.length + 1) })}>
+                                        <button type="button" aria-label={translate("canvasTools.canvasBatchTableNode.addReferenceImage", { v0: String(referenceColumns.length + 1) })} className="grid size-5 place-items-center rounded-md transition-colors hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-1 dark:hover:bg-white/10" style={{ color: theme.node.text }} disabled={referenceColumns.length >= MAX_BATCH_REFERENCE_COLUMNS} onClick={onAddReferenceColumn}>
                                             <Plus className="size-3.5" />
                                         </button>
                                     </Tooltip>
                                 </>
                             ) : null}
                         </div>
-                        <span className="shrink-0 tabular-nums" style={{ color: theme.node.muted }}>已连 {connectedImageCount} · 完成 {completed}/{table.rows.length}</span>
+                        <span className="shrink-0 tabular-nums" style={{ color: theme.node.muted }}>{translate("canvasTools.inline.canvasBatchTableNode.connectedCompleted", { v0: String(connectedImageCount), v1: String(completed), v2: String(table.rows.length) })}</span>
                     </div>
                     {!readOnly ? (
                         <div className="ml-auto flex shrink-0 items-center gap-2" onPointerDown={(event) => event.stopPropagation()}>
-                            <Tooltip title="列端口已自动生效。用列图片重新填充手动修改过的格子，覆盖前需确认">
-                                <Button size="small" type="text" icon={<Rows3 className="size-3.5" />} onClick={onFillRows}>按列填充</Button>
+                            <Tooltip title={translate("canvasTools.canvasBatchTableNode.columnConnectionsAreActiveAutomaticallyRefillManuallyEditedCellsWith")}>
+                                <Button size="small" type="text" icon={<Rows3 className="size-3.5" />} onClick={onFillRows}>{translate("canvasTools.canvasBatchTableNode.fillByColumn")}</Button>
                             </Tooltip>
-                            {table.contentKind === "storyboard" && onCreateStoryboard ? <Button size="small" icon={<Film className="size-3.5" />} onClick={onCreateStoryboard}>创建视频脚本</Button> : null}
+                            {table.contentKind === "storyboard" && onCreateStoryboard ? <Button size="small" icon={<Film className="size-3.5" />} onClick={onCreateStoryboard}>{translate("canvasTools.canvasBatchTableNode.createAVideoScript")}</Button> : null}
                             <Button size="small" type="primary" icon={<Play className="size-3.5" />} disabled={!unfinishedReadyCount} onClick={() => onGenerate()}>
-                                生成未完成项{unfinishedReadyCount ? ` · ${unfinishedReadyCount}` : ""}
+                                {translate("canvasTools.canvasBatchTableNode.generateUnfinishedItems")}{unfinishedReadyCount ? ` · ${unfinishedReadyCount}` : ""}
                             </Button>
                         </div>
                     ) : null}
                 </div>
                 <div className="flex h-[76px] flex-col gap-2 border-t px-3 py-2" style={{ borderColor: theme.node.stroke }} onPointerDown={(event) => event.stopPropagation()}>
                     <div className="flex items-center gap-2">
-                        <label data-canvas-no-drag htmlFor={`batch-global-prompt-${node.id}`} className="shrink-0 text-sm font-semibold">全局提示词</label>
-                        <span className="rounded px-2 py-0.5 font-medium" style={{ background: theme.accent.primarySoft, color: theme.node.text }}>{hasGlobalPrompt ? "所有行统一使用" : "各行分别填写"}</span>
-                        <span className="ml-auto truncate" style={{ color: theme.node.muted }}>{table.operation === "try_on" ? "换装预设 · 每行至少 2 张参考图" : "创意预设 · 每行至少 1 张参考图"}</span>
+                        <label data-canvas-no-drag htmlFor={`batch-global-prompt-${node.id}`} className="shrink-0 text-sm font-semibold">{translate("canvasTools.canvasBatchTableNode.globalPrompt")}</label>
+                        <span className="rounded px-2 py-0.5 font-medium" style={{ background: theme.accent.primarySoft, color: theme.node.text }}>{hasGlobalPrompt ? translate("canvasTools.canvasBatchTableNode.useTheSamePromptForAllRows") : translate("canvasTools.canvasBatchTableNode.enterAPromptForEachRow")}</span>
+                        <span className="ml-auto truncate" style={{ color: theme.node.muted }}>{table.operation === "try_on" ? translate("canvasTools.canvasBatchTableNode.outfitPresetAtLeast2ReferenceImagesPerRow") : translate("canvasTools.canvasBatchTableNode.creativePresetAtLeast1ReferenceImagePerRow")}</span>
                     </div>
                     <input
                         id={`batch-global-prompt-${node.id}`}
                         value={globalPrompt}
                         readOnly={readOnly}
-                        placeholder="填写后，所有行统一使用这段提示词；清空后恢复使用各行原文"
-                        aria-label="全局提示词"
+                        placeholder={translate("canvasTools.canvasBatchTableNode.whenFilledInAllRowsUseThisPromptClearIt")}
+                        aria-label={translate("canvasTools.canvasBatchTableNode.globalPrompt")}
                         className="h-8 min-w-0 w-full rounded-md border px-2 text-sm outline-none focus-visible:ring-2"
                         style={{ background: inputSurface, borderColor: theme.node.stroke, color: theme.node.text }}
                         onChange={(event) => onPatchTable({ globalPrompt: event.target.value })}
@@ -286,7 +287,7 @@ export function CanvasBatchTableNodeContent({ node, nodes, connections, batch, t
             <div ref={scrollRef} data-batch-scroll className="thin-scrollbar min-h-0 flex-1 overflow-auto overscroll-contain rounded-b-[inherit]" onMouseDown={stopScrollbarMouseDown} onScroll={reportScroll} onFocusCapture={event => { const id = (event.target as HTMLElement).closest<HTMLElement>("[data-batch-row-id]")?.dataset.batchRowId; if (id) setFocusedRowId(current => current === id ? current : id); }} onPointerDown={(event) => event.stopPropagation()}>
                 <div style={{ minWidth: 64 + referenceColumns.length * 88 + textColumns.length * 168 + 280 + 88 + 80 + 24 }}>
                 <div className="sticky top-0 z-10 grid items-center border-b px-3 text-center text-[var(--fs-label)] font-medium" style={{ height: BATCH_COLUMN_HEADER_HEIGHT, borderColor: theme.node.stroke, background: theme.node.panel, color: theme.node.muted, gridTemplateColumns }}>
-                    <span className="min-w-0 truncate px-1">任务</span>
+                    <span className="min-w-0 truncate px-1">{translate("nav.tools.tasks")}</span>
                     {referenceColumns.map((column) => (
                         <span
                             key={column.id}
@@ -304,9 +305,9 @@ export function CanvasBatchTableNodeContent({ node, nodes, connections, batch, t
                         </span>
                     ))}
                     {textColumns.map((column) => <span key={column.id} className="min-w-0 truncate px-1" title={column.label}>{column.label}</span>)}
-                    <span className="min-w-0 truncate px-1">任务提示词</span>
-                    <span className="min-w-0 truncate px-1">生成结果</span>
-                    <span className="min-w-0 truncate px-1">操作</span>
+                    <span className="min-w-0 truncate px-1">{translate("canvasTools.canvasBatchTableNode.taskPrompt")}</span>
+                    <span className="min-w-0 truncate px-1">{translate("library.tasks.detail.generated")}</span>
+                    <span className="min-w-0 truncate px-1">{translate("account.settings.runninghub.actions")}</span>
                 </div>
 
                 {table.rows.length ? (
@@ -325,35 +326,35 @@ export function CanvasBatchTableNodeContent({ node, nodes, connections, batch, t
                     <div className="grid min-h-44 place-items-center px-5 text-center">
                         <div className="flex max-w-sm flex-col items-center gap-2">
                             <div className="grid size-10 place-items-center rounded-xl" style={{ background: theme.accent.primarySoft, color: theme.node.text }}><Rows3 className="size-5" /></div>
-                            <div className="font-medium">还没有批量任务</div>
-                            <p className="m-0 leading-5" style={{ color: theme.node.muted }}>左侧 1、2 端口直接给对应列配图；也可以添加任务，点击格子选图或直接连到某一格。</p>
-                            {!readOnly ? <Button icon={<Plus className="size-3.5" />} onClick={() => addRow()}>添加第一条任务</Button> : null}
+                            <div className="font-medium">{translate("canvasTools.canvasBatchTableNode.noBatchTasksYet")}</div>
+                            <p className="m-0 leading-5" style={{ color: theme.node.muted }}>{translate("canvasTools.canvasBatchTableNode.connectImagesToPorts1And2OnTheLeft")}</p>
+                            {!readOnly ? <Button icon={<Plus className="size-3.5" />} onClick={() => addRow()}>{translate("canvasTools.canvasBatchTableNode.addTheFirstTask")}</Button> : null}
                         </div>
                     </div>
                 )}
-                {table.rows.length > 0 && !readOnly ? <div className="px-3 py-2"><Button block type="dashed" icon={<Plus className="size-4" />} onClick={() => addRow()}>添加任务</Button></div> : null}
+                {table.rows.length > 0 && !readOnly ? <div className="px-3 py-2"><Button block type="dashed" icon={<Plus className="size-4" />} onClick={() => addRow()}>{translate("canvasTools.canvasBatchTableNode.addTask")}</Button></div> : null}
                 </div>
             </div>
             {editingRow ? (
                 <AppModal
                     open centered width="min(860px, calc(100vw - 32px))"
-                    title={`任务 ${editingRowIndex + 1} · ${readOnly ? "查看" : "编辑"}提示词`}
+                    title={translate("canvasTools.canvasBatchTableNode.taskPrompt2", { v0: String(editingRowIndex + 1), v1: String(readOnly ? translate("canvasTools.canvasBatchTableNode.view") : translate("account.settings.channels.edit")) })}
                     onCancel={() => setEditingRowId(null)}
                     footer={
                         <div className="flex items-center justify-end gap-2">
-                            <span className="mr-auto text-xs" style={{ color: theme.node.muted }}>{readOnly ? "只读查看" : "与表内同一份内容，修改即时回填"}</span>
-                            {!readOnly ? <Button type="primary" disabled={!canGenerateEditingRow} onClick={() => onGenerate([editingRow.id])}>生成此行</Button> : null}
-                            <Button aria-label="完成" onClick={() => setEditingRowId(null)}>完成</Button>
+                            <span className="mr-auto text-xs" style={{ color: theme.node.muted }}>{readOnly ? translate("canvasTools.canvasBatchTableNode.readOnlyView") : translate("canvasTools.canvasBatchTableNode.thisIsTheSameContentAsTheTableChangesAppear")}</span>
+                            {!readOnly ? <Button type="primary" disabled={!canGenerateEditingRow} onClick={() => onGenerate([editingRow.id])}>{translate("canvasTools.canvasBatchTableNode.generateThisRow")}</Button> : null}
+                            <Button aria-label={translate("account.payment.done")} onClick={() => setEditingRowId(null)}>{translate("account.payment.done")}</Button>
                         </div>
                     }
                 >
                     <div data-canvas-no-drag data-canvas-no-zoom onPointerDown={(event) => event.stopPropagation()} onWheel={(event) => event.stopPropagation()}>
-                        <p style={{ color: theme.node.muted }}>{hasGlobalPrompt ? "当前所有行统一使用全局提示词。这里编辑的本行原文会保留，清空全局提示词后生效。" : "本次生成使用本行提示词。输入 @ 可引用本行参考图。"}</p>
+                        <p style={{ color: theme.node.muted }}>{hasGlobalPrompt ? translate("canvasTools.canvasBatchTableNode.allRowsCurrentlyUseTheGlobalPromptEditsToThis") : translate("canvasTools.canvasBatchTableNode.thisGenerationUsesTheRowSOwnPromptTypeTo")}</p>
                         <CanvasResourceMentionTextarea
                             value={editingRow.prompt}
                             references={batchRowMentionReferences(editingRow, referenceColumns, nodeById)}
                             readOnly={readOnly} sendOnEnter={false}
-                            aria-label={`放大${readOnly ? "查看" : "编辑"}任务 ${editingRowIndex + 1} 提示词内容`}
+                            aria-label={translate("canvasTools.canvasBatchTableNode.expandTaskPrompt", { v0: String(readOnly ? translate("canvasTools.canvasBatchTableNode.view") : translate("account.settings.channels.edit")), v1: String(editingRowIndex + 1) })}
                             containerClassName="h-[min(50dvh,420px)]"
                             className="thin-scrollbar h-full w-full resize-none overflow-y-auto overscroll-contain rounded-lg border p-4 text-base leading-7 outline-none focus-visible:ring-2"
                             style={{ background: inputSurface, borderColor: theme.node.stroke, color: theme.node.text }}
@@ -396,21 +397,21 @@ const BatchTableRow = memo(function BatchTableRow({ tableId, row, index, table, 
     const hasGlobalPrompt = Boolean(table.globalPrompt?.trim());
     const globalPrompt = table.globalPrompt || "";
     const inputSurface = theme.node.panel;
-    const status = row.enabled ? rowStatus(item, output) : { label: "已停用", tone: "idle" as const, loading: false, retryable: false };
+    const status = row.enabled ? rowStatus(item, output) : { label: translate("canvasTools.canvasBatchTableNode.disabled"), tone: "idle" as const, loading: false, retryable: false };
     const ready = rowReady(row, table, nodeById);
     const completedRow = hasNodeMedia(output);
     const inputChanged = batchRowInputChanged(table, row, nodeById);
     const references = batchRowMentionReferences(row, referenceColumns, nodeById);
     const effectivePrompt = batchPromptForRow(table, row);
-    const disabledReason = status.loading ? "当前任务正在生成" : !row.enabled ? "请先启用这一行" : !effectivePrompt.trim() ? "请填写任务提示词" : table.operation === "try_on" && row.inputNodeIds.filter(Boolean).length < 2 ? "批量换装至少需要两张参考图" : !ready ? "请补齐有效参考图" : "";
+    const disabledReason = status.loading ? translate("canvasTools.canvasBatchTableNode.thisTaskIsGenerating") : !row.enabled ? translate("canvasTools.canvasBatchTableNode.enableThisRowFirst") : !effectivePrompt.trim() ? translate("canvasTools.canvasBatchTableNode.enterATaskPrompt") : table.operation === "try_on" && row.inputNodeIds.filter(Boolean).length < 2 ? translate("canvasTools.canvasBatchTableNode.batchVirtualTryOnRequiresAtLeastTwoReferenceImages") : !ready ? translate("canvasTools.canvasBatchTableNode.addValidReferenceImages") : "";
     return (
         <div key={row.id} data-batch-row-id={row.id} className="group grid items-center border-b px-3 py-2 transition-colors hover:bg-black/[.025] dark:hover:bg-white/[.025]" style={{ height: BATCH_ROW_HEIGHT, borderColor: theme.node.stroke, gridTemplateColumns, opacity: row.enabled ? 1 : 0.58 }}>
             <div className="flex flex-col items-center justify-center gap-2">
                 <div className="flex items-center gap-2">
-                    {!readOnly ? <Switch size="small" checked={row.enabled} aria-label={`启用任务 ${index + 1}`} onChange={(enabled) => actions.current.onUpdateRow(row.id, { enabled })} /> : null}
+                    {!readOnly ? <Switch size="small" checked={row.enabled} aria-label={translate("canvasTools.canvasBatchTableNode.enableTask", { v0: String(index + 1) })} onChange={(enabled) => actions.current.onUpdateRow(row.id, { enabled })} /> : null}
                     <span className="tabular-nums" style={{ color: theme.node.muted }}>{index + 1}</span>
                 </div>
-                {!readOnly ? <button type="button" title="在下方插入任务，沿用本行参考图" aria-label={`在任务 ${index + 1} 下方插入`} className="grid size-6 place-items-center rounded hover:bg-black/5 focus-visible:outline-2 dark:hover:bg-white/10" onClick={() => actions.current.addRow(row.id)}><Plus className="size-3.5" /></button> : null}
+                {!readOnly ? <button type="button" title={translate("canvasTools.canvasBatchTableNode.insertATaskBelowAndReuseThisRowSReference")} aria-label={translate("canvasTools.canvasBatchTableNode.insertBelowTask", { v0: String(index + 1) })} className="grid size-6 place-items-center rounded hover:bg-black/5 focus-visible:outline-2 dark:hover:bg-white/10" onClick={() => actions.current.addRow(row.id)}><Plus className="size-3.5" /></button> : null}
             </div>
             {referenceColumns.map((column, columnIndex) => (
                 <div key={column.id} className="flex justify-center">
@@ -424,7 +425,7 @@ const BatchTableRow = memo(function BatchTableRow({ tableId, row, index, table, 
                         tableId={tableId}
                         columnId={column.id}
                         columnIndex={columnIndex}
-                        targetLabel={`任务 ${index + 1} · 参考图 ${columnIndex + 1}`}
+                        targetLabel={translate("canvasTools.canvasBatchTableNode.taskReferenceImage", { v0: String(index + 1), v1: String(columnIndex + 1) })}
                         isDraggingCell={draggingColumnIndex === columnIndex}
                         onPickFile={() => actions.current.pickReference(row.id, columnIndex)}
                         onRemove={() => actions.current.onRemoveReference?.(row.id, columnIndex)}
@@ -436,7 +437,7 @@ const BatchTableRow = memo(function BatchTableRow({ tableId, row, index, table, 
             {textColumns.map((column, columnIndex) => (
                 <div key={column.id} className="min-w-0 px-2">
                     {table.aiGenerated ? <textarea
-                        aria-label={`任务 ${index + 1} ${column.label}`}
+                        aria-label={translate("canvasTools.canvasBatchTableNode.task", { v0: String(index + 1), v1: String(column.label) })}
                         value={row.cells?.[column.id] || ""}
                         readOnly={readOnly}
                         className="thin-scrollbar h-20 w-full resize-none rounded-lg border px-2 py-2 text-sm outline-none focus-visible:ring-2"
@@ -452,8 +453,8 @@ const BatchTableRow = memo(function BatchTableRow({ tableId, row, index, table, 
                     readOnly={readOnly}
                     sendOnEnter={false}
                     mentionMenuWidth={300}
-                    aria-label={`任务 ${index + 1} 提示词`}
-                    placeholder={hasGlobalPrompt ? "本行原文保留；清空全局提示词后生效" : "描述生成目标，输入 @ 引用本行参考图"}
+                    aria-label={translate("canvasTools.canvasBatchTableNode.taskPrompt3", { v0: String(index + 1) })}
+                    placeholder={hasGlobalPrompt ? translate("canvasTools.canvasBatchTableNode.theRowSOriginalPromptIsRetainedAndTakesEffect") : translate("canvasTools.canvasBatchTableNode.describeTheResultTypeToReferenceThisRowSImages")}
                     containerClassName="h-20"
                     className="thin-scrollbar h-full w-full resize-none overflow-y-auto overscroll-contain rounded-lg border px-3 py-2 text-sm leading-5 outline-none transition-shadow focus-visible:ring-2"
                     style={{ background: inputSurface, borderColor: theme.node.stroke, color: theme.node.text }}
@@ -463,8 +464,8 @@ const BatchTableRow = memo(function BatchTableRow({ tableId, row, index, table, 
                     onWheel={(event) => event.stopPropagation()}
                 />
                 <div className="mt-1 flex h-5 items-center gap-2 px-0.5 text-[var(--fs-label)]" style={{ color: theme.node.muted }}>
-                    <span className="min-w-0 flex-1 truncate" title={hasGlobalPrompt ? globalPrompt : undefined}>{hasGlobalPrompt ? "本次生成使用全局提示词；本行原文保留" : readOnly ? "本次生成使用本行提示词" : "输入 @ 引用参考图 · Ctrl/⌘ + Enter 生成"}</span>
-                    <button type="button" className="flex shrink-0 items-center gap-1 rounded px-1 hover:underline" aria-label={`${readOnly ? "放大查看" : "放大编辑"}任务 ${index + 1} 提示词`} onClick={() => actions.current.setEditingRowId(row.id)}><Maximize2 className="size-3" />{readOnly ? "放大查看" : "放大编辑"}</button>
+                    <span className="min-w-0 flex-1 truncate" title={hasGlobalPrompt ? globalPrompt : undefined}>{hasGlobalPrompt ? translate("canvasTools.canvasBatchTableNode.thisGenerationUsesTheGlobalPromptTheRowSOriginal") : readOnly ? translate("canvasTools.canvasBatchTableNode.thisGenerationUsesThisRowSPrompt") : translate("canvasTools.canvasBatchTableNode.typeToReferenceImagesCtrlEnterToGenerate")}</span>
+                    <button type="button" className="flex shrink-0 items-center gap-1 rounded px-1 hover:underline" aria-label={translate("canvasTools.canvasBatchTableNode.taskPrompt4", { v0: String(readOnly ? translate("canvasTools.canvasBatchTableNode.expandToView") : translate("canvasTools.canvasBatchTableNode.enlargeToEdit")), v1: String(index + 1) })} onClick={() => actions.current.setEditingRowId(row.id)}><Maximize2 className="size-3" />{readOnly ? translate("canvasTools.canvasBatchTableNode.expandToView") : translate("canvasTools.canvasBatchTableNode.enlargeToEdit")}</button>
                 </div>
             </div>
             <div className="flex min-h-16 flex-col items-center justify-center gap-1">
@@ -474,14 +475,14 @@ const BatchTableRow = memo(function BatchTableRow({ tableId, row, index, table, 
                     theme={theme}
                     onFocus={() => { if (row.outputNodeId) actions.current.onFocusOutput?.(row.outputNodeId); }}
                 />
-                {inputChanged ? <span className="whitespace-nowrap text-[var(--fs-label)] font-medium" style={{ color: theme.node.text }} title="参考图或提示词已变更，当前显示的是原结果；需要手动重新生成">输入已变更</span> : null}
+                {inputChanged ? <span className="whitespace-nowrap text-[var(--fs-label)] font-medium" style={{ color: theme.node.text }} title={translate("canvasTools.canvasBatchTableNode.theReferenceImagesOrPromptHaveChangedThisIsThe")}>{translate("canvasTools.canvasBatchTableNode.inputsChanged")}</span> : null}
             </div>
             {!readOnly ? (
                 <div className="flex items-center justify-center gap-1">
-                    <Tooltip title={disabledReason || (completedRow ? "重新生成这一行" : "只生成这一行")}>
+                    <Tooltip title={disabledReason || (completedRow ? translate("canvasTools.canvasBatchTableNode.regenerateThisRow") : translate("canvasTools.canvasBatchTableNode.generateOnlyThisRow"))}>
                         <Button type={completedRow ? "text" : "primary"} size="small" className="w-8 px-0" disabled={Boolean(disabledReason)} icon={status.loading ? <LoaderCircle className="size-3.5 animate-spin" /> : <Play className="size-3.5" />} onClick={() => actions.current.onGenerate([row.id])} />
                     </Tooltip>
-                    <Tooltip title="删除这一行"><Button type="text" size="small" className="w-7 px-0 opacity-60 transition-opacity group-hover:opacity-100" danger icon={<Trash2 className="size-3.5" />} onClick={() => actions.current.onRemoveRow(row.id)} /></Tooltip>
+                    <Tooltip title={translate("canvasTools.canvasBatchTableNode.deleteThisRow")}><Button type="text" size="small" className="w-7 px-0 opacity-60 transition-opacity group-hover:opacity-100" danger icon={<Trash2 className="size-3.5" />} onClick={() => actions.current.onRemoveRow(row.id)} /></Tooltip>
                 </div>
             ) : <span />}
         </div>
@@ -527,8 +528,8 @@ function BatchReferenceHandle({ column, index, theme, commonStyle, onConnectStar
         setOffset({ x: Math.max(-limit, Math.min(limit, dx)), y: Math.max(-limit, Math.min(limit, dy)) });
     }, []);
     return (
-        <Tooltip title={`${column.label} · 按列填充：一张图供各行共用，多张图按顺序分配；也可直接连到目标格`} placement="left">
-            <button type="button" data-icon-only aria-label={`${column.label}连线点`} className="group absolute z-[var(--node-z-handle)] grid place-items-center rounded-full outline-none" style={{ ...commonStyle, top: BATCH_REFERENCE_HANDLE_TOP + index * BATCH_REFERENCE_HANDLE_GAP, cursor: "crosshair" }} onPointerEnter={(event) => { setHovered(true); update(event); }} onPointerMove={update} onPointerLeave={reset} onPointerDown={(event) => { event.stopPropagation(); onConnectStart(event, handleId); }} onPointerUp={(event) => { event.stopPropagation(); onConnectDrop?.(event, handleId); }}>
+        <Tooltip title={translate("canvasTools.canvasBatchTableNode.fillByColumnOneImageIsSharedByAllRows", { v0: String(column.label) })} placement="left">
+            <button type="button" data-icon-only aria-label={translate("canvasTools.canvasBatchTableNode.connectionPoint", { v0: String(column.label) })} className="group absolute z-[var(--node-z-handle)] grid place-items-center rounded-full outline-none" style={{ ...commonStyle, top: BATCH_REFERENCE_HANDLE_TOP + index * BATCH_REFERENCE_HANDLE_GAP, cursor: "crosshair" }} onPointerEnter={(event) => { setHovered(true); update(event); }} onPointerMove={update} onPointerLeave={reset} onPointerDown={(event) => { event.stopPropagation(); onConnectStart(event, handleId); }} onPointerUp={(event) => { event.stopPropagation(); onConnectDrop?.(event, handleId); }}>
                 <span className="grid size-[18px] place-items-center rounded-full border text-[var(--fs-label)] font-semibold shadow-sm transition-transform duration-150 group-hover:brightness-110 group-focus-visible:ring-2 group-focus-visible:ring-current" style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${hovered ? 1.06 : 1})`, background: theme.node.panel, borderColor: theme.accent.primary, color: theme.accent.primary }}>{index + 1}</span>
             </button>
         </Tooltip>
@@ -539,7 +540,7 @@ function batchRowMentionReferences(row: CanvasBatchRow, columns: ReturnType<type
     return columns.flatMap((column, index) => {
         const source = nodeById.get(row.inputNodeIds[index]);
         if (!source) return [];
-        return [{ id: `${row.id}:${column.id}:${source.id}`, nodeId: source.id, kind: "image" as const, label: `参考图${index + 1}`, title: `${column.label} · ${source.title || "图片"}`, previewUrl: source.metadata?.previewContent || source.metadata?.content, storageKey: source.metadata?.storageKey, active: true, sourceType: source.type, mentionToken: batchReferenceMentionToken(index) }];
+        return [{ id: `${row.id}:${column.id}:${source.id}`, nodeId: source.id, kind: "image" as const, label: translate("canvasTools.canvasBatchTableNode.referenceImage", { v0: String(index + 1) }), title: `${column.label} · ${source.title || translate("account.feedback.image")}`, previewUrl: source.metadata?.previewContent || source.metadata?.content, storageKey: source.metadata?.storageKey, active: true, sourceType: source.type, mentionToken: batchReferenceMentionToken(index) }];
     });
 }
 
@@ -565,7 +566,7 @@ function ReferenceThumbnail({ node, hasReference, label, targetLabel, theme, rea
                 if (file && !readOnly) onUploadFile(file);
             }}
         >
-        <Tooltip title={filled ? `${targetLabel} · ${node.title || "图片"}；点击更换，也可拖到同表其他格交换` : `${targetLabel} · 点击选图、上传或拖入连线`}>
+        <Tooltip title={filled ? translate("canvasTools.canvasBatchTableNode.clickToReplaceOrDragToAnotherCellInThis", { v0: String(targetLabel), v1: String(node.title || translate("account.feedback.image")) }) : translate("canvasTools.canvasBatchTableNode.clickToSelectOrUploadAnImageOrDragA", { v0: String(targetLabel) })}>
             <button
                 type="button"
                 aria-label={targetLabel}
@@ -578,18 +579,18 @@ function ReferenceThumbnail({ node, hasReference, label, targetLabel, theme, rea
                     if (!readOnly) onPickFile();
                 }}
             >
-                {filled ? <CachedResourceImage eager src={node.metadata?.previewContent || node.metadata?.content} storageKey={node.metadata?.storageKey} alt={node.title || "参考图"} className="block size-full max-h-full max-w-full object-contain" fallback={fallback} /> : fallback}
+                {filled ? <CachedResourceImage eager src={node.metadata?.previewContent || node.metadata?.content} storageKey={node.metadata?.storageKey} alt={node.title || translate("canvasPage.connection.referenceImage")} className="block size-full max-h-full max-w-full object-contain" fallback={fallback} /> : fallback}
                 <span className="absolute bottom-1 left-1 rounded px-1 py-0.5 text-[var(--fs-label)] font-medium text-white" style={{ background: "rgba(0,0,0,.58)" }}>{label}</span>
             </button>
         </Tooltip>
         {!readOnly ? <>
-            <Tooltip title="点击选择图片，或把图片节点连线拖到这一格">
-                <button type="button" aria-label={`${targetLabel}连接点`} className="absolute -left-2 top-1/2 z-10 grid size-4 -translate-y-1/2 place-items-center rounded-full border-2 shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2" style={{ background: theme.node.panel, borderColor: theme.accent.primary }} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onPickFile(); }}>
+            <Tooltip title={translate("canvasTools.canvasBatchTableNode.clickToSelectAnImageOrConnectAnImageNode")}>
+                <button type="button" aria-label={translate("canvasTools.canvasBatchTableNode.connector", { v0: String(targetLabel) })} className="absolute -left-2 top-1/2 z-10 grid size-4 -translate-y-1/2 place-items-center rounded-full border-2 shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2" style={{ background: theme.node.panel, borderColor: theme.accent.primary }} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onPickFile(); }}>
                     <span className="size-1 rounded-full" style={{ background: theme.accent.primary }} />
                 </button>
             </Tooltip>
-            {hasReference ? <Tooltip title="清除此格引用，保留源图片节点">
-                <button type="button" aria-label={`清除${targetLabel}引用`} className="absolute -right-1.5 -top-1.5 z-10 grid size-5 place-items-center rounded-full border shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2" style={{ background: theme.node.panel, borderColor: theme.node.stroke, color: theme.node.muted }} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onRemove(); }}><Minus className="size-3" /></button>
+            {hasReference ? <Tooltip title={translate("canvasTools.canvasBatchTableNode.clearThisCellSReferenceAndKeepTheSourceImage")}>
+                <button type="button" aria-label={translate("canvasTools.canvasBatchTableNode.clearReference", { v0: String(targetLabel) })} className="absolute -right-1.5 -top-1.5 z-10 grid size-5 place-items-center rounded-full border shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2" style={{ background: theme.node.panel, borderColor: theme.node.stroke, color: theme.node.muted }} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onRemove(); }}><Minus className="size-3" /></button>
             </Tooltip> : null}
         </> : null}
         </div>
@@ -599,7 +600,7 @@ function ReferenceThumbnail({ node, hasReference, label, targetLabel, theme, rea
 function ResultThumbnail({ output, status, theme, onFocus }: { output?: CanvasNodeData; status: ReturnType<typeof rowStatus>; theme: CanvasTheme; onFocus: () => void }) {
     const filled = hasNodeMedia(output);
     const tone = statusColor(status.tone, theme.node.stroke);
-    const title = filled ? `${status.label} · 点击定位到画布节点` : status.label;
+    const title = filled ? translate("canvasTools.canvasBatchTableNode.clickToLocateTheCanvasNode", { v0: String(status.label) }) : status.label;
     return (
         <Tooltip title={title}>
             <button
@@ -613,7 +614,7 @@ function ResultThumbnail({ output, status, theme, onFocus }: { output?: CanvasNo
                     if (output) onFocus();
                 }}
             >
-                {filled && output ? <CachedResourceImage eager src={output.metadata?.previewContent || output.metadata?.content} storageKey={output.metadata?.storageKey} alt="生成结果" className="block size-full max-h-full max-w-full object-cover" fallback={<EmptyThumbnail theme={theme} compact />} /> : <EmptyThumbnail theme={theme} compact />}
+                {filled && output ? <CachedResourceImage eager src={output.metadata?.previewContent || output.metadata?.content} storageKey={output.metadata?.storageKey} alt={translate("library.tasks.detail.generated")} className="block size-full max-h-full max-w-full object-cover" fallback={<EmptyThumbnail theme={theme} compact />} /> : <EmptyThumbnail theme={theme} compact />}
                 {status.loading ? <span className="absolute inset-0 grid place-items-center bg-black/35"><LoaderCircle className="size-4 animate-spin" style={{ color: tone }} /></span> : null}
                 <span className="absolute right-1 top-1 size-2 rounded-full" style={{ background: tone }} />
             </button>
@@ -638,7 +639,7 @@ function EmptyThumbnail({ theme, compact = false }: { theme: CanvasTheme; compac
             {compact ? <ImageIcon className="size-4" /> : (
                 <span className="flex flex-col items-center gap-0.5">
                     <Upload className="size-4" />
-                    <span className="text-[var(--fs-label)] leading-none">上传</span>
+                    <span className="text-[var(--fs-label)] leading-none">{translate("canvasA.assetView.upload")}</span>
                 </span>
             )}
         </div>
@@ -653,13 +654,13 @@ type RowStatusTone = "success" | "error" | "loading" | "idle";
 type RowStatus = { label: string; tone: RowStatusTone; loading: boolean; retryable: boolean };
 
 function rowStatus(item: CanvasGenerationBatchItem | undefined, output: CanvasNodeData | undefined): RowStatus {
-    if (item?.status === "failed") return { label: item.errorDetails ? generationErrorMessage(item.errorDetails) : "生成失败", tone: "error", loading: false, retryable: true };
-    if (item?.status === "cancelled") return { label: "已停止", tone: "error", loading: false, retryable: false };
-    if (item && ["waiting", "submitting", "queued", "running"].includes(item.status)) return { label: item.status === "waiting" ? "等待中" : item.status === "submitting" ? "正在提交" : item.status === "queued" ? "已排队" : "生成中", tone: "loading", loading: true, retryable: false };
-    if (output?.metadata?.status === "error") return { label: output.metadata.errorDetails ? generationErrorMessage(output.metadata.errorDetails) : "生成失败", tone: "error", loading: false, retryable: false };
-    if (output?.metadata?.status === "loading") return { label: "生成中", tone: "loading", loading: true, retryable: false };
+    if (item?.status === "failed") return { label: item.errorDetails ? generationErrorMessage(item.errorDetails) : translate("canvasPage.batches.generationFailed"), tone: "error", loading: false, retryable: true };
+    if (item?.status === "cancelled") return { label: translate("create.status.stopped"), tone: "error", loading: false, retryable: false };
+    if (item && ["waiting", "submitting", "queued", "running"].includes(item.status)) return { label: item.status === "waiting" ? translate("canvasTools.canvasBatchTableNode.waiting") : item.status === "submitting" ? translate("canvasTools.canvasBatchTableNode.submitting") : item.status === "queued" ? translate("canvasTools.canvasBatchTableNode.queued") : translate("canvasB.mediaVersion.generating"), tone: "loading", loading: true, retryable: false };
+    if (output?.metadata?.status === "error") return { label: output.metadata.errorDetails ? generationErrorMessage(output.metadata.errorDetails) : translate("canvasPage.batches.generationFailed"), tone: "error", loading: false, retryable: false };
+    if (output?.metadata?.status === "loading") return { label: translate("canvasB.mediaVersion.generating"), tone: "loading", loading: true, retryable: false };
     if (hasNodeMedia(output)) return batchOutputResultPending(output?.metadata)
-        ? { label: "保留上次结果", tone: "idle", loading: false, retryable: false }
-        : { label: "生成完成", tone: "success", loading: false, retryable: false };
-    return { label: "待生成", tone: "idle", loading: false, retryable: false };
+        ? { label: translate("canvasTools.canvasBatchTableNode.keepPreviousResult"), tone: "idle", loading: false, retryable: false }
+        : { label: translate("canvasTools.canvasBatchTableNode.generationComplete"), tone: "success", loading: false, retryable: false };
+    return { label: translate("canvasTools.canvasBatchTableNode.awaitingGeneration"), tone: "idle", loading: false, retryable: false };
 }

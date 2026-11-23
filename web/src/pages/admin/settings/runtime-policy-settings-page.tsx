@@ -8,6 +8,8 @@ import { getAdminRuntimePolicySetting, getAdminSelfUseRuntimePolicy, resetAdminR
 import { useAdminContext } from "../admin-context";
 import { AdminPageFrame } from "../components/admin-shell";
 import { AdminStatTile, AdminStatusBadge, SettingsSectionCard } from "../components/admin-ui";
+import { currentLocale, translate } from "@/i18n";
+
 
 type PolicyGroup = "resource" | "storage" | "task" | "request";
 type RuntimePolicyDraft = Pick<RuntimePolicySetting, "resource" | "storage" | "task" | "request">;
@@ -23,47 +25,47 @@ type PolicySectionDefinition = {
 };
 
 const resourceFields: PolicyField[] = [
-    { group: "resource", name: "resourceUploadMB", label: "普通资源单文件", extra: "素材上传和远程导入的单文件业务上限。", unit: "MB", max: 999 },
-    { group: "resource", name: "generatedFileMB", label: "单个生成资源", extra: "上游生成响应和落库资源的单文件上限。", unit: "MB", max: 999 },
-    { group: "resource", name: "dailyUploadMB", label: "每日上传总量", extra: "按 UTC 自然日累计资源与附件上传。", unit: "MB", max: 999_999 },
-    { group: "resource", name: "storedFileGB", label: "账号文件总量", extra: "资源文件与 Agent 会话附件合计。", unit: "GB", max: 999 },
-    { group: "resource", name: "structuredDataMB", label: "结构化数据总量", extra: "画布、素材和 Agent 会话结构化数据合计。", unit: "MB", max: 999_999 },
-    { group: "resource", name: "taskDataGB", label: "任务数据总量", extra: "任务历史、结果和上游请求日志合计。", unit: "GB", max: 999 },
-    { group: "resource", name: "assetCount", label: "素材数量", extra: "单账号可保存的素材记录数。", unit: "条", max: 999_999_999 },
-    { group: "resource", name: "canvasCount", label: "画布数量", extra: "单账号可保存的画布数量。", unit: "个", max: 999_999_999 },
-    { group: "resource", name: "taskCount", label: "任务历史数量", extra: "单账号保留的任务历史记录数。", unit: "条", max: 999_999_999 },
-    { group: "resource", name: "apiCallLogCount", label: "请求日志数量", extra: "单账号保留的上游请求日志数。", unit: "条", max: 999_999_999 },
-    { group: "resource", name: "recycleBinRetentionDays", label: "回收站自动清理时间", extra: "素材移入回收站后自动彻底删除的天数，0 表示不自动清理。", unit: "天", min: 0, max: 365 },
+    { group: "resource", name: "resourceUploadMB", label: translate("adminPages.settings.runtimePolicySettingsPage.singleRegularResourceFile"), extra: translate("adminPages.settings.runtimePolicySettingsPage.perFileLimitForAssetUploadsAndRemoteImports"), unit: "MB", max: 999 },
+    { group: "resource", name: "generatedFileMB", label: translate("adminPages.settings.runtimePolicySettingsPage.aSingleGeneratedResource"), extra: translate("adminPages.settings.runtimePolicySettingsPage.perFileLimitForUpstreamGenerationResponsesAndStoredResources"), unit: "MB", max: 999 },
+    { group: "resource", name: "dailyUploadMB", label: translate("adminPages.settings.runtimePolicySettingsPage.dailyUploadTotal"), extra: translate("adminPages.settings.runtimePolicySettingsPage.resourceAndAttachmentUploadsAreCountedPerUTCCalendarDay"), unit: "MB", max: 999_999 },
+    { group: "resource", name: "storedFileGB", label: translate("adminPages.settings.runtimePolicySettingsPage.totalAccountFiles"), extra: translate("adminPages.settings.runtimePolicySettingsPage.totalOfResourceFilesAndAgentSessionAttachments"), unit: "GB", max: 999 },
+    { group: "resource", name: "structuredDataMB", label: translate("adminPages.settings.runtimePolicySettingsPage.totalStructuredData"), extra: translate("adminPages.settings.runtimePolicySettingsPage.totalStructuredDataForCanvasesAssetsAndAgentSessions"), unit: "MB", max: 999_999 },
+    { group: "resource", name: "taskDataGB", label: translate("adminPages.settings.runtimePolicySettingsPage.totalTaskData"), extra: translate("adminPages.settings.runtimePolicySettingsPage.totalOfTaskHistoryResultsAndUpstreamRequestLogs"), unit: "GB", max: 999 },
+    { group: "resource", name: "assetCount", label: translate("adminPages.settings.runtimePolicySettingsPage.assets"), extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfAssetRecordsAnAccountCanStore"), unit: translate("account.layout.pagination.item"), max: 999_999_999 },
+    { group: "resource", name: "canvasCount", label: translate("adminPages.settings.runtimePolicySettingsPage.canvases"), extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfCanvasesAnAccountCanStore"), unit: translate("adminPages.settings.runtimePolicySettingsPage.items"), max: 999_999_999 },
+    { group: "resource", name: "taskCount", label: translate("adminPages.settings.runtimePolicySettingsPage.taskHistoryEntries"), extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfTaskHistoryRecordsRetainedPerAccount"), unit: translate("account.layout.pagination.item"), max: 999_999_999 },
+    { group: "resource", name: "apiCallLogCount", label: translate("adminPages.settings.runtimePolicySettingsPage.requestLogs"), extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfUpstreamRequestLogsRetainedPerAccount"), unit: translate("account.layout.pagination.item"), max: 999_999_999 },
+    { group: "resource", name: "recycleBinRetentionDays", label: translate("adminPages.settings.runtimePolicySettingsPage.recycleBinAutomaticCleanupInterval"), extra: translate("adminPages.settings.runtimePolicySettingsPage.daysBeforeAssetsInTheRecycleBinArePermanentlyDeleted"), unit: translate("adminPages.settings.runtimePolicySettingsPage.days"), min: 0, max: 365 },
 ];
 
 const storageFields: PolicyField[] = [
-    { group: "storage", name: "transferTimeoutSeconds", label: "对象存储传输超时", extra: "对象存储上传、下载、删除与连接测试的最长等待时间。", unit: "秒", min: 10, max: 3_600 },
-    { group: "storage", name: "accessURLTTLSeconds", label: "访问地址有效期", extra: "浏览器访问对象资源时使用的签名地址有效期。", unit: "秒", min: 60, max: 86_400 },
-    { group: "storage", name: "providerAccessURLTTLSeconds", label: "厂商访问地址有效期", extra: "模型或其他外部厂商读取对象资源时使用的地址有效期。", unit: "秒", min: 300, max: 86_400 },
-    { group: "storage", name: "nonSeekableBufferMB", label: "非可寻址上传缓冲", extra: "S3 兼容存储接收不可重复读取请求体时的最大内存缓冲。", unit: "MB", max: 999 },
-    { group: "storage", name: "errorBodyKB", label: "错误响应保留", extra: "对象存储错误响应中最多保留的诊断内容。", unit: "KB", max: 1_024 },
+    { group: "storage", name: "transferTimeoutSeconds", label: translate("adminPages.settings.runtimePolicySettingsPage.objectStorageTransferTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumWaitTimeForObjectStorageUploadsDownloadsDeletionsAnd"), unit: translate("account.settings.models.unitSecond"), min: 10, max: 3_600 },
+    { group: "storage", name: "accessURLTTLSeconds", label: translate("adminPages.settings.runtimePolicySettingsPage.accessURLValidity"), extra: translate("adminPages.settings.runtimePolicySettingsPage.validityOfSignedURLsUsedByBrowsersToAccessObject"), unit: translate("account.settings.models.unitSecond"), min: 60, max: 86_400 },
+    { group: "storage", name: "providerAccessURLTTLSeconds", label: translate("adminPages.settings.runtimePolicySettingsPage.providerAccessURLValidity"), extra: translate("adminPages.settings.runtimePolicySettingsPage.validityOfURLsUsedByModelsOrOtherExternalProviders"), unit: translate("account.settings.models.unitSecond"), min: 300, max: 86_400 },
+    { group: "storage", name: "nonSeekableBufferMB", label: translate("adminPages.settings.runtimePolicySettingsPage.nonSeekableUploadBuffer"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumMemoryBufferForS3CompatibleStorageWhenReceivingA"), unit: "MB", max: 999 },
+    { group: "storage", name: "errorBodyKB", label: translate("adminPages.settings.runtimePolicySettingsPage.errorResponseRetention"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumDiagnosticContentRetainedFromObjectStorageErrorResponses"), unit: "KB", max: 1_024 },
 ];
 const concurrencyFields: PolicyField[] = [
-    { group: "task", name: "workerConcurrency", label: "Worker 并发", extra: "集群同时执行的后台任务数。", unit: "个", max: 999 },
-    { group: "task", name: "channelConcurrency", label: "全局渠道并发", extra: "渠道选择跟随系统时采用的并发上限。", unit: "个", max: 999 },
-    { group: "task", name: "activeTaskLimit", label: "账号活动任务", extra: "单账号跨项目同时排队或运行的任务总数。", unit: "个", max: 999 },
+    { group: "task", name: "workerConcurrency", label: translate("adminPages.settings.runtimePolicySettingsPage.workerConcurrency"), extra: translate("adminPages.settings.runtimePolicySettingsPage.backgroundTasksTheClusterRunsConcurrently"), unit: translate("adminPages.settings.runtimePolicySettingsPage.items"), max: 999 },
+    { group: "task", name: "channelConcurrency", label: translate("adminPages.settings.runtimePolicySettingsPage.globalChannelConcurrency"), extra: translate("adminPages.settings.runtimePolicySettingsPage.concurrencyLimitUsedWhenChannelSelectionFollowsTheSystemDefault"), unit: translate("adminPages.settings.runtimePolicySettingsPage.items"), max: 999 },
+    { group: "task", name: "activeTaskLimit", label: translate("adminPages.settings.runtimePolicySettingsPage.accountActiveTasks"), extra: translate("adminPages.settings.runtimePolicySettingsPage.totalTasksQueuedOrRunningAtOncePerAccountAcross"), unit: translate("adminPages.settings.runtimePolicySettingsPage.items"), max: 999 },
 ];
 
 const timeoutFields: PolicyField[] = [
-    { group: "task", name: "imageTimeoutMinutes", label: "图片任务超时", extra: "图片任务进入失败状态前的最长执行时间。", unit: "分钟", max: 9_999 },
-    { group: "task", name: "textTimeoutMinutes", label: "文本任务超时", extra: "文本任务的最长执行时间。", unit: "分钟", max: 9_999 },
-    { group: "task", name: "audioTimeoutMinutes", label: "音频任务超时", extra: "音频任务的最长执行时间。", unit: "分钟", max: 9_999 },
-    { group: "task", name: "videoTimeoutMinutes", label: "视频任务超时", extra: "视频任务的最长执行时间。", unit: "分钟", max: 9_999 },
-    { group: "task", name: "storyboardTimeoutMinutes", label: "分镜任务超时", extra: "Agent 分镜任务的最长执行时间。", unit: "分钟", max: 9_999 },
-    { group: "task", name: "defaultTimeoutMinutes", label: "默认任务超时", extra: "未匹配专用类型时使用的最长执行时间。", unit: "分钟", max: 9_999 },
+    { group: "task", name: "imageTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.imageTaskTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeBeforeAnImageTaskIsMarkedFailed"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
+    { group: "task", name: "textTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.textTaskTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeForTextTasks"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
+    { group: "task", name: "audioTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.audioTaskTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeForAudioTasks"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
+    { group: "task", name: "videoTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.videoTaskTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeForVideoTasks"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
+    { group: "task", name: "storyboardTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.storyboardTaskTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeForAgentStoryboardTasks"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
+    { group: "task", name: "defaultTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.defaultTaskTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeUsedWhenNoSpecificTypeMatches"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
 ];
 
 const agentFields: PolicyField[] = [
     {
         group: "task",
         name: "agentStepMaxOutputTokens",
-        label: "单步输出上限",
-        extra: "画布 Agent 每次模型调用的输出上限，含思考、正文与工具调用参数。0 表示不限制，此时只有单步超时兜底；抬高可以避免长思考模型被截断后返回空内容。",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.outputLimitPerStep"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.outputLimitForEachCanvasAgentModelCallIncludingReasoning"),
         unit: "token",
         min: 0,
         max: 131_072,
@@ -71,79 +73,79 @@ const agentFields: PolicyField[] = [
     {
         group: "task",
         name: "agentStepTimeoutSeconds",
-        label: "单步超时",
-        extra: "画布 Agent 单步模型调用的最长等待时间，到点会中止这一步并自动关思考重试一次。0 表示沿用“文本任务超时”，不再单独计时。",
-        unit: "秒",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.stepTimeout"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumWaitTimeForEachCanvasAgentModelCallOn"),
+        unit: translate("account.settings.models.unitSecond"),
         min: 0,
         max: 3_600,
     },
     {
         group: "task",
         name: "agentMaxSessions",
-        label: "同时对话上限",
-        extra: "同时进行中的画布 Agent 轮次，新安装默认 30。审批等待不占名额，降低上限不会中断已开始的对话。",
-        unit: "个",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.concurrentConversationLimit"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.concurrentCanvasAgentTurnsNewInstallationsDefaultTo30Waiting"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.items"),
         max: 64,
     },
 ];
 
 const rateFields: PolicyField[] = [
-    { group: "request", name: "taskCreatePerMinute", label: "任务创建", extra: "每账号每分钟允许创建的任务数。", unit: "次/分钟", max: 999_999 },
-    { group: "request", name: "resourceUploadPerMinute", label: "资源上传", extra: "每账号每分钟上传资源的次数。", unit: "次/分钟", max: 999_999 },
-    { group: "request", name: "resourceImportPerMinute", label: "资源导入", extra: "每账号每分钟导入远程资源的次数。", unit: "次/分钟", max: 999_999 },
-    { group: "request", name: "assetWritePerMinute", label: "素材写入", extra: "每账号每分钟写入素材的次数。", unit: "次/分钟", max: 999_999 },
-    { group: "request", name: "canvasWritePerMinute", label: "画布写入", extra: "每账号每分钟写入画布的次数。", unit: "次/分钟", max: 999_999 },
-    { group: "request", name: "registerPerHour", label: "账号注册", extra: "每 IP 每小时允许的注册请求次数，包含失败尝试；多人共用网络时建议至少 30 次。", unit: "次/小时", max: 999_999 },
-    { group: "request", name: "emailCodePerHour", label: "邮箱验证码", extra: "每 IP 每小时的验证码请求次数，建议至少 60 次；单邮箱另限每小时 10 次，发送后需间隔 60 秒。", unit: "次/小时", max: 999_999 },
-    { group: "request", name: "loginIPPerTenMinutes", label: "登录 IP", extra: "每 IP 每 10 分钟允许登录的次数。", unit: "次/10分钟", max: 999_999 },
-    { group: "request", name: "loginAccountPerTenMinutes", label: "登录账号组合", extra: "同一 IP 与账号组合每 10 分钟的登录次数。", unit: "次/10分钟", max: 999_999 },
-    { group: "request", name: "systemRelayPerMinute", label: "系统渠道中转", extra: "每账号每分钟使用系统渠道的请求数。", unit: "次/分钟", max: 999_999 },
-    { group: "request", name: "customRelayPerMinute", label: "自定义渠道中转", extra: "每账号每分钟使用自定义渠道的请求数。", unit: "次/分钟", max: 999_999 },
+    { group: "request", name: "taskCreatePerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.taskCreated"), extra: translate("adminPages.settings.runtimePolicySettingsPage.tasksThatCanBeCreatedPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
+    { group: "request", name: "resourceUploadPerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.resourceUploads"), extra: translate("adminPages.settings.runtimePolicySettingsPage.resourceUploadsPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
+    { group: "request", name: "resourceImportPerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.resourceImports"), extra: translate("adminPages.settings.runtimePolicySettingsPage.remoteResourceImportsPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
+    { group: "request", name: "assetWritePerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.assetWrites"), extra: translate("adminPages.settings.runtimePolicySettingsPage.assetWritesPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
+    { group: "request", name: "canvasWritePerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.canvasWrites"), extra: translate("adminPages.settings.runtimePolicySettingsPage.canvasWritesPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
+    { group: "request", name: "registerPerHour", label: translate("adminPages.settings.runtimePolicySettingsPage.accountRegistration"), extra: translate("adminPages.settings.runtimePolicySettingsPage.registrationRequestsAllowedPerIPPerHourIncludingFailedAttempts"), unit: translate("adminPages.settings.runtimePolicySettingsPage.hour"), max: 999_999 },
+    { group: "request", name: "emailCodePerHour", label: translate("auth.recovery.code"), extra: translate("adminPages.settings.runtimePolicySettingsPage.verificationCodeRequestsPerIPPerHourAtLeast60"), unit: translate("adminPages.settings.runtimePolicySettingsPage.hour"), max: 999_999 },
+    { group: "request", name: "loginIPPerTenMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.signInIP"), extra: translate("adminPages.settings.runtimePolicySettingsPage.signInAttemptsAllowedPerIPPer10Minutes"), unit: translate("adminPages.settings.runtimePolicySettingsPage.item10Min"), max: 999_999 },
+    { group: "request", name: "loginAccountPerTenMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.accountAndIPCombination"), extra: translate("adminPages.settings.runtimePolicySettingsPage.signInAttemptsPer10MinutesForAGivenIP"), unit: translate("adminPages.settings.runtimePolicySettingsPage.item10Min"), max: 999_999 },
+    { group: "request", name: "systemRelayPerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.systemChannelRelay"), extra: translate("adminPages.settings.runtimePolicySettingsPage.systemChannelRequestsPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
+    { group: "request", name: "customRelayPerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelRelay"), extra: translate("adminPages.settings.runtimePolicySettingsPage.customChannelRequestsPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
 ];
 
 const relayFields: PolicyField[] = [
-    { group: "request", name: "customRelayConcurrency", label: "自定义渠道并发", extra: "单账号同时进行的自定义渠道请求数。", unit: "个", max: 999 },
-    { group: "request", name: "customRelayRequestMB", label: "自定义渠道请求体", extra: "中转到自定义上游的请求体上限。", unit: "MB", max: 999 },
-    { group: "request", name: "customRelayResponseMB", label: "自定义渠道响应体", extra: "自定义上游 JSON 与流式响应的读取上限。", unit: "MB", max: 999 },
-    { group: "request", name: "customRelayTimeoutMinutes", label: "自定义渠道超时", extra: "自定义渠道连接与响应的最长等待时间。", unit: "分钟", max: 9_999 },
-    { group: "request", name: "systemRelayRequestMB", label: "系统渠道请求体", extra: "中转到系统渠道的请求体上限。", unit: "MB", max: 999 },
-    { group: "request", name: "systemRelayResponseMB", label: "系统渠道响应体", extra: "系统渠道上游响应的读取上限。", unit: "MB", max: 999 },
-    { group: "request", name: "channelCircuitFailureCount", label: "熔断失败次数", extra: "一分钟内连续失败达到该值后打开熔断。", unit: "次", max: 999 },
-    { group: "request", name: "channelCircuitOpenSeconds", label: "熔断持续时间", extra: "渠道熔断打开后拒绝请求的时间。", unit: "秒", max: 86_400 },
+    { group: "request", name: "customRelayConcurrency", label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelConcurrency"), extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfConcurrentCustomChannelRequestsPerAccount"), unit: translate("adminPages.settings.runtimePolicySettingsPage.items"), max: 999 },
+    { group: "request", name: "customRelayRequestMB", label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelRequestBody"), extra: translate("adminPages.settings.runtimePolicySettingsPage.requestBodyLimitWhenRelayingToCustomUpstreams"), unit: "MB", max: 999 },
+    { group: "request", name: "customRelayResponseMB", label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelResponseBody"), extra: translate("adminPages.settings.runtimePolicySettingsPage.readLimitForCustomUpstreamJSONAndStreamingResponses"), unit: "MB", max: 999 },
+    { group: "request", name: "customRelayTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumWaitTimeForCustomChannelConnectionsAndResponses"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
+    { group: "request", name: "systemRelayRequestMB", label: translate("adminPages.settings.runtimePolicySettingsPage.systemChannelRequestBody"), extra: translate("adminPages.settings.runtimePolicySettingsPage.requestBodyLimitWhenRelayingToSystemChannels"), unit: "MB", max: 999 },
+    { group: "request", name: "systemRelayResponseMB", label: translate("adminPages.settings.runtimePolicySettingsPage.systemChannelResponseBody"), extra: translate("adminPages.settings.runtimePolicySettingsPage.readLimitForUpstreamResponsesOnSystemChannels"), unit: "MB", max: 999 },
+    { group: "request", name: "channelCircuitFailureCount", label: translate("adminPages.settings.runtimePolicySettingsPage.circuitBreakerFailureThreshold"), extra: translate("adminPages.settings.runtimePolicySettingsPage.theCircuitBreakerOpensAfterThisManyConsecutiveFailuresWithin"), unit: translate("account.settings.models.unitCall"), max: 999 },
+    { group: "request", name: "channelCircuitOpenSeconds", label: translate("adminPages.settings.runtimePolicySettingsPage.circuitBreakerDuration"), extra: translate("adminPages.settings.runtimePolicySettingsPage.howLongRequestsAreRejectedOnceTheChannelSCircuit"), unit: translate("account.settings.models.unitSecond"), max: 86_400 },
 ];
 
 const policySections: PolicySectionDefinition[] = [
-    { id: "policy-resource", icon: <Database className="size-4" aria-hidden="true" />, title: "资源与账号配额", shortTitle: "资源配额", description: "上传、文件容量、结构化数据和历史记录上限。", fields: resourceFields },
+    { id: "policy-resource", icon: <Database className="size-4" aria-hidden="true" />, title: translate("adminPages.settings.runtimePolicySettingsPage.resourceAndAccountQuotas"), shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.resourceQuotas"), description: translate("adminPages.settings.runtimePolicySettingsPage.limitsForUploadsFileSizeStructuredDataAndHistory"), fields: resourceFields },
     {
         id: "policy-storage",
         icon: <Database className="size-4" aria-hidden="true" />,
-        title: "对象存储运行时",
-        shortTitle: "对象存储",
-        description: "对象存储传输、签名地址和上传缓冲策略。",
+        title: translate("adminPages.settings.runtimePolicySettingsPage.objectStorageRuntime"),
+        shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.objectStorage"),
+        description: translate("adminPages.settings.runtimePolicySettingsPage.objectStorageTransfersSignedURLsAndUploadBufferPolicies"),
         fields: storageFields,
-        status: <AdminStatusBadge label="保存后热更新" tone="info" />,
+        status: <AdminStatusBadge label={translate("adminPages.settings.runtimePolicySettingsPage.hotReloadedAfterSaving")} tone="info" />,
     },
     {
         id: "policy-concurrency",
         icon: <Gauge className="size-4" aria-hidden="true" />,
-        title: "任务与并发",
-        shortTitle: "任务并发",
-        description: "后台任务消费、渠道调度和单账号活动任务上限。",
+        title: translate("adminPages.settings.runtimePolicySettingsPage.tasksAndConcurrency"),
+        shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.taskConcurrency"),
+        description: translate("adminPages.settings.runtimePolicySettingsPage.backgroundTaskConsumptionChannelSchedulingAndThePerAccountActive"),
         fields: concurrencyFields,
-        status: <AdminStatusBadge label="保存后热更新" tone="info" />,
+        status: <AdminStatusBadge label={translate("adminPages.settings.runtimePolicySettingsPage.hotReloadedAfterSaving")} tone="info" />,
     },
-    { id: "policy-timeout", icon: <TimerReset className="size-4" aria-hidden="true" />, title: "任务超时", shortTitle: "任务超时", description: "不同生成类型的最长执行时间。", fields: timeoutFields },
+    { id: "policy-timeout", icon: <TimerReset className="size-4" aria-hidden="true" />, title: translate("adminPages.settings.runtimePolicySettingsPage.taskTimeout"), shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.taskTimeout"), description: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimePerGenerationType"), fields: timeoutFields },
     {
         id: "policy-agent",
         icon: <Orbit className="size-4" aria-hidden="true" />,
-        title: "画布 Agent 单步",
-        shortTitle: "Agent 单步",
-        description: "画布 Agent 每一步模型调用的输出上限与等待时限；两者一起决定单步最坏耗时。",
+        title: translate("adminPages.settings.runtimePolicySettingsPage.canvasAgentSteps"),
+        shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.agentSteps"),
+        description: translate("adminPages.settings.runtimePolicySettingsPage.outputLimitAndTimeoutForEachCanvasAgentModelCall"),
         fields: agentFields,
-        status: <AdminStatusBadge label="保存后热更新" tone="info" />,
+        status: <AdminStatusBadge label={translate("adminPages.settings.runtimePolicySettingsPage.hotReloadedAfterSaving")} tone="info" />,
     },
-    { id: "policy-rate", icon: <ShieldCheck className="size-4" aria-hidden="true" />, title: "业务频控", shortTitle: "业务频控", description: "账号与 IP 维度的固定窗口请求限制。", fields: rateFields },
-    { id: "policy-relay", icon: <Network className="size-4" aria-hidden="true" />, title: "渠道中转与熔断", shortTitle: "中转与熔断", description: "请求体、响应体、并发、超时和上游故障保护。", fields: relayFields },
+    { id: "policy-rate", icon: <ShieldCheck className="size-4" aria-hidden="true" />, title: translate("adminPages.settings.runtimePolicySettingsPage.businessRateLimits"), shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.businessRateLimits"), description: translate("adminPages.settings.runtimePolicySettingsPage.fixedWindowRequestLimitsByAccountAndIP"), fields: rateFields },
+    { id: "policy-relay", icon: <Network className="size-4" aria-hidden="true" />, title: translate("adminPages.settings.runtimePolicySettingsPage.channelRelayingAndCircuitBreaking"), shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.relayAndCircuitBreakers"), description: translate("adminPages.settings.runtimePolicySettingsPage.requestBodyResponseBodyConcurrencyTimeoutsAndUpstreamFailureProtection"), fields: relayFields },
 ];
 const allPolicyFields = policySections.flatMap((section) => section.fields);
 
@@ -181,10 +183,10 @@ export default function RuntimePolicySettingsPage() {
                 setDraft(nextDraft);
                 if (formReadyRef.current) form.setFieldsValue(nextDraft);
                 setSaveError("");
-                if (announce) message.success("已重新读取当前资源与策略配置");
+                if (announce) message.success(translate("adminPages.settings.runtimePolicySettingsPage.currentResourceAndPolicySettingsReloaded"));
             } catch (error) {
                 if (requestVersion !== requestVersionRef.current) return;
-                const errorMessage = error instanceof Error ? error.message : "读取资源与策略失败";
+                const errorMessage = error instanceof Error ? error.message : translate("adminPages.settings.runtimePolicySettingsPage.failedToLoadResourcesAndPolicies");
                 setLoadError(errorMessage);
                 if (!initial) message.error(errorMessage);
             } finally {
@@ -230,10 +232,10 @@ export default function RuntimePolicySettingsPage() {
         navigationConfirmOpenRef.current = true;
         navigationTriggerRef.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
         modal.confirm({
-            title: "放弃资源与策略调整？",
-            content: `当前有 ${dirtyFields.length} 项调整尚未保存，离开后暂存内容会丢失。`,
-            okText: "放弃并离开",
-            cancelText: "继续编辑",
+            title: translate("adminPages.settings.runtimePolicySettingsPage.discardResourceAndPolicyChanges"),
+            content: translate("adminPages.settings.runtimePolicySettingsPage.thereAreUnsavedChangesLeavingDiscardsTheDraft", { v0: String(dirtyFields.length) }),
+            okText: translate("adminPages.settings.runtimePolicySettingsPage.discardAndLeave"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
             okButtonProps: { danger: true },
             onOk: () => {
                 navigationConfirmOpenRef.current = false;
@@ -259,7 +261,7 @@ export default function RuntimePolicySettingsPage() {
         form.setFieldsValue(nextDraft);
         setDraft(nextDraft);
         setSaveError("");
-        message.info("已撤销本页尚未保存的调整");
+        message.info(translate("adminPages.settings.runtimePolicySettingsPage.unsavedChangesOnThisPageDiscarded"));
     };
 
     const requestRefresh = () => {
@@ -268,10 +270,10 @@ export default function RuntimePolicySettingsPage() {
             return;
         }
         modal.confirm({
-            title: "放弃调整并重新读取？",
-            content: `当前有 ${dirtyFields.length} 项调整尚未保存。重新读取会丢弃暂存内容，并以服务端当前配置为准。`,
-            okText: "放弃并刷新",
-            cancelText: "继续编辑",
+            title: translate("adminPages.settings.runtimePolicySettingsPage.discardChangesAndReload"),
+            content: translate("adminPages.settings.runtimePolicySettingsPage.thereAreUnsavedChangesReloadingDiscardsTheDraftAndUses", { v0: String(dirtyFields.length) }),
+            okText: translate("adminPages.settings.runtimePolicySettingsPage.discardAndRefresh"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
             okButtonProps: { danger: true },
             onOk: () => load(false, true),
         });
@@ -282,15 +284,15 @@ export default function RuntimePolicySettingsPage() {
             rootClassName: "admin-runtime-policy-confirm-modal",
             width: 580,
             icon: <AlertTriangle className="size-5" aria-hidden="true" />,
-            title: "填入自用模式上限？",
+            title: translate("adminPages.settings.runtimePolicySettingsPage.fillInPersonalUseLimits"),
             content: (
                 <div className="admin-runtime-policy-confirm-copy">
-                    <p>这会把全部 42 项配额、并发、频控和超时填到允许范围的高值，并把熔断等待缩短到 1 秒。</p>
-                    <p>{dirty ? `当前 ${dirtyFields.length} 项暂存调整会被覆盖。` : "只会改动本页草稿，点击保存修改后生效。"}</p>
+                    <p>{translate("adminPages.settings.runtimePolicySettingsPage.thisSetsAll42QuotaConcurrencyRateAndTimeoutValues")}</p>
+                    <p>{dirty ? translate("adminPages.settings.runtimePolicySettingsPage.theCurrentDraftChangesWillBeOverwritten", { v0: String(dirtyFields.length) }) : translate("adminPages.settings.runtimePolicySettingsPage.onlyTheDraftOnThisPageChangesSaveChangesTo")}</p>
                 </div>
             ),
-            okText: "填入草稿",
-            cancelText: "取消",
+            okText: translate("adminPages.settings.runtimePolicySettingsPage.fillDraft"),
+            cancelText: translate("common.cancel"),
             onOk: async () => {
                 setPresetLoading(true);
                 try {
@@ -300,9 +302,9 @@ export default function RuntimePolicySettingsPage() {
                     form.setFieldsValue(nextDraft);
                     setDraft(nextDraft);
                     setSaveError("");
-                    message.info("已填入自用模式上限，点击保存修改后生效");
+                    message.info(translate("adminPages.settings.runtimePolicySettingsPage.personalUseLimitsFilledInSaveChangesToApplyThem"));
                 } catch (error) {
-                    const errorMessage = error instanceof Error ? error.message : "读取自用模式失败";
+                    const errorMessage = error instanceof Error ? error.message : translate("adminPages.settings.runtimePolicySettingsPage.failedToLoadPersonalUseMode");
                     message.error(errorMessage);
                     throw error;
                 } finally {
@@ -318,15 +320,15 @@ export default function RuntimePolicySettingsPage() {
             rootClassName: "admin-runtime-policy-confirm-modal",
             width: 580,
             icon: <AlertTriangle className="size-5" aria-hidden="true" />,
-            title: "恢复全部系统默认策略？",
+            title: translate("adminPages.settings.runtimePolicySettingsPage.restoreAllDefaultSystemPolicies"),
             content: (
                 <div className="admin-runtime-policy-confirm-copy">
-                    <p>确认后会删除管理员保存的自定义策略，全部 42 项立即恢复系统默认值。</p>
-                    {dirty ? <p>当前 {dirtyFields.length} 项未保存调整也会一并丢弃。</p> : null}
+                    <p>{translate("adminPages.settings.runtimePolicySettingsPage.thisDeletesAdminSavedCustomPoliciesAndImmediatelyRestoresAll")}</p>
+                    {dirty ? <p>{translate("canvasB.mediaVersion.current")} {dirtyFields.length} {translate("adminPages.settings.runtimePolicySettingsPage.unsavedChangesWillAlsoBeDiscarded")}</p> : null}
                 </div>
             ),
-            okText: "恢复系统默认",
-            cancelText: "取消",
+            okText: translate("adminPages.settings.runtimePolicySettingsPage.restoreSystemDefaults"),
+            cancelText: translate("common.cancel"),
             okButtonProps: { danger: true },
             onOk: async () => {
                 setResetting(true);
@@ -334,15 +336,15 @@ export default function RuntimePolicySettingsPage() {
                 try {
                     const result = await resetAdminRuntimePolicySetting();
                     const value = parseRuntimePolicySetting(result.setting);
-                    if (value.configured) throw new Error("服务端未确认已恢复系统默认策略，请刷新后核对");
+                    if (value.configured) throw new Error(translate("adminPages.settings.runtimePolicySettingsPage.theServerDidNotConfirmThatDefaultPoliciesWereRestored"));
                     const nextDraft = toPolicyDraft(value);
                     setSavedSetting(value);
                     setDraft(nextDraft);
                     form.setFieldsValue(nextDraft);
-                    message.success("已恢复系统默认策略");
+                    message.success(translate("adminPages.settings.runtimePolicySettingsPage.restoredTheSystemDefaultPolicy"));
                 } catch (error) {
-                    const errorMessage = error instanceof Error ? error.message : "恢复系统默认策略失败";
-                    setSaveError(`${errorMessage}。未自动重试，请重新读取当前配置后核对。`);
+                    const errorMessage = error instanceof Error ? error.message : translate("adminPages.settings.runtimePolicySettingsPage.failedToRestoreDefaultSystemPolicies");
+                    setSaveError(translate("adminPages.settings.runtimePolicySettingsPage.noAutomaticRetryWasMadeReloadTheCurrentSettingsAnd", { v0: String(errorMessage) }));
                     message.error(errorMessage);
                     throw error;
                 } finally {
@@ -367,15 +369,15 @@ export default function RuntimePolicySettingsPage() {
         try {
             const result = await updateAdminRuntimePolicySetting(expected);
             const value = parseRuntimePolicySetting(result.setting);
-            if (!samePolicy(value, expected)) throw new Error("服务端返回的策略与本次保存内容不一致，请刷新后核对");
+            if (!samePolicy(value, expected)) throw new Error(translate("adminPages.settings.runtimePolicySettingsPage.theServerSPoliciesDifferFromTheSubmittedValuesRefresh"));
             const nextDraft = toPolicyDraft(value);
             setSavedSetting(value);
             setDraft(nextDraft);
             form.setFieldsValue(nextDraft);
-            message.success("资源与策略已保存并即时生效");
+            message.success(translate("adminPages.settings.runtimePolicySettingsPage.resourcesAndPoliciesSavedAndAppliedImmediately"));
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "保存资源与策略失败";
-            setSaveError(`${errorMessage}。未自动重试，请重新读取当前配置后再决定是否保存。`);
+            const errorMessage = error instanceof Error ? error.message : translate("adminPages.settings.runtimePolicySettingsPage.failedToSaveResourcesAndPolicies");
+            setSaveError(translate("adminPages.settings.runtimePolicySettingsPage.noAutomaticRetryWasMadeReloadTheCurrentSettingsBefore", { v0: String(errorMessage) }));
             message.error(errorMessage);
             throw error;
         } finally {
@@ -394,8 +396,8 @@ export default function RuntimePolicySettingsPage() {
 
     if (loading && !draft) {
         return (
-            <AdminPageFrame title="资源与策略" description="账号配额、任务调度与请求安全策略" scroll>
-                <div className="admin-settings-stack admin-runtime-policy" aria-label="正在读取资源与策略配置" role="status">
+            <AdminPageFrame title={translate("adminPages.settings.runtimePolicySettingsPage.resourcesAndPolicy")} description={translate("adminPages.settings.runtimePolicySettingsPage.accountQuotasTaskSchedulingAndRequestSecurityPolicy")} scroll>
+                <div className="admin-settings-stack admin-runtime-policy" aria-label={translate("adminPages.settings.runtimePolicySettingsPage.loadingResourceAndPolicySettings")} role="status">
                     <div className="admin-runtime-policy-command-bar">
                         <Skeleton active title={{ width: 190 }} paragraph={false} />
                     </div>
@@ -416,18 +418,18 @@ export default function RuntimePolicySettingsPage() {
 
     if (!draft || !savedSetting) {
         return (
-            <AdminPageFrame title="资源与策略" description="账号配额、任务调度与请求安全策略" scroll>
+            <AdminPageFrame title={translate("adminPages.settings.runtimePolicySettingsPage.resourcesAndPolicy")} description={translate("adminPages.settings.runtimePolicySettingsPage.accountQuotasTaskSchedulingAndRequestSecurityPolicy")} scroll>
                 <div className="admin-settings-stack admin-runtime-policy">
                     <div className="admin-runtime-policy-load-error" role="alert">
                         <span className="admin-runtime-policy-load-error-icon">
                             <AlertTriangle className="size-5" aria-hidden="true" />
                         </span>
                         <div>
-                            <h2>无法读取资源与策略配置</h2>
-                            <p>{loadError || "当前没有可显示的配置，请稍后重试。"}</p>
+                            <h2>{translate("adminPages.settings.runtimePolicySettingsPage.unableToLoadResourceAndPolicySettings")}</h2>
+                            <p>{loadError || translate("adminPages.settings.runtimePolicySettingsPage.noSettingsAreAvailableToDisplayPleaseTryAgainLater")}</p>
                         </div>
                         <Button icon={<RefreshCw className="size-4" />} loading={loading} onClick={() => void load(true)}>
-                            重新读取
+                            {translate("auth.register.reload")}
                         </Button>
                     </div>
                 </div>
@@ -436,12 +438,12 @@ export default function RuntimePolicySettingsPage() {
     }
 
     const updateActor = savedSetting.updatedBy ? userNameById.get(savedSetting.updatedBy) || savedSetting.updatedBy : "";
-    const updateDetail = savedSetting.configured ? `${formatTime(savedSetting.updatedAt)}${updateActor ? ` · ${updateActor}` : ""}` : "尚未由管理员保存，使用系统默认值";
+    const updateDetail = savedSetting.configured ? `${formatTime(savedSetting.updatedAt)}${updateActor ? ` · ${updateActor}` : ""}` : translate("adminPages.settings.runtimePolicySettingsPage.notYetSavedByAnAdministratorUsingSystemDefaults");
     const workerConcurrency = readDraftNumber(draft, "task", "workerConcurrency");
     const activeTaskLimit = readDraftNumber(draft, "task", "activeTaskLimit");
 
     return (
-        <AdminPageFrame title="资源与策略" description="账号配额、任务调度与请求安全策略" scroll>
+        <AdminPageFrame title={translate("adminPages.settings.runtimePolicySettingsPage.resourcesAndPolicy")} description={translate("adminPages.settings.runtimePolicySettingsPage.accountQuotasTaskSchedulingAndRequestSecurityPolicy")} scroll>
             <Form
                 form={form}
                 initialValues={draft}
@@ -461,32 +463,32 @@ export default function RuntimePolicySettingsPage() {
                             </span>
                             <div>
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <strong>{dirty ? `${dirtyFields.length} 项调整待保存` : "资源与策略状态已同步"}</strong>
-                                    <AdminStatusBadge label={dirty ? "尚未生效" : savedSetting.configured ? "管理员配置" : "系统默认"} tone={dirty ? "warning" : savedSetting.configured ? "success" : "neutral"} />
+                                    <strong>{dirty ? translate("adminPages.settings.runtimePolicySettingsPage.unsavedChanges", { v0: String(dirtyFields.length) }) : translate("adminPages.settings.runtimePolicySettingsPage.resourceAndPolicyStatusSynced")}</strong>
+                                    <AdminStatusBadge label={dirty ? translate("adminPages.settings.runtimePolicySettingsPage.notYetApplied") : savedSetting.configured ? translate("adminPages.settings.runtimePolicySettingsPage.adminConfiguration") : translate("adminPages.settings.runtimePolicySettingsPage.systemDefault")} tone={dirty ? "warning" : savedSetting.configured ? "success" : "neutral"} />
                                 </div>
-                                <p>{dirty ? "当前调整只在本页暂存；点击保存修改后才会影响运行中的业务。" : updateDetail}</p>
+                                <p>{dirty ? translate("adminPages.settings.runtimePolicySettingsPage.changesAreDraftsOnThisPageTheyAffectRunningOperations") : updateDetail}</p>
                             </div>
                         </div>
                         <div className="admin-runtime-policy-command-actions">
                             {dirty ? (
                                 <Button icon={<RotateCcw className="size-4" />} disabled={busy} onClick={resetDraft}>
-                                    撤销改动
+                                    {translate("adminPages.settings.runtimePolicySettingsPage.discardChanges")}
                                 </Button>
                             ) : null}
                             <Button icon={<RefreshCw className="size-4" />} loading={refreshing} disabled={saving || resetting || presetLoading} onClick={requestRefresh}>
-                                刷新状态
+                                {translate("library.ark.asset.refresh")}
                             </Button>
                             <Button icon={<InfinityIcon className="size-4" />} loading={presetLoading} disabled={saving || resetting || refreshing} onClick={requestSelfMode}>
-                                自用模式草稿
+                                {translate("adminPages.settings.runtimePolicySettingsPage.personalUseDraft")}
                             </Button>
                             {savedSetting.configured && !dirty ? (
                                 <Button danger icon={<RotateCcw className="size-4" />} loading={resetting} disabled={saving || refreshing || presetLoading} onClick={requestReset}>
-                                    恢复系统默认
+                                    {translate("adminPages.settings.runtimePolicySettingsPage.restoreSystemDefaults")}
                                 </Button>
                             ) : null}
                             {dirty ? (
                                 <Button type="primary" icon={<Save className="size-4" />} loading={saving} disabled={busy} onClick={() => void submitSave()}>
-                                    保存修改
+                                    {translate("adminPages.settings.runtimePolicySettingsPage.saveChanges")}
                                 </Button>
                             ) : null}
                         </div>
@@ -495,15 +497,15 @@ export default function RuntimePolicySettingsPage() {
                     {loadError || saveError ? (
                         <div className="admin-runtime-policy-inline-alert" role="alert">
                             <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
-                            <span>{saveError || `${loadError}。页面仍显示上一次成功读取的配置。`}</span>
+                            <span>{saveError || translate("adminPages.settings.runtimePolicySettingsPage.thePageStillShowsTheLastSettingsLoadedSuccessfully", { v0: String(loadError) })}</span>
                         </div>
                     ) : null}
 
-                    <div className="admin-runtime-policy-overview" aria-label="资源与策略配置概览">
-                        <AdminStatTile label="配置来源" value={savedSetting.configured ? "管理员配置" : "系统默认"} detail={updateDetail} />
-                        <AdminStatTile label="待保存调整" value={dirtyFields.length} detail={dirty ? "仅本页暂存，尚未生效" : "当前草稿与服务端一致"} />
-                        <AdminStatTile label="Worker 并发" value={formatNumber(workerConcurrency)} detail={dirtyFields.some((field) => field.name === "workerConcurrency") ? "暂存状态预览" : "集群后台任务并发"} />
-                        <AdminStatTile label="账号活动任务" value={formatNumber(activeTaskLimit)} detail={dirtyFields.some((field) => field.name === "activeTaskLimit") ? "暂存状态预览" : "单账号排队与运行总数"} />
+                    <div className="admin-runtime-policy-overview" aria-label={translate("adminPages.settings.runtimePolicySettingsPage.resourceAndPolicyOverview")}>
+                        <AdminStatTile label={translate("adminPages.settings.runtimePolicySettingsPage.configurationSource")} value={savedSetting.configured ? translate("adminPages.settings.runtimePolicySettingsPage.adminConfiguration") : translate("adminPages.settings.runtimePolicySettingsPage.systemDefault")} detail={updateDetail} />
+                        <AdminStatTile label={translate("adminPages.settings.runtimePolicySettingsPage.unsavedChanges2")} value={dirtyFields.length} detail={dirty ? translate("adminPages.settings.runtimePolicySettingsPage.draftOnThisPageNotYetApplied") : translate("adminPages.settings.runtimePolicySettingsPage.currentDraftMatchesTheServer")} />
+                        <AdminStatTile label={translate("adminPages.settings.runtimePolicySettingsPage.workerConcurrency")} value={formatNumber(workerConcurrency)} detail={dirtyFields.some((field) => field.name === "workerConcurrency") ? translate("adminPages.settings.runtimePolicySettingsPage.draftStatusPreview") : translate("adminPages.settings.runtimePolicySettingsPage.clusterBackgroundTaskConcurrency")} />
+                        <AdminStatTile label={translate("adminPages.settings.runtimePolicySettingsPage.accountActiveTasks")} value={formatNumber(activeTaskLimit)} detail={dirtyFields.some((field) => field.name === "activeTaskLimit") ? translate("adminPages.settings.runtimePolicySettingsPage.draftStatusPreview") : translate("adminPages.settings.runtimePolicySettingsPage.queuedAndRunningTasksPerAccount")} />
                     </div>
 
                     {policySections.map((section) => (
@@ -531,8 +533,8 @@ function PolicySection({ icon, title, description, fields, status }: PolicySecti
                                     noStyle
                                     name={[field.group, field.name]}
                                     rules={[
-                                        { required: true, message: `请填写${field.label}` },
-                                        { type: "number", min, max: field.max, message: `${field.label}必须是 ${min}-${field.max} 的整数` },
+                                        { required: true, message: translate("adminPages.settings.runtimePolicySettingsPage.enter", { v0: String(field.label) }) },
+                                        { type: "number", min, max: field.max, message: translate("adminPages.settings.runtimePolicySettingsPage.mustBeAnIntegerFromTo", { v0: String(field.label), v1: String(min), v2: String(field.max) }) },
                                     ]}
                                 >
                                     <InputNumber id={inputId} min={min} max={field.max} precision={0} aria-label={field.label} />
@@ -566,31 +568,31 @@ function samePolicy(left: RuntimePolicyDraft, right: RuntimePolicyDraft) {
 }
 
 function parseRuntimePolicySetting(value: RuntimePolicySetting): RuntimePolicySetting {
-    if (!value || typeof value !== "object") throw new Error("服务端返回的资源与策略格式无效");
+    if (!value || typeof value !== "object") throw new Error(translate("adminPages.settings.runtimePolicySettingsPage.theServerReturnedInvalidResourceAndPolicySettings"));
     for (const field of allPolicyFields) {
         const fieldValue = readPolicyValue(value, field);
         const min = field.min ?? 1;
-        if (!Number.isInteger(fieldValue) || fieldValue < min || fieldValue > field.max) throw new Error(`服务端返回的“${field.label}”无效`);
+        if (!Number.isInteger(fieldValue) || fieldValue < min || fieldValue > field.max) throw new Error(translate("adminPages.settings.runtimePolicySettingsPage.theServerReturnedAnInvalidValue", { v0: String(field.label) }));
     }
-    if (typeof value.configured !== "boolean") throw new Error("服务端未返回有效的配置来源状态");
+    if (typeof value.configured !== "boolean") throw new Error(translate("adminPages.settings.runtimePolicySettingsPage.theServerDidNotReturnAValidConfigurationSourceStatus"));
     return value;
 }
 
 function validatePolicyRelationships(value: RuntimePolicyDraft) {
     const accountCapacityMB = readDraftNumber(value, "resource", "storedFileGB") * 1024;
     const oversized = resourceFields.slice(0, 3).find((field) => readPolicyValue(value, field) > accountCapacityMB);
-    return oversized ? `${oversized.label}不能大于账号文件总量` : "";
+    return oversized ? translate("adminPages.settings.runtimePolicySettingsPage.cannotExceedTheAccountSTotalFileQuota", { v0: String(oversized.label) }) : "";
 }
 
 function formatPolicyValue(value: number, unit: string) {
     return `${formatNumber(value)} ${unit}`;
 }
 function formatNumber(value: number) {
-    return Number.isFinite(value) ? new Intl.NumberFormat("zh-CN").format(value) : "--";
+    return Number.isFinite(value) ? new Intl.NumberFormat(currentLocale()).format(value) : "--";
 }
 function formatTime(value?: string) {
     if (!value) return "--";
     const time = new Date(value);
     if (!Number.isFinite(time.getTime()) || time.getUTCFullYear() <= 1) return "--";
-    return time.toLocaleString("zh-CN", { hour12: false });
+    return time.toLocaleString(currentLocale(), { hour12: false });
 }

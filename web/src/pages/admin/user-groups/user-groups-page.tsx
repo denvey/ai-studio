@@ -10,6 +10,8 @@ import { AdminPageFrame } from "../components/admin-shell";
 import { AdminDataTable, AdminRowActions, AdminStatusBadge, AdminTableEmpty } from "../components/admin-ui";
 import { UserGroupEditor } from "./user-group-editor";
 import { formatPoints } from "./user-group-form";
+import { translate } from "@/i18n";
+
 
 /** 用户分组：分组 -> 系统渠道 -> 模型的可见范围、统一折扣和货币兑换积分比例。 */
 export default function UserGroupsPage() {
@@ -27,7 +29,7 @@ export default function UserGroupsPage() {
         try {
             setGroups((await listAdminUserGroups()).groups);
         } catch (error) {
-            const text = error instanceof Error ? error.message : "读取用户分组失败";
+            const text = error instanceof Error ? error.message : translate("adminPages.userGroups.userGroupsPage.failedToLoadUserGroups");
             setLoadError(text);
             message.error(text);
         } finally {
@@ -46,9 +48,9 @@ export default function UserGroupsPage() {
             try {
                 await deleteAdminUserGroup(group.id);
                 setGroups((items) => items.filter((item) => item.id !== group.id));
-                message.success("分组已删除");
+                message.success(translate("adminPages.userGroups.userGroupsPage.groupDeleted"));
             } catch (error) {
-                message.error(error instanceof Error ? error.message : "删除分组失败");
+                message.error(error instanceof Error ? error.message : translate("adminPages.userGroups.userGroupsPage.failedToDeleteGroup"));
             }
         },
         [message],
@@ -58,7 +60,7 @@ export default function UserGroupsPage() {
         () => [
             {
                 key: "group",
-                title: "分组",
+                title: translate("adminPages.userGroups.userGroupsPage.group"),
                 render: (_, group) => (
                     <div className="min-w-0">
                         <div className="flex items-center gap-2">
@@ -73,7 +75,7 @@ export default function UserGroupsPage() {
                                 {group.name}
                             </button>
                             <UserGroupBadge group={group} />
-                            {group.isDefault ? <AdminStatusBadge label="默认" tone="info" /> : null}
+                            {group.isDefault ? <AdminStatusBadge label={translate("canvasB.common.default")} tone="info" /> : null}
                         </div>
                         <div className="text-xs text-foreground/45">
                             {group.code}
@@ -84,63 +86,63 @@ export default function UserGroupsPage() {
             },
             {
                 key: "ratio",
-                title: "分组倍率",
+                title: translate("adminPages.userGroups.userGroupsPage.groupMultiplier"),
                 width: 110,
                 align: "center",
                 render: (_, group) => <span className="tabular-nums">{formatRatioBasisPoints(group.ratioBasisPoints)}</span>,
             },
             {
                 key: "currency",
-                title: "货币兑换",
+                title: translate("adminPages.userGroups.userGroupsPage.currencyConversion"),
                 width: 170,
                 align: "center",
                 render: (_, group) => (
                     <div className="text-xs tabular-nums leading-5">
-                        <div>1 USD = {group.pointsPerUsdMicrocredits ? `${formatPoints(group.pointsPerUsdMicrocredits)} 积分` : "未配置"}</div>
-                        <div>1 CNY = {group.pointsPerCnyMicrocredits ? `${formatPoints(group.pointsPerCnyMicrocredits)} 积分` : "未配置"}</div>
+                        <div>1 USD = {group.pointsPerUsdMicrocredits ? translate("adminPages.userGroups.userGroupsPage.credits", { v0: String(formatPoints(group.pointsPerUsdMicrocredits)) }) : translate("account.layout.oss.cdnAuthNone")}</div>
+                        <div>1 CNY = {group.pointsPerCnyMicrocredits ? translate("adminPages.userGroups.userGroupsPage.credits", { v0: String(formatPoints(group.pointsPerCnyMicrocredits)) }) : translate("account.layout.oss.cdnAuthNone")}</div>
                     </div>
                 ),
             },
             {
                 key: "channels",
-                title: "可用渠道",
+                title: translate("adminPages.userGroups.userGroupsPage.availableChannels"),
                 width: 200,
                 render: (_, group) =>
                     group.allChannels ? (
-                        <AdminStatusBadge label="全部系统渠道" tone="success" />
+                        <AdminStatusBadge label={translate("adminPages.userGroups.userGroupsPage.allSystemChannels")} tone="success" />
                     ) : group.channelIds.length ? (
                         <span className="text-xs" title={group.channelIds.map((id) => channelNames.get(id) || id).join("、")}>
                             {group.channelIds
                                 .slice(0, 2)
                                 .map((id) => channelNames.get(id) || id)
                                 .join("、")}
-                            {group.channelIds.length > 2 ? ` 等 ${group.channelIds.length} 个` : ""}
+                            {group.channelIds.length > 2 ? translate("adminPages.userGroups.userGroupsPage.andOthersTotal", { v0: String(group.channelIds.length) }) : ""}
                         </span>
                     ) : (
-                        <AdminStatusBadge label="未绑定渠道" tone="warning" />
+                        <AdminStatusBadge label={translate("adminPages.userGroups.userGroupsPage.noAssignedChannels")} tone="warning" />
                     ),
             },
             {
                 key: "overrides",
-                title: "模型倍率",
+                title: translate("adminPages.userGroups.userGroupsPage.modelMultiplier"),
                 width: 100,
                 align: "center",
                 render: (_, group) => (
                     <span className="tabular-nums" title={group.modelOverrides.map((item) => item.modelKey).join("\n")}>
-                        {group.modelOverrides.length ? `${group.modelOverrides.length} 项` : "—"}
+                        {group.modelOverrides.length ? translate("adminPages.userGroups.userGroupsPage.items", { v0: String(group.modelOverrides.length) }) : "—"}
                     </span>
                 ),
             },
-            { key: "users", title: "用户数", dataIndex: "userCount", width: 90, align: "center", render: (value: number) => <span className="tabular-nums">{value}</span> },
+            { key: "users", title: translate("adminPages.userGroups.userGroupsPage.users"), dataIndex: "userCount", width: 90, align: "center", render: (value: number) => <span className="tabular-nums">{value}</span> },
             {
                 key: "actions",
-                title: "操作",
+                title: translate("account.settings.runninghub.actions"),
                 width: 150,
                 align: "center",
                 render: (_, group) => (
                     <AdminRowActions
                         primary={{
-                            label: "编辑",
+                            label: translate("account.settings.channels.edit"),
                             icon: <Pencil className="size-3.5" />,
                             onClick: () => {
                                 setEditing(group);
@@ -151,11 +153,11 @@ export default function UserGroupsPage() {
                         actions={[
                             {
                                 key: "delete",
-                                label: "删除分组",
+                                label: translate("adminPages.userGroups.userGroupsPage.deleteGroup"),
                                 icon: <Trash2 className="size-3.5" />,
                                 danger: true,
                                 disabled: group.isDefault || group.userCount > 0,
-                                confirm: { title: `删除分组「${group.name}」？`, description: "删除后不可恢复；分组下必须没有用户。", okText: "确认删除" },
+                                confirm: { title: translate("adminPages.userGroups.userGroupsPage.deleteGroup2", { v0: String(group.name) }), description: translate("adminPages.userGroups.userGroupsPage.thisCannotBeUndoneTheGroupMustHaveNoUsers"), okText: translate("account.ui.delete.confirm") },
                                 onClick: () => remove(group),
                             },
                         ]}
@@ -168,12 +170,12 @@ export default function UserGroupsPage() {
 
     return (
         <AdminPageFrame
-            title="用户分组"
-            description="分组 → 渠道 → 模型的可见范围、统一折扣与货币兑换积分比例"
+            title={translate("adminPages.userGroups.userGroupsPage.userGroups")}
+            description={translate("adminPages.userGroups.userGroupsPage.groupChannelModelVisibilitySharedDiscountsAndCurrencyToCredit")}
             actions={
                 <div className="flex items-center gap-2">
                     <Button icon={<RefreshCw className="size-4" />} loading={loading} onClick={() => void load()}>
-                        刷新
+                        {translate("common.refresh")}
                     </Button>
                     <Button
                         type="primary"
@@ -183,7 +185,7 @@ export default function UserGroupsPage() {
                             setEditorOpen(true);
                         }}
                     >
-                        新建分组
+                        {translate("adminPages.userGroups.userGroupsPage.newGroup")}
                     </Button>
                 </div>
             }
@@ -194,13 +196,13 @@ export default function UserGroupsPage() {
                 empty={
                     loadError ? (
                         <div className="admin-inline-load-error" role="status">
-                            <span>分组数据暂不可用：{loadError}</span>
+                            <span>{translate("adminPages.userGroups.userGroupsPage.groupDataIsTemporarilyUnavailable")}{loadError}</span>
                             <Button size="small" onClick={() => void load()}>
-                                重试
+                                {translate("common.retry")}
                             </Button>
                         </div>
                     ) : (
-                        <AdminTableEmpty title="还没有分组" />
+                        <AdminTableEmpty title={translate("adminPages.userGroups.userGroupsPage.noGroupsYet")} />
                     )
                 }
             />

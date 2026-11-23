@@ -3,6 +3,8 @@ import type { ModelQuoteRequest } from "@/services/api/logical-models";
 import { decodeChannelModel, modelOptionName, modelOptionsFromChannels, resolveModelChannel, resolveModelRequestConfig, type AiConfig } from "@/stores/use-config-store";
 import type { CanvasNodeData } from "@/types/canvas";
 import type { ReferenceVideo } from "@/types/media";
+import { translate } from "@/i18n";
+
 
 /** 与后端 VideoProcessingOperationEnhance 一致。 */
 export const VIDEO_ENHANCE_OPERATION = "enhance";
@@ -52,15 +54,15 @@ export function videoEnhanceResolutionShortEdge(resolution: string) {
 /** 火山画质增强（大模型版）输入规格：短边 [360,1080]、长边 [360,1920]、时长不超过后台上限。 */
 export function videoEnhanceSourceError(node: CanvasNodeData, maxSourceSeconds: number) {
     const metadata = node.metadata;
-    if (!metadata?.storageKey && !metadata?.content) return "视频节点为空，无法画质增强";
+    if (!metadata?.storageKey && !metadata?.content) return translate("canvasPage.mediaTools.emptyVideoEnhance");
     const durationMs = metadata.durationMs || 0;
-    if (durationMs > maxSourceSeconds * 1000) return `源视频时长超过 ${maxSourceSeconds} 秒上限，请先截取片段后再增强`;
+    if (durationMs > maxSourceSeconds * 1000) return translate("shared.canvas.canvasVideoEnhance.theSourceVideoExceedsTheSecondLimitTrimItBefore", { v0: String(maxSourceSeconds) });
     const width = metadata.naturalWidth || 0;
     const height = metadata.naturalHeight || 0;
     if (width > 0 && height > 0) {
         const short = Math.min(width, height);
         const long = Math.max(width, height);
-        if (short < 360 || short > 1080 || long > 1920) return `源视频分辨率 ${width}×${height} 不受支持：短边需在 360–1080、长边不超过 1920`;
+        if (short < 360 || short > 1080 || long > 1920) return translate("shared.canvas.canvasVideoEnhance.sourceVideoResolutionIsUnsupportedTheShorterSideMustBe", { v0: String(width), v1: String(height) });
     }
     return "";
 }

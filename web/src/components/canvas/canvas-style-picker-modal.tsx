@@ -12,11 +12,16 @@ import {
     compileCanvasStylePreset,
     customCanvasStylePreset,
     recommendedCanvasStylePresets,
+    projectStyleWorlds,
+    projectStyleTones,
+    projectStyleMedia,
+    projectStyleCharacters,
     type CanvasStylePreset,
     type ProjectStyleSelection,
 } from "@/lib/canvas/canvas-style-system";
 import { createStyleProfile, deleteStyleProfile, listStyleProfiles, setStyleProfileFavorite, touchStyleProfile, updateStyleProfile, type UserStyleProfile } from "@/services/api/style-profiles";
 import { useActiveTheme } from "@/stores/canvas/use-canvas-theme-store";
+import { translate } from "@/i18n";
 
 export type { CanvasStylePreset } from "@/lib/canvas/canvas-style-system";
 
@@ -417,6 +422,326 @@ export function resolveProjectCanvasStyle(presetId?: string, profileJson?: strin
     };
 }
 
+
+type StyleDisplayKeys = { title: string; category: string; description: string; tags: string[] };
+const legacyStyleDisplayKeys: Record<string, StyleDisplayKeys> = {
+    "urban-live-action": {
+        "title": "canvasTools.stylePresets.urbanLiveAction.title",
+        "category": "canvasTools.stylePresets.urbanLiveAction.category",
+        "description": "canvasTools.stylePresets.urbanLiveAction.description",
+        "tags": [
+            "canvasTools.stylePresets.urbanLiveAction.tags.item1",
+            "canvasTools.stylePresets.urbanLiveAction.tags.item2",
+            "canvasTools.stylePresets.urbanLiveAction.tags.item3"
+        ]
+    },
+    "period-live-action": {
+        "title": "canvasTools.stylePresets.periodLiveAction.title",
+        "category": "canvasTools.stylePresets.periodLiveAction.category",
+        "description": "canvasTools.stylePresets.periodLiveAction.description",
+        "tags": [
+            "canvasTools.stylePresets.periodLiveAction.tags.item1",
+            "canvasTools.stylePresets.periodLiveAction.tags.item2",
+            "canvasTools.stylePresets.periodLiveAction.tags.item3"
+        ]
+    },
+    "suspense-noir": {
+        "title": "canvasTools.stylePresets.suspenseNoir.title",
+        "category": "canvasTools.stylePresets.suspenseNoir.category",
+        "description": "canvasTools.stylePresets.suspenseNoir.description",
+        "tags": [
+            "canvasTools.stylePresets.suspenseNoir.tags.item1",
+            "canvasTools.stylePresets.suspenseNoir.tags.item2",
+            "canvasTools.stylePresets.suspenseNoir.tags.item3"
+        ]
+    },
+    "chinese-2d": {
+        "title": "canvasTools.stylePresets.chinese-2d.title",
+        "category": "canvasTools.stylePresets.chinese-2d.category",
+        "description": "canvasTools.stylePresets.chinese-2d.description",
+        "tags": [
+            "canvasTools.stylePresets.chinese-2d.tags.item1",
+            "canvasTools.stylePresets.chinese-2d.tags.item2",
+            "canvasTools.stylePresets.chinese-2d.tags.item3"
+        ]
+    },
+    "ink-narrative": {
+        "title": "canvasTools.stylePresets.inkNarrative.title",
+        "category": "canvasTools.stylePresets.inkNarrative.category",
+        "description": "canvasTools.stylePresets.inkNarrative.description",
+        "tags": [
+            "canvasTools.stylePresets.inkNarrative.tags.item1",
+            "canvasTools.stylePresets.inkNarrative.tags.item2",
+            "canvasTools.stylePresets.inkNarrative.tags.item3"
+        ]
+    },
+    "three-d-cartoon": {
+        "title": "canvasTools.stylePresets.threeDCartoon.title",
+        "category": "canvasTools.stylePresets.threeDCartoon.category",
+        "description": "canvasTools.stylePresets.threeDCartoon.description",
+        "tags": [
+            "canvasTools.stylePresets.threeDCartoon.tags.item1",
+            "canvasTools.stylePresets.threeDCartoon.tags.item2",
+            "canvasTools.stylePresets.threeDCartoon.tags.item3"
+        ]
+    },
+    "fantasy-3d": {
+        "title": "canvasTools.stylePresets.fantasy-3d.title",
+        "category": "canvasTools.stylePresets.fantasy-3d.category",
+        "description": "canvasTools.stylePresets.fantasy-3d.description",
+        "tags": [
+            "canvasTools.stylePresets.fantasy-3d.tags.item1",
+            "canvasTools.stylePresets.fantasy-3d.tags.item2",
+            "canvasTools.stylePresets.fantasy-3d.tags.item3"
+        ]
+    },
+    "future-tech": {
+        "title": "canvasTools.stylePresets.futureTech.title",
+        "category": "canvasTools.stylePresets.futureTech.category",
+        "description": "canvasTools.stylePresets.futureTech.description",
+        "tags": [
+            "canvasTools.stylePresets.futureTech.tags.item1",
+            "canvasTools.stylePresets.futureTech.tags.item2",
+            "canvasTools.stylePresets.futureTech.tags.item3"
+        ]
+    },
+    "cyberpunk-neon": {
+        "title": "canvasTools.stylePresets.cyberpunkNeon.title",
+        "category": "canvasTools.stylePresets.cyberpunkNeon.category",
+        "description": "canvasTools.stylePresets.cyberpunkNeon.description",
+        "tags": [
+            "canvasTools.stylePresets.cyberpunkNeon.tags.item1",
+            "canvasTools.stylePresets.cyberpunkNeon.tags.item2",
+            "canvasTools.stylePresets.cyberpunkNeon.tags.item3"
+        ]
+    },
+    "retro-hong-kong": {
+        "title": "canvasTools.stylePresets.retroHongKong.title",
+        "category": "canvasTools.stylePresets.retroHongKong.category",
+        "description": "canvasTools.stylePresets.retroHongKong.description",
+        "tags": [
+            "canvasTools.stylePresets.retroHongKong.tags.item1",
+            "canvasTools.stylePresets.retroHongKong.tags.item2",
+            "canvasTools.stylePresets.retroHongKong.tags.item3"
+        ]
+    },
+    "clay-stop-motion": {
+        "title": "canvasTools.stylePresets.clayStopMotion.title",
+        "category": "canvasTools.stylePresets.clayStopMotion.category",
+        "description": "canvasTools.stylePresets.clayStopMotion.description",
+        "tags": [
+            "canvasTools.stylePresets.clayStopMotion.tags.item1",
+            "canvasTools.stylePresets.clayStopMotion.tags.item2",
+            "canvasTools.stylePresets.clayStopMotion.tags.item3"
+        ]
+    },
+    "black-white-noir": {
+        "title": "canvasTools.stylePresets.blackWhiteNoir.title",
+        "category": "canvasTools.stylePresets.blackWhiteNoir.category",
+        "description": "canvasTools.stylePresets.blackWhiteNoir.description",
+        "tags": [
+            "canvasTools.stylePresets.blackWhiteNoir.tags.item1",
+            "canvasTools.stylePresets.blackWhiteNoir.tags.item2",
+            "canvasTools.stylePresets.blackWhiteNoir.tags.item3"
+        ]
+    },
+    "space-opera": {
+        "title": "canvasTools.stylePresets.spaceOpera.title",
+        "category": "canvasTools.stylePresets.spaceOpera.category",
+        "description": "canvasTools.stylePresets.spaceOpera.description",
+        "tags": [
+            "canvasTools.stylePresets.spaceOpera.tags.item1",
+            "canvasTools.stylePresets.spaceOpera.tags.item2",
+            "canvasTools.stylePresets.spaceOpera.tags.item3"
+        ]
+    },
+    "comic-pop": {
+        "title": "canvasTools.stylePresets.comicPop.title",
+        "category": "canvasTools.stylePresets.comicPop.category",
+        "description": "canvasTools.stylePresets.comicPop.description",
+        "tags": [
+            "canvasTools.stylePresets.comicPop.tags.item1",
+            "canvasTools.stylePresets.comicPop.tags.item2",
+            "canvasTools.stylePresets.comicPop.tags.item3"
+        ]
+    },
+    "storybook-fantasy": {
+        "title": "canvasTools.stylePresets.storybookFantasy.title",
+        "category": "canvasTools.stylePresets.storybookFantasy.category",
+        "description": "canvasTools.stylePresets.storybookFantasy.description",
+        "tags": [
+            "canvasTools.stylePresets.storybookFantasy.tags.item1",
+            "canvasTools.stylePresets.storybookFantasy.tags.item2",
+            "canvasTools.stylePresets.storybookFantasy.tags.item3"
+        ]
+    },
+    "surreal-dream": {
+        "title": "canvasTools.stylePresets.surrealDream.title",
+        "category": "canvasTools.stylePresets.surrealDream.category",
+        "description": "canvasTools.stylePresets.surrealDream.description",
+        "tags": [
+            "canvasTools.stylePresets.surrealDream.tags.item1",
+            "canvasTools.stylePresets.surrealDream.tags.item2",
+            "canvasTools.stylePresets.surrealDream.tags.item3"
+        ]
+    },
+    "nature-healing": {
+        "title": "canvasTools.stylePresets.natureHealing.title",
+        "category": "canvasTools.stylePresets.natureHealing.category",
+        "description": "canvasTools.stylePresets.natureHealing.description",
+        "tags": [
+            "canvasTools.stylePresets.natureHealing.tags.item1",
+            "canvasTools.stylePresets.natureHealing.tags.item2",
+            "canvasTools.stylePresets.natureHealing.tags.item3"
+        ]
+    },
+    "real-life-documentary": {
+        "title": "canvasTools.stylePresets.realLifeDocumentary.title",
+        "category": "canvasTools.stylePresets.realLifeDocumentary.category",
+        "description": "canvasTools.stylePresets.realLifeDocumentary.description",
+        "tags": [
+            "canvasTools.stylePresets.realLifeDocumentary.tags.item1",
+            "canvasTools.stylePresets.realLifeDocumentary.tags.item2",
+            "canvasTools.stylePresets.realLifeDocumentary.tags.item3"
+        ]
+    }
+};
+const styleOptionDisplayKeys: Record<string, Record<string, { label: string; description: string }>> = {
+    "projectStyleWorlds": {
+        "xianxia": {
+            "label": "canvasTools.styleOptions.worlds.xianxia.label",
+            "description": "canvasTools.styleOptions.worlds.xianxia.description"
+        },
+        "urban": {
+            "label": "canvasTools.styleOptions.worlds.urban.label",
+            "description": "canvasTools.styleOptions.worlds.urban.description"
+        },
+        "historical": {
+            "label": "canvasTools.styleOptions.worlds.historical.label",
+            "description": "canvasTools.styleOptions.worlds.historical.description"
+        },
+        "suspense": {
+            "label": "canvasTools.styleOptions.worlds.suspense.label",
+            "description": "canvasTools.styleOptions.worlds.suspense.description"
+        },
+        "science-fiction": {
+            "label": "canvasTools.styleOptions.worlds.scienceFiction.label",
+            "description": "canvasTools.styleOptions.worlds.scienceFiction.description"
+        },
+        "pastoral": {
+            "label": "canvasTools.styleOptions.worlds.pastoral.label",
+            "description": "canvasTools.styleOptions.worlds.pastoral.description"
+        }
+    },
+    "projectStyleTones": {
+        "epic": {
+            "label": "canvasTools.styleOptions.tones.epic.label",
+            "description": "canvasTools.styleOptions.tones.epic.description"
+        },
+        "dark": {
+            "label": "canvasTools.styleOptions.tones.dark.label",
+            "description": "canvasTools.styleOptions.tones.dark.description"
+        },
+        "light-comedy": {
+            "label": "canvasTools.styleOptions.tones.lightComedy.label",
+            "description": "canvasTools.styleOptions.tones.lightComedy.description"
+        },
+        "romantic": {
+            "label": "canvasTools.styleOptions.tones.romantic.label",
+            "description": "canvasTools.styleOptions.tones.romantic.description"
+        },
+        "healing": {
+            "label": "canvasTools.styleOptions.tones.healing.label",
+            "description": "canvasTools.styleOptions.tones.healing.description"
+        }
+    },
+    "projectStyleMedia": {
+        "live-action": {
+            "label": "canvasTools.styleOptions.media.liveAction.label",
+            "description": "canvasTools.styleOptions.media.liveAction.description"
+        },
+        "3d-anime": {
+            "label": "canvasTools.styleOptions.media.item3dAnime.label",
+            "description": "canvasTools.styleOptions.media.item3dAnime.description"
+        },
+        "3d-cartoon": {
+            "label": "canvasTools.styleOptions.media.item3dCartoon.label",
+            "description": "canvasTools.styleOptions.media.item3dCartoon.description"
+        },
+        "2d-guoman": {
+            "label": "canvasTools.styleOptions.media.item2dGuoman.label",
+            "description": "canvasTools.styleOptions.media.item2dGuoman.description"
+        },
+        "ink": {
+            "label": "canvasTools.styleOptions.media.ink.label",
+            "description": "canvasTools.styleOptions.media.ink.description"
+        }
+    },
+    "projectStyleCharacters": {
+        "realistic": {
+            "label": "canvasTools.styleOptions.characters.realistic.label",
+            "description": "canvasTools.styleOptions.characters.realistic.description"
+        },
+        "semi-real": {
+            "label": "canvasTools.styleOptions.characters.semiReal.label",
+            "description": "canvasTools.styleOptions.characters.semiReal.description"
+        },
+        "anime": {
+            "label": "canvasTools.styleOptions.characters.anime.label",
+            "description": "canvasTools.styleOptions.characters.anime.description"
+        },
+        "stylized": {
+            "label": "canvasTools.styleOptions.characters.stylized.label",
+            "description": "canvasTools.styleOptions.characters.stylized.description"
+        }
+    }
+};
+
+// 仅本地化内置风格的展示字段；生成提示词、用户快照与选择回调始终使用原始数据。
+function displayCanvasStylePreset(preset: CanvasStylePreset): CanvasStylePreset {
+    if (preset.profile?.source === "user") return {
+        ...preset,
+        category: preset.category === "我的风格" ? translate("canvasTools.canvasStylePickerModal.myStyles") : preset.category === "项目风格包" ? translate("canvasTools.canvasStylePickerModal.projectStylePack") : preset.category,
+    };
+    const selection = preset.selection;
+    if (selection) {
+        const dimensions = [
+            ["projectStyleWorlds", projectStyleWorlds.find((option) => option.id === selection.world)],
+            ["projectStyleTones", projectStyleTones.find((option) => option.id === selection.tone)],
+            ["projectStyleMedia", projectStyleMedia.find((option) => option.id === selection.medium)],
+            ["projectStyleCharacters", projectStyleCharacters.find((option) => option.id === selection.character)],
+        ] as const;
+        const fields = dimensions.map(([group, option]) => {
+            const keys = option ? styleOptionDisplayKeys[group]?.[option.id] : undefined;
+            return keys ? { label: translate(keys.label), description: translate(keys.description) } : undefined;
+        });
+        const [world, tone, medium, character] = fields;
+        if (world && tone && medium && character) return {
+            ...preset,
+            title: [world.label, tone.label, medium.label].join(" · "),
+            category: [world.label, medium.label].join(" / "),
+            description: [world.description, tone.description, medium.description].join(" "),
+            tags: [world.label, tone.label, medium.label, character.label],
+        };
+    }
+    const original = legacyCanvasStylePresets.find((item) => item.id === preset.id);
+    const keys = legacyStyleDisplayKeys[preset.id];
+    if (!original || !keys) return preset;
+    return {
+        ...preset,
+        title: preset.title === original.title ? translate(keys.title) : preset.title,
+        category: preset.category === original.category ? translate(keys.category) : preset.category,
+        description: preset.description === original.description ? translate(keys.description) : preset.description,
+        tags: preset.tags.map((tag, index) => tag === original.tags[index] && keys.tags[index] ? translate(keys.tags[index]) : tag),
+    };
+}
+
+function displayStyleCategory(category: string) {
+    if (category === "全部") return translate("canvasA.toolPicker.all");
+    const preset = canvasStylePresets.find((item) => item.category === category);
+    return preset ? displayCanvasStylePreset(preset).category : category;
+}
+
 const STYLE_FAVORITES_KEY = "canvas:style-library:favorites";
 const STYLE_RECENT_KEY = "canvas:style-library:recent";
 
@@ -482,7 +807,10 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
             ? [...systemItems.filter((item) => systemFavoriteIds.includes(item.preset.id)), ...userItems.filter((item) => item.kind === "user" && item.entity.favorite)]
             : [...userItems.filter((item) => item.kind === "user" && item.entity.lastUsedAt).sort((a, b) => String(b.entity.lastUsedAt).localeCompare(String(a.entity.lastUsedAt))), ...recentIds.flatMap((id) => systemItems.filter((item) => item.preset.id === id))];
         if (tab === "system" && category !== "全部") source = source.filter((item) => item.preset.category === category);
-        if (keyword) source = source.filter((item) => `${item.preset.title} ${item.preset.category} ${item.preset.description} ${item.preset.tags.join(" ")}`.toLocaleLowerCase("zh-CN").includes(keyword));
+        if (keyword) source = source.filter((item) => {
+            const display = displayCanvasStylePreset(item.preset);
+            return `${item.preset.title} ${item.preset.category} ${item.preset.description} ${item.preset.tags.join(" ")} ${display.title} ${display.category} ${display.description} ${display.tags.join(" ")}`.toLocaleLowerCase().includes(keyword);
+        });
         return source;
     }, [category, query, recentIds, systemFavoriteIds, systemItems, tab, userItems]);
 
@@ -495,20 +823,20 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
             const preset = userStylePreset(profile);
             setEditor(null);
             setTab("mine");
-            message.success("风格已保存到“我的风格”");
+            message.success(translate("canvasTools.canvasStylePickerModal.styleSavedToMyStyles"));
             if (apply && preset) selectItem({ kind: "user", preset, entity: profile });
         },
-        onError: (error) => message.error(error instanceof Error ? error.message : "风格保存失败"),
+        onError: (error) => message.error(error instanceof Error ? error.message : translate("canvasTools.canvasStylePickerModal.couldNotSaveTheStyle")),
     });
     const favoriteMutation = useMutation({
         mutationFn: ({ id, favorite }: { id: string; favorite: boolean }) => setStyleProfileFavorite(id, favorite),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["style-profiles"] }),
-        onError: (error) => message.error(error instanceof Error ? error.message : "收藏状态更新失败"),
+        onError: (error) => message.error(error instanceof Error ? error.message : translate("canvasTools.canvasStylePickerModal.couldNotUpdateTheFavorite")),
     });
     const deleteMutation = useMutation({
         mutationFn: deleteStyleProfile,
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["style-profiles"] }); message.success("风格已删除"); },
-        onError: (error) => message.error(error instanceof Error ? error.message : "风格删除失败"),
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["style-profiles"] }); message.success(translate("canvasTools.canvasStylePickerModal.styleDeleted")); },
+        onError: (error) => message.error(error instanceof Error ? error.message : translate("canvasTools.canvasStylePickerModal.couldNotDeleteTheStyle")),
     });
 
     function selectItem(item: StyleLibraryItem) {
@@ -517,7 +845,7 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
         const next = [preset.id, ...recentIds.filter((id) => id !== preset.id)].slice(0, 12);
         setRecentIds(next);
         localStorage.setItem(STYLE_RECENT_KEY, JSON.stringify(next));
-        if (item.kind === "user") void touchStyleProfile(item.entity.id).then(() => queryClient.invalidateQueries({ queryKey: ["style-profiles"] })).catch((error) => message.warning(error instanceof Error ? error.message : "最近使用记录更新失败"));
+        if (item.kind === "user") void touchStyleProfile(item.entity.id).then(() => queryClient.invalidateQueries({ queryKey: ["style-profiles"] })).catch((error) => message.warning(error instanceof Error ? error.message : translate("canvasTools.canvasStylePickerModal.couldNotUpdateTheRecentlyUsedList")));
         onSelect(preset);
     }
     function toggleSystemFavorite(presetId: string) {
@@ -529,10 +857,10 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
         setEditor({ profile: blankUserStyle() });
     }
     function copyPreset(preset: CanvasStylePreset) {
-        setEditor({ profile: editableCopy(preset.profile || createStyleProfileSnapshot(preset), undefined, `${preset.title} 副本`, preset.imageUrl) });
+        setEditor({ profile: editableCopy(preset.profile || createStyleProfileSnapshot(preset), undefined, translate("canvasTools.canvasStylePickerModal.copy", { v0: String(preset.title) }), preset.imageUrl) });
     }
     function confirmDelete(entity: UserStyleProfile) {
-        modal.confirm({ title: `删除“${entity.name}”？`, content: "项目中已经保存的快照不会被删除，但该风格将从“我的风格”中移除。", okText: "删除", cancelText: "取消", okButtonProps: { danger: true }, onOk: () => deleteMutation.mutateAsync(entity.id) });
+        modal.confirm({ title: translate("canvasTools.canvasStylePickerModal.delete", { v0: String(entity.name) }), content: translate("canvasTools.canvasStylePickerModal.snapshotsAlreadySavedInProjectsWillRemainButThisStyle"), okText: translate("common.delete"), cancelText: translate("common.cancel"), okButtonProps: { danger: true }, onOk: () => deleteMutation.mutateAsync(entity.id) });
     }
 
     return (
@@ -541,27 +869,27 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
                 <div className="canvas-style-center-shell flex min-h-0 flex-col overflow-hidden" style={{ color: theme.node.text, background: theme.node.panel }}>
                     <header className="flex min-h-16 flex-col gap-3 border-b px-4 py-3 pr-12 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:pr-14" style={{ borderColor: theme.node.stroke }}>
                         <div className="min-w-0">
-                            <h2 className="text-base font-semibold">风格中心</h2>
-                            <p className="mt-0.5 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>系统规范 · 个人风格 · 项目快照</p>
+                            <h2 className="text-base font-semibold">{translate("canvasTools.canvasStylePickerModal.styleHub")}</h2>
+                            <p className="mt-0.5 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>{translate("canvasTools.canvasStylePickerModal.systemSpecPersonalStyleProjectSnapshot")}</p>
                         </div>
                         <div className="flex min-w-0 gap-2 sm:items-center">
-                            <Input allowClear className="style-center-search min-w-0 flex-1" prefix={<Search className="size-3.5 text-foreground/35" />} value={query} placeholder="搜索风格、题材或媒介" onChange={(event) => setQuery(event.target.value)} />
-                            <Button type="primary" className="shrink-0" icon={<Plus className="size-3.5" />} onClick={createNewStyle}>新建风格</Button>
+                            <Input allowClear className="style-center-search min-w-0 flex-1" prefix={<Search className="size-3.5 text-foreground/35" />} value={query} placeholder={translate("canvasTools.canvasStylePickerModal.searchStylesGenresOrMedia")} onChange={(event) => setQuery(event.target.value)} />
+                            <Button type="primary" className="shrink-0" icon={<Plus className="size-3.5" />} onClick={createNewStyle}>{translate("canvasTools.canvasStylePickerModal.newStyle")}</Button>
                         </div>
                     </header>
                     <div className="style-center-workspace grid min-h-0 flex-1">
                         <aside className="style-center-sidebar thin-scrollbar min-h-0 overflow-auto border-b p-2 sm:p-3 lg:border-b-0 lg:border-r" style={{ borderColor: theme.node.stroke }}>
-                            <nav className="style-center-primary-nav flex gap-1 lg:flex-col" aria-label="风格中心视图">
-                                <StyleCenterNavItem active={tab === "system"} icon={<Palette className="size-3.5" />} label="系统风格" count={systemItems.length} onClick={() => setTab("system")} />
-                                <StyleCenterNavItem active={tab === "mine"} icon={<UserRound className="size-3.5" />} label="我的风格" count={userItems.length} onClick={() => setTab("mine")} />
-                                <StyleCenterNavItem active={tab === "favorites"} icon={<Star className="size-3.5" />} label="收藏" onClick={() => setTab("favorites")} />
-                                <StyleCenterNavItem active={tab === "recent"} icon={<Clock3 className="size-3.5" />} label="最近使用" onClick={() => setTab("recent")} />
+                            <nav className="style-center-primary-nav flex gap-1 lg:flex-col" aria-label={translate("canvasTools.canvasStylePickerModal.styleHubView")}>
+                                <StyleCenterNavItem active={tab === "system"} icon={<Palette className="size-3.5" />} label={translate("canvasTools.canvasStylePickerModal.systemStyles")} count={systemItems.length} onClick={() => setTab("system")} />
+                                <StyleCenterNavItem active={tab === "mine"} icon={<UserRound className="size-3.5" />} label={translate("canvasTools.canvasStylePickerModal.myStyles")} count={userItems.length} onClick={() => setTab("mine")} />
+                                <StyleCenterNavItem active={tab === "favorites"} icon={<Star className="size-3.5" />} label={translate("canvasTools.canvasStylePickerModal.favorite")} onClick={() => setTab("favorites")} />
+                                <StyleCenterNavItem active={tab === "recent"} icon={<Clock3 className="size-3.5" />} label={translate("canvasTools.canvasStylePickerModal.recentlyUsed")} onClick={() => setTab("recent")} />
                             </nav>
                             {tab === "system" ? (
                                 <div className="style-center-category-panel mt-2 border-t pt-2 lg:mt-4 lg:pt-3" style={{ borderColor: theme.node.stroke }}>
-                                    <div className="hidden px-2 pb-2 text-[var(--fs-tiny)] font-medium lg:block" style={{ color: theme.node.muted }}>分类</div>
-                                    <nav className="style-center-category-nav flex gap-1 lg:flex-col" aria-label="系统风格分类">
-                                        {categories.map((item) => <button key={item} type="button" aria-current={category === item ? "page" : undefined} className={`style-center-category-item h-9 shrink-0 rounded-md px-2 text-left text-xs outline-none transition-colors focus-visible:ring-2 ${category === item ? "is-active font-medium" : ""}`} onClick={() => setCategory(item)}>{item}</button>)}
+                                    <div className="hidden px-2 pb-2 text-[var(--fs-tiny)] font-medium lg:block" style={{ color: theme.node.muted }}>{translate("library.picker.category")}</div>
+                                    <nav className="style-center-category-nav flex gap-1 lg:flex-col" aria-label={translate("canvasTools.canvasStylePickerModal.systemStyleCategories")}>
+                                        {categories.map((item) => <button key={item} type="button" aria-current={category === item ? "page" : undefined} className={`style-center-category-item h-9 shrink-0 rounded-md px-2 text-left text-xs outline-none transition-colors focus-visible:ring-2 ${category === item ? "is-active font-medium" : ""}`} onClick={() => setCategory(item)}>{displayStyleCategory(item)}</button>)}
                                     </nav>
                                 </div>
                             ) : null}
@@ -569,7 +897,7 @@ export function CanvasStylePickerModal({ open, value, currentProfile, startInEdi
                         <main className="flex min-h-0 min-w-0 flex-col">
                             <div className="flex h-11 shrink-0 items-center justify-between gap-3 border-b px-3 sm:px-4" style={{ borderColor: theme.node.stroke }}>
                                 <div className="min-w-0 truncate text-xs font-medium">{styleCenterViewTitle(tab, category)}</div>
-                                <div className="shrink-0 text-[var(--fs-tiny)] tabular-nums" style={{ color: theme.node.muted }}>{visibleItems.length} 个风格</div>
+                                <div className="shrink-0 text-[var(--fs-tiny)] tabular-nums" style={{ color: theme.node.muted }}>{translate("canvasTools.inline.canvasStylePickerModal.styles", { v0: String(visibleItems.length) })}</div>
                             </div>
                             <div className="style-center-grid thin-scrollbar min-h-0 flex-1 content-start overflow-y-auto p-3 sm:p-4">
                             {visibleItems.map((item) => (
@@ -610,27 +938,27 @@ function readStyleIds(key: string) {
 }
 
 function StyleCenterCard({ item, active, applying, favorite, theme, onApply, onDetail, onFavorite, onCopy, onEdit, onDelete }: { item: StyleLibraryItem; active: boolean; applying: boolean; favorite: boolean; theme: (typeof canvasThemes)[keyof typeof canvasThemes]; onApply: () => void; onDetail: () => void; onFavorite: () => void; onCopy: () => void; onEdit?: () => void; onDelete?: () => void }) {
-    const { preset } = item;
+    const preset = displayCanvasStylePreset(item.preset);
     return (
         <article className={`style-center-card group flex min-w-0 flex-col overflow-hidden rounded-md border ${active ? "is-active" : ""}`} style={{ background: theme.canvas.background, borderColor: active ? theme.node.activeStroke : theme.node.stroke, boxShadow: active ? `inset 0 0 0 1px ${theme.node.activeStroke}` : undefined }}>
             <div className="relative overflow-hidden border-b" style={{ borderColor: theme.node.stroke }}>
-                <button type="button" className="style-center-card-cover block w-full overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-inset" style={{ "--tw-ring-color": theme.node.activeStroke } as CSSProperties} onClick={onDetail} aria-label={`查看${preset.title}规范`}>
-                    <img src={preset.imageUrl} width="640" height="360" alt={`${preset.title}画风示意`} className="h-full w-full object-cover transition-transform" />
+                <button type="button" className="style-center-card-cover block w-full overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-inset" style={{ "--tw-ring-color": theme.node.activeStroke } as CSSProperties} onClick={onDetail} aria-label={translate("canvasTools.canvasStylePickerModal.viewTheSpec", { v0: String(preset.title) })}>
+                    <img src={preset.imageUrl} width="640" height="360" alt={translate("canvasTools.canvasStylePickerModal.stylePreview", { v0: String(preset.title) })} className="h-full w-full object-cover transition-transform" />
                 </button>
-                <button type="button" className={`style-center-favorite-action absolute right-2 top-2 grid size-8 place-items-center rounded-md outline-none focus-visible:ring-2 ${favorite ? "is-active" : ""}`} onClick={onFavorite} aria-label={favorite ? "取消收藏" : "收藏"} title={favorite ? "取消收藏" : "收藏"}><Star className="size-3.5" fill={favorite ? "currentColor" : "none"} /></button>
+                <button type="button" className={`style-center-favorite-action absolute right-2 top-2 grid size-8 place-items-center rounded-md outline-none focus-visible:ring-2 ${favorite ? "is-active" : ""}`} onClick={onFavorite} aria-label={favorite ? translate("canvasTools.canvasStylePickerModal.removeFromFavorites") : translate("canvasTools.canvasStylePickerModal.favorite")} title={favorite ? translate("canvasTools.canvasStylePickerModal.removeFromFavorites") : translate("canvasTools.canvasStylePickerModal.favorite")}><Star className="size-3.5" fill={favorite ? "currentColor" : "none"} /></button>
             </div>
             <div className="flex min-h-0 flex-1 flex-col px-3 pt-3">
-                <div className="flex min-w-0 items-center gap-2 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}><span className="truncate">{item.kind === "user" ? "我的风格" : preset.category}</span>{active ? <span className="ml-auto flex shrink-0 items-center gap-1 font-medium" style={{ color: theme.node.activeStroke }}><Check className="size-3" />当前</span> : null}</div>
+                <div className="flex min-w-0 items-center gap-2 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}><span className="truncate">{item.kind === "user" ? translate("canvasTools.canvasStylePickerModal.myStyles") : preset.category}</span>{active ? <span className="ml-auto flex shrink-0 items-center gap-1 font-medium" style={{ color: theme.node.activeStroke }}><Check className="size-3" />{translate("canvasB.mediaVersion.current")}</span> : null}</div>
                 <h3 className="mt-2 truncate text-sm font-semibold">{preset.title}</h3>
                 <p className="mt-2 line-clamp-2 text-xs leading-5" style={{ color: theme.node.muted }}>{preset.description}</p>
                 <div className="mt-2 flex min-h-6 flex-wrap gap-1">{preset.tags.slice(0, 3).map((tag) => <span key={tag} className="rounded bg-foreground/5 px-2 py-0.5 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>{tag}</span>)}</div>
             </div>
             <footer className="mt-2 flex min-h-11 items-center gap-1 border-t px-2" style={{ borderColor: theme.node.stroke }}>
-                <IconAction label="查看规范" onClick={onDetail}><Eye className="size-3.5" /></IconAction>
-                <IconAction label="复制并编辑" onClick={onCopy}><Copy className="size-3.5" /></IconAction>
-                {onEdit ? <IconAction label="编辑风格" onClick={onEdit}><Pencil className="size-3.5" /></IconAction> : null}
-                {onDelete ? <IconAction label="删除风格" danger onClick={onDelete}><Trash2 className="size-3.5" /></IconAction> : null}
-                <Button type="default" size="small" className={`style-center-apply-button ml-auto ${active ? "is-current" : ""}`} disabled={active || applying} icon={active ? <Check className="size-3.5" /> : <Palette className="size-3.5" />} onClick={onApply}>{active ? "当前" : "应用"}</Button>
+                <IconAction label={translate("canvasTools.canvasStylePickerModal.viewSpec")} onClick={onDetail}><Eye className="size-3.5" /></IconAction>
+                <IconAction label={translate("canvasTools.canvasStylePickerModal.copyAndEdit")} onClick={onCopy}><Copy className="size-3.5" /></IconAction>
+                {onEdit ? <IconAction label={translate("canvasTools.canvasStylePickerModal.editStyle")} onClick={onEdit}><Pencil className="size-3.5" /></IconAction> : null}
+                {onDelete ? <IconAction label={translate("canvasTools.canvasStylePickerModal.deleteStyle")} danger onClick={onDelete}><Trash2 className="size-3.5" /></IconAction> : null}
+                <Button type="default" size="small" className={`style-center-apply-button ml-auto ${active ? "is-current" : ""}`} disabled={active || applying} icon={active ? <Check className="size-3.5" /> : <Palette className="size-3.5" />} onClick={onApply}>{active ? translate("canvasB.mediaVersion.current") : translate("canvasB.common.apply")}</Button>
             </footer>
         </article>
     );
@@ -645,24 +973,24 @@ function StyleCenterNavItem({ active, icon, label, count, onClick }: { active: b
 }
 
 function styleCenterViewTitle(tab: StyleCenterTab, category: string) {
-    if (tab === "mine") return "我的风格";
-    if (tab === "favorites") return "收藏风格";
-    if (tab === "recent") return "最近使用";
-    return category === "全部" ? "全部系统风格" : category;
+    if (tab === "mine") return translate("canvasTools.canvasStylePickerModal.myStyles");
+    if (tab === "favorites") return translate("canvasTools.canvasStylePickerModal.favoriteStyle");
+    if (tab === "recent") return translate("canvasTools.canvasStylePickerModal.recentlyUsed");
+    return category === "全部" ? translate("canvasTools.canvasStylePickerModal.allSystemStyles") : displayStyleCategory(category);
 }
 
 function EmptyStyleCenter({ tab, loading, failed, color, onCreate, onBrowse }: { tab: StyleCenterTab; loading: boolean; failed: boolean; color: string; onCreate: () => void; onBrowse: () => void }) {
-    return <div className="col-span-full grid min-h-64 place-items-center text-center"><div><Search className="mx-auto size-5" style={{ color }} /><p className="mt-2 text-xs font-medium">{loading ? "正在加载风格库" : failed && tab !== "system" ? "我的风格加载失败，请检查登录状态或后端服务" : tab === "mine" ? "还没有自己的风格" : tab === "favorites" ? "还没有收藏风格" : tab === "recent" ? "还没有使用记录" : "没有匹配的系统风格"}</p><div className="mt-3 flex justify-center gap-2">{tab === "mine" && !failed ? <Button size="small" icon={<Plus className="size-3.5" />} onClick={onCreate}>新建风格</Button> : null}<Button size="small" onClick={onBrowse}>浏览系统风格</Button></div></div></div>;
+    return <div className="col-span-full grid min-h-64 place-items-center text-center"><div><Search className="mx-auto size-5" style={{ color }} /><p className="mt-2 text-xs font-medium">{loading ? translate("canvasTools.canvasStylePickerModal.loadingTheStyleLibrary") : failed && tab !== "system" ? translate("canvasTools.canvasStylePickerModal.couldNotLoadYourStylesCheckThatYouAreSigned") : tab === "mine" ? translate("canvasTools.canvasStylePickerModal.youHaveNoStylesOfYourOwnYet") : tab === "favorites" ? translate("canvasTools.canvasStylePickerModal.noFavoriteStylesYet") : tab === "recent" ? translate("canvasTools.canvasStylePickerModal.noUsageYet") : translate("canvasTools.canvasStylePickerModal.noMatchingSystemStyles")}</p><div className="mt-3 flex justify-center gap-2">{tab === "mine" && !failed ? <Button size="small" icon={<Plus className="size-3.5" />} onClick={onCreate}>{translate("canvasTools.canvasStylePickerModal.newStyle")}</Button> : null}<Button size="small" onClick={onBrowse}>{translate("canvasTools.canvasStylePickerModal.browseSystemStyles")}</Button></div></div></div>;
 }
 
 export function userStylePreset(entity: UserStyleProfile): CanvasStylePreset | null {
     const profile = parseStyleProfile(entity.profileJson);
     if (!profile) return null;
-    return { id: profile.presetId, title: profile.title, category: "我的风格", description: profile.description, tags: [...profile.tags], prompt: profile.prompt, imageUrl: profile.coverUrl || entity.coverUrl || "/short-drama-styles/real-life.jpg", profile };
+    return { id: profile.presetId, title: profile.title, category: translate("canvasTools.canvasStylePickerModal.myStyles"), description: profile.description, tags: [...profile.tags], prompt: profile.prompt, imageUrl: profile.coverUrl || entity.coverUrl || "/short-drama-styles/real-life.jpg", profile };
 }
 
 function blankUserStyle(): StyleProfileSnapshot {
-    return createStyleProfileSnapshot({ presetId: `draft-${nanoid()}`, title: "未命名风格", description: "", tags: [], prompt: "", assets: [], source: "user", revision: 1 });
+    return createStyleProfileSnapshot({ presetId: `draft-${nanoid()}`, title: translate("canvasTools.canvasStylePickerModal.untitledStyle"), description: "", tags: [], prompt: "", assets: [], source: "user", revision: 1 });
 }
 
 function editableCopy(profile: StyleProfileSnapshot, entityId?: string, title?: string, coverUrl?: string): StyleProfileSnapshot {
@@ -672,28 +1000,29 @@ function editableCopy(profile: StyleProfileSnapshot, entityId?: string, title?: 
 export function CanvasStyleDetailModal({ open, preset, selected = false, onClose, onSelect }: { open: boolean; preset: CanvasStylePreset | null; selected?: boolean; onClose: () => void; onSelect?: (preset: CanvasStylePreset) => void }) {
     const theme = canvasThemes[useActiveTheme()];
     const sections = preset ? parseStyleSections(preset.prompt) : [];
+    const display = preset ? displayCanvasStylePreset(preset) : null;
     return (
         <AppModal rootClassName="canvas-style-detail-modal" open={open} title={null} footer={null} centered destroyOnHidden width="min(820px, calc(100vw - 24px))" onCancel={onClose} flush>
             {preset ? <div className="canvas-style-detail-shell flex flex-col overflow-hidden" style={{ color: theme.node.text, background: theme.node.panel }}>
                 <div className="flex h-44 shrink-0 items-center justify-center overflow-hidden border-b sm:h-52" style={{ borderColor: theme.node.stroke, background: theme.canvas.background }}>
-                    <img src={preset.imageUrl} width="960" height="540" alt={`${preset.title}画风示意`} className="h-full w-full object-contain" style={preset.id === "black-white-noir" ? { filter: "grayscale(1) contrast(1.08)" } : undefined} />
+                    <img src={preset.imageUrl} width="960" height="540" alt={translate("canvasTools.canvasStylePickerModal.stylePreview", { v0: String(display!.title) })} className="h-full w-full object-contain" style={preset.id === "black-white-noir" ? { filter: "grayscale(1) contrast(1.08)" } : undefined} />
                 </div>
                 <header className="border-b px-4 py-3 pr-12 sm:px-5 sm:pr-12" style={{ borderColor: theme.node.stroke }}>
-                    <div className="flex items-center gap-2 text-[var(--fs-tiny)] font-medium" style={{ color: theme.node.activeStroke }}><span>{preset.category}</span><span className="flex items-center gap-1" style={{ color: theme.node.muted }}><SlidersHorizontal className="size-3" />{preset.profile?.assets.length ? `${preset.profile.assets.length} 个执行资产` : "Prompt 通用"}</span></div>
-                    <h2 className="mt-1 text-base font-semibold">{preset.title}</h2>
-                    <p className="mt-2 text-xs leading-5" style={{ color: theme.node.muted }}>{preset.description}</p>
+                    <div className="flex items-center gap-2 text-[var(--fs-tiny)] font-medium" style={{ color: theme.node.activeStroke }}><span>{display!.category}</span><span className="flex items-center gap-1" style={{ color: theme.node.muted }}><SlidersHorizontal className="size-3" />{preset.profile?.assets.length ? translate("canvasTools.canvasStylePickerModal.executionAssets", { v0: String(preset.profile.assets.length) }) : translate("canvasTools.canvasStylePickerModal.promptGeneric")}</span></div>
+                    <h2 className="mt-1 text-base font-semibold">{display!.title}</h2>
+                    <p className="mt-2 text-xs leading-5" style={{ color: theme.node.muted }}>{display!.description}</p>
                 </header>
                 <div className="grid shrink-0 grid-cols-3 divide-x border-b text-[var(--fs-tiny)]" style={{ borderColor: theme.node.stroke }}>
-                    <StyleDetailMetric label="执行方式" value={preset.profile?.assets.length ? "组合资产" : "Prompt 通用"} muted={theme.node.muted} />
-                    <StyleDetailMetric label="执行策略" value={preset.profile?.executionPolicy === "strict-assets" ? "严格校验" : "兼容降级"} muted={theme.node.muted} />
-                    <StyleDetailMetric label="快照版本" value={`r${preset.profile?.revision || 1}`} muted={theme.node.muted} />
+                    <StyleDetailMetric label={translate("canvasTools.canvasStylePickerModal.executionMethod")} value={preset.profile?.assets.length ? translate("canvasTools.canvasStylePickerModal.combinedAssets") : translate("canvasTools.canvasStylePickerModal.promptGeneric")} muted={theme.node.muted} />
+                    <StyleDetailMetric label={translate("canvasTools.canvasStylePickerModal.executionStrategy")} value={preset.profile?.executionPolicy === "strict-assets" ? translate("canvasTools.canvasStylePickerModal.strictValidation") : translate("canvasTools.canvasStylePickerModal.compatibleFallback")} muted={theme.node.muted} />
+                    <StyleDetailMetric label={translate("canvasTools.canvasStylePickerModal.snapshotVersion")} value={`r${preset.profile?.revision || 1}`} muted={theme.node.muted} />
                 </div>
                 <div className="thin-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 sm:px-5">
-                    {preset.profile?.assets.length ? <section className="border-b py-3" style={{ borderColor: theme.node.stroke }}><h3 className="text-xs font-semibold">执行资产</h3><div className="mt-2 divide-y" style={{ borderColor: theme.node.stroke }}>{preset.profile.assets.map((asset) => <div key={asset.id} className="flex items-center justify-between gap-3 py-2 text-xs"><span className="min-w-0"><span className="block truncate font-medium">{asset.title}</span><span className="mt-0.5 block text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>{kindOptionsLabel(asset.kind)} · {asset.provider}</span></span><span className="shrink-0 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>{asset.status === "validated" ? "已验证" : asset.status === "unavailable" ? "不可用" : "待验证"}</span></div>)}</div></section> : null}
+                    {preset.profile?.assets.length ? <section className="border-b py-3" style={{ borderColor: theme.node.stroke }}><h3 className="text-xs font-semibold">{translate("canvasTools.canvasStylePickerModal.executionAssets2")}</h3><div className="mt-2 divide-y" style={{ borderColor: theme.node.stroke }}>{preset.profile.assets.map((asset) => <div key={asset.id} className="flex items-center justify-between gap-3 py-2 text-xs"><span className="min-w-0"><span className="block truncate font-medium">{asset.title}</span><span className="mt-0.5 block text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>{kindOptionsLabel(asset.kind)} · {asset.provider}</span></span><span className="shrink-0 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>{asset.status === "validated" ? translate("account.settings.profile.verifiedStatus") : asset.status === "unavailable" ? translate("canvasTools.canvasStylePickerModal.unavailable") : translate("canvasTools.canvasStylePickerModal.toVerify")}</span></div>)}</div></section> : null}
                     {sections.map((section) => <section key={section.title} className="border-b py-3 last:border-b-0" style={{ borderColor: theme.node.stroke }}><h3 className="text-xs font-semibold">{section.title}</h3><p className="mt-2 text-xs leading-5" style={{ color: theme.node.muted }}>{section.content}</p></section>)}
-                    {preset.profile?.negativePrompt ? <section className="border-b py-3 last:border-b-0" style={{ borderColor: theme.node.stroke }}><h3 className="text-xs font-semibold">全局负面 Prompt</h3><p className="mt-2 whitespace-pre-wrap text-xs leading-5" style={{ color: theme.node.muted }}>{preset.profile.negativePrompt}</p></section> : null}
+                    {preset.profile?.negativePrompt ? <section className="border-b py-3 last:border-b-0" style={{ borderColor: theme.node.stroke }}><h3 className="text-xs font-semibold">{translate("canvasTools.canvasStylePickerModal.globalNegativePrompt")}</h3><p className="mt-2 whitespace-pre-wrap text-xs leading-5" style={{ color: theme.node.muted }}>{preset.profile.negativePrompt}</p></section> : null}
                 </div>
-                <footer className="flex shrink-0 flex-wrap justify-end gap-2 border-t px-4 py-3 sm:px-5" style={{ borderColor: theme.node.stroke }}><Button onClick={onClose}>关闭</Button>{onSelect ? <Button type="primary" disabled={selected} icon={selected ? <Check className="size-3.5" /> : <Palette className="size-3.5" />} onClick={() => onSelect(preset)}>{selected ? "当前画风" : "选择该画风"}</Button> : null}</footer>
+                <footer className="flex shrink-0 flex-wrap justify-end gap-2 border-t px-4 py-3 sm:px-5" style={{ borderColor: theme.node.stroke }}><Button onClick={onClose}>{translate("common.close")}</Button>{onSelect ? <Button type="primary" disabled={selected} icon={selected ? <Check className="size-3.5" /> : <Palette className="size-3.5" />} onClick={() => onSelect(preset)}>{selected ? translate("canvasTools.canvasStylePickerModal.currentStyle") : translate("canvasTools.canvasStylePickerModal.chooseThisStyle")}</Button> : null}</footer>
             </div> : null}
         </AppModal>
     );
@@ -704,12 +1033,12 @@ function StyleDetailMetric({ label, value, muted }: { label: string; value: stri
 }
 
 function kindOptionsLabel(kind: string) {
-    return kind === "lora" ? "LoRA" : kind === "template" ? "图片模板" : kind === "reference" ? "参考图组" : "提示词模块";
+    return kind === "lora" ? "LoRA" : kind === "template" ? translate("canvasTools.canvasStylePickerModal.imageTemplate") : kind === "reference" ? translate("canvasTools.canvasStylePickerModal.referenceSet") : translate("canvasTools.canvasStylePickerModal.promptModule");
 }
 
 function parseStyleSections(prompt: string) {
     return prompt.split("\n").map((line) => {
         const match = line.match(/^【([^】]+)】(.*)$/);
-        return match ? { title: match[1], content: match[2] } : { title: "补充规范", content: line };
+        return match ? { title: match[1], content: match[2] } : { title: translate("canvasTools.canvasStylePickerModal.additionalSpec"), content: line };
     }).filter((section) => section.content);
 }

@@ -10,6 +10,7 @@ import { Switch } from "@/pages/admin/ui/controls";
 import { AdminStatusBadge } from "./admin-ui";
 import { AnnouncementContent } from "@/components/ui/announcement-content";
 import { type AnnouncementFormValues, DEFAULT_ANNOUNCEMENT, type PendingAnnouncement, formatDateTime, levelMeta, levelOptions } from "./admin-announcement-results";
+import { translate } from "@/i18n";
 
 export function AnnouncementEditor({
     open,
@@ -61,7 +62,7 @@ export function AnnouncementEditor({
     return (
         <>
             <AdminModal
-                title={editingAnnouncement ? "编辑并重新发布公告" : "发布系统公告"}
+                title={editingAnnouncement ? translate("admin.adminAnnouncementEditor.editAndRepublishAnnouncement") : translate("admin.adminAnnouncementEditor.publishASystemAnnouncement")}
                 open={open && !pending}
                 centered
                 width="min(1120px, calc(100vw - 32px))"
@@ -79,52 +80,52 @@ export function AnnouncementEditor({
                 footer={
                     <div className="flex justify-end gap-2">
                         <Button disabled={saving || imageUploading || Boolean(pending)} onClick={onClose}>
-                            取消
+                            {translate("common.cancel")}
                         </Button>
                         <Button type="primary" loading={saving} disabled={publishBlocked || imageUploading || Boolean(pending)} icon={<Send className="size-4" />} onClick={() => form.submit()}>
-                            核对并继续
+                            {translate("admin.adminAnnouncementEditor.reviewAndContinue")}
                         </Button>
                     </div>
                 }
                 styles={{ body: { maxHeight: "calc(100vh - 190px)", overflowY: "auto" } }}
             >
                 <div className={`admin-announcement-editor-intro${editingAnnouncement ? " is-warning" : ""}`}>
-                    <strong>{editingAnnouncement ? "保存会重新向全体用户发布" : "发布成功后会进入用户公告中心"}</strong>
-                    <p>{editingAnnouncement ? "无论当前公告是否已关闭，保存都会刷新发布时间、恢复为发布中，并清除所有用户的旧已读状态。" : "已打开的页面会在下一次同步后看到（通常 5 分钟内）；请写清影响范围、所需操作和预计恢复时间。"}</p>
+                    <strong>{editingAnnouncement ? translate("admin.adminAnnouncementEditor.savingRepublishesThisAnnouncementToAllUsers") : translate("admin.adminAnnouncementEditor.publishedAnnouncementsAppearInUsersAnnouncementCenters")}</strong>
+                    <p>{editingAnnouncement ? translate("admin.adminAnnouncementEditor.savingUpdatesThePublicationTimeRepublishesTheAnnouncementAndClears") : translate("admin.adminAnnouncementEditor.openPagesReceiveTheAnnouncementAtTheNextSyncUsually")}</p>
                 </div>
                 <Form form={form} layout="vertical" requiredMark={false} disabled={publishBlocked} initialValues={DEFAULT_ANNOUNCEMENT} scrollToFirstError={{ focus: true, block: "center" }} onFinish={onPreview}>
                     <div className="admin-announcement-editor-layout">
                         <section className="admin-announcement-editor-section">
                             <div className="admin-announcement-editor-section-heading">
-                                <h2>公告内容</h2>
-                                <p>支持换行以及链接、强调、列表等受控 HTML；Markdown 不会被解析。</p>
+                                <h2>{translate("admin.adminAnnouncementEditor.announcementContent")}</h2>
+                                <p>{translate("admin.adminAnnouncementEditor.supportsLineBreaksAndAllowedHTMLSuchAsLinksEmphasis")}</p>
                             </div>
                             <div className="admin-announcement-form-grid">
                                 <Form.Item
                                     name="title"
-                                    label="公告标题"
+                                    label={translate("admin.adminAnnouncementEditor.announcementTitle")}
                                     rules={[
-                                        { required: true, whitespace: true, message: "请填写公告标题" },
-                                        { max: 120, message: "标题不能超过 120 个字符" },
+                                        { required: true, whitespace: true, message: translate("admin.adminAnnouncementEditor.enterAnAnnouncementTitle") },
+                                        { max: 120, message: translate("admin.adminAnnouncementEditor.theTitleCannotExceed120Characters") },
                                     ]}
                                 >
-                                    <Input ref={titleInputRef} maxLength={120} showCount placeholder="例如：视频模型已恢复正常使用" />
+                                    <Input ref={titleInputRef} maxLength={120} showCount placeholder={translate("admin.adminAnnouncementEditor.eGVideoModelsAreBackToNormal")} />
                                 </Form.Item>
-                                <Form.Item name="level" label="公告类型" extra={previewMeta.guidance} rules={[{ required: true, message: "请选择公告类型" }]}>
-                                    <Select aria-label="选择公告类型" options={levelOptions} />
+                                <Form.Item name="level" label={translate("admin.adminAnnouncementEditor.announcementType")} extra={previewMeta.guidance} rules={[{ required: true, message: translate("admin.adminAnnouncementEditor.chooseAnAnnouncementType") }]}>
+                                    <Select aria-label={translate("admin.adminAnnouncementEditor.chooseAnnouncementType")} options={levelOptions} />
                                 </Form.Item>
                             </div>
-                            <Form.Item name="pinned" label="展示方式" valuePropName="checked" extra="置顶公告会优先于普通公告展示。">
-                                <Switch checkedChildren="置顶" unCheckedChildren="普通" />
+                            <Form.Item name="pinned" label={translate("admin.adminAnnouncementEditor.displayMode")} valuePropName="checked" extra={translate("admin.adminAnnouncementEditor.pinnedAnnouncementsAppearBeforeRegularAnnouncements")}>
+                                <Switch checkedChildren={translate("account.ui.announcements.pinned")} unCheckedChildren={translate("admin.adminAnnouncementEditor.normal")} />
                             </Form.Item>
                             <Form.Item name="imageResourceId" hidden>
                                 <Input />
                             </Form.Item>
-                            <Form.Item label="公告配图" extra="可选，图片文件不超过 10MB；取消、替换或移除时会回收未发布草稿。">
+                            <Form.Item label={translate("admin.adminAnnouncementEditor.announcementImage")} extra={translate("admin.adminAnnouncementEditor.optionalImagesMustNotExceed10MBUnpublishedDraftsAreCleaned")}>
                                 <div className="space-y-2">
                                     {imagePreviewUrl ? (
                                         <div className="relative flex min-h-28 items-center justify-center overflow-hidden rounded-md border border-border/70 bg-muted/20 p-2">
-                                            <img src={imagePreviewUrl} alt="公告配图预览" className="max-h-44 w-full object-contain" />
+                                            <img src={imagePreviewUrl} alt={translate("admin.adminAnnouncementEditor.announcementImagePreview")} className="max-h-44 w-full object-contain" />
                                             <Button
                                                 type="text"
                                                 size="small"
@@ -133,50 +134,50 @@ export function AnnouncementEditor({
                                                 icon={<X className="size-3.5" />}
                                                 className="!absolute right-1 top-1 !size-7 !min-w-7 !p-0"
                                                 onClick={onClearImage}
-                                                aria-label="移除公告配图"
-                                                title="移除公告配图"
+                                                aria-label={translate("admin.adminAnnouncementEditor.removeAnnouncementImage")}
+                                                title={translate("admin.adminAnnouncementEditor.removeAnnouncementImage")}
                                             />
                                         </div>
                                     ) : (
-                                        <div className="flex min-h-24 items-center justify-center rounded-md border border-dashed border-border/80 bg-muted/10 text-xs text-foreground/45">暂未添加配图</div>
+                                        <div className="flex min-h-24 items-center justify-center rounded-md border border-dashed border-border/80 bg-muted/10 text-xs text-foreground/45">{translate("admin.adminAnnouncementEditor.noImageAdded")}</div>
                                     )}
                                     <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={onUploadImage} />
                                     <Button icon={<Upload className="size-3.5" />} loading={imageUploading} onClick={() => imageInputRef.current?.click()}>
-                                        {imagePreviewUrl ? "更换配图" : "上传配图"}
+                                        {imagePreviewUrl ? translate("admin.adminAnnouncementEditor.changeImage") : translate("admin.adminAnnouncementEditor.uploadImage")}
                                     </Button>
                                 </div>
                             </Form.Item>
-                            <Form.Item name="content" label="公告正文（可选）" rules={[{ max: 4000, message: "正文不能超过 4000 个字符" }]}>
-                                <Input.TextArea maxLength={4000} showCount autoSize={{ minRows: 14, maxRows: 24 }} placeholder="可选填写服务状态、影响范围和用户需要采取的操作" />
+                            <Form.Item name="content" label={translate("admin.adminAnnouncementEditor.announcementContentOptional")} rules={[{ max: 4000, message: translate("admin.adminAnnouncementEditor.theBodyCannotExceed4000Characters") }]}>
+                                <Input.TextArea maxLength={4000} showCount autoSize={{ minRows: 14, maxRows: 24 }} placeholder={translate("admin.adminAnnouncementEditor.optionallyDescribeServiceStatusImpactAndActionsUsersShouldTake")} />
                             </Form.Item>
                         </section>
 
-                        <section className="admin-announcement-preview" data-level={watchedLevel || "info"} aria-label="用户端公告预览">
+                        <section className="admin-announcement-preview" data-level={watchedLevel || "info"} aria-label={translate("admin.adminAnnouncementEditor.userAnnouncementPreview")}>
                             <div className="admin-announcement-preview-heading">
-                                <span>用户端预览</span>
+                                <span>{translate("admin.adminAnnouncementEditor.userPreview")}</span>
                                 <div className="flex items-center gap-2">
                                     <AdminStatusBadge label={previewMeta.label} tone={previewMeta.tone} />
                                     {watchedPinned ? (
                                         <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-500">
                                             <Pin className="size-3" />
-                                            置顶
+                                            {translate("account.ui.announcements.pinned")}
                                         </span>
                                     ) : null}
                                 </div>
                             </div>
-                            <h3>{watchedTitle?.trim() || "公告标题将在这里显示"}</h3>
-                            {imagePreviewUrl ? <img src={imagePreviewUrl} alt="公告配图预览" className="mt-4 max-h-56 w-full rounded-lg border border-border/70 bg-muted/20 object-contain p-1" /> : null}
-                            {watchedContent?.trim() ? <AnnouncementContent content={watchedContent.trim()} className="admin-announcement-preview-content" /> : <p className="admin-announcement-preview-placeholder">此公告仅展示标题。</p>}
+                            <h3>{watchedTitle?.trim() || translate("admin.adminAnnouncementEditor.theAnnouncementTitleAppearsHere")}</h3>
+                            {imagePreviewUrl ? <img src={imagePreviewUrl} alt={translate("admin.adminAnnouncementEditor.announcementImagePreview")} className="mt-4 max-h-56 w-full rounded-lg border border-border/70 bg-muted/20 object-contain p-1" /> : null}
+                            {watchedContent?.trim() ? <AnnouncementContent content={watchedContent.trim()} className="admin-announcement-preview-content" /> : <p className="admin-announcement-preview-placeholder">{translate("admin.adminAnnouncementEditor.thisAnnouncementDisplaysOnlyItsTitle")}</p>}
                         </section>
                     </div>
                 </Form>
             </AdminModal>
 
             <AdminModal
-                title={pending?.mode === "update" ? "确认编辑并重新发布" : "确认发布系统公告"}
+                title={pending?.mode === "update" ? translate("admin.adminAnnouncementEditor.confirmChangesAndRepublish") : translate("admin.adminAnnouncementEditor.confirmSystemAnnouncementPublication")}
                 open={Boolean(pending)}
-                okText={pending?.mode === "update" ? "确认重新发布" : "确认发布"}
-                cancelText="返回修改"
+                okText={pending?.mode === "update" ? translate("admin.adminAnnouncementEditor.confirmRepublication") : translate("admin.adminAnnouncementEditor.confirmPublication")}
+                cancelText={translate("admin.adminAnnouncementEditor.backToEditing")}
                 onCancel={() => {
                     if (!saving) onPendingChange(null);
                 }}
@@ -193,33 +194,33 @@ export function AnnouncementEditor({
                     <div className="admin-operation-confirmation">
                         <p className="admin-operation-confirmation-copy">
                             {pending.mode === "update"
-                                ? `这会把公告重新置为发布中、刷新发布时间，并清除所有用户对 ${formatDateTime(pending.previousPublishedAt)} 版本的已读记录。`
-                                : "确认后公告会进入所有用户的公告中心并计入未读提醒；已打开的页面会在下一次同步后看到（通常 5 分钟内）。"}
+                                ? translate("admin.adminAnnouncementEditor.thisRepublishesTheAnnouncementUpdatesItsPublicationTimeAndClears", { v0: String(formatDateTime(pending.previousPublishedAt)) })
+                                : translate("admin.adminAnnouncementEditor.afterConfirmationTheAnnouncementAppearsInEveryUserSAnnouncement")}
                         </p>
                         <dl className="admin-operation-confirmation-grid">
                             <div>
-                                <dt>操作</dt>
-                                <dd>{pending.mode === "update" ? (pending.previousStatus === "closed" ? "重新开启并发布" : "更新并重新发布") : "发布新公告"}</dd>
+                                <dt>{translate("account.settings.runninghub.actions")}</dt>
+                                <dd>{pending.mode === "update" ? (pending.previousStatus === "closed" ? translate("admin.adminAnnouncementEditor.reopenAndPublish") : translate("admin.adminAnnouncementEditor.updateAndRepublish")) : translate("admin.adminAnnouncementEditor.publishNewAnnouncement")}</dd>
                             </div>
                             <div>
-                                <dt>公告类型</dt>
+                                <dt>{translate("admin.adminAnnouncementEditor.announcementType")}</dt>
                                 <dd>{(levelMeta[pending.level] || levelMeta.info).label}</dd>
                             </div>
                             <div>
-                                <dt>展示方式</dt>
-                                <dd>{pending.pinned ? "置顶" : "普通"}</dd>
+                                <dt>{translate("admin.adminAnnouncementEditor.displayMode")}</dt>
+                                <dd>{pending.pinned ? translate("account.ui.announcements.pinned") : translate("admin.adminAnnouncementEditor.normal")}</dd>
                             </div>
                             <div>
-                                <dt>公告配图</dt>
-                                <dd>{pending.imageResourceId ? "已配置" : "无配图"}</dd>
+                                <dt>{translate("admin.adminAnnouncementEditor.announcementImage")}</dt>
+                                <dd>{pending.imageResourceId ? translate("admin.adminAnnouncementEditor.configured") : translate("admin.adminAnnouncementEditor.noImage")}</dd>
                             </div>
                             <div className="is-wide">
-                                <dt>公告标题</dt>
+                                <dt>{translate("admin.adminAnnouncementEditor.announcementTitle")}</dt>
                                 <dd>{pending.title}</dd>
                             </div>
                             <div className="is-wide">
-                                <dt>公告正文</dt>
-                                <dd>{pending.content ? <AnnouncementContent content={pending.content} className="admin-announcement-confirm-content" /> : "无正文"}</dd>
+                                <dt>{translate("admin.adminAnnouncementEditor.announcementBody")}</dt>
+                                <dd>{pending.content ? <AnnouncementContent content={pending.content} className="admin-announcement-confirm-content" /> : translate("admin.adminAnnouncementEditor.noContent")}</dd>
                             </div>
                         </dl>
                     </div>

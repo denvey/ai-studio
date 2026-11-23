@@ -4,6 +4,8 @@ import type { ResponseInputMessage, ResponseToolCall } from "./api/image";
 import { CREATIVE_SCENARIOS, normalizeCreativeQuestions, type CreativeScenarioId } from "@/lib/creation/creative-agent-contract";
 import { assertCreativeBriefSpecifications, mergeCreativeBrief, normalizeCreativeProposal, type CreativeAgentState } from "@/lib/creation/creative-agent-state";
 import { parseCreativeToolArguments } from "@/lib/creation/creative-agent-tools";
+import { translate } from "@/i18n";
+
 
 type Reply = { content: string; toolCalls: ResponseToolCall[] };
 type Context = { config: AiConfig; state: CreativeAgentState; latestInput: string };
@@ -24,16 +26,16 @@ function validate(reply: Reply, context: Context) {
 }
 
 function recoveryQuestion(context: Context, error: string): Reply {
-    const assetIssue = /引用|素材|图片节点/.test(error);
-    const modelIssue = /模型|能力|尺寸|比例|时长/.test(error);
+    const assetIssue = /引用|素材|图片节点|\breference|\basset|\bimage node/i.test(error);
+    const modelIssue = /模型|能力|尺寸|比例|时长|\bmodel|\bcapabilit|\bsize|\bratio|\bduration/i.test(error);
     const field = `recovery.choice-${nanoid(8)}`;
-    const message = assetIssue ? "这份方案的素材依赖仍未能可靠绑定。已有作品保留，请选择下一步，我会按你的选择继续规划。"
-        : modelIssue ? "当前可用生成能力还不能可靠满足这份方案。请决定接下来如何安排，已确认的目标会保留。"
-        : "我尝试修正了方案，但它仍未达到可执行条件。已有内容保留，你可以先完善创意，或补充调整要求后继续。";
+    const message = assetIssue ? translate("shared.creativeAgentRecovery.theProposalSAssetDependenciesCouldNotBeLinkedReliably")
+        : modelIssue ? translate("shared.creativeAgentRecovery.availableGenerationCapabilitiesCannotReliablyFulfillThisProposalYetChoose")
+        : translate("shared.creativeAgentRecovery.theRevisedProposalIsStillNotReadyToExecuteExisting");
     const choices = assetIssue
-        ? [{ id: "choose", label: "先让我选择参考素材", description: "助手下一轮列出当前真实可用素材供选择。" }, { id: "text", label: "先完善文字方案", description: "先讨论内容，不创建或生成媒体。" }]
-        : [{ id: "text", label: "先完善文字方案", description: "保留创意和已确认需求，暂不进入媒体制作。" }, { id: "alternatives", label: "说明可行替代方案", description: "列出差异，由我决定是否修改目标。" }];
-    const input = { scenario: context.state.scene, message, brief: [], questions: [{ field, type: "single", title: "接下来希望怎样推进？", required: true, allowCustom: true, options: choices }] };
+        ? [{ id: "choose", label: translate("shared.creativeAgentRecovery.letMeChooseReferenceAssetsFirst"), description: translate("shared.creativeAgentRecovery.theAssistantWillListCurrentlyAvailableAssetsForYouTo") }, { id: "text", label: translate("shared.creativeAgentRecovery.refineTheWrittenProposalFirst"), description: translate("shared.creativeAgentRecovery.discussTheContentFirstWithoutCreatingOrGeneratingMedia") }]
+        : [{ id: "text", label: translate("shared.creativeAgentRecovery.refineTheWrittenProposalFirst"), description: translate("shared.creativeAgentRecovery.keepTheConceptAndConfirmedRequirementsAndPauseMediaProduction") }, { id: "alternatives", label: translate("shared.creativeAgentRecovery.explainFeasibleAlternatives"), description: translate("shared.creativeAgentRecovery.listTheDifferencesSoICanDecideWhetherToChange") }];
+    const input = { scenario: context.state.scene, message, brief: [], questions: [{ field, type: "single", title: translate("shared.creativeAgentRecovery.howWouldYouLikeToProceed"), required: true, allowCustom: true, options: choices }] };
     return { content: message, toolCalls: [{ id: `recovery-${nanoid()}`, type: "function", function: { name: "creative_respond", arguments: JSON.stringify(input) } }] };
 }
 
@@ -58,7 +60,7 @@ export async function recoverCreativeResponse(initial: Reply, messages: Response
             reply = await request(protocol);
         } catch (error) {
             if (error instanceof Error && error.name === "AbortError") throw error;
-            onProgress(3, error instanceof Error ? error.message : "修正请求失败");
+            onProgress(3, error instanceof Error ? error.message : translate("shared.creativeAgentRecovery.revisionRequestFailed"));
             return recoveryQuestion(context, failure);
         }
         reply = { ...reply, toolCalls: reply.toolCalls.filter((call) => call.function.name === "creative_respond") };

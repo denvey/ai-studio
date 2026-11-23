@@ -19,6 +19,8 @@ import {
 import { AdminPageFrame } from "../components/admin-shell";
 import { AdminDataTable, AdminRowActions, AdminStatusBadge, AdminTableEmpty, PaginationBar } from "../components/admin-ui";
 import { Select } from "@/components/ui/base/select";
+import { currentLocale, translate } from "@/i18n";
+
 
 type PromptFormValues = { name: string; enabled?: boolean };
 type DraftBaseline = { operation: string; name: string; enabled: boolean; content: string };
@@ -68,7 +70,7 @@ export default function StoryboardPromptsPage() {
             setTemplates(result.templates);
             setDefinitions(result.definitions);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "读取提示词模板失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.storyboardPrompts.storyboardPromptsPage.failedToLoadPromptTemplates"));
         } finally {
             setLoading(false);
         }
@@ -94,7 +96,7 @@ export default function StoryboardPromptsPage() {
         const source = template || activeTemplateFor(operation);
         const baseline = {
             operation,
-            name: source ? `${source.name} · 新版本` : "",
+            name: source ? translate("adminPages.storyboardPrompts.storyboardPromptsPage.newVersion2", { v0: String(source.name) }) : "",
             enabled: false,
             content: source?.content || "",
         };
@@ -130,7 +132,7 @@ export default function StoryboardPromptsPage() {
     const save = async () => {
         const values = await form.validateFields();
         if (!editorContent.trim()) {
-            message.warning("请填写提示词模板内容");
+            message.warning(translate("adminPages.storyboardPrompts.storyboardPromptsPage.enterThePromptTemplateContent"));
             return;
         }
         setSaving(true);
@@ -139,9 +141,9 @@ export default function StoryboardPromptsPage() {
             setDraftBaseline(null);
             setDrawerOpen(false);
             await reload();
-            message.success("提示词新版本已创建");
+            message.success(translate("adminPages.storyboardPrompts.storyboardPromptsPage.newPromptVersionCreated"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "保存提示词模板失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.storyboardPrompts.storyboardPromptsPage.failedToSavePromptTemplate"));
         } finally {
             setSaving(false);
         }
@@ -151,9 +153,9 @@ export default function StoryboardPromptsPage() {
         try {
             await updateAdminPromptTemplate(template.id, { operation: template.operation, name: template.name, content: template.content, enabled: true });
             await reload();
-            message.success("提示词版本已启用");
+            message.success(translate("adminPages.storyboardPrompts.storyboardPromptsPage.promptVersionActivated"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "启用提示词版本失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.storyboardPrompts.storyboardPromptsPage.failedToActivatePromptVersion"));
         }
     };
 
@@ -161,27 +163,27 @@ export default function StoryboardPromptsPage() {
         try {
             await deleteAdminPromptTemplate(template.id);
             await reload();
-            message.success("提示词版本已删除");
+            message.success(translate("adminPages.storyboardPrompts.storyboardPromptsPage.promptVersionDeleted"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "删除提示词版本失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.storyboardPrompts.storyboardPromptsPage.failedToDeletePromptVersion"));
         }
     };
 
     const columns: ColumnsType<PromptTemplate> = [
-        { title: "模板类型", dataIndex: "operation", width: 180, render: (operation: string) => { const definition = definitionByOperation.get(operation); return <div><div className="font-medium">{definition?.label || operation}</div><div className="mt-1 text-xs text-foreground/45">{definition?.category || "--"}</div></div>; } },
-        { title: "版本", dataIndex: "name", render: (_, template) => <div><div className="font-medium">{template.name}</div><div className="mt-1 text-xs text-foreground/45">v{template.version} · {template.content.length} 字符</div></div> },
-        { title: "输出", dataIndex: "outputType", width: 120, align: "center", render: (outputType: string, template) => <span className="inline-flex items-center gap-2 text-xs text-foreground/65">{outputType === "json" ? <FileJson className="size-3.5" /> : <FileText className="size-3.5" />}{outputType === "json" ? definitionByOperation.get(template.operation)?.schemaKey || "JSON" : "文本"}</span> },
-        { title: "状态", dataIndex: "enabled", width: 100, align: "center", render: (enabled) => <AdminStatusBadge label={enabled ? "启用中" : "历史版"} tone={enabled ? "success" : "neutral"} /> },
-        { title: "更新时间", dataIndex: "updatedAt", width: 180, align: "center", render: formatTime },
-        { title: "操作", width: 310, align: "center", render: (_, template) => <AdminRowActions visibleActionCount={2} primary={{ label: "基于此版本新建", icon: <Copy className="size-3.5" />, onClick: () => openDrawer(template) }} actions={[{ key: "activate", label: "启用版本", icon: <Power className="size-3.5" />, disabled: template.enabled, confirm: { title: "启用这个提示词版本？", description: "只会替换同类型的当前版本，其他模板类型不受影响。", okText: "确认启用" }, onClick: () => activate(template) }, { key: "delete", label: "删除版本", icon: <Trash2 className="size-3.5" />, danger: true, disabled: template.enabled, confirm: { title: "删除这个历史版本？", description: "删除后不可恢复，启用中的版本不能删除。", okText: "确认删除" }, onClick: () => remove(template) }]} /> },
+        { title: translate("adminPages.storyboardPrompts.storyboardPromptsPage.templateType"), dataIndex: "operation", width: 180, render: (operation: string) => { const definition = definitionByOperation.get(operation); return <div><div className="font-medium">{definition?.label || operation}</div><div className="mt-1 text-xs text-foreground/45">{definition?.category || "--"}</div></div>; } },
+        { title: translate("canvasA.assetView.version"), dataIndex: "name", render: (_, template) => <div><div className="font-medium">{template.name}</div><div className="mt-1 text-xs text-foreground/45">v{template.version} · {template.content.length} {translate("adminPages.storyboardPrompts.storyboardPromptsPage.characters")}</div></div> },
+        { title: translate("adminPages.storyboardPrompts.storyboardPromptsPage.output"), dataIndex: "outputType", width: 120, align: "center", render: (outputType: string, template) => <span className="inline-flex items-center gap-2 text-xs text-foreground/65">{outputType === "json" ? <FileJson className="size-3.5" /> : <FileText className="size-3.5" />}{outputType === "json" ? definitionByOperation.get(template.operation)?.schemaKey || "JSON" : translate("account.settings.modelConfig.capabilities.text")}</span> },
+        { title: translate("library.tasks.detail.status"), dataIndex: "enabled", width: 100, align: "center", render: (enabled) => <AdminStatusBadge label={enabled ? translate("adminPages.storyboardPrompts.storyboardPromptsPage.active") : translate("adminPages.storyboardPrompts.storyboardPromptsPage.past")} tone={enabled ? "success" : "neutral"} /> },
+        { title: translate("adminPages.storyboardPrompts.storyboardPromptsPage.updatedAt"), dataIndex: "updatedAt", width: 180, align: "center", render: formatTime },
+        { title: translate("account.settings.runninghub.actions"), width: 310, align: "center", render: (_, template) => <AdminRowActions visibleActionCount={2} primary={{ label: translate("adminPages.storyboardPrompts.storyboardPromptsPage.createFromThisVersion"), icon: <Copy className="size-3.5" />, onClick: () => openDrawer(template) }} actions={[{ key: "activate", label: translate("adminPages.storyboardPrompts.storyboardPromptsPage.activateVersion"), icon: <Power className="size-3.5" />, disabled: template.enabled, confirm: { title: translate("adminPages.storyboardPrompts.storyboardPromptsPage.activateThisPromptVersion"), description: translate("adminPages.storyboardPrompts.storyboardPromptsPage.thisReplacesOnlyTheActiveVersionOfTheSameType"), okText: translate("adminPages.storyboardPrompts.storyboardPromptsPage.confirmEnable") }, onClick: () => activate(template) }, { key: "delete", label: translate("adminPages.storyboardPrompts.storyboardPromptsPage.deleteVersion"), icon: <Trash2 className="size-3.5" />, danger: true, disabled: template.enabled, confirm: { title: translate("adminPages.storyboardPrompts.storyboardPromptsPage.deleteThisPastVersion"), description: translate("adminPages.storyboardPrompts.storyboardPromptsPage.deletionCannotBeUndoneAndTheActiveVersionCannotBe"), okText: translate("account.ui.delete.confirm") }, onClick: () => remove(template) }]} /> },
     ];
 
     return (
-        <AdminPageFrame title="提示词模板" description="平台创作策略与版本管理" actions={<Button type="primary" icon={<Plus className="size-4" />} disabled={!definitions.length} onClick={() => openDrawer()}>新建版本</Button>}>
+        <AdminPageFrame title={translate("account.settings.prompts.template")} description={translate("adminPages.storyboardPrompts.storyboardPromptsPage.platformCreativeStrategyAndVersionManagement")} actions={<Button type="primary" icon={<Plus className="size-4" />} disabled={!definitions.length} onClick={() => openDrawer()}>{translate("adminPages.storyboardPrompts.storyboardPromptsPage.newVersion")}</Button>}>
             <AdminDataTable
-                toolbar={<AdminSearchInput allowClear className="app-list-search" prefix={<Search className="size-4 text-foreground/40" />} value={keyword} aria-label="搜索提示词模板" placeholder="搜索模板或内容" onValueChange={(value) => updateUrl({ filter: value })} />}
+                toolbar={<AdminSearchInput allowClear className="app-list-search" prefix={<Search className="size-4 text-foreground/40" />} value={keyword} aria-label={translate("adminPages.storyboardPrompts.storyboardPromptsPage.searchPromptTemplates")} placeholder={translate("adminPages.storyboardPrompts.storyboardPromptsPage.searchTemplatesOrContent")} onValueChange={(value) => updateUrl({ filter: value })} />}
                 toolbarActive={hasFilters}
-                toolbarFilters={<><Select aria-label="筛选提示词类型" className="w-40" value={operationFilter} onChange={(value) => updateUrl({ operation: value })} options={[{ label: "全部类型", value: "all" }, ...definitions.map((item) => ({ label: item.label, value: item.operation }))]} /><Select aria-label="筛选提示词状态" className="w-32" value={status} onChange={(value) => updateUrl({ status: value })} options={[{ label: "全部状态", value: "all" }, { label: "启用中", value: "enabled" }, { label: "历史版本", value: "disabled" }]} /></>}
+                toolbarFilters={<><Select aria-label={translate("adminPages.storyboardPrompts.storyboardPromptsPage.filterPromptType")} className="w-40" value={operationFilter} onChange={(value) => updateUrl({ operation: value })} options={[{ label: translate("library.tasks.page.allKinds"), value: "all" }, ...definitions.map((item) => ({ label: item.label, value: item.operation }))]} /><Select aria-label={translate("adminPages.storyboardPrompts.storyboardPromptsPage.filterPromptStatus")} className="w-32" value={status} onChange={(value) => updateUrl({ status: value })} options={[{ label: translate("library.ark.expiry.all"), value: "all" }, { label: translate("adminPages.storyboardPrompts.storyboardPromptsPage.active"), value: "enabled" }, { label: translate("adminPages.storyboardPrompts.storyboardPromptsPage.versionHistory"), value: "disabled" }]} /></>}
                 onReset={() => updateUrl({ filter: "", operation: "all", status: "all" })}
                 table={{ className: "app-data-table", size: "small", rowKey: "id", loading, pagination: false, columns, dataSource: paginatedTemplates, scroll: { x: 1120 }, expandable: { expandedRowRender: (template) => <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-md bg-muted/50 p-3 text-xs leading-5 text-foreground/75">{template.content}</pre> } }}
                 empty={<AdminTableEmpty filtered={hasFilters} />}
@@ -190,7 +192,7 @@ export default function StoryboardPromptsPage() {
 
             <AdminDrawer
                 flush
-                title={baseTemplate ? `基于 v${baseTemplate.version} 新建版本` : "新建提示词版本"}
+                title={baseTemplate ? translate("adminPages.storyboardPrompts.storyboardPromptsPage.newVersionBasedOnV", { v0: String(baseTemplate.version) }) : translate("adminPages.storyboardPrompts.storyboardPromptsPage.newPromptVersion")}
                 open={drawerOpen}
                 size="min(1180px, 100vw)"
                 onClose={closeDrawer}
@@ -198,39 +200,39 @@ export default function StoryboardPromptsPage() {
                 closable={false}
                 mask={{ closable: false }}
                 keyboard={false}
-                extra={<div className="flex gap-2"><Popconfirm disabled={!dirty} title="放弃模板修改？" description="尚未保存的新版本内容将丢失。" okText="放弃修改" cancelText="继续编辑" okButtonProps={{ danger: true }} onConfirm={closeDrawer}><Button disabled={saving} onClick={() => { if (!dirty) closeDrawer(); }}>关闭</Button></Popconfirm><Button type="primary" loading={saving} disabled={!draftOperation || !draftName.trim() || !editorContent.trim()} onClick={() => void save()}>保存版本</Button></div>}
+                extra={<div className="flex gap-2"><Popconfirm disabled={!dirty} title={translate("adminPages.storyboardPrompts.storyboardPromptsPage.discardTemplateChanges")} description={translate("adminPages.storyboardPrompts.storyboardPromptsPage.unsavedContentInTheNewVersionWillBeLost")} okText={translate("adminPages.storyboardPrompts.storyboardPromptsPage.discardChanges")} cancelText={translate("account.settings.prompts.switchCancel")} okButtonProps={{ danger: true }} onConfirm={closeDrawer}><Button disabled={saving} onClick={() => { if (!dirty) closeDrawer(); }}>{translate("common.close")}</Button></Popconfirm><Button type="primary" loading={saving} disabled={!draftOperation || !draftName.trim() || !editorContent.trim()} onClick={() => void save()}>{translate("adminPages.storyboardPrompts.storyboardPromptsPage.saveVersion")}</Button></div>}
             >
                 <Form form={form} layout="vertical" requiredMark={false} className="flex min-h-full flex-col">
                     <div className="grid shrink-0 gap-4 border-b border-border p-4 md:grid-cols-3">
-                        <Form.Item label="模板类型" className="mb-0">
+                        <Form.Item label={translate("adminPages.storyboardPrompts.storyboardPromptsPage.templateType")} className="mb-0">
                             <Select value={draftOperation} disabled={Boolean(baseTemplate)} options={definitions.map((item) => ({ label: `${item.category} · ${item.label}`, value: item.operation }))} onChange={switchOperation} />
                         </Form.Item>
-                        <Form.Item name="name" label="版本名称" className="mb-0" rules={[{ required: true, whitespace: true, message: "请填写版本名称" }]}>
-                            <Input placeholder="例如：轻喜剧分镜策略 v2" />
+                        <Form.Item name="name" label={translate("adminPages.storyboardPrompts.storyboardPromptsPage.versionName")} className="mb-0" rules={[{ required: true, whitespace: true, message: translate("adminPages.storyboardPrompts.storyboardPromptsPage.enterAVersionName") }]}>
+                            <Input placeholder={translate("adminPages.storyboardPrompts.storyboardPromptsPage.eGLightComedyStoryboardStrategyV2")} />
                         </Form.Item>
-                        <Form.Item name="enabled" label="保存后状态" className="mb-0">
-                            <Select options={[{ label: "保存为历史版本", value: false }, { label: "保存并设为当前启用版本", value: true }]} />
+                        <Form.Item name="enabled" label={translate("adminPages.storyboardPrompts.storyboardPromptsPage.statusAfterSaving")} className="mb-0">
+                            <Select options={[{ label: translate("adminPages.storyboardPrompts.storyboardPromptsPage.saveAsAPastVersion"), value: false }, { label: translate("adminPages.storyboardPrompts.storyboardPromptsPage.saveAndMakeThisTheActiveVersion"), value: true }]} />
                         </Form.Item>
                     </div>
 
                     {pendingOperation ? (
-                        <Callout tone="warning" title="当前版本有未保存修改" action={<div className="flex gap-2"><Button size="small" onClick={() => setPendingOperation("")}>继续编辑</Button><Button size="small" danger onClick={() => loadDraftBaseline(pendingOperation)}>放弃并切换</Button></div>}>{`切换到“${definitionByOperation.get(pendingOperation)?.label || pendingOperation}”会丢弃当前草稿。`}</Callout>
+                        <Callout tone="warning" title={translate("adminPages.storyboardPrompts.storyboardPromptsPage.theCurrentVersionHasUnsavedChanges")} action={<div className="flex gap-2"><Button size="small" onClick={() => setPendingOperation("")}>{translate("account.settings.prompts.switchCancel")}</Button><Button size="small" danger onClick={() => loadDraftBaseline(pendingOperation)}>{translate("account.settings.prompts.switchOk")}</Button></div>}>{translate("adminPages.storyboardPrompts.storyboardPromptsPage.switchingToDiscardsTheCurrentDraft", { v0: String(definitionByOperation.get(pendingOperation)?.label || pendingOperation) })}</Callout>
                     ) : null}
 
                     <div className="grid min-h-0 flex-1 gap-0 lg:grid-cols-3">
                         <section className="flex min-h-0 flex-col border-b border-border p-4 lg:col-span-2 lg:border-b-0 lg:border-r">
                             <div className="mb-3 flex shrink-0 flex-wrap items-start justify-between gap-3">
-                                <div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-semibold">模板内容</h3>{dirty ? <AdminStatusBadge variant="filled" tone="warning" label="未保存" /> : null}</div>
+                                <div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-semibold">{translate("adminPages.storyboardPrompts.storyboardPromptsPage.templateContent")}</h3>{dirty ? <AdminStatusBadge variant="filled" tone="warning" label={translate("account.settings.prompts.unsaved")} /> : null}</div>
                                 <div className="flex flex-wrap justify-end gap-2">
                                     {selectedDefinition?.variables.map((variable) => (
                                         <Button key={variable.placeholder} size="small" icon={<Braces className="size-3.5" />} onClick={() => editorRef.current?.insertText(variable.placeholder)}>
-                                            插入{variable.label}
+                                            {translate("adminPages.storyboardPrompts.storyboardPromptsPage.insertVariable", { label: variable.label })}
                                         </Button>
                                     ))}
                                 </div>
                             </div>
                             <div className="min-h-96 flex-1 overflow-hidden rounded-md border border-border">
-                                <PromptCodeEditor ref={editorRef} value={editorContent} ariaLabel="提示词模板内容" onChange={setEditorContent} />
+                                <PromptCodeEditor ref={editorRef} value={editorContent} ariaLabel={translate("adminPages.storyboardPrompts.storyboardPromptsPage.promptTemplateContent")} onChange={setEditorContent} />
                             </div>
                         </section>
 
@@ -240,13 +242,13 @@ export default function StoryboardPromptsPage() {
                                 items={[
                                     {
                                         key: "contract",
-                                        label: "输出契约",
-                                        children: <div><div className="mb-3 flex items-center gap-2 text-xs font-medium"><ShieldCheck className="size-4" />服务端只读</div><pre className="thin-scrollbar max-h-96 overflow-auto whitespace-pre-wrap text-xs leading-6 text-foreground/65">{selectedDefinition?.outputContract || "请选择模板类型"}</pre></div>,
+                                        label: translate("account.settings.prompts.contract"),
+                                        children: <div><div className="mb-3 flex items-center gap-2 text-xs font-medium"><ShieldCheck className="size-4" />{translate("account.settings.prompts.serverReadOnly")}</div><pre className="thin-scrollbar max-h-96 overflow-auto whitespace-pre-wrap text-xs leading-6 text-foreground/65">{selectedDefinition?.outputContract || translate("adminPages.storyboardPrompts.storyboardPromptsPage.selectATemplateType")}</pre></div>,
                                     },
                                     {
                                         key: "preview",
-                                        label: "最终结构",
-                                        children: <div className="space-y-4 text-xs leading-6"><section><div className="mb-2 font-medium text-foreground/80">可编辑创作策略</div><pre className="thin-scrollbar max-h-64 overflow-auto whitespace-pre-wrap text-foreground/65">{editorContent || "尚未填写"}</pre></section><section className="border-t border-border pt-4"><div className="mb-2 font-medium text-foreground/80">运行时强制追加</div><p className="text-foreground/55">动态项目上下文、用户个性化要求和受保护输出契约。</p></section></div>,
+                                        label: translate("account.settings.prompts.preview"),
+                                        children: <div className="space-y-4 text-xs leading-6"><section><div className="mb-2 font-medium text-foreground/80">{translate("adminPages.storyboardPrompts.storyboardPromptsPage.editableCreativeStrategy")}</div><pre className="thin-scrollbar max-h-64 overflow-auto whitespace-pre-wrap text-foreground/65">{editorContent || translate("account.settings.prompts.notFilled")}</pre></section><section className="border-t border-border pt-4"><div className="mb-2 font-medium text-foreground/80">{translate("account.settings.prompts.runtimeTitle")}</div><p className="text-foreground/55">{translate("adminPages.storyboardPrompts.storyboardPromptsPage.dynamicProjectContextPerUserCustomizationAndTheProtectedOutput")}</p></section></div>,
                                     },
                                 ]}
                             />
@@ -258,4 +260,4 @@ export default function StoryboardPromptsPage() {
     );
 }
 
-function formatTime(value?: string) { return value ? new Date(value).toLocaleString("zh-CN", { hour12: false }) : "--"; }
+function formatTime(value?: string) { return value ? new Date(value).toLocaleString(currentLocale(), { hour12: false }) : "--"; }

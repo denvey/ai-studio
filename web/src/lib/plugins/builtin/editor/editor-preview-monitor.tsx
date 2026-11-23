@@ -37,6 +37,8 @@ import { getPreviewClipAtTime } from "@/lib/timeline/timeline-clip-view";
 import { resolveMediaUrl } from "@/services/file-storage";
 import { playbackVariantUrl, refreshResource, resourceFileUrl, resourceIdFromStorageKey } from "@/services/api/resources";
 import type { TimelineClip } from "@/types/timeline";
+import { translate } from "@/i18n";
+
 
 // 本地播放时钟 → store.transportMs 的回写节流（毫秒）。太密会让时间线面板每帧重渲染。
 const STORE_PUSH_INTERVAL_MS = 80;
@@ -76,15 +78,15 @@ function clipSourceTimeMs(clip: TimelineClip, transportMs: number): number {
 function clipKindLabel(kind: TimelineClip["kind"]): string {
     switch (kind) {
         case "video":
-            return "视频";
+            return translate("account.feedback.video");
         case "image":
-            return "图片";
+            return translate("account.feedback.image");
         case "audio":
-            return "音频";
+            return translate("account.settings.modelConfig.capabilities.audio");
         case "subtitle":
-            return "字幕";
+            return translate("shared.plugins.builtin.editor.editorInspector.subtitles");
         case "text":
-            return "文字";
+            return translate("shared.plugins.builtin.editor.editorPreviewMonitor.text");
     }
 }
 
@@ -152,22 +154,22 @@ export function EditorPreviewMonitor() {
                     window.clearInterval(timer);
                 } else if (res.playbackStatus === "failed") {
                     mediaTerminalRef.current = true;
-                    setMediaErrorHint("兼容副本生成失败，可下载原片后用本地播放器观看。");
+                    setMediaErrorHint(translate("shared.plugins.builtin.editor.editorPreviewMonitor.failedToCreateACompatibleCopyDownloadTheOriginalAnd"));
                     window.clearInterval(timer);
                 } else if (res.playbackStatus === "none") {
                     // 后端判定无播放副本可生成（远端存储/无 ffmpeg/编码不可处理）。
                     // 原件此刻必然已 onError 失败才进入 variant 轮询，回退 primary 只会
                     // 再次失败并切回 variant，形成无限循环 —— 直接进入终态提示并停轮询。
                     mediaTerminalRef.current = true;
-                    setMediaErrorHint("视频编码此浏览器暂不支持，且无可生成的兼容副本；可下载原片转换格式后重新导入。");
+                    setMediaErrorHint(translate("shared.plugins.builtin.editor.editorPreviewMonitor.thisBrowserDoesNotSupportTheVideoCodecAndA"));
                     window.clearInterval(timer);
                 } else if ((polls += 1) >= 120) {
                     // processing 上限保护（约 5 分钟）：转码异常卡死时不再无限轮询。
                     mediaTerminalRef.current = true;
-                    setMediaErrorHint("兼容版本生成超时，可下载原片后用本地播放器观看。");
+                    setMediaErrorHint(translate("shared.plugins.builtin.editor.editorPreviewMonitor.creatingACompatibleVersionTimedOutDownloadTheOriginalAnd"));
                     window.clearInterval(timer);
                 } else {
-                    setMediaErrorHint("视频编码此浏览器暂不支持，正在生成兼容版本（H.264）…");
+                    setMediaErrorHint(translate("shared.plugins.builtin.editor.editorPreviewMonitor.thisBrowserDoesNotSupportTheVideoCodecGeneratingA"));
                 }
                 failures = 0;
             } catch {
@@ -176,7 +178,7 @@ export function EditorPreviewMonitor() {
                 if (failures >= 4) {
                     mediaTerminalRef.current = true;
                     window.clearInterval(timer);
-                    setMediaErrorHint("兼容版本生成服务暂不可达，请稍后重新打开预览重试。");
+                    setMediaErrorHint(translate("shared.plugins.builtin.editor.editorPreviewMonitor.theCompatibilityConversionServiceIsTemporarilyUnavailableReopenThePreview"));
                 }
             }
         }, 2500);
@@ -198,10 +200,10 @@ export function EditorPreviewMonitor() {
         if (mediaTier === "primary") {
             // 原件解码失败（大概率 H.265）：切后端 playback 副本。
             setMediaTier("variant");
-            setMediaErrorHint("视频编码此浏览器暂不支持，正在生成兼容版本（H.264）…");
+            setMediaErrorHint(translate("shared.plugins.builtin.editor.editorPreviewMonitor.thisBrowserDoesNotSupportTheVideoCodecGeneratingA"));
         } else {
             // 副本尚未就绪时后端回退原件仍会失败；轮询 effect 会在就绪后重载。
-            setMediaErrorHint("视频编码此浏览器暂不支持，正在生成兼容版本（H.264）…");
+            setMediaErrorHint(translate("shared.plugins.builtin.editor.editorPreviewMonitor.thisBrowserDoesNotSupportTheVideoCodecGeneratingA"));
         }
     };
 
@@ -401,7 +403,7 @@ export function EditorPreviewMonitor() {
                             )}
                         </>
                     ) : (
-                        <span className="truncate text-xs text-[var(--previs-dock-fg)]/40">预览监视器</span>
+                        <span className="truncate text-xs text-[var(--previs-dock-fg)]/40">{translate("shared.plugins.builtin.editor.editorPreviewMonitor.previewMonitor")}</span>
                     )}
                 </div>
                 {mediaErrorHint && (
@@ -409,7 +411,7 @@ export function EditorPreviewMonitor() {
                         title={mediaErrorHint}
                         className="flex min-w-0 max-w-[42%] items-center gap-2 rounded-md bg-[var(--previs-danger)]/10 px-2 py-1 text-[var(--fs-label)] text-[var(--previs-danger)]"
                     >
-                        {mediaErrorHint.includes("正在生成") ? (
+                        {mediaErrorHint === translate("shared.plugins.builtin.editor.editorPreviewMonitor.thisBrowserDoesNotSupportTheVideoCodecGeneratingA") ? (
                             <LoaderCircle className="size-3 shrink-0 animate-spin" />
                         ) : (
                             <AlertTriangle className="size-3 shrink-0" />
@@ -419,7 +421,7 @@ export function EditorPreviewMonitor() {
                             <a
                                 href={resourceFileUrl(mediaResourceId)}
                                 download
-                                title="下载原片，用本地播放器观看"
+                                title={translate("shared.plugins.builtin.editor.editorPreviewMonitor.downloadTheOriginalAndWatchInALocalPlayer")}
                                 className="grid size-4 shrink-0 place-items-center rounded hover:bg-[var(--previs-danger)]/15"
                             >
                                 <Download className="size-3" />
@@ -438,9 +440,9 @@ export function EditorPreviewMonitor() {
                         <div className="max-w-xs text-xs leading-relaxed text-white/70">
                             {project && project.clips.length > 0
                                 ? activeClip
-                                    ? "当前时间点没有可显示画面（字幕或音频片段）"
-                                    : "播放头位于空白处"
-                                : "时间线暂无片段，导入素材后在此预览"}
+                                    ? translate("shared.plugins.builtin.editor.editorPreviewMonitor.noVisualFrameAtThisTimestampSubtitleOrAudioClip")
+                                    : translate("shared.plugins.builtin.editor.editorPreviewMonitor.thePlayheadIsOverAnEmptyArea")
+                                : translate("shared.plugins.builtin.editor.editorPreviewMonitor.noClipsOnTheTimelineImportAssetsToPreviewThem")}
                         </div>
                     </div>
                 ) : isVideoClip && videoSrc ? (
@@ -485,8 +487,8 @@ export function EditorPreviewMonitor() {
                 <div className="flex shrink-0 items-center gap-0.5">
                     <button
                         type="button"
-                        aria-label="回到开头"
-                        title="回到开头"
+                        aria-label={translate("shared.plugins.builtin.editor.editorPreviewMonitor.goToStart")}
+                        title={translate("shared.plugins.builtin.editor.editorPreviewMonitor.goToStart")}
                         onClick={() => syncPlayback(0)}
                         disabled={!project || durationMs <= 0}
                         className="grid size-7 place-items-center rounded-md text-[var(--previs-dock-fg)] hover:bg-[var(--previs-control-hover)] disabled:pointer-events-none disabled:opacity-40"
@@ -495,8 +497,8 @@ export function EditorPreviewMonitor() {
                     </button>
                     <button
                         type="button"
-                        aria-label="后退 1 秒"
-                        title="后退 1 秒"
+                        aria-label={translate("shared.plugins.builtin.editor.editorPreviewMonitor.back1Second")}
+                        title={translate("shared.plugins.builtin.editor.editorPreviewMonitor.back1Second")}
                         onClick={() => stepBy(-1000)}
                         disabled={!project || durationMs <= 0}
                         className="grid size-7 place-items-center rounded-md text-[var(--previs-dock-fg)] hover:bg-[var(--previs-control-hover)] disabled:pointer-events-none disabled:opacity-40"
@@ -505,7 +507,7 @@ export function EditorPreviewMonitor() {
                     </button>
                     <button
                         type="button"
-                        aria-label={playing ? "暂停" : "播放"}
+                        aria-label={playing ? translate("canvasA.outbox.pause") : translate("shared.plugins.builtin.editor.editorPreviewMonitor.play")}
                         onClick={toggle}
                         disabled={durationMs <= 0}
                         className={`grid size-7 place-items-center rounded-md transition-colors disabled:pointer-events-none disabled:opacity-40 ${
@@ -518,8 +520,8 @@ export function EditorPreviewMonitor() {
                     </button>
                     <button
                         type="button"
-                        aria-label="前进 1 秒"
-                        title="前进 1 秒"
+                        aria-label={translate("shared.plugins.builtin.editor.editorPreviewMonitor.forward1Second")}
+                        title={translate("shared.plugins.builtin.editor.editorPreviewMonitor.forward1Second")}
                         onClick={() => stepBy(1000)}
                         disabled={!project || durationMs <= 0}
                         className="grid size-7 place-items-center rounded-md text-[var(--previs-dock-fg)] hover:bg-[var(--previs-control-hover)] disabled:pointer-events-none disabled:opacity-40"
@@ -528,8 +530,8 @@ export function EditorPreviewMonitor() {
                     </button>
                     <button
                         type="button"
-                        aria-label="跳到结尾"
-                        title="跳到结尾"
+                        aria-label={translate("shared.plugins.builtin.editor.editorPreviewMonitor.goToEnd")}
+                        title={translate("shared.plugins.builtin.editor.editorPreviewMonitor.goToEnd")}
                         onClick={() => syncPlayback(durationMs)}
                         disabled={!project || durationMs <= 0}
                         className="grid size-7 place-items-center rounded-md text-[var(--previs-dock-fg)] hover:bg-[var(--previs-control-hover)] disabled:pointer-events-none disabled:opacity-40"
@@ -540,8 +542,8 @@ export function EditorPreviewMonitor() {
                 <div className="relative justify-self-end">
                     <button
                         type="button"
-                        aria-label="播放速度"
-                        title="播放速度"
+                        aria-label={translate("shared.plugins.builtin.editor.editorPreviewMonitor.playbackSpeed")}
+                        title={translate("shared.plugins.builtin.editor.editorPreviewMonitor.playbackSpeed")}
                         onClick={() => setSpeedMenuOpen((v) => !v)}
                         className="flex h-7 items-center gap-1 rounded-md px-2 text-[var(--fs-label)] font-medium text-[var(--previs-dock-fg)] hover:bg-[var(--previs-control-hover)]"
                     >

@@ -12,6 +12,8 @@ import { Callout, Select, Tooltip } from "../../ui/controls";
 import { ArkAdminCreateModal } from "./ark-admin-create-modal";
 import { ArkAdminGroupDrawer } from "./ark-admin-group-drawer";
 import { ARK_KIND_LABEL, ARK_SOURCE_LABEL, ArkExpiryBadge, arkGrantSummary, formatArkAdminDate } from "./ark-admin-shared";
+import { translate } from "@/i18n";
+
 
 type ExpiryFilter = Exclude<ArkExpiryStatus, "none">;
 
@@ -57,7 +59,7 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
 
     const columns: ColumnsType<ArkPortraitGroup> = [
         {
-            title: "素材组",
+            title: translate("library.ark.certify.groupLabel"),
             key: "name",
             render: (_, group) => {
                 const Icon = ARK_KIND_ICON[group.kind] || UserRound;
@@ -71,7 +73,7 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
                                 <span className="truncate font-medium" title={group.name}>
                                     {group.name}
                                 </span>
-                                {group.available === false ? <AdminStatusBadge label="不可用" tone="error" title="管理员已更换站点、Region 或项目，此素材组不能再使用" /> : null}
+                                {group.available === false ? <AdminStatusBadge label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.unavailable")} tone="error" title={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.theAdministratorChangedTheSiteRegionOrProjectThisAsset")} /> : null}
                             </div>
                             <div className="admin-ark-group-id" title={group.groupId}>
                                 {group.groupId}
@@ -82,24 +84,24 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
             },
         },
         {
-            title: "类型",
+            title: translate("account.settings.runninghub.kind"),
             key: "kind",
             width: 128,
             render: (_, group) => <ArkStackedCell primary={ARK_KIND_LABEL[group.kind]} secondary={ARK_SOURCE_LABEL[group.source] || group.source} />,
         },
         {
-            title: "归属",
+            title: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.ownership"),
             key: "scope",
             width: 190,
             render: (_, group) =>
                 group.scope === "platform" ? (
-                    <ArkStackedCell primary="平台素材组" secondary={`授权：${arkGrantSummary(group)}`} />
+                    <ArkStackedCell primary={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.platformAssetGroup")} secondary={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.authorization2", { v0: String(arkGrantSummary(group)) })} />
                 ) : (
-                    <ArkStackedCell primary={group.owner?.displayName || group.owner?.username || "-"} secondary={group.owner?.displayName && group.owner.username ? group.owner.username : "用户自建"} />
+                    <ArkStackedCell primary={group.owner?.displayName || group.owner?.username || "-"} secondary={group.owner?.displayName && group.owner.username ? group.owner.username : translate("adminPages.settings.arkAssets.arkAdminGroupsTab.userCreated")} />
                 ),
         },
         {
-            title: "素材",
+            title: translate("nav.tools.assets"),
             key: "assets",
             width: 150,
             render: (_, group) => {
@@ -107,36 +109,36 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
                 return (
                     <div className="flex flex-wrap items-center gap-1.5">
                         <span className="admin-ark-count">
-                            <strong>{counts.active || 0}</strong> 张已通过
+                            <strong>{counts.active || 0}</strong> {translate("adminPages.settings.arkAssets.arkAdminGroupsTab.approved")}
                         </span>
-                        {counts.pending_review ? <AdminStatusBadge label={`${counts.pending_review} 待审`} tone="warning" /> : null}
-                        {counts.processing ? <AdminStatusBadge label={`${counts.processing} 审核中`} tone="info" /> : null}
+                        {counts.pending_review ? <AdminStatusBadge label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.awaitingReview", { v0: String(counts.pending_review) })} tone="warning" /> : null}
+                        {counts.processing ? <AdminStatusBadge label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.underReview", { v0: String(counts.processing) })} tone="info" /> : null}
                     </div>
                 );
             },
         },
-        { title: "授权", key: "expiry", width: 180, render: (_, group) => <ArkExpiryBadge group={group} /> },
-        { title: "创建时间", key: "createdAt", width: 112, render: (_, group) => <span className="admin-ark-muted">{formatArkAdminDate(group.createdAt)}</span> },
+        { title: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.authorization"), key: "expiry", width: 180, render: (_, group) => <ArkExpiryBadge group={group} /> },
+        { title: translate("library.tasks.detail.createdAt"), key: "createdAt", width: 112, render: (_, group) => <span className="admin-ark-muted">{formatArkAdminDate(group.createdAt)}</span> },
         {
-            title: "操作",
+            title: translate("account.settings.runninghub.actions"),
             key: "actions",
             width: 120,
             render: (_, group) => (
                 <AdminRowActions
-                    primary={{ label: "查看", onClick: () => setDetailId(group.id) }}
+                    primary={{ label: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.view"), onClick: () => setDetailId(group.id) }}
                     actions={[
                         {
                             key: "delete",
-                            label: "删除",
+                            label: translate("common.delete"),
                             danger: true,
-                            confirm: { title: `删除素材组「${group.name}」？`, description: "会同时删除方舟侧的素材组和组内全部素材，用户素材库中已认证的图片会取消认证并恢复原分类。已支付的建组费用不退还。", okText: "删除素材组" },
+                            confirm: { title: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.deleteAssetGroup", { v0: String(group.name) }), description: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.theArkAssetGroupAndAllItsAssetsWillAlso"), okText: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.deleteAssetGroup2") },
                             onClick: async () => {
                                 try {
                                     await deleteAdminArkGroup(group.id);
-                                    message.success("素材组已删除");
+                                    message.success(translate("adminPages.settings.arkAssets.arkAdminGroupsTab.assetGroupDeleted"));
                                     refresh();
                                 } catch (error) {
-                                    message.error(error instanceof Error ? error.message : "删除失败");
+                                    message.error(error instanceof Error ? error.message : translate("library.picker.deleteFailed"));
                                 }
                             },
                         },
@@ -149,33 +151,33 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
     const expiryDetail = stats ? (
         stats.expiring || stats.expired ? (
             <>
-                {stats.expiring ? <span className="is-warning">{stats.expiring} 个 30 天内到期</span> : null}
+                {stats.expiring ? <span className="is-warning">{stats.expiring} {translate("adminPages.settings.arkAssets.arkAdminGroupsTab.expiringWithin30Days")}</span> : null}
                 {stats.expiring && stats.expired ? " · " : null}
-                {stats.expired ? <span className="is-error">{stats.expired} 个已过期</span> : null}
+                {stats.expired ? <span className="is-error">{stats.expired} {translate("adminPages.settings.arkAssets.arkAdminGroupsTab.expired")}</span> : null}
             </>
         ) : (
-            "授权均在有效期内"
+            translate("adminPages.settings.arkAssets.arkAdminGroupsTab.allAuthorizationsAreValid")
         )
     ) : null;
 
     return (
         <div className="admin-ark-groups">
-            <div className="admin-ark-stats" role="group" aria-label="素材组概览，点击类型卡片按类型筛选">
-                <ArkStatCard icon={UserRound} label="真人素材组" value={stats?.real} detail={expiryDetail} active={kind === "real"} onClick={() => toggleKind("real")} />
-                <ArkStatCard icon={Sparkles} label="虚拟素材组" value={stats?.virtual} detail="AI 生成或绘制的虚拟形象" active={kind === "virtual"} onClick={() => toggleKind("virtual")} />
-                <ArkStatCard icon={Copyright} label="版权 IP 素材组" value={stats?.ip} detail="仅管理员创建并授权" active={kind === "ip"} onClick={() => toggleKind("ip")} />
+            <div className="admin-ark-stats" role="group" aria-label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.assetGroupOverviewClickATypeCardToFilter")}>
+                <ArkStatCard icon={UserRound} label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.humanAssetGroups")} value={stats?.real} detail={expiryDetail} active={kind === "real"} onClick={() => toggleKind("real")} />
+                <ArkStatCard icon={Sparkles} label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.virtualAssetGroups")} value={stats?.virtual} detail={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.aIGeneratedOrDrawnVirtualCharacters")} active={kind === "virtual"} onClick={() => toggleKind("virtual")} />
+                <ArkStatCard icon={Copyright} label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.copyrightedIPAssetGroups")} value={stats?.ip} detail={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.createdAndAuthorizedByAdminsOnly")} active={kind === "ip"} onClick={() => toggleKind("ip")} />
                 <ArkStatCard
                     icon={ClipboardCheck}
-                    label="待审核上传"
+                    label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.uploadsAwaitingReview")}
                     value={data ? pendingReview : undefined}
                     tone={pendingReview ? "warning" : undefined}
                     detail={
                         pendingReview ? (
                             <span className="admin-ark-stat-link">
-                                去审核 <ArrowRight className="size-3" aria-hidden="true" />
+                                {translate("adminPages.settings.arkAssets.arkAdminGroupsTab.reviewUploads")} <ArrowRight className="size-3" aria-hidden="true" />
                             </span>
                         ) : (
-                            "暂无待审核"
+                            translate("adminPages.settings.arkAssets.arkAdminGroupsTab.noneAwaitingReview")
                         )
                     }
                     onClick={onOpenReviews}
@@ -183,11 +185,11 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
             </div>
 
             {data?.sessions.length ? (
-                <Callout tone="info" title="进行中的平台真人认证">
+                <Callout tone="info" title={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.platformIdentityVerificationsInProgress")}>
                     <div className="flex flex-wrap gap-2 pt-1">
                         {data.sessions.map((session) => (
                             <Button key={session.id} size="small" onClick={() => setCreating({ resume: session })}>
-                                {session.name} · {formatArkAdminDate(session.expiresAt, true)} 前有效
+                                {translate("adminPages.settings.arkAssets.arkAdminGroupsTab.verificationLinkExpires", { name: session.name, expires: formatArkAdminDate(session.expiresAt, true) })}
                             </Button>
                         ))}
                     </div>
@@ -200,7 +202,7 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
                         allowClear
                         className="admin-ark-search"
                         prefix={<Search className="size-4 opacity-40" />}
-                        placeholder="搜索名称或方舟素材组 ID"
+                        placeholder={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.searchNameOrArkAssetGroupID")}
                         value={keyword}
                         onChange={(event) => {
                             setKeyword(event.target.value);
@@ -212,59 +214,59 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
                 toolbarFilters={
                     <>
                         <Select<ArkGroupScope | "">
-                            ariaLabel="素材组归属"
+                            ariaLabel={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.assetGroupOwnership")}
                             value={scope}
                             onChange={(value) => {
                                 setScope(value);
                                 setPage(1);
                             }}
                             options={[
-                                { value: "", label: "全部归属" },
-                                { value: "user", label: "用户自建" },
-                                { value: "platform", label: "平台素材组" },
+                                { value: "", label: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.allOwners") },
+                                { value: "user", label: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.userCreated") },
+                                { value: "platform", label: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.platformAssetGroup") },
                             ]}
                         />
                         <Select<ExpiryFilter | "">
-                            ariaLabel="授权状态"
+                            ariaLabel={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.authorizationStatus")}
                             value={expiry}
                             onChange={(value) => {
                                 setExpiry(value);
                                 setPage(1);
                             }}
                             options={[
-                                { value: "", label: "全部授权状态" },
-                                { value: "valid", label: "有效" },
-                                { value: "expiring", label: "30 天内到期" },
-                                { value: "expired", label: "已过期" },
+                                { value: "", label: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.allAuthorizationStatuses") },
+                                { value: "valid", label: translate("library.ark.expiry.valid") },
+                                { value: "expiring", label: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.expiringWithin30Days2") },
+                                { value: "expired", label: translate("library.ark.expiry.expired") },
                             ]}
                         />
                     </>
                 }
-                toolbarActiveFilters={kind ? <AdminFilterChip label={`类型：${ARK_KIND_LABEL[kind]}`} onRemove={() => toggleKind(kind)} /> : undefined}
+                toolbarActiveFilters={kind ? <AdminFilterChip label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.type", { v0: String(ARK_KIND_LABEL[kind]) })} onRemove={() => toggleKind(kind)} /> : undefined}
                 onReset={resetFilters}
                 trailing={
                     <>
-                        <Tooltip title="刷新列表">
-                            <Button aria-label="刷新列表" icon={<RefreshCw className="size-4" />} loading={query.isFetching} onClick={refresh} />
+                        <Tooltip title={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.refreshList")}>
+                            <Button aria-label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.refreshList")} icon={<RefreshCw className="size-4" />} loading={query.isFetching} onClick={refresh} />
                         </Tooltip>
                         <Button type="primary" icon={<Plus className="size-4" />} onClick={() => setCreating({})}>
-                            新建平台素材组
+                            {translate("adminPages.settings.arkAssets.arkAdminGroupsTab.createPlatformAssetGroup")}
                         </Button>
                     </>
                 }
                 table={{ rowKey: "id", columns, dataSource: data?.items || [], loading: query.isLoading, pagination: false, size: "middle", scroll: data?.items.length ? { x: 980 } : undefined }}
                 empty={
                     filtered ? (
-                        <AdminTableEmpty filtered action={<Button onClick={resetFilters}>清除筛选</Button>} />
+                        <AdminTableEmpty filtered action={<Button onClick={resetFilters}>{translate("account.layout.state.clearFilters")}</Button>} />
                     ) : (
                         <div className="admin-ark-empty-state">
                             <span className="admin-ark-empty-icon" aria-hidden="true">
                                 <FolderPlus className="size-5" />
                             </span>
-                            <h3>还没有素材组</h3>
-                            <p>用户自建的真人、虚拟素材组，以及管理员创建的平台素材组都会显示在这里。</p>
+                            <h3>{translate("library.ark.empty.owned")}</h3>
+                            <p>{translate("adminPages.settings.arkAssets.arkAdminGroupsTab.userCreatedHumanAndVirtualAssetGroupsAndAdminCreated")}</p>
                             <Button icon={<Plus className="size-4" />} onClick={() => setCreating({})}>
-                                新建平台素材组
+                                {translate("adminPages.settings.arkAssets.arkAdminGroupsTab.createPlatformAssetGroup")}
                             </Button>
                         </div>
                     )
@@ -279,7 +281,7 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
                                 setPage(nextSize !== pageSize ? 1 : nextPage);
                                 setPageSize(nextSize);
                             }}
-                            itemLabel="组"
+                            itemLabel={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.groups")}
                         />
                     ) : null
                 }
@@ -308,7 +310,7 @@ function ArkStatCard({ icon: Icon, label, value, detail, active, tone, onClick }
                     <Icon className="size-4" />
                 </span>
                 <span className="admin-ark-stat-label">{label}</span>
-                {active ? <span className="admin-ark-stat-flag">筛选中</span> : null}
+                {active ? <span className="admin-ark-stat-flag">{translate("adminPages.settings.arkAssets.arkAdminGroupsTab.filtersActive")}</span> : null}
             </span>
             <span className="admin-ark-stat-value">{value ?? "–"}</span>
             <span className="admin-ark-stat-detail">{detail}</span>

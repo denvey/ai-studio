@@ -2,6 +2,8 @@ import { http } from "@/services/api/request";
 import type { ModelTag } from "@/lib/model-tags";
 import type { ImageResolutionOption } from "@/lib/image-resolution-tiers";
 import type { TokenPriceRule } from "@/services/api/wallet";
+import { translate } from "@/i18n";
+
 
 export type InputConstraint = { min: number; max: number };
 export type OptionConstraint = { values?: unknown[]; min?: number; max?: number; step?: number };
@@ -256,7 +258,7 @@ export function quoteLogicalModel(id: string, intent: ModelRequestIntent, signal
 
 export function quoteModel(request: ModelQuoteRequest, signal?: AbortSignal) {
     if (request.logicalModelID) return quoteLogicalModel(request.logicalModelID, request.intent, signal);
-    if (!request.channelId || !request.modelKey) return Promise.reject(new Error("请选择需要报价的系统模型"));
+    if (!request.channelId || !request.modelKey) return Promise.reject(new Error(translate("shared.api.logicalModels.selectASystemModelToGetAQuote")));
     return http.post<{ quote: LogicalModelQuote }>("/model-catalog/quote", { channelId: request.channelId, modelKey: request.modelKey, intent: request.intent }, { signal });
 }
 

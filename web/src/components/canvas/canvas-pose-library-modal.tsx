@@ -13,6 +13,7 @@ import { resourceFileUrl, resourceStorageKey } from "@/services/api/resources";
 import { useUserStore } from "@/stores/use-user-store";
 
 import "./canvas-pose-library-modal.css";
+import { translate } from "@/i18n";
 
 const PAGE_SIZE = 24;
 const ALL = "";
@@ -98,7 +99,7 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
             const next = new Map(current);
             if (next.has(item.id)) next.delete(item.id);
             else if (next.size >= POSE_LIBRARY_MAX_USE) {
-                message.warning(`一次最多选择 ${POSE_LIBRARY_MAX_USE} 张姿势图`);
+                message.warning(translate("canvasTools.canvasPoseLibraryModal.selectUpToPoseImagesAtATime", { v0: String(POSE_LIBRARY_MAX_USE) }));
                 return current;
             } else next.set(item.id, { item, pose });
             return next;
@@ -121,10 +122,10 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
                 height: copy.resource.height,
                 bytes: copy.resource.size,
                 mimeType: copy.resource.mimeType,
-                title: `姿势参考·${copy.name}·${copy.angle}`,
+                title: translate("canvasTools.canvasPoseLibraryModal.poseReference", { v0: String(copy.name), v1: String(copy.angle) }),
             }));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "姿势图复制失败");
+            message.error(error instanceof Error ? error.message : translate("canvasTools.canvasPoseLibraryModal.failedToCopyPoseImage"));
             setInserting(false);
             return;
         }
@@ -139,16 +140,16 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
         }
     };
 
-    const angleOptions = [{ value: ALL, label: "全部视角" }, ...(facets?.angles || []).map((item) => ({ value: item.name, label: item.name }))];
-    const scopeLabel = [system || "全部姿势", category].filter(Boolean).join(" · ");
+    const angleOptions = [{ value: ALL, label: translate("canvasTools.canvasPoseLibraryModal.allViews") }, ...(facets?.angles || []).map((item) => ({ value: item.name, label: item.name }))];
+    const scopeLabel = [system || translate("canvasTools.canvasPoseLibraryModal.allPoses"), category].filter(Boolean).join(" · ");
     const selection = Array.from(picked.values());
 
     let content;
     if (query.isError && !poses.length) {
-        content = <WorkspaceErrorState compact title="姿势库读取失败" description={query.error instanceof Error ? query.error.message : undefined} onRetry={() => void query.refetch()} />;
+        content = <WorkspaceErrorState compact title={translate("canvasTools.canvasPoseLibraryModal.failedToLoadPoseLibrary")} description={query.error instanceof Error ? query.error.message : undefined} onRetry={() => void query.refetch()} />;
     } else if (query.isPending) {
         content = (
-            <div className="pose-grid" aria-busy="true" aria-label="正在读取姿势库">
+            <div className="pose-grid" aria-busy="true" aria-label={translate("canvasTools.canvasPoseLibraryModal.loadingPoseLibrary")}>
                 {Array.from({ length: SKELETON_CARDS }, (_, index) => (
                     <PoseCardSkeleton key={index} />
                 ))}
@@ -158,12 +159,12 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
         content = (
             <WorkspaceState
                 compact
-                title="姿势库还没有内容"
-                description={isAdmin ? "在后台「姿势库」导入姿势数据并同步图片后，就能在这里选用。" : "站点管理员添加姿势后即可在这里选用。"}
+                title={translate("canvasTools.canvasPoseLibraryModal.thePoseLibraryIsEmpty")}
+                description={isAdmin ? translate("canvasTools.canvasPoseLibraryModal.importPoseDataAndSyncImagesInTheAdminPose") : translate("canvasTools.canvasPoseLibraryModal.posesWillBeAvailableHereAfterTheSiteAdministratorAdds")}
                 action={
                     isAdmin ? (
                         <Button type="primary" href="/admin/pose-library" target="_blank" rel="noopener">
-                            前往后台管理
+                            {translate("canvasTools.canvasPoseLibraryModal.goToAdmin")}
                         </Button>
                     ) : undefined
                 }
@@ -182,7 +183,7 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
                     {query.isFetchingNextPage ? Array.from({ length: 6 }, (_, index) => <PoseCardSkeleton key={`more-${index}`} />) : null}
                 </div>
                 <div ref={sentinelRef} className="pose-grid-end">
-                    {!query.hasNextPage && poses.length > PAGE_SIZE ? `已显示全部 ${firstPage?.total || 0} 个姿势` : null}
+                    {!query.hasNextPage && poses.length > PAGE_SIZE ? translate("canvasTools.canvasPoseLibraryModal.allPosesShown", { v0: String(firstPage?.total || 0) }) : null}
                 </div>
             </>
         );
@@ -197,8 +198,8 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
                             <PersonStanding className="size-[18px]" />
                         </span>
                         <div className="min-w-0">
-                            <h2 className="pose-header-title">姿势库</h2>
-                            <p className="pose-header-subtitle">挑选动作参考图插入画布，连到生图节点后人物会照着这个姿势生成</p>
+                            <h2 className="pose-header-title">{translate("canvasTools.canvasPoseLibraryModal.poseLibrary")}</h2>
+                            <p className="pose-header-subtitle">{translate("canvasTools.canvasPoseLibraryModal.insertAPoseReferenceIntoTheCanvasAndConnectIt")}</p>
                         </div>
                         {libraryEmpty ? null : (
                             <Input
@@ -206,8 +207,8 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
                                 className="pose-header-search"
                                 prefix={<Search className="size-4 text-[var(--text-tertiary)]" />}
                                 value={keyword}
-                                placeholder="搜索姿势名称、分类或编号"
-                                aria-label="搜索姿势"
+                                placeholder={translate("canvasTools.canvasPoseLibraryModal.searchPoseNameCategoryOrID")}
+                                aria-label={translate("canvasTools.canvasPoseLibraryModal.searchPoses")}
                                 onChange={(event) => setKeyword(event.target.value)}
                             />
                         )}
@@ -215,10 +216,10 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
 
                     <div className="pose-layout" data-empty={libraryEmpty || undefined}>
                         {libraryEmpty ? null : (
-                            <nav className="pose-side" aria-label="姿势筛选">
+                            <nav className="pose-side" aria-label={translate("canvasTools.canvasPoseLibraryModal.poseFilters")}>
                                 <PoseSideGroup
-                                    label="体系"
-                                    allLabel="全部姿势"
+                                    label={translate("canvasTools.canvasPoseLibraryModal.system")}
+                                    allLabel={translate("canvasTools.canvasPoseLibraryModal.allPoses")}
                                     allCount={systemTotal}
                                     facets={facets?.systems}
                                     value={system}
@@ -227,7 +228,7 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
                                         setCategory(ALL);
                                     }}
                                 />
-                                <PoseSideGroup label="分类" allLabel="全部分类" facets={facets?.categories} value={category} onChange={setCategory} />
+                                <PoseSideGroup label={translate("library.picker.category")} allLabel={translate("canvasA.skillLibrary.allCategories")} facets={facets?.categories} value={category} onChange={setCategory} />
                             </nav>
                         )}
 
@@ -236,14 +237,14 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
                                 <div className="pose-toolbar">
                                     <div className="pose-toolbar-scope">
                                         <span className="truncate">{scopeLabel}</span>
-                                        {firstPage ? <span className="pose-toolbar-count">{firstPage.total} 个姿势</span> : null}
+                                        {firstPage ? <span className="pose-toolbar-count">{translate("canvasTools.inline.canvasPoseLibraryModal.poses", { v0: String(firstPage.total) })}</span> : null}
                                         {filtered ? (
                                             <button type="button" className="pose-toolbar-reset" onClick={resetFilters}>
-                                                清除筛选
+                                                {translate("account.layout.state.clearFilters")}
                                             </button>
                                         ) : null}
                                     </div>
-                                    {facets?.angles.length ? <SegmentedControl size="sm" ariaLabel="视角" value={angle} options={angleOptions} onChange={setAngle} className="pose-toolbar-angles" /> : null}
+                                    {facets?.angles.length ? <SegmentedControl size="sm" ariaLabel={translate("canvasB.imageTools.sectionView")} value={angle} options={angleOptions} onChange={setAngle} className="pose-toolbar-angles" /> : null}
                                 </div>
                             )}
                             <div ref={bodyRef} className="pose-body" data-canvas-wheel-scroll>
@@ -253,10 +254,10 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
                     </div>
 
                     <footer className="pose-dock">
-                        <div className="pose-dock-tray" aria-label="已选姿势">
+                        <div className="pose-dock-tray" aria-label={translate("canvasTools.canvasPoseLibraryModal.selectedPoses")}>
                             {selection.length ? (
                                 selection.map(({ item, pose }) => (
-                                    <button key={item.id} type="button" className="pose-dock-item" title={`移除 ${pose.name}（${item.angle}）`} aria-label={`移除 ${pose.name} ${item.angle}`} onClick={() => toggle(pose, item)}>
+                                    <button key={item.id} type="button" className="pose-dock-item" title={translate("canvasTools.canvasPoseLibraryModal.remove", { v0: String(pose.name), v1: String(item.angle) })} aria-label={translate("canvasTools.canvasPoseLibraryModal.remove2", { v0: String(pose.name), v1: String(item.angle) })} onClick={() => toggle(pose, item)}>
                                         <PoseImage src={poseLibraryFileUrl(item)} alt="" />
                                         <span className="pose-dock-remove">
                                             <X className="size-3" strokeWidth={2.5} />
@@ -264,19 +265,19 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
                                     </button>
                                 ))
                             ) : (
-                                <span className="pose-dock-hint">点击卡片选择姿势，可以切换视角多选，一次最多 {POSE_LIBRARY_MAX_USE} 张</span>
+                                <span className="pose-dock-hint">{translate("canvasTools.inline.canvasPoseLibraryModal.clickCardsToSelectPosesSwitchViewsToSelectMore", { v0: String(POSE_LIBRARY_MAX_USE) })}</span>
                             )}
                         </div>
                         <span className="pose-dock-count">
-                            已选 <strong>{selection.length}</strong> / {POSE_LIBRARY_MAX_USE}
+                            {translate("canvasTools.canvasPoseLibraryModal.selected")} <strong>{selection.length}</strong> / {POSE_LIBRARY_MAX_USE}
                         </span>
                         {selection.length ? (
                             <Button type="text" disabled={inserting} onClick={() => setPicked(new Map())}>
-                                清空
+                                {translate("canvasA.outbox.clear")}
                             </Button>
                         ) : null}
                         <Button type="primary" loading={inserting} disabled={!selection.length} onClick={() => void insert()}>
-                            插入画布
+                            {translate("canvasTools.canvasPoseLibraryModal.insertIntoCanvas")}
                         </Button>
                     </footer>
                 </div>
@@ -298,7 +299,7 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
                             </div>
                             {preview.pose.items.length > 1 ? (
                                 <div>
-                                    <div className="pose-preview-label">视角</div>
+                                    <div className="pose-preview-label">{translate("canvasB.imageTools.sectionView")}</div>
                                     <div className="pose-preview-angles">
                                         {preview.pose.items.map((option) => (
                                             <button
@@ -318,10 +319,10 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
                             ) : null}
                             <div className="pose-preview-actions">
                                 <Button block type={picked.has(preview.item.id) ? "default" : "primary"} icon={picked.has(preview.item.id) ? undefined : <Check className="size-4" />} onClick={() => toggle(preview.pose, preview.item)}>
-                                    {picked.has(preview.item.id) ? "取消选择" : `选择${preview.item.angle}`}
+                                    {picked.has(preview.item.id) ? translate("canvasTools.canvasPoseLibraryModal.clearSelection") : translate("canvasTools.canvasPoseLibraryModal.choose", { v0: String(preview.item.angle) })}
                                 </Button>
                                 <Button block type="text" onClick={() => setPreview(null)}>
-                                    返回列表
+                                    {translate("canvasTools.canvasPoseLibraryModal.backToList")}
                                 </Button>
                             </div>
                         </aside>
@@ -371,14 +372,14 @@ function PoseCard({
     return (
         <article className="pose-card" data-selected={selected || undefined}>
             <div className="pose-card-media">
-                <button type="button" className="pose-card-hit" aria-pressed={selected} aria-label={`${selected ? "取消选择" : "选择"} ${pose.name} ${item.angle}`} onClick={() => onToggle(pose, item)}>
+                <button type="button" className="pose-card-hit" aria-pressed={selected} aria-label={`${selected ? translate("canvasTools.canvasPoseLibraryModal.clearSelection") : translate("canvasTools.canvasPoseLibraryModal.select")} ${pose.name} ${item.angle}`} onClick={() => onToggle(pose, item)}>
                     <PoseImage src={poseLibraryFileUrl(item)} alt={`${pose.name}（${item.angle}）`} />
                 </button>
                 {pose.code ? <span className="pose-card-code">{pose.code}</span> : null}
                 <span className="pose-card-check" aria-hidden>
                     <Check className="size-3.5" strokeWidth={3} />
                 </span>
-                <button type="button" className="pose-card-zoom" aria-label={`查看 ${pose.name} 大图`} title="查看大图" onClick={() => onPreview(item)}>
+                <button type="button" className="pose-card-zoom" aria-label={translate("canvasTools.canvasPoseLibraryModal.viewFullSize", { v0: String(pose.name) })} title={translate("canvasTools.canvasPoseLibraryModal.viewFullSize2")} onClick={() => onPreview(item)}>
                     <Maximize2 className="size-3.5" />
                 </button>
             </div>
@@ -390,12 +391,12 @@ function PoseCard({
                     <span className="truncate">{pose.category}</span>
                     <span className="pose-card-angle">
                         {item.angle}
-                        {pickedAngles > 1 ? ` · 已选 ${pickedAngles}` : ""}
+                        {pickedAngles > 1 ? translate("canvasTools.canvasPoseLibraryModal.selected2", { v0: String(pickedAngles) }) : ""}
                     </span>
                 </div>
             </div>
             {pose.items.length > 1 ? (
-                <div className="pose-card-angles" role="group" aria-label={`${pose.name} 视角`}>
+                <div className="pose-card-angles" role="group" aria-label={translate("canvasTools.canvasPoseLibraryModal.view", { v0: String(pose.name) })}>
                     {pose.items.map((option) => (
                         <button
                             key={option.id}

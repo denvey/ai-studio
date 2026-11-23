@@ -1,12 +1,14 @@
+
+import { translate } from "@/i18n";
 export const DEFAULT_USER_AVATARS = [
-    { id: "person", label: "默认人像" },
-    { id: "director", label: "导演" },
-    { id: "camera", label: "摄影师" },
-    { id: "cat", label: "小猫" },
-    { id: "rabbit", label: "小兔" },
-    { id: "robot", label: "机器人" },
-    { id: "rocket", label: "探索者" },
-    { id: "sparkles", label: "灵感" },
+    { id: "person", label: translate("shared.defaultUserAvatars.defaultPortrait") },
+    { id: "director", label: translate("shared.defaultUserAvatars.director") },
+    { id: "camera", label: translate("shared.defaultUserAvatars.cinematographer") },
+    { id: "cat", label: translate("shared.defaultUserAvatars.cat") },
+    { id: "rabbit", label: translate("shared.defaultUserAvatars.rabbit") },
+    { id: "robot", label: translate("shared.defaultUserAvatars.robot") },
+    { id: "rocket", label: translate("shared.defaultUserAvatars.explorer") },
+    { id: "sparkles", label: translate("shared.defaultUserAvatars.inspiration") },
 ] as const;
 
 export type DefaultUserAvatarID = (typeof DEFAULT_USER_AVATARS)[number]["id"];

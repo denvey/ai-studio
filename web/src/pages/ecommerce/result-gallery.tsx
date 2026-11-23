@@ -11,7 +11,8 @@ import { resolveResourceVariantUrl, resourceIdFromStorageKey } from "@/services/
 import type { GenerationTask } from "@/services/api/task-center";
 import type { EcommerceDraft, EcommercePlan, EcommercePlanImage } from "@/services/api/ecommerce";
 import type { AiConfig } from "@/stores/use-config-store";
-import { imageSizeLabel, imageTypes, labelOf } from "./catalog";
+import { imageSizeLabel, imageTypes, displayLabelOf } from "./catalog";
+import { commerceUiText } from "./ui-text";
 import { commerceGenerationRatio, commerceImageReferences } from "./workflow";
 import type { EcommerceExportItem } from "./export";
 import { writeCommerceImageTransfer } from "./image-transfer";
@@ -19,21 +20,22 @@ import { commerceCanvasAspect } from "./canvas-layout";
 import { CommerceGeneratingArtwork, CommerceResultImage } from "./result-image";
 import { commerceCopyHasDirections } from "./consumer-copy";
 
+import { translate } from "@/i18n";
 export function imageResultAsset(task?: GenerationTask) {
     return task?.outputs?.find((output) => output.materializedAssetId)?.materializedAssetId;
 }
 
 const pendingImageTools = [
-    { label: "裁剪", icon: Crop },
-    { label: "图层分离", icon: Layers3 },
-    { label: "AI 抠图", icon: Scissors },
-    { label: "局部重绘", icon: Paintbrush2 },
-    { label: "智能延展", icon: Maximize2 },
-    { label: "无损放大", icon: Maximize2 },
-    { label: "图片翻译", icon: Languages },
-    { label: "AI 超清", icon: Sparkles },
-    { label: "编辑文字", icon: Type },
-    { label: "爆款图片复刻", icon: Images },
+    { label: translate("canvasB.imageTools.cropLabel"), icon: Crop },
+    { label: translate("ecommerce.resultGallery.separateLayers"), icon: Layers3 },
+    { label: translate("ecommerce.resultGallery.aIBackgroundRemoval"), icon: Scissors },
+    { label: translate("ecommerce.resultGallery.inpaint"), icon: Paintbrush2 },
+    { label: translate("ecommerce.resultGallery.expandImage"), icon: Maximize2 },
+    { label: translate("ecommerce.resultGallery.losslessUpscale"), icon: Maximize2 },
+    { label: translate("ecommerce.resultGallery.translateImage"), icon: Languages },
+    { label: translate("ecommerce.resultGallery.aIEnhance"), icon: Sparkles },
+    { label: translate("ecommerce.resultGallery.editText"), icon: Type },
+    { label: translate("ecommerce.resultGallery.recreateAPopularImage"), icon: Images },
 ] as const;
 
 export function SingleImageEditor({
@@ -84,27 +86,27 @@ export function SingleImageEditor({
                     if (!controller.signal.aborted) setCost(value.quote.amountMicrocredits / 1_000_000);
                 })
                 .catch((cause) => {
-                    if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : "报价失败");
+                    if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : translate("ecommerce.resultGallery.quoteFailed"));
                 });
-        else setError("当前模型无法使用这些参数，请重新选择");
+        else setError(translate("ecommerce.resultGallery.theCurrentModelCannotUseTheseSettingsSelectThemAgain"));
         return () => controller.abort();
     }, [config, edited.imageModel, quotedRatio, edited.resolution, refs.length]);
     return (
-        <section className="ecommerce-image-editor" aria-label="单张图片 AI 编辑">
+        <section className="ecommerce-image-editor" aria-label={translate("ecommerce.resultGallery.aIEditingForASingleImage")}>
             <header>
                 <div>
                     <Sparkles size={17} />
-                    <strong>重新编辑这张图片</strong>
+                    <strong>{translate("ecommerce.resultGallery.editThisImageAgain")}</strong>
                 </div>
-                <Button type="text" aria-label="关闭图片编辑" icon={<X size={17} />} onClick={onClose} disabled={busy} />
+                <Button type="text" aria-label={translate("ecommerce.resultGallery.closeImageEditor")} icon={<X size={17} />} onClick={onClose} disabled={busy} />
             </header>
-            <p>写下想调整的画面、文字或布局，让这张作品更贴近你的想法。</p>
+            <p>{translate("ecommerce.resultGallery.describeTheVisualsTextOrLayoutYouWantToAdjust")}</p>
             <label className="ecommerce-field">
-                <span>修改要求</span>
-                <Input.TextArea aria-label="图片修改要求" placeholder="例如：标题分成两行，留白再多一些，保留商品原有颜色" autoSize={{ minRows: 4, maxRows: 8 }} value={request} onChange={(event) => setRequest(event.target.value)} />
+                <span>{translate("ecommerce.resultGallery.editInstructions")}</span>
+                <Input.TextArea aria-label={translate("ecommerce.resultGallery.imageEditInstructions")} placeholder={translate("ecommerce.resultGallery.eGSplitTheHeadingIntoTwoLinesAddMore")} autoSize={{ minRows: 4, maxRows: 8 }} value={request} onChange={(event) => setRequest(event.target.value)} />
             </label>
             <label className="ecommerce-field">
-                <span>图片模型</span>
+                <span>{translate("ecommerce.resultGallery.imageModel")}</span>
                 <ModelPicker
                     config={config}
                     capability="image"
@@ -121,13 +123,13 @@ export function SingleImageEditor({
             </label>
             <div className="ecommerce-image-editor-parameters">
                 <label className="ecommerce-field">
-                    <span>图片比例</span>
-                    <Select aria-label="单图图片比例" value={edited.ratio} options={profile?.size.values.map((value) => ({ value, label: imageSizeLabel(value) }))} onChange={(ratio) => setEdited({ ...edited, ratio })} />
+                    <span>{translate("ecommerce.resultGallery.imageAspectRatio")}</span>
+                    <Select aria-label={translate("ecommerce.resultGallery.singleImageAspectRatio")} value={edited.ratio} options={profile?.size.values.map((value) => ({ value, label: commerceUiText(imageSizeLabel(value)) }))} onChange={(ratio) => setEdited({ ...edited, ratio })} />
                 </label>
                 <label className="ecommerce-field">
-                    <span>分辨率 / 画质</span>
+                    <span>{translate("ecommerce.resultGallery.resolutionQuality")}</span>
                     <Select
-                        aria-label="单图分辨率"
+                        aria-label={translate("ecommerce.resultGallery.singleImageResolution")}
                         value={edited.resolution}
                         options={(profile?.resolution.supported ? profile.resolution.values : [profile?.quality.default || "auto"]).map((value) => ({ value, label: value.toUpperCase() }))}
                         onChange={(resolution) => setEdited({ ...edited, resolution })}
@@ -137,9 +139,9 @@ export function SingleImageEditor({
             {error ? <p role="alert">{error}</p> : null}
             <footer>
                 <span>
-                    1 张 · {cost == null ? "正在计算积分" : "预计 "}
+                    {translate("ecommerce.resultGallery.item1Image")} {cost == null ? translate("ecommerce.resultGallery.calculatingCredits") : translate("ecommerce.resultGallery.estimated") + " "}
                     <RollingCreditAmount value={cost ?? null} />
-                    {cost == null ? null : " 积分"}
+                    {cost == null ? null : " " + translate("shell.credits")}
                 </span>
                 <Button
                     type="primary"
@@ -155,14 +157,14 @@ export function SingleImageEditor({
                             await onGenerate({ ...edited, prompt: `${edited.prompt}\n\n用户本轮修改要求（优先于原方案）：${request.trim()}` });
                             onClose();
                         } catch (cause) {
-                            setError(cause instanceof Error ? cause.message : "重新生成失败");
+                            setError(cause instanceof Error ? cause.message : translate("ecommerce.resultGallery.regenerationFailed"));
                         } finally {
                             lock.current = false;
                             setBusy(false);
                         }
                     }}
                 >
-                    重新生成
+                    {translate("ecommerce.resultGallery.regenerate")}
                 </Button>
             </footer>
         </section>
@@ -283,16 +285,16 @@ export function EcommerceResultGallery({
                             data-resized={Boolean(frameSize)}
                             style={frameSize ? { width: frameSize.width, height: frameSize.height, left: frameSize.left, top: frameSize.top } : undefined}
                             className={`ecommerce-result${selected.has(image.id) ? " is-selected" : ""}${focused === image.id ? " is-focused" : ""}${editing === image.id ? " is-editing" : ""}${working ? " is-generating" : ""}`}
-                            aria-label={`第 ${index + 1} 张 · ${labelOf(imageTypes, image.imageType)}`}
+                            aria-label={translate("ecommerce.resultGallery.image", { v0: String(index + 1), v1: String(displayLabelOf(imageTypes, image.imageType)) })}
                         >
                             <div className="ecommerce-result-media">
                                 {displaySrc ? (
                                     <button
                                         type="button"
                                         className="ecommerce-result-open"
-                                        aria-label={`选中第 ${index + 1} 张图片`}
+                                        aria-label={translate("ecommerce.resultGallery.selectImage", { v0: String(index + 1) })}
                                         aria-pressed={focused === image.id}
-                                        title="拖动可自由移动图片；按住 Alt 拖到商品参考区可继续创作"
+                                        title={translate("ecommerce.resultGallery.dragToMoveTheImageFreelyHoldAltAndDrag")}
                                         onClick={(event) => {
                                             if (event.shiftKey || event.ctrlKey || event.metaKey) onSelect(image.id);
                                             else onFocus(focused === image.id ? undefined : image.id);
@@ -302,7 +304,7 @@ export function EcommerceResultGallery({
                                             key={displaySrc}
                                             ratio={commerceCanvasAspect(image.ratio)}
                                             src={displaySrc}
-                                            alt={`第${index + 1}张生成结果`}
+                                            alt={translate("ecommerce.resultGallery.imageGenerationResult", { v0: String(index + 1) })}
                                             rotation={rotations[image.id] || 0}
                                             frameRatio={frameSize ? frameSize.width / frameSize.height : undefined}
                                             draggable={false}
@@ -314,28 +316,28 @@ export function EcommerceResultGallery({
                                                 const { naturalWidth, naturalHeight } = event.currentTarget;
                                                 if (naturalWidth && naturalHeight) setDimensions((current) => (current[image.id] === `${naturalWidth} × ${naturalHeight}` ? current : { ...current, [image.id]: `${naturalWidth} × ${naturalHeight}` }));
                                             }}
-                                            onDragStart={(event) => writeCommerceImageTransfer(event.dataTransfer, { resourceId, name: `第 ${index + 1} 张生成结果`, url: displaySrc })}
+                                            onDragStart={(event) => writeCommerceImageTransfer(event.dataTransfer, { resourceId, name: translate("ecommerce.resultGallery.imageResult", { v0: String(index + 1) }), url: displaySrc })}
                                         />
                                     </button>
                                 ) : (
                                     <div className="ecommerce-result-placeholder commerce-branded-placeholder" style={{ aspectRatio: commerceCanvasAspect(image.ratio) }} role="status">
                                         <div className="commerce-placeholder-brand">
                                             <img src="/commerce/agent-mark.svg" alt="" />
-                                            <span>电商 Agent</span>
+                                            <span>{translate("ecommerce.resultGallery.ecommerceAgent")}</span>
                                         </div>
-                                        {working ? <CommerceGeneratingArtwork queued={!image.taskId || task?.status === "queued"} label={`${String(index + 1).padStart(2, "0")} · ${labelOf(imageTypes, image.imageType)}`} /> : <Images size={27} />}
+                                        {working ? <CommerceGeneratingArtwork queued={!image.taskId || task?.status === "queued"} label={`${String(index + 1).padStart(2, "0")} · ${displayLabelOf(imageTypes, image.imageType)}`} /> : <Images size={27} />}
                                         {!working ? (
-                                            <strong>{task?.status === "failed" && task.canRecoverMedia ? "作品已生成，保存未完成" : task?.status === "failed" ? "生成失败" : task?.status === "cancelled" ? "任务已取消" : "等待确认生成"}</strong>
+                                            <strong>{task?.status === "failed" && task.canRecoverMedia ? translate("ecommerce.resultGallery.generatedButNotFullySaved") : task?.status === "failed" ? translate("canvasPage.batches.generationFailed") : task?.status === "cancelled" ? translate("canvasPage.taskStatus.canceled") : translate("ecommerce.resultGallery.waitingForGenerationApproval")}</strong>
                                         ) : null}
                                         {!working ? (
                                             <span>
-                                                {String(index + 1).padStart(2, "0")} · {labelOf(imageTypes, image.imageType)}
+                                                {String(index + 1).padStart(2, "0")} · {displayLabelOf(imageTypes, image.imageType)}
                                             </span>
                                         ) : null}
                                         {task?.error ? <p>{task.error}</p> : null}
                                         {task && ["failed", "cancelled"].includes(task.status) ? (
                                             <Button size="small" onClick={() => onRetry(image)}>
-                                                {task.canRecoverMedia ? "重新保存（不扣费）" : "重试这张图片"}
+                                                {task.canRecoverMedia ? translate("ecommerce.resultGallery.saveAgainNoCharge") : translate("ecommerce.resultGallery.retryThisImage")}
                                             </Button>
                                         ) : null}
                                     </div>
@@ -349,7 +351,7 @@ export function EcommerceResultGallery({
                                             <span
                                                 key={direction}
                                                 role="slider"
-                                                aria-label={`拉伸第 ${index + 1} 张图片${direction}`}
+                                                aria-label={translate("ecommerce.resultGallery.resizeImage", { v0: String(index + 1), v1: String(direction) })}
                                                 aria-valuemin={120}
                                                 aria-valuemax={vertical ? 1600 : 1200}
                                                 aria-valuenow={vertical ? frameSize?.height || Math.round(260 / commerceCanvasAspect(image.ratio)) : frameSize?.width || 260}
@@ -367,31 +369,31 @@ export function EcommerceResultGallery({
                                     <button
                                         type="button"
                                         className="commerce-selection-rotate"
-                                        title="顺时针旋转 90° 预览"
-                                        aria-label="顺时针旋转图片预览"
+                                        title={translate("ecommerce.resultGallery.rotatePreview90Clockwise")}
+                                        aria-label={translate("ecommerce.resultGallery.rotateImagePreviewClockwise")}
                                         onClick={() => setRotations((current) => ({ ...current, [image.id]: ((current[image.id] || 0) + 90) % 360 }))}
                                     >
                                         <RotateCw size={15} />
                                     </button>
-                                    <div className="commerce-selected-tools" role="group" aria-label="图片编辑功能" data-canvas-no-zoom>
+                                    <div className="commerce-selected-tools" role="group" aria-label={translate("ecommerce.resultGallery.imageEditingFeatures")} data-canvas-no-zoom>
                                         <div className="commerce-selected-tools-cost">
-                                            图片编辑<small>功能即将开放</small>
+                                            {translate("ecommerce.resultGallery.imageEditing")}<small>{translate("ecommerce.resultGallery.featureComingSoon")}</small>
                                         </div>
                                         {pendingImageTools.map(({ label, icon: Icon }) => (
-                                            <button type="button" key={label} disabled title={`${label}功能将在 API 接入后开放`}>
+                                            <button type="button" key={label} disabled title={translate("ecommerce.resultGallery.willBeAvailableOnceTheAPIIsConnected", { v0: String(label) })}>
                                                 <Icon size={15} strokeWidth={1.8} />
                                                 <span>{label}</span>
-                                                <small>99 积分</small>
+                                                <small>{translate("ecommerce.resultGallery.item99Credits")}</small>
                                             </button>
                                         ))}
                                         <div className="commerce-selected-tools-divider" />
-                                        <button type="button" disabled={!assetId} title={rotations[image.id] ? "下载原图；旋转仅用于预览" : "下载这张图片"} onClick={() => assetId && onDownload({ image, index, assetId })}>
+                                        <button type="button" disabled={!assetId} title={rotations[image.id] ? translate("ecommerce.resultGallery.downloadTheOriginalImageRotationOnlyAffectsThePreview") : translate("ecommerce.resultGallery.downloadThisImage")} onClick={() => assetId && onDownload({ image, index, assetId })}>
                                             <ArrowDownToLine size={15} />
-                                            <span>下载原图</span>
+                                            <span>{translate("ecommerce.resultGallery.downloadOriginalImage")}</span>
                                         </button>
                                         <button type="button" disabled={!assetId} onClick={() => assetId && onCanvas([assetId])}>
                                             <Images size={15} />
-                                            <span>导入画布</span>
+                                            <span>{translate("ecommerce.resultGallery.importToCanvas")}</span>
                                         </button>
                                         <Popover
                                             open={editing === image.id}
@@ -413,13 +415,13 @@ export function EcommerceResultGallery({
                                         >
                                             <button type="button" onClick={() => setEditing(image.id)}>
                                                 <RotateCcw size={15} />
-                                                <span>重新生成</span>
+                                                <span>{translate("ecommerce.resultGallery.regenerate")}</span>
                                             </button>
                                         </Popover>
-                                        <Popconfirm title="从结果区移除这张图片？" description="原图片仍保留在资产库与任务历史中。" onConfirm={() => onRemove(image)}>
+                                        <Popconfirm title={translate("ecommerce.resultGallery.removeThisImageFromResults")} description={translate("ecommerce.resultGallery.theOriginalImageRemainsInTheAssetLibraryAndTask")} onConfirm={() => onRemove(image)}>
                                             <button type="button">
                                                 <Trash2 size={15} />
-                                                <span>移除图片</span>
+                                                <span>{translate("ecommerce.resultGallery.removeImage")}</span>
                                             </button>
                                         </Popconfirm>
                                     </div>
@@ -428,13 +430,13 @@ export function EcommerceResultGallery({
                             {displaySrc && working ? (
                                 <div className="ecommerce-result-regenerating" role="status">
                                     <img src="/commerce/agent-mark.svg" alt="" />
-                                    <strong>电商 Agent 正在生成中</strong>
-                                    <span>新图片完成后自动更新</span>
+                                    <strong>{translate("ecommerce.resultGallery.theEcommerceAgentIsGenerating")}</strong>
+                                    <span>{translate("ecommerce.resultGallery.newImagesAppearAutomaticallyAsTheyFinish")}</span>
                                 </div>
                             ) : null}
                             {assetId && qualityIssues?.[assetId]?.length ? (
                                 <div className="ecommerce-quality-warning" role="status" title={qualityIssues[assetId].join("；")}>
-                                    技术质检：{qualityIssues[assetId].join("；")}
+                                    {translate("ecommerce.resultGallery.technicalQualityCheck")}{qualityIssues[assetId].join("；")}
                                 </div>
                             ) : null}
                         </article>

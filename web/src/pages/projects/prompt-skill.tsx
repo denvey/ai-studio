@@ -7,28 +7,29 @@ import { Link } from "react-router";
 import { AppModal } from "@/components/ui/product/app-modal";
 import type { DramaSkillRef } from "@/services/api/drama";
 import { getSkillFile, listAddedSkills, listSkillFiles } from "@/services/api/skills";
+import { currentLocale, translate } from "@/i18n";
 
 /** 加载写作技能的文字步骤：资产提取（作品圣经）、分镜拆分（每集剧本）、剧情段视频提示词。 */
 export type DramaSkillStep = "bible" | "script" | "prompt";
 
 const STEP_COPY: Record<DramaSkillStep, { title: string; detail: string; empty: string; foot: string }> = {
     bible: {
-        title: "选择资产提取技能",
-        detail: "建立作品圣经时，会把所选文件全文交给文本模型，按其中的方法提取角色、道具与场景；输出结构由系统固定。",
-        empty: "未选择技能，按内置规则提取角色、道具与场景。",
-        foot: "只在建立作品圣经时使用；作品圣经建好后修改不会重新提取。",
+        title: translate("drama.promptSkill.chooseAssetExtractionSkill"),
+        detail: translate("drama.promptSkill.theSelectedFileIsSentInFullToTheText"),
+        empty: translate("drama.promptSkill.noSkillSelectedBuiltInRulesExtractCharactersPropsAnd"),
+        foot: translate("drama.promptSkill.usedOnlyWhenBuildingTheStoryBibleChangingItAfterward"),
     },
     script: {
-        title: "选择分镜拆分技能",
-        detail: "改编每集剧本时，会把所选文件全文交给文本模型，按其中的方法拆分镜头；输出结构由系统固定。",
-        empty: "未选择技能，按内置规则拆分镜头。",
-        foot: "对之后改编的集生效；已改编的集可在剧本页“重新改编”。",
+        title: translate("drama.promptSkill.chooseStoryboardBreakdownSkill"),
+        detail: translate("drama.promptSkill.theSelectedFileIsSentInFullToTheText2"),
+        empty: translate("drama.promptSkill.noSkillSelectedBuiltInRulesSplitTheShots"),
+        foot: translate("drama.promptSkill.appliesToEpisodesAdaptedAfterwardUseAdaptAgainOnThe"),
     },
     prompt: {
-        title: "选择视频提示词技能",
-        detail: "撰写每个剧情段的视频提示词时，会把所选文件全文交给文本模型，按其中的结构和写法输出。",
-        empty: "未选择技能，按内置格式撰写（视觉与首帧、站位轴线、角色道具、光源声音、逐镜时间码）。",
-        foot: "修改后对之后撰写的剧情段生效；已写好的段可在分镜页多选后“重新撰写提示词”。",
+        title: translate("drama.promptSkill.chooseVideoPromptSkill"),
+        detail: translate("drama.promptSkill.theSelectedFileIsSentInFullToTheText3"),
+        empty: translate("drama.promptSkill.noSkillSelectedUsesTheBuiltInFormatVisualsAnd"),
+        foot: translate("drama.promptSkill.changesApplyToSegmentPromptsWrittenAfterwardForExistingPrompts"),
     },
 };
 
@@ -48,19 +49,19 @@ export function PromptSkillField({ value, onChange, step = "prompt", compact }: 
                         <strong>{value.skillName || value.skillId}</strong>
                         <span title={value.path}>{value.path}</span>
                     </div>
-                    <Link to={`/skills/${encodeURIComponent(value.skillId)}/edit`} target="_blank" rel="noreferrer" className="drama-pskill-edit" aria-label="在技能库打开，自己的技能可以直接修改" title="在技能库打开，自己的技能可以直接修改">
+                    <Link to={`/skills/${encodeURIComponent(value.skillId)}/edit`} target="_blank" rel="noreferrer" className="drama-pskill-edit" aria-label={translate("drama.promptSkill.openInTheSkillLibraryYouCanEditSkillsYou")} title={translate("drama.promptSkill.openInTheSkillLibraryYouCanEditSkillsYou")}>
                         <PenLine className="size-3.5" />
                     </Link>
                     <Button size="small" onClick={() => setOpen(true)}>
-                        更换
+                        {translate("drama.promptSkill.change")}
                     </Button>
-                    <Button size="small" type="text" icon={<X className="size-3.5" />} aria-label="不使用技能" onClick={() => onChange(undefined)} />
+                    <Button size="small" type="text" icon={<X className="size-3.5" />} aria-label={translate("drama.promptSkill.noSkill")} onClick={() => onChange(undefined)} />
                 </div>
             ) : (
                 <div className="drama-pskill-current is-empty">
-                    <span>{compact ? "内置规则" : copy.empty}</span>
+                    <span>{compact ? translate("drama.promptSkill.builtInRules") : copy.empty}</span>
                     <Button size="small" icon={<BookMarked className="size-3.5" />} onClick={() => setOpen(true)}>
-                        选择技能
+                        {translate("drama.promptSkill.chooseSkill")}
                     </Button>
                 </div>
             )}
@@ -111,7 +112,7 @@ function PromptSkillModal({ open, step, initial, onClose, onPick }: { open: bool
                 </header>
                 <div className="drama-skill-import-body">
                     <aside>
-                        <Input size="small" prefix={<Search className="size-3.5" />} allowClear placeholder="搜索已添加的技能" value={keyword} onChange={(event) => setKeyword(event.target.value)} />
+                        <Input size="small" prefix={<Search className="size-3.5" />} allowClear placeholder={translate("drama.promptSkill.searchAddedSkills")} value={keyword} onChange={(event) => setKeyword(event.target.value)} />
                         <div className="drama-skill-import-list thin-scrollbar">
                             {skills.map((item) => (
                                 <button
@@ -127,11 +128,11 @@ function PromptSkillModal({ open, step, initial, onClose, onPick }: { open: bool
                                     <span>{item.description || "—"}</span>
                                 </button>
                             ))}
-                            {!skillsQuery.isLoading && !skills.length ? <div className="drama-skill-import-empty">还没有添加技能，可在「技能」页面添加后再选择。</div> : null}
+                            {!skillsQuery.isLoading && !skills.length ? <div className="drama-skill-import-empty">{translate("drama.promptSkill.noSkillsAddedYetAddOneOnTheSkillsPage")}</div> : null}
                         </div>
                     </aside>
                     <aside>
-                        <div className="drama-skill-import-caption">{skill ? `${skill.skillName} · ${files.length} 份文本` : "文件"}</div>
+                        <div className="drama-skill-import-caption">{skill ? translate("drama.promptSkill.textFiles", { v0: String(skill.skillName), v1: String(files.length) }) : translate("drama.promptSkill.file")}</div>
                         <div className="drama-skill-import-list thin-scrollbar">
                             {files.map((file) => (
                                 <button key={file.path} type="button" className="is-file" aria-pressed={file.path === path} onClick={() => setPath(file.path)}>
@@ -139,27 +140,27 @@ function PromptSkillModal({ open, step, initial, onClose, onPick }: { open: bool
                                     <span title={file.path}>{file.path}</span>
                                 </button>
                             ))}
-                            {skillId && !filesQuery.isLoading && !files.length ? <div className="drama-skill-import-empty">这个技能没有文本文件。</div> : null}
-                            {!skillId ? <div className="drama-skill-import-empty">先在左侧选择技能</div> : null}
+                            {skillId && !filesQuery.isLoading && !files.length ? <div className="drama-skill-import-empty">{translate("drama.promptSkill.thisSkillHasNoTextFiles")}</div> : null}
+                            {!skillId ? <div className="drama-skill-import-empty">{translate("drama.promptSkill.selectASkillOnTheLeftFirst")}</div> : null}
                         </div>
                     </aside>
                     <section>
                         <div className="drama-skill-import-caption">
-                            {path || "原文"}
+                            {path || translate("drama.promptSkill.sourceText")}
                             {content ? (
                                 <span>
-                                    {content.length.toLocaleString("zh-CN")} 字{content.length > 16000 ? " · 超过 16000 字的部分不会发送" : ""}
+                                    {content.length.toLocaleString(currentLocale())} {translate("drama.promptSkill.characters")}{content.length > 16000 ? (" " + translate("drama.promptSkill.contentBeyond16000CharactersWillNotBeSent")) : ""}
                                 </span>
                             ) : null}
                         </div>
-                        <pre className="drama-skill-import-content thin-scrollbar">{fileQuery.isLoading ? "正在读取…" : content || "选择文件后在这里查看全文。"}</pre>
+                        <pre className="drama-skill-import-content thin-scrollbar">{fileQuery.isLoading ? translate("drama.promptSkill.loading") : content || translate("drama.promptSkill.selectAFileToViewItsFullTextHere")}</pre>
                     </section>
                 </div>
                 <footer className="drama-skill-import-foot">
                     <span>{copy.foot}</span>
-                    <Button onClick={onClose}>取消</Button>
+                    <Button onClick={onClose}>{translate("common.cancel")}</Button>
                     <Button type="primary" disabled={!skill || !path || !content} onClick={() => skill && onPick({ skillId: skill.skillId, skillName: skill.skillName, path })}>
-                        使用这个文件
+                        {translate("drama.promptSkill.useThisFile")}
                     </Button>
                 </footer>
             </div>

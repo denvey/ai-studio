@@ -2,6 +2,8 @@ import { localForageStorageForScope } from "@/lib/localforage-storage";
 import { markdownPlainText } from "@/lib/markdown-plain-text";
 import { getActiveUserScope } from "@/lib/user-scope";
 import type { AgentPermissionMode, AgentRun } from "@/services/api/agent";
+import { translate } from "@/i18n";
+
 
 export type CloudAgentMessagePresentation = {
     displayText?: string;
@@ -74,9 +76,9 @@ export async function loadCloudAgentConversations(scope = getActiveUserScope()):
     try {
         parsed = JSON.parse(value);
     } catch {
-        throw new Error("Agent 对话历史已损坏");
+        throw new Error(translate("shared.cloudAgentConversations.agentConversationHistoryIsCorrupted"));
     }
-    if (!isConversationDocument(parsed)) throw new Error("Agent 对话历史格式无效");
+    if (!isConversationDocument(parsed)) throw new Error(translate("shared.cloudAgentConversations.invalidAgentConversationHistoryFormat"));
     return parsed;
 }
 
@@ -124,7 +126,7 @@ export async function loadCloudAgentPendingSubmission(conversationId: string, sc
             canvasReferenceNodeId: parsed.canvasReferenceNodeId,
         } satisfies CloudAgentPendingSubmission;
     } catch {
-        throw new Error("待确认请求记录损坏，已暂停本对话发送；请先在任务中心核对原运行，不要直接重复生成");
+        throw new Error(translate("shared.cloudAgentConversations.thePendingRequestRecordIsCorruptedSendingInThisConversation"));
     }
 }
 
@@ -137,7 +139,7 @@ function renameLegacySkillIds(request: CloudAgentPendingSubmission["request"]) {
 }
 
 export async function saveCloudAgentPendingSubmission(conversationId: string, pending: CloudAgentPendingSubmission, scope = getActiveUserScope()) {
-    if (!conversationId) throw new Error("缺少 Agent 对话范围，无法保存幂等提交");
+    if (!conversationId) throw new Error(translate("shared.cloudAgentConversations.agentConversationScopeIsMissingTheIdempotentSubmissionCannotBe"));
     await localForageStorageForScope(scope).setItem(pendingStorageKey(conversationId), JSON.stringify(pending));
 }
 

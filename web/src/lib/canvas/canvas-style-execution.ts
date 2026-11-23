@@ -2,6 +2,8 @@ import { applyStyleExecutionPlan, createStyleProfileSnapshot, parseStyleProfile,
 import { logicalModelIDForConfig, resolveModelRequestConfig, type AiConfig } from "@/stores/use-config-store";
 import type { CanvasNodeData } from "@/types/canvas";
 import { parseToolMentionTokens } from "@/lib/canvas/canvas-resource-references";
+import { translate } from "@/i18n";
+
 
 export type CanvasStyleExecutionRuntime = {
     profile: StyleProfileSnapshot;
@@ -19,7 +21,7 @@ export function resolveCanvasStyleExecution(nodes: CanvasNodeData[], sourceNode:
     const requestConfig = resolveModelRequestConfig(config, config.model);
     const plan = resolveStyleExecutionPlan(profile, { mode, model: requestConfig.model, interfaceType: requestConfig.interfaceType || requestConfig.apiFormat });
     // 平台模型的真实供应模型由后端入队时路由，前端只能预览，最终兼容性由后端重算。
-    if (plan.status === "blocked" && !logicalModelIDForConfig(config)) throw new Error(`当前模型无法完整执行项目画风：${plan.warnings.join("；")}。请切换模型，或在项目设置中停用对应画风资产`);
+    if (plan.status === "blocked" && !logicalModelIDForConfig(config)) throw new Error(translate("shared.canvas.canvasStyleExecution.theCurrentModelCannotFullyApplyTheProjectSVisual", { v0: String(plan.warnings.join("；")) }));
     return { profile, profileJson: serializeStyleProfile(profile), plan, prompt: applyStyleExecutionPlan(prompt, plan) };
 }
 

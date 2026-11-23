@@ -6,6 +6,7 @@ import { Activity, Clipboard, HardDriveUpload, Link2, RefreshCw, Save, Video } f
 import { formatCredits } from "@/constant/credits";
 import { getAdminApiLog, queryAdminApiLogTask, recoverAdminApiLogTaskMedia, recoverAdminApiLogVideoByURL, type ApiCallLog } from "@/services/api/auth";
 import { videoRecoveryAvailable } from "../logs/log-view";
+import { currentLocale, translate } from "@/i18n";
 
 export function ApiLogDetailDrawer({ logId, onClose, onLogUpdated }: { logId: string | null; onClose: () => void; onLogUpdated?: (log: ApiCallLog) => void }) {
     const { message, modal } = App.useApp();
@@ -15,6 +16,7 @@ export function ApiLogDetailDrawer({ logId, onClose, onLogUpdated }: { logId: st
     const [providerRequestId, setProviderRequestId] = useState("");
     const [videoURL, setVideoURL] = useState("");
     const [resultText, setResultText] = useState("");
+    const [resultTone, setResultTone] = useState<"success" | "warning" | "error">("success");
 
     const refresh = async (id: string) => {
         const refreshed = await getAdminApiLog(id);
@@ -37,7 +39,7 @@ export function ApiLogDetailDrawer({ logId, onClose, onLogUpdated }: { logId: st
                 setLog(result.log);
                 setProviderRequestId(result.log.providerRequestId || "");
             })
-            .catch((error) => active && message.error(error instanceof Error ? error.message : "读取请求详情失败"))
+            .catch((error) => active && message.error(error instanceof Error ? error.message : translate("admin.apiLogDetailDrawer.failedToLoadRequestDetails")))
             .finally(() => active && setLoading(false));
         return () => {
             active = false;
@@ -53,13 +55,16 @@ export function ApiLogDetailDrawer({ logId, onClose, onLogUpdated }: { logId: st
             await refresh(log.id);
             if (result.recovered) {
                 window.dispatchEvent(new CustomEvent("wallet:updated"));
-                setResultText(result.billingSettled ? "查询成功，视频已转存并完成结算。" : "视频已转存，计费状态待核对。");
-                message.success("视频任务恢复成功");
+                setResultTone("success");
+                setResultText(result.billingSettled ? translate("admin.apiLogDetailDrawer.querySuccessfulTheVideoHasBeenSavedAndBillingSettled") : translate("admin.apiLogDetailDrawer.theVideoHasBeenSavedBillingStatusNeedsReview"));
+                message.success(translate("admin.apiLogDetailDrawer.videoTaskRecovered"));
             } else {
-                setResultText(`上游仍在生成中${result.providerStatus ? `（${result.providerStatus}）` : ""}，暂不扣费。`);
+                setResultTone("warning");
+                setResultText(translate("admin.apiLogDetailDrawer.upstreamGenerationIsStillInProgressNoChargeHasBeen", { v0: String(result.providerStatus ? `（${result.providerStatus}）` : "") }));
             }
         } catch (error) {
-            setResultText(error instanceof Error ? error.message : "查询上游任务失败");
+            setResultTone("error");
+            setResultText(error instanceof Error ? error.message : translate("library.tasks.page.upstreamQueryFailed"));
         } finally {
             setQuerying(false);
         }
@@ -73,10 +78,12 @@ export function ApiLogDetailDrawer({ logId, onClose, onLogUpdated }: { logId: st
             const result = await recoverAdminApiLogVideoByURL(log.id, videoURL.trim(), providerRequestId.trim() || undefined);
             await refresh(log.id);
             window.dispatchEvent(new CustomEvent("wallet:updated"));
-            setResultText(result.billingSettled ? "视频已转存并完成结算。" : "视频已转存，计费状态待核对。");
-            message.success("视频转存成功");
+            setResultTone("success");
+            setResultText(result.billingSettled ? translate("admin.apiLogDetailDrawer.theVideoHasBeenSavedAndBillingSettled") : translate("admin.apiLogDetailDrawer.theVideoHasBeenSavedBillingStatusNeedsReview"));
+            message.success(translate("admin.apiLogDetailDrawer.videoImportedSuccessfully"));
         } catch (error) {
-            setResultText(error instanceof Error ? error.message : "视频转存失败");
+            setResultTone("error");
+            setResultText(error instanceof Error ? error.message : translate("admin.apiLogDetailDrawer.failedToSaveTheVideo"));
         } finally {
             setQuerying(false);
         }
@@ -89,10 +96,12 @@ export function ApiLogDetailDrawer({ logId, onClose, onLogUpdated }: { logId: st
         try {
             await recoverAdminApiLogTaskMedia(log.id, refundedBilling);
             await refresh(log.id);
-            setResultText("已重新排队保存作品。对象存储仍不可用时会先保存到服务器，稍后自动同步。");
-            message.success("已重新排队保存作品");
+            setResultTone("success");
+            setResultText(translate("admin.apiLogDetailDrawer.savingTheCreationHasBeenRequeuedIfObjectStorageRemains"));
+            message.success(translate("admin.apiLogDetailDrawer.workQueuedForSavingAgain"));
         } catch (error) {
-            setResultText(error instanceof Error ? error.message : "恢复作品保存失败");
+            setResultTone("error");
+            setResultText(error instanceof Error ? error.message : translate("canvasPage.retry.restoreSaveFailed"));
         } finally {
             setQuerying(false);
         }
@@ -106,12 +115,12 @@ export function ApiLogDetailDrawer({ logId, onClose, onLogUpdated }: { logId: st
         }
         const charge = refundedBilling === "charge";
         modal.confirm({
-            title: charge ? "恢复作品并补扣积分？" : "恢复作品并免除扣费？",
+            title: charge ? translate("admin.apiLogDetailDrawer.recoverTheCreationAndChargeCredits") : translate("admin.apiLogDetailDrawer.recoverTheCreationWithoutCharging"),
             content: charge
-                ? `原订单已退回 ${formatCredits(log.billingReservedMicrocredits)} 积分预授权。作品保存成功后会从用户可用余额补扣，余额不足时会变为负数。`
-                : "原订单保持已退回状态，作品保存成功后不再扣费。",
-            okText: charge ? "恢复并补扣" : "恢复，不扣费",
-            cancelText: "取消",
+                ? translate("admin.apiLogDetailDrawer.theOriginalOrderSPreauthorizationOfCreditsWasReleasedOnce", { v0: String(formatCredits(log.billingReservedMicrocredits)) })
+                : translate("admin.apiLogDetailDrawer.theOriginalOrderRemainsRefundedNoChargeWillBeMade"),
+            okText: charge ? translate("admin.apiLogDetailDrawer.recoverAndCharge") : translate("admin.apiLogDetailDrawer.recoverWithoutCharging"),
+            cancelText: translate("common.cancel"),
             onOk: () => runMediaRecovery(refundedBilling),
         });
     };
@@ -122,17 +131,17 @@ export function ApiLogDetailDrawer({ logId, onClose, onLogUpdated }: { logId: st
                 <Activity className="size-[18px]" aria-hidden="true" />
             </div>
             <div className="min-w-0">
-                <div className="truncate text-[var(--fs-body)] font-semibold text-foreground">请求日志详情</div>
+                <div className="truncate text-[var(--fs-body)] font-semibold text-foreground">{translate("admin.apiLogDetailDrawer.requestLogDetails")}</div>
                 <div className="mt-0.5 truncate text-xs font-normal text-foreground/50">
-                    {capabilityText(log.capability)} · {log.model || "未识别模型"} · {formatTime(log.startedAt || log.createdAt)}
+                    {capabilityText(log.capability)} · {log.model || translate("admin.apiLogDetailDrawer.unrecognizedModel")} · {formatTime(log.startedAt || log.createdAt)}
                 </div>
             </div>
         </div>
-    ) : "请求日志详情";
+    ) : translate("admin.apiLogDetailDrawer.requestLogDetails");
 
     return (
         <AdminDrawer title={title} open={Boolean(logId)} onClose={onClose} size="min(1120px, 66vw)" className="api-log-detail-drawer-panel" rootClassName="api-log-detail-drawer">
-            {loading ? <Skeleton active paragraph={{ rows: 10 }} /> : log ? <LogDetail log={log} providerRequestId={providerRequestId} videoURL={videoURL} resultText={resultText} querying={querying} onProviderRequestIdChange={setProviderRequestId} onVideoURLChange={setVideoURL} onQuery={runQuery} onRecoverURL={runURLRecovery} onRecoverMedia={confirmMediaRecovery} /> : <AdminEmpty size="compact" title="没有请求详情" />}
+            {loading ? <Skeleton active paragraph={{ rows: 10 }} /> : log ? <LogDetail log={log} providerRequestId={providerRequestId} videoURL={videoURL} resultText={resultText} resultTone={resultTone} querying={querying} onProviderRequestIdChange={setProviderRequestId} onVideoURLChange={setVideoURL} onQuery={runQuery} onRecoverURL={runURLRecovery} onRecoverMedia={confirmMediaRecovery} /> : <AdminEmpty size="compact" title={translate("admin.apiLogDetailDrawer.noRequestDetails")} />}
         </AdminDrawer>
     );
 }
@@ -142,6 +151,7 @@ type LogDetailProps = {
     providerRequestId: string;
     videoURL: string;
     resultText: string;
+    resultTone: "success" | "warning" | "error";
     querying: boolean;
     onProviderRequestIdChange: (value: string) => void;
     onVideoURLChange: (value: string) => void;
@@ -150,43 +160,43 @@ type LogDetailProps = {
     onRecoverMedia: (refundedBilling?: "charge" | "waive") => void;
 };
 
-function LogDetail({ log, providerRequestId, videoURL, resultText, querying, onProviderRequestIdChange, onVideoURLChange, onQuery, onRecoverURL, onRecoverMedia }: LogDetailProps) {
+function LogDetail({ log, providerRequestId, videoURL, resultText, resultTone, querying, onProviderRequestIdChange, onVideoURLChange, onQuery, onRecoverURL, onRecoverMedia }: LogDetailProps) {
     const mediaRecoverable = log.taskStatus === "failed" && Boolean(log.mediaStage) && log.mediaStage !== "completed";
     const refunded = log.billingStatus === "refunded";
     const providerStatus = log.providerStatus?.toLowerCase();
     const processing = ["queued", "pending", "processing", "running", "in_progress"].includes(providerStatus || "");
     const failed = log.status === "failed" || ["failed", "cancelled", "expired"].includes(providerStatus || "");
-    const status = failed ? { label: "失败", tone: "error" as const } : processing ? { label: "处理中", tone: "warning" as const } : { label: "成功", tone: "success" as const };
+    const status = failed ? { label: translate("library.assets.batch.failed"), tone: "error" as const } : processing ? { label: translate("account.feedback.status.processing"), tone: "warning" as const } : { label: translate("admin.apiLogDetailDrawer.success"), tone: "success" as const };
 
     return (
         <div className="api-log-detail-body">
             <section className="api-log-detail-section">
                 <div className="api-log-detail-section-heading">
                     <div>
-                        <div className="api-log-detail-eyebrow">REQUEST OVERVIEW</div>
-                        <h2>请求概览</h2>
+                        <div className="api-log-detail-eyebrow">{translate("admin.apiLogDetailDrawer.eyebrow.request")}</div>
+                        <h2>{translate("admin.apiLogDetailDrawer.requestOverview")}</h2>
                     </div>
                     <AdminStatusBadge label={status.label} tone={status.tone} />
                 </div>
                 <div className="api-log-detail-summary-grid">
-                    <InfoItem label="能力类型" value={capabilityText(log.capability)} />
-                    <InfoItem label="请求阶段" value={requestKindText(log.requestKind)} />
-                    <InfoItem label="模型 / 渠道" value={`${log.model || "未识别模型"} / ${log.channelName || "未记录渠道"}`} />
-                    <InfoItem label="用户" value={log.userDisplayName || log.userAccount || "未知用户"} detail={log.userAccount ? `@${log.userAccount}` : undefined} />
-                    <InfoItem label="任务状态" value={mediaDeliveryText(log)} />
-                    <InfoItem label="计费" value={billingText(log)} />
-                    <InfoItem label="请求 ID" value={<CopyValue value={log.id} />} />
-                    <InfoItem label="任务 ID" value={log.taskId ? <CopyValue value={log.taskId} /> : "未记录"} />
-                    <InfoItem label="供应商任务 ID" value={log.providerRequestId ? <CopyValue value={log.providerRequestId} /> : "未记录"} />
-                    <InfoItem label="耗时" value={<span className="tabular-nums">{formatDuration(log.durationMs)}</span>} />
-                    <InfoItem label="HTTP 状态" value={log.statusCode || "未记录"} />
-                    <InfoItem label="请求地址" value={<span className="break-all font-mono text-xs">{log.method} {log.path || "未记录"}</span>} />
-                    <InfoItem label="上游渠道 URL" value={<span className="break-all font-mono text-xs">{log.upstreamUrl || "未记录"}</span>} />
+                    <InfoItem label={translate("admin.apiLogDetailDrawer.capabilityType")} value={capabilityText(log.capability)} />
+                    <InfoItem label={translate("admin.apiLogDetailDrawer.requestStage")} value={requestKindText(log.requestKind)} />
+                    <InfoItem label={translate("admin.apiLogDetailDrawer.modelChannel")} value={`${log.model || translate("admin.apiLogDetailDrawer.unrecognizedModel")} / ${log.channelName || translate("admin.apiLogDetailDrawer.noChannelRecorded")}`} />
+                    <InfoItem label={translate("admin.apiLogDetailDrawer.users")} value={log.userDisplayName || log.userAccount || translate("admin.apiLogDetailDrawer.unknownUser")} detail={log.userAccount ? `@${log.userAccount}` : undefined} />
+                    <InfoItem label={translate("admin.apiLogDetailDrawer.taskStatus")} value={mediaDeliveryText(log)} />
+                    <InfoItem label={translate("canvasC.taskItem.billing")} value={billingText(log)} />
+                    <InfoItem label={translate("admin.apiLogDetailDrawer.requestID")} value={<CopyValue value={log.id} />} />
+                    <InfoItem label={translate("library.tasks.detail.taskId")} value={log.taskId ? <CopyValue value={log.taskId} /> : translate("admin.apiLogDetailDrawer.notRecorded")} />
+                    <InfoItem label={translate("admin.apiLogDetailDrawer.vendorTaskID")} value={log.providerRequestId ? <CopyValue value={log.providerRequestId} /> : translate("admin.apiLogDetailDrawer.notRecorded")} />
+                    <InfoItem label={translate("library.tasks.detail.duration")} value={<span className="tabular-nums">{formatDuration(log.durationMs)}</span>} />
+                    <InfoItem label={translate("admin.apiLogDetailDrawer.hTTPStatus")} value={log.statusCode || translate("admin.apiLogDetailDrawer.notRecorded")} />
+                    <InfoItem label={translate("admin.apiLogDetailDrawer.requestURL")} value={<span className="break-all font-mono text-xs">{log.method} {log.path || translate("admin.apiLogDetailDrawer.notRecorded")}</span>} />
+                    <InfoItem label={translate("admin.apiLogDetailDrawer.upstreamChannelURL")} value={<span className="break-all font-mono text-xs">{log.upstreamUrl || translate("admin.apiLogDetailDrawer.notRecorded")}</span>} />
                 </div>
                 {log.error || log.errorCode ? (
                     <div className="api-log-detail-error">
-                        <div className="text-xs font-semibold text-red-500">{log.errorCode || `HTTP ${log.statusCode || "失败"}`}</div>
-                        <div className="mt-1 text-sm text-foreground/70">{log.error || "上游未返回错误详情"}</div>
+                        <div className="text-xs font-semibold text-red-500">{log.errorCode || `HTTP ${log.statusCode || translate("library.assets.batch.failed")}`}</div>
+                        <div className="mt-1 text-sm text-foreground/70">{log.error || translate("admin.apiLogDetailDrawer.upstreamReturnedNoErrorDetails")}</div>
                     </div>
                 ) : null}
             </section>
@@ -199,28 +209,28 @@ function LogDetail({ log, providerRequestId, videoURL, resultText, querying, onP
                                 <HardDriveUpload className="size-4" aria-hidden="true" />
                             </div>
                             <div>
-                                <div className="api-log-detail-eyebrow">MEDIA DELIVERY</div>
-                                <h2>作品保存恢复</h2>
+                                <div className="api-log-detail-eyebrow">{translate("admin.apiLogDetailDrawer.eyebrow.media")}</div>
+                                <h2>{translate("admin.apiLogDetailDrawer.recoverWorkSaving")}</h2>
                             </div>
                         </div>
-                        <span className="text-xs text-foreground/45">作品已生成，不会重新生成</span>
+                        <span className="text-xs text-foreground/45">{translate("admin.apiLogDetailDrawer.theWorkIsAlreadyGeneratedAndWillNotBeRegenerated")}</span>
                     </div>
                     <div className="api-log-recovery-body">
                         <div className="api-log-recovery-row">
                             <div className="api-log-recovery-label">
-                                <span>重新保存作品</span>
-                                <small>{refunded ? "原订单已退回，请选择恢复后是否补扣" : "保存成功后按原订单结算"}</small>
+                                <span>{translate("admin.apiLogDetailDrawer.saveWorkAgain")}</span>
+                                <small>{refunded ? translate("admin.apiLogDetailDrawer.theOriginalOrderWasRefundedChooseWhetherToChargeIt") : translate("admin.apiLogDetailDrawer.settleAgainstTheOriginalOrderAfterSavingSucceeds")}</small>
                             </div>
                             {refunded ? (
                                 <>
-                                    <Button icon={<Save className="size-3.5" />} loading={querying} onClick={() => onRecoverMedia("waive")}>恢复，不扣费</Button>
-                                    <Button type="primary" icon={<Save className="size-3.5" />} loading={querying} onClick={() => onRecoverMedia("charge")}>恢复并补扣</Button>
+                                    <Button icon={<Save className="size-3.5" />} loading={querying} onClick={() => onRecoverMedia("waive")}>{translate("admin.apiLogDetailDrawer.recoverWithoutCharging")}</Button>
+                                    <Button type="primary" icon={<Save className="size-3.5" />} loading={querying} onClick={() => onRecoverMedia("charge")}>{translate("admin.apiLogDetailDrawer.recoverAndCharge")}</Button>
                                 </>
                             ) : (
-                                <Button type="primary" icon={<Save className="size-3.5" />} loading={querying} onClick={() => onRecoverMedia()}>重新保存</Button>
+                                <Button type="primary" icon={<Save className="size-3.5" />} loading={querying} onClick={() => onRecoverMedia()}>{translate("admin.apiLogDetailDrawer.saveAgain")}</Button>
                             )}
                         </div>
-                        {resultText ? <Alert className="api-log-recovery-result" type={resultText.includes("失败") || resultText.includes("错误") || resultText.includes("请") ? "error" : "success"} showIcon message={resultText} /> : null}
+                        {resultText ? <Alert className="api-log-recovery-result" type={resultTone} showIcon message={resultText} /> : null}
                     </div>
                 </section>
             ) : null}
@@ -233,30 +243,30 @@ function LogDetail({ log, providerRequestId, videoURL, resultText, querying, onP
                                 <Video className="size-4" aria-hidden="true" />
                             </div>
                             <div>
-                                <div className="api-log-detail-eyebrow">VIDEO RECOVERY</div>
-                                <h2>视频任务恢复</h2>
+                                <div className="api-log-detail-eyebrow">{translate("admin.apiLogDetailDrawer.eyebrow.video")}</div>
+                                <h2>{translate("admin.apiLogDetailDrawer.videoTaskRecovery")}</h2>
                             </div>
                         </div>
-                        <span className="text-xs text-foreground/45">失败任务可用</span>
+                        <span className="text-xs text-foreground/45">{translate("admin.apiLogDetailDrawer.availableForFailedTasks")}</span>
                     </div>
                     <div className="api-log-recovery-body">
                         <div className="api-log-recovery-row">
                             <div className="api-log-recovery-label">
-                                <span>供应商任务 ID</span>
-                                <small>默认使用当前记录，可手动覆盖</small>
+                                <span>{translate("admin.apiLogDetailDrawer.vendorTaskID")}</span>
+                                <small>{translate("admin.apiLogDetailDrawer.usesTheCurrentRecordByDefaultYouCanOverrideIt")}</small>
                             </div>
-                            <Input className="api-log-recovery-input" value={providerRequestId} onChange={(event) => onProviderRequestIdChange(event.target.value)} placeholder="输入供应商任务 ID" />
-                            <Button type="primary" icon={<RefreshCw className="size-3.5" />} loading={querying} onClick={onQuery}>查询上游任务</Button>
+                            <Input className="api-log-recovery-input" value={providerRequestId} onChange={(event) => onProviderRequestIdChange(event.target.value)} placeholder={translate("admin.apiLogDetailDrawer.enterTheProviderTaskID")} />
+                            <Button type="primary" icon={<RefreshCw className="size-3.5" />} loading={querying} onClick={onQuery}>{translate("admin.apiLogDetailDrawer.queryUpstreamTask")}</Button>
                         </div>
                         <div className="api-log-recovery-row">
                             <div className="api-log-recovery-label">
-                                <span>视频 URL 转存</span>
-                                <small>仅支持公网 HTTP / HTTPS 视频地址</small>
+                                <span>{translate("admin.apiLogDetailDrawer.importVideoFromURL")}</span>
+                                <small>{translate("admin.apiLogDetailDrawer.onlyPublicHTTPHTTPSVideoURLsAreSupported")}</small>
                             </div>
                             <Input className="api-log-recovery-input" prefix={<Link2 className="size-4 text-foreground/35" />} value={videoURL} onChange={(event) => onVideoURLChange(event.target.value)} placeholder="https://example.com/video.mp4" />
-                            <Button icon={<Save className="size-3.5" />} loading={querying} disabled={!videoURL.trim()} onClick={onRecoverURL}>转存并回写</Button>
+                            <Button icon={<Save className="size-3.5" />} loading={querying} disabled={!videoURL.trim()} onClick={onRecoverURL}>{translate("admin.apiLogDetailDrawer.importAndUpdateRecord")}</Button>
                         </div>
-                        {resultText ? <Alert className="api-log-recovery-result" type={resultText.includes("失败") || resultText.includes("错误") ? "error" : resultText.includes("生成中") ? "warning" : "success"} showIcon message={resultText} /> : null}
+                        {resultText ? <Alert className="api-log-recovery-result" type={resultTone} showIcon message={resultText} /> : null}
                     </div>
                 </section>
             ) : null}
@@ -264,12 +274,12 @@ function LogDetail({ log, providerRequestId, videoURL, resultText, querying, onP
             <section className="api-log-detail-section api-log-payload-section">
                 <div className="api-log-detail-section-heading">
                     <div>
-                        <div className="api-log-detail-eyebrow">RAW PAYLOAD</div>
-                        <h2>请求报文</h2>
+                        <div className="api-log-detail-eyebrow">{translate("admin.apiLogDetailDrawer.eyebrow.payload")}</div>
+                        <h2>{translate("admin.apiLogDetailDrawer.requestPayload")}</h2>
                     </div>
-                    <span className="text-xs text-foreground/45">{log.requestBody || log.responseBody ? "可复制原始内容" : "暂无报文"}</span>
+                    <span className="text-xs text-foreground/45">{log.requestBody || log.responseBody ? translate("admin.apiLogDetailDrawer.rawContentCanBeCopied") : translate("admin.apiLogDetailDrawer.noPayloadAvailable")}</span>
                 </div>
-                <Tabs items={[{ key: "request", label: "请求", children: <PayloadPanel value={log.requestBody} empty="该请求未记录请求报文" /> }, { key: "response", label: "响应", children: <PayloadPanel value={log.responseBody} empty="该请求未记录响应报文" /> }]} />
+                <Tabs items={[{ key: "request", label: translate("admin.apiLogDetailDrawer.request"), children: <PayloadPanel value={log.requestBody} empty={translate("admin.apiLogDetailDrawer.noRequestPayloadWasRecordedForThisRequest")} /> }, { key: "response", label: translate("admin.apiLogDetailDrawer.response"), children: <PayloadPanel value={log.responseBody} empty={translate("admin.apiLogDetailDrawer.noResponsePayloadWasRecordedForThisRequest")} /> }]} />
             </section>
         </div>
     );
@@ -287,7 +297,7 @@ function InfoItem({ label, value, detail }: { label: string; value: ReactNode; d
 
 function CopyValue({ value }: { value: string }) {
     return (
-        <Typography.Text className="api-log-copy-value" copyable={{ text: value, tooltips: ["复制", "已复制"] }}>
+        <Typography.Text className="api-log-copy-value" copyable={{ text: value, tooltips: [translate("canvasB.common.copy"), translate("canvasB.common.copied")] }}>
             <code>{value}</code>
         </Typography.Text>
     );
@@ -298,8 +308,8 @@ function PayloadPanel({ value, empty }: { value?: string; empty: string }) {
     return (
         <div className="api-log-payload-wrap">
             <div className="api-log-payload-actions">
-                <Typography.Text copyable={{ text: value, tooltips: ["复制报文", "已复制"] }}>
-                    <Clipboard className="mr-1 inline size-3.5" />复制报文
+                <Typography.Text copyable={{ text: value, tooltips: [translate("admin.apiLogDetailDrawer.copyPayload"), translate("canvasB.common.copied")] }}>
+                    <Clipboard className="mr-1 inline size-3.5" />{translate("admin.apiLogDetailDrawer.copyPayload")}
                 </Typography.Text>
             </div>
             <pre className="api-log-payload">{value}</pre>
@@ -308,34 +318,34 @@ function PayloadPanel({ value, empty }: { value?: string; empty: string }) {
 }
 
 function billingText(log: ApiCallLog) {
-    if (!log.billable) return "不计费";
-    if (!log.billingAvailable) return "未扣积分";
-    const labels = { settled: "已结算", refunded: "已退回", uncertain: "待核对", running: "运行中", reserved: "已预授权" } as const;
-    const settled = log.billingSettledMicrocredits !== undefined ? `实收 ${formatCredits(log.billingSettledMicrocredits)}` : "未结算";
-    return `预授权 ${formatCredits(log.billingReservedMicrocredits)} · ${settled} 积分 · ${labels[log.billingStatus || "reserved"]}`;
+    if (!log.billable) return translate("admin.apiLogDetailDrawer.notBillable");
+    if (!log.billingAvailable) return translate("admin.apiLogDetailDrawer.noCreditsCharged");
+    const labels = { settled: translate("admin.apiLogDetailDrawer.settled"), refunded: translate("admin.apiLogDetailDrawer.refunded"), uncertain: translate("admin.apiLogDetailDrawer.pendingReview"), running: translate("library.tasks.filter.active"), reserved: translate("admin.apiLogDetailDrawer.preauthorized") } as const;
+    const settled = log.billingSettledMicrocredits !== undefined ? translate("admin.apiLogDetailDrawer.charged", { v0: String(formatCredits(log.billingSettledMicrocredits)) }) : translate("admin.apiLogDetailDrawer.unsettled");
+    return translate("admin.apiLogDetailDrawer.preauthorizedCredits", { v0: String(formatCredits(log.billingReservedMicrocredits)), v1: String(settled), v2: String(labels[log.billingStatus || "reserved"]) });
 }
 
 function mediaDeliveryText(log: ApiCallLog) {
-    if (log.taskStatus === "succeeded") return log.mediaStage === "completed" ? "已保存并登记" : "任务成功";
-    if (log.taskStatus === "failed") return "任务失败";
-    return log.taskStatus || "未记录";
+    if (log.taskStatus === "succeeded") return log.mediaStage === "completed" ? translate("admin.apiLogDetailDrawer.savedAndRegistered") : translate("admin.apiLogDetailDrawer.taskSucceeded");
+    if (log.taskStatus === "failed") return translate("canvasPage.taskStatus.failed");
+    return log.taskStatus || translate("admin.apiLogDetailDrawer.notRecorded");
 }
 
 function requestKindText(value: ApiCallLog["requestKind"]) {
-    const labels: Partial<Record<ApiCallLog["requestKind"], string>> = { create: "模型生成", poll: "状态查询", download: "结果下载", upload: "上传 OSS", local_save: "保存文件", local_fallback: "本地兜底保存", offload: "同步 OSS", register: "登记素材", repair: "结果修复" };
-    return labels[value] || "上游请求";
+    const labels: Partial<Record<ApiCallLog["requestKind"], string>> = { create: translate("admin.apiLogDetailDrawer.modelGeneration"), poll: translate("admin.apiLogDetailDrawer.statusQuery"), download: translate("admin.apiLogDetailDrawer.resultDownload"), upload: translate("admin.apiLogDetailDrawer.uploadToOSS"), local_save: translate("admin.apiLogDetailDrawer.saveFile"), local_fallback: translate("admin.apiLogDetailDrawer.saveLocallyAsFallback"), offload: translate("admin.apiLogDetailDrawer.syncToOSS"), register: translate("admin.apiLogDetailDrawer.registerAsset"), repair: translate("admin.apiLogDetailDrawer.repairResult") };
+    return labels[value] || translate("admin.apiLogDetailDrawer.upstreamRequest");
 }
 
 function capabilityText(value: string) {
-    return ({ text: "文本", image: "图片", video: "视频", audio: "音频" } as Record<string, string>)[value] || "未知";
+    return ({ text: translate("account.settings.modelConfig.capabilities.text"), image: translate("account.feedback.image"), video: translate("account.feedback.video"), audio: translate("account.settings.modelConfig.capabilities.audio") } as Record<string, string>)[value] || translate("admin.apiLogDetailDrawer.unknown");
 }
 
 function formatTime(value?: string) {
-    return value ? new Date(value).toLocaleString("zh-CN", { hour12: false }) : "--";
+    return value ? new Date(value).toLocaleString(currentLocale(), { hour12: false }) : "--";
 }
 
 function formatDuration(value: number) {
     if (value < 1_000) return `${value} ms`;
-    if (value < 60_000) return `${(value / 1_000).toFixed(value < 10_000 ? 1 : 0)} 秒`;
-    return `${Math.floor(value / 60_000)} 分 ${Math.round((value % 60_000) / 1_000)} 秒`;
+    if (value < 60_000) return translate("admin.apiLogDetailDrawer.s", { v0: String((value / 1_000).toFixed(value < 10_000 ? 1 : 0)) });
+    return translate("admin.apiLogDetailDrawer.mS", { v0: String(Math.floor(value / 60_000)), v1: String(Math.round((value % 60_000) / 1_000)) });
 }

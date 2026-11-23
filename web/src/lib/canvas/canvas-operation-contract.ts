@@ -4,6 +4,8 @@ import { getNodeSpec } from "@/constant/canvas";
 import { getNodeDefinition } from "./node-registry";
 import { isPluginEffectivelyEnabled } from "@/stores/use-plugin-store";
 import { CanvasNodeType, type CanvasNodeTypeId, type CanvasConnection, type CanvasNodeData, type CanvasNodeMetadata, type ViewportTransform } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 export type CanvasOperation =
     | { type: "add_node"; id?: string; nodeType?: CanvasNodeTypeId; title?: string; position?: { x: number; y: number }; x?: number; y?: number; width?: number; height?: number; metadata?: CanvasNodeMetadata }
@@ -324,7 +326,7 @@ export function applyCanvasOperations(snapshot: CanvasSnapshot, ops?: CanvasOper
         if (op.type === "add_node") {
             const nodeType = op.nodeType || CanvasNodeType.Text;
             const definition = getNodeDefinition(nodeType);
-            if (!definition || (definition.plugin && !isPluginEffectivelyEnabled(definition.plugin.pluginId))) throw new Error(`节点类型未注册或插件不可用：${nodeType}`);
+            if (!definition || (definition.plugin && !isPluginEffectivelyEnabled(definition.plugin.pluginId))) throw new Error(translate("shared.canvas.canvasOperationContract.nodeTypeIsUnregisteredOrItsPluginIsUnavailable", { v0: String(nodeType) }));
             const spec = getNodeSpec(nodeType as CanvasNodeType) || { title: definition.defaultTitle, ...definition.defaultSize, metadata: definition.defaultMetadata };
             const node: CanvasNodeData = {
                 id: op.id || `${nodeType}-${Date.now()}-${index}`,

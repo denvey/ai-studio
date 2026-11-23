@@ -8,11 +8,13 @@ import { createAdminUserGroup, updateAdminUserGroup, type UserGroup } from "@/se
 import { useAdminContext } from "../admin-context";
 import { Callout, Switch } from "../ui/controls";
 import { emptyUserGroupForm, userGroupFormValues, userGroupInput, type UserGroupFormValues } from "./user-group-form";
+import { translate } from "@/i18n";
+
 
 const badgeStyleOptions = [
-    { value: "none", label: "不展示徽章" },
-    { value: "vip", label: "VIP · 金色" },
-    { value: "svip", label: "SVIP · 紫粉流光" },
+    { value: "none", label: translate("adminPages.userGroups.userGroupEditor.noBadge") },
+    { value: "vip", label: translate("adminPages.userGroups.userGroupEditor.vIPGold") },
+    { value: "svip", label: translate("adminPages.userGroups.userGroupEditor.sVIPPurplePinkShimmer") },
 ];
 
 /** 分组编辑抽屉：基本信息与徽章、统一倍率与货币兑换比例、可用渠道、模型级倍率。 */
@@ -38,7 +40,7 @@ export function UserGroupEditor({ open, group, onClose, onSaved }: { open: boole
         () =>
             references.channels.map((channel) => ({
                 value: channel.id,
-                label: `${channel.name}${channel.enabled ? "" : "（已停用）"}`,
+                label: `${channel.name}${channel.enabled ? "" : translate("adminPages.userGroups.userGroupEditor.disabled")}`,
             })),
         [references.channels],
     );
@@ -61,10 +63,10 @@ export function UserGroupEditor({ open, group, onClose, onSaved }: { open: boole
             return;
         }
         modal.confirm({
-            title: "放弃分组修改？",
-            content: "尚未保存的分组倍率、渠道或徽章修改将丢失。",
-            okText: "放弃修改",
-            cancelText: "继续编辑",
+            title: translate("adminPages.userGroups.userGroupEditor.discardGroupChanges"),
+            content: translate("adminPages.userGroups.userGroupEditor.unsavedGroupMultiplierChannelOrBadgeChangesWillBeLost"),
+            okText: translate("adminPages.userGroups.userGroupEditor.discardChanges"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
             okButtonProps: { danger: true },
             onOk: onClose,
         });
@@ -77,9 +79,9 @@ export function UserGroupEditor({ open, group, onClose, onSaved }: { open: boole
             const input = userGroupInput(values);
             const result = group ? await updateAdminUserGroup(group.id, input) : await createAdminUserGroup(input);
             onSaved(result.group);
-            message.success(group ? "分组已保存" : "分组已创建");
+            message.success(group ? translate("adminPages.userGroups.userGroupEditor.groupSaved") : translate("adminPages.userGroups.userGroupEditor.groupCreated"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "保存分组失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.userGroups.userGroupEditor.failedToSaveGroup"));
         } finally {
             setSaving(false);
         }
@@ -87,7 +89,7 @@ export function UserGroupEditor({ open, group, onClose, onSaved }: { open: boole
 
     return (
         <AdminDrawer
-            title={group ? `编辑分组 · ${group.name}` : "新建分组"}
+            title={group ? translate("adminPages.userGroups.userGroupEditor.editGroup", { v0: String(group.name) }) : translate("adminPages.userGroups.userGroupEditor.newGroup")}
             open={open}
             size="min(640px, 100vw)"
             onClose={close}
@@ -95,7 +97,7 @@ export function UserGroupEditor({ open, group, onClose, onSaved }: { open: boole
             destroyOnHidden
             extra={
                 <Button type="primary" loading={saving} onClick={() => void save()}>
-                    保存
+                    {translate("common.save")}
                 </Button>
             }
         >
@@ -103,87 +105,87 @@ export function UserGroupEditor({ open, group, onClose, onSaved }: { open: boole
                 <div className="grid gap-x-4 sm:grid-cols-2">
                     <Form.Item
                         name="code"
-                        label="分组编码"
-                        extra={creating ? "创建后不可修改，例如 vip、svip、enterprise。" : "分组编码创建后不可修改。"}
-                        rules={[{ required: true, pattern: /^[a-z0-9][a-z0-9_-]{0,39}$/, message: "小写字母、数字、下划线或连字符，最多 40 位" }]}
+                        label={translate("adminPages.userGroups.userGroupEditor.groupCode")}
+                        extra={creating ? translate("adminPages.userGroups.userGroupEditor.cannotBeChangedAfterCreationForExampleVipSvipEnterprise") : translate("adminPages.userGroups.userGroupEditor.theGroupCodeCannotBeChangedAfterCreation")}
+                        rules={[{ required: true, pattern: /^[a-z0-9][a-z0-9_-]{0,39}$/, message: translate("adminPages.userGroups.userGroupEditor.lowercaseLettersNumbersUnderscoresOrHyphensUpTo40Characters") }]}
                     >
                         <Input disabled={!creating} placeholder="vip" />
                     </Form.Item>
-                    <Form.Item name="name" label="分组名称" rules={[{ required: true, whitespace: true, message: "请填写分组名称" }]}>
-                        <Input maxLength={80} placeholder="VIP 会员" />
+                    <Form.Item name="name" label={translate("adminPages.userGroups.userGroupEditor.groupName")} rules={[{ required: true, whitespace: true, message: translate("adminPages.userGroups.userGroupEditor.pleaseEnterAGroupName") }]}>
+                        <Input maxLength={80} placeholder={translate("adminPages.userGroups.userGroupEditor.vIPMember")} />
                     </Form.Item>
                 </div>
-                <Form.Item name="description" label="说明">
-                    <Input.TextArea rows={2} maxLength={500} placeholder="面向哪类客户、有哪些权益" />
+                <Form.Item name="description" label={translate("library.ark.virtualFlow.descriptionLabel")}>
+                    <Input.TextArea rows={2} maxLength={500} placeholder={translate("adminPages.userGroups.userGroupEditor.targetCustomersAndIncludedBenefits")} />
                 </Form.Item>
                 <div className="grid gap-x-4 sm:grid-cols-[1fr_1fr_auto] sm:items-start">
-                    <Form.Item name="badgeStyle" label="用户端徽章">
+                    <Form.Item name="badgeStyle" label={translate("adminPages.userGroups.userGroupEditor.userBadge")}>
                         <Select options={badgeStyleOptions} />
                     </Form.Item>
-                    <Form.Item name="badgeLabel" label="徽章文字" extra="留空时显示 VIP / SVIP。">
+                    <Form.Item name="badgeLabel" label={translate("adminPages.userGroups.userGroupEditor.badgeText")} extra={translate("adminPages.userGroups.userGroupEditor.leaveBlankToDisplayVIPSVIP")}>
                         <Input maxLength={16} placeholder="VIP" />
                     </Form.Item>
-                    <Form.Item label="预览">
-                        <div className="flex h-8 items-center">{badgeStyle === "none" ? <span className="text-xs text-foreground/45">不展示</span> : <UserGroupBadge group={{ name, badgeLabel, badgeStyle }} />}</div>
+                    <Form.Item label={translate("account.feedback.preview")}>
+                        <div className="flex h-8 items-center">{badgeStyle === "none" ? <span className="text-xs text-foreground/45">{translate("adminPages.userGroups.userGroupEditor.hidden")}</span> : <UserGroupBadge group={{ name, badgeLabel, badgeStyle }} />}</div>
                     </Form.Item>
                 </div>
 
-                <div className="mb-2 mt-2 text-sm font-medium">计费倍率与货币兑换</div>
+                <div className="mb-2 mt-2 text-sm font-medium">{translate("adminPages.userGroups.userGroupEditor.billingMultipliersAndCurrencyConversion")}</div>
                 <Callout tone="info" className="mb-4">
-                    实际扣费 = 模型售价 ×（USD/CNY 计价时乘以兑换比例）× 全局积分倍率 × 分组倍率 × 模型倍率。倍率 1 表示不打折，0.8 表示 8 折。
+                    {translate("adminPages.userGroups.userGroupEditor.actualChargeModelPriceCurrencyConversionRateForUSDCNY")}
                 </Callout>
                 <div className="grid gap-x-4 sm:grid-cols-3">
-                    <Form.Item name="ratio" label="分组倍率" rules={[{ required: true, type: "number", min: 0.0001, max: 100, message: "0.0001 至 100" }]}>
+                    <Form.Item name="ratio" label={translate("adminPages.userGroups.userGroupEditor.groupMultiplier")} rules={[{ required: true, type: "number", min: 0.0001, max: 100, message: translate("adminPages.userGroups.userGroupEditor.item00001To100") }]}>
                         <InputNumber className="w-full" min={0.0001} max={100} step={0.05} />
                     </Form.Item>
-                    <Form.Item name="pointsPerUsd" label="1 USD = 积分" rules={[{ type: "number", min: 0, max: 1_000_000 }]} extra="0 表示该分组不能使用 USD 计价模型。">
+                    <Form.Item name="pointsPerUsd" label={translate("adminPages.userGroups.userGroupEditor.creditsPer1USD")} rules={[{ type: "number", min: 0, max: 1_000_000 }]} extra={translate("adminPages.userGroups.userGroupEditor.item0PreventsThisGroupFromUsingModelsPricedInUSD")}>
                         <InputNumber className="w-full" min={0} max={1_000_000} step={0.1} />
                     </Form.Item>
-                    <Form.Item name="pointsPerCny" label="1 CNY = 积分" rules={[{ type: "number", min: 0, max: 1_000_000 }]} extra="0 表示该分组不能使用 CNY 计价模型。">
+                    <Form.Item name="pointsPerCny" label={translate("adminPages.userGroups.userGroupEditor.creditsPer1CNY")} rules={[{ type: "number", min: 0, max: 1_000_000 }]} extra={translate("adminPages.userGroups.userGroupEditor.item0PreventsThisGroupFromUsingModelsPricedInCNY")}>
                         <InputNumber className="w-full" min={0} max={1_000_000} step={0.1} />
                     </Form.Item>
                 </div>
 
-                <div className="mb-2 mt-2 text-sm font-medium">可用渠道</div>
-                <Form.Item name="allChannels" valuePropName="checked" extra="开启后可使用全部系统渠道（含以后新增的渠道）；关闭后只能使用下方勾选的渠道。管理员始终可见全部渠道。">
-                    <Switch aria-label="开放全部系统渠道" />
+                <div className="mb-2 mt-2 text-sm font-medium">{translate("adminPages.userGroups.userGroupEditor.availableChannels")}</div>
+                <Form.Item name="allChannels" valuePropName="checked" extra={translate("adminPages.userGroups.userGroupEditor.whenEnabledAllSystemChannelsAreAvailableIncludingFutureChannels")}>
+                    <Switch aria-label={translate("adminPages.userGroups.userGroupEditor.allowAllSystemChannels")} />
                 </Form.Item>
                 {!allChannels ? (
-                    <Form.Item name="channelIds" label="绑定渠道" extra={channelIds?.length ? undefined : "未绑定任何渠道时，该分组用户看不到任何系统模型。"}>
-                        <Select mode="multiple" allowClear showSearch optionFilterProp="label" options={channelOptions} placeholder="选择该分组可使用的系统渠道" />
+                    <Form.Item name="channelIds" label={translate("adminPages.userGroups.userGroupEditor.assignedChannels")} extra={channelIds?.length ? undefined : translate("adminPages.userGroups.userGroupEditor.withNoChannelsAssignedUsersInThisGroupCannotSee")}>
+                        <Select mode="multiple" allowClear showSearch optionFilterProp="label" options={channelOptions} placeholder={translate("adminPages.userGroups.userGroupEditor.chooseSystemChannelsAvailableToThisGroup")} />
                     </Form.Item>
                 ) : null}
 
-                <div className="mb-2 mt-2 text-sm font-medium">模型单独倍率</div>
-                <p className="mb-3 text-xs text-foreground/55">按渠道模型标识（前台统一价模型按模型编码）匹配；留空表示沿用分组默认值。</p>
+                <div className="mb-2 mt-2 text-sm font-medium">{translate("adminPages.userGroups.userGroupEditor.perModelMultipliers")}</div>
+                <p className="mb-3 text-xs text-foreground/55">{translate("adminPages.userGroups.userGroupEditor.matchedByChannelModelIDModelCodeForUnifiedFrontend")}</p>
                 <Form.List name="modelOverrides">
                     {(fields, { add, remove }) => (
                         <div className="grid gap-2">
                             {fields.map((field) => (
                                 <div key={field.key} className="grid items-start gap-2 sm:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))_auto]">
-                                    <Form.Item name={[field.name, "modelKey"]} className="mb-0" rules={[{ required: true, whitespace: true, message: "请选择模型" }]}>
-                                        <Select showSearch allowClear options={modelOptions} placeholder="模型标识" aria-label="模型标识" />
+                                    <Form.Item name={[field.name, "modelKey"]} className="mb-0" rules={[{ required: true, whitespace: true, message: translate("adminPages.userGroups.userGroupEditor.pleaseSelectAModel") }]}>
+                                        <Select showSearch allowClear options={modelOptions} placeholder={translate("adminPages.userGroups.userGroupEditor.modelIdentifier")} aria-label={translate("adminPages.userGroups.userGroupEditor.modelIdentifier")} />
                                     </Form.Item>
                                     <Form.Item name={[field.name, "ratio"]} className="mb-0">
-                                        <InputNumber className="w-full" min={0.0001} max={100} step={0.05} placeholder="倍率" aria-label="模型倍率" />
+                                        <InputNumber className="w-full" min={0.0001} max={100} step={0.05} placeholder={translate("adminPages.userGroups.userGroupEditor.multiplier")} aria-label={translate("adminPages.userGroups.userGroupEditor.modelMultiplier")} />
                                     </Form.Item>
                                     <Form.Item name={[field.name, "pointsPerUsd"]} className="mb-0">
-                                        <InputNumber className="w-full" min={0} max={1_000_000} placeholder="1 USD=" aria-label="1 USD 兑换积分" />
+                                        <InputNumber className="w-full" min={0} max={1_000_000} placeholder="1 USD=" aria-label={translate("adminPages.userGroups.userGroupEditor.creditsPer1USD2")} />
                                     </Form.Item>
                                     <Form.Item name={[field.name, "pointsPerCny"]} className="mb-0">
-                                        <InputNumber className="w-full" min={0} max={1_000_000} placeholder="1 CNY=" aria-label="1 CNY 兑换积分" />
+                                        <InputNumber className="w-full" min={0} max={1_000_000} placeholder="1 CNY=" aria-label={translate("adminPages.userGroups.userGroupEditor.creditsPer1CNY2")} />
                                     </Form.Item>
-                                    <Button type="text" danger icon={<Trash2 className="size-4" />} aria-label="删除这条模型倍率" onClick={() => remove(field.name)} />
+                                    <Button type="text" danger icon={<Trash2 className="size-4" />} aria-label={translate("adminPages.userGroups.userGroupEditor.removeThisModelMultiplier")} onClick={() => remove(field.name)} />
                                 </div>
                             ))}
                             <Button icon={<Plus className="size-4" />} onClick={() => add({ modelKey: "", ratio: null, pointsPerUsd: null, pointsPerCny: null })}>
-                                添加模型倍率
+                                {translate("adminPages.userGroups.userGroupEditor.addModelMultiplier")}
                             </Button>
                         </div>
                     )}
                 </Form.List>
 
-                <Form.Item name="sortOrder" label="排序" className="mt-4" extra="数字越小越靠前。">
+                <Form.Item name="sortOrder" label={translate("adminPages.userGroups.userGroupEditor.order")} className="mt-4" extra={translate("adminPages.userGroups.userGroupEditor.lowerNumbersAppearFirst")}>
                     <InputNumber className="w-40" min={-100000} max={100000} />
                 </Form.Item>
             </Form>

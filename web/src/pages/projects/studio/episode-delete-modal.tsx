@@ -6,6 +6,7 @@ import { AlertTriangle } from "lucide-react";
 import { AppModal } from "@/components/ui/product/app-modal";
 import { deleteDramaEpisode, DRAMA_ERROR_REASON, type DramaEpisodeRow } from "@/services/api/drama";
 import { ApiError } from "@/services/api/request";
+import { translate } from "@/i18n";
 
 // 删除一集：生成过分镜视频的集要输入“第 N 集”才能删除，没有视频的集确认一次即可。
 // 是否生成过以服务端为准：集列表统计不到重新改编前的旧视频，服务端要求确认时再切到输入确认。
@@ -38,7 +39,7 @@ function DeleteEpisodeDialog({ projectId, episode, blockedReason, onClose, onDel
     const remove = useMutation({
         mutationFn: () => deleteDramaEpisode(projectId, episode.id, confirmText !== null ? typed.trim() : undefined),
         onSuccess: () => {
-            message.success(`已删除第 ${episode.number} 集`);
+            message.success(translate("drama.studio.episodeDeleteModal.episodeDeleted", { v0: String(episode.number) }));
             onDeleted(episode.id);
         },
         onError: (error) => {
@@ -49,7 +50,7 @@ function DeleteEpisodeDialog({ projectId, episode, blockedReason, onClose, onDel
                 message.warning(error.message);
                 return;
             }
-            message.error(error instanceof Error ? error.message : "删除失败");
+            message.error(error instanceof Error ? error.message : translate("library.picker.deleteFailed"));
         },
     });
     const canSubmit = !blockedReason && (confirmText === null || matches);
@@ -62,30 +63,30 @@ function DeleteEpisodeDialog({ projectId, episode, blockedReason, onClose, onDel
             centered
             width={480}
             rootClassName="drama-root"
-            title={`删除第 ${episode.number} 集？`}
-            okText="删除本集"
-            cancelText="取消"
+            title={translate("drama.studio.episodeDeleteModal.deleteEpisode", { v0: String(episode.number) })}
+            okText={translate("drama.studio.episodeDeleteModal.deleteEpisode2")}
+            cancelText={translate("common.cancel")}
             okButtonProps={{ danger: true, disabled: !canSubmit }}
             confirmLoading={remove.isPending}
             onOk={submit}
             onCancel={onClose}
         >
             <div className="drama-episode-delete">
-                <p>「{episode.title}」的剧本、分镜与剧情段会一并删除，后面各集的集号前移一位。本集原文退回「原著章节」，之后可以重新加入制作。</p>
+                <p>{translate("drama.sentences.deleteEpisodeSummary", { title: episode.title })}</p>
                 {confirmText !== null ? (
                     <>
                         <div className="drama-episode-delete-warn" role="alert">
                             <AlertTriangle className="size-4 shrink-0" />
                             <span>
-                                本集已生成过分镜视频{videos > 0 ? `（${videos} 段）` : ""}
-                                {episode.finalResourceId ? "和成片" : ""}。删除后这些视频、成片与历史版本都无法恢复，已花费的积分不会退回。
+                                {translate("drama.studio.episodeDeleteModal.thisEpisodeAlreadyHasGeneratedSegmentVideos")}{videos > 0 ? translate("drama.studio.episodeDeleteModal.segments", { v0: String(videos) }) : ""}
+                                {episode.finalResourceId ? translate("drama.studio.episodeDeleteModal.andAFinalCut") : ""}{translate("drama.studio.episodeDeleteModal.deletingPermanentlyRemovesTheseVideosFinalCutsAndPreviousVersions")}
                             </span>
                         </div>
                         <label className="drama-episode-delete-field">
                             <span>
-                                请输入 <b>{confirmText}</b> 确认删除
+                                {translate("drama.studio.episodeDeleteModal.enter")} <b>{confirmText}</b> {translate("account.ui.delete.confirm")}
                             </span>
-                            <Input autoFocus value={typed} placeholder={confirmText} aria-label={`输入“${confirmText}”确认删除`} disabled={Boolean(blockedReason)} onChange={(event) => setTyped(event.target.value)} onPressEnter={submit} />
+                            <Input autoFocus value={typed} placeholder={confirmText} aria-label={translate("drama.studio.episodeDeleteModal.enterToConfirmDeletion", { v0: String(confirmText) })} disabled={Boolean(blockedReason)} onChange={(event) => setTyped(event.target.value)} onPressEnter={submit} />
                         </label>
                     </>
                 ) : null}

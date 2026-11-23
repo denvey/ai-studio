@@ -1,4 +1,6 @@
 import type { AgentApprovalPreview, AgentApprovalPreviewItem, AgentApprovalPreviewOperation } from "@/services/api/agent";
+import { translate } from "@/i18n";
+
 
 type RecordValue = Record<string, unknown>;
 
@@ -25,19 +27,19 @@ function approvalArguments(value: unknown): RecordValue | null {
 
 function shortReference(value: unknown): string {
     const id = text(value, 80);
-    if (!id) return "未知目标";
+    if (!id) return translate("shared.canvas.agentApprovalPresentation.unknownTarget");
     return id.length <= 16 ? id : `${id.slice(0, 8)}…${id.slice(-4)}`;
 }
 
 function nodeTypeLabel(value: unknown): string {
     const type = text(value, 32).toLowerCase();
-    return ({ text: "文本", markdown: "Markdown", image: "图片", video: "视频", audio: "音频", frame: "画框", script: "脚本", character: "角色卡" } as Record<string, string>)[type] || (type ? "节点" : "");
+    return ({ text: translate("account.settings.modelConfig.capabilities.text"), markdown: "Markdown", image: translate("account.feedback.image"), video: translate("account.feedback.video"), audio: translate("account.settings.modelConfig.capabilities.audio"), frame: translate("shared.canvas.agentApprovalPresentation.frame"), script: translate("shared.canvas.agentApprovalPresentation.script"), character: translate("canvasA.characterNode.card") } as Record<string, string>)[type] || (type ? translate("shared.workflowGraphEditor.node") : "");
 }
 
 function fieldLabel(key: string, nodeType: string): string {
-    if (key === "title") return "节点名称";
-    if (key === "content") return ["image", "video", "audio"].includes(nodeType.toLowerCase()) ? "下一版提示词" : "正文";
-    return key === "composerContent" ? "下一版提示词" : "已配置字段";
+    if (key === "title") return translate("shared.canvas.agentApprovalPresentation.nodeName");
+    if (key === "content") return ["image", "video", "audio"].includes(nodeType.toLowerCase()) ? translate("shared.canvas.agentApprovalPresentation.nextPrompt") : translate("shared.canvas.agentApprovalPresentation.body");
+    return key === "composerContent" ? translate("shared.canvas.agentApprovalPresentation.nextPrompt") : translate("shared.canvas.agentApprovalPresentation.configuredFields");
 }
 
 function operation(value: unknown): AgentApprovalPreviewOperation | null {
@@ -85,8 +87,8 @@ function canvasFallback(args: RecordValue | null): AgentApprovalPresentation {
         const type = text(op.nodeType, 32).toLowerCase();
         const label = nodeTypeLabel(type);
         if (kind === "add_node") {
-            const title = text(op.title, 120) || `未命名${label || "节点"}`;
-            items.push({ operation: kind, nodeTitle: title, nodeType: type || undefined, nodeTypeLabel: label || undefined, fields: ["节点名称", label === "文本" || label === "Markdown" ? "正文" : "初始内容"], summary: `新增${label || "节点"}《${title}》` });
+            const title = text(op.title, 120) || translate("shared.canvas.agentApprovalPresentation.untitled", { v0: String(label || translate("shared.workflowGraphEditor.node")) });
+            items.push({ operation: kind, nodeTitle: title, nodeType: type || undefined, nodeTypeLabel: label || undefined, fields: [translate("shared.canvas.agentApprovalPresentation.nodeName"), type === "text" || type === "markdown" ? translate("shared.canvas.agentApprovalPresentation.body") : translate("shared.canvas.agentApprovalPresentation.initialContent")], summary: translate("shared.canvas.agentApprovalPresentation.add", { v0: String(label || translate("shared.workflowGraphEditor.node")), v1: String(title) }) });
             continue;
         }
         if (kind === "update_node") {
@@ -94,26 +96,26 @@ function canvasFallback(args: RecordValue | null): AgentApprovalPresentation {
             const id = shortReference(op.id);
             const fields = patch ? Object.keys(patch).map((key) => fieldLabel(key, type)).filter(Boolean) : [];
             const resultTitle = text(patch?.title, 120);
-            const target = `目标节点（引用 ${id}）`;
-            items.push({ operation: kind, nodeTitle: target, nodeType: type || undefined, nodeTypeLabel: label || undefined, resultTitle: resultTitle || undefined, fields: fields.length ? [...new Set(fields)] : ["已配置字段"], summary: `修改${label || "节点"}《${target}》的${fields.length ? [...new Set(fields)].join("、") : "已配置字段"}${resultTitle ? `，名称改为《${resultTitle}》` : ""}` });
+            const target = translate("shared.canvas.agentApprovalPresentation.targetNodeReference", { v0: String(id) });
+            items.push({ operation: kind, nodeTitle: target, nodeType: type || undefined, nodeTypeLabel: label || undefined, resultTitle: resultTitle || undefined, fields: fields.length ? [...new Set(fields)] : [translate("shared.canvas.agentApprovalPresentation.configuredFields")], summary: translate("shared.canvas.agentApprovalPresentation.updateOf", { v0: String(label || translate("shared.workflowGraphEditor.node")), v1: String(target), v2: String(fields.length ? [...new Set(fields)].join("、") : translate("shared.canvas.agentApprovalPresentation.configuredFields")), v3: String(resultTitle ? translate("shared.canvas.agentApprovalPresentation.renamedTo", { v0: String(resultTitle) }) : "") }) });
             continue;
         }
         const from = shortReference(op.fromNodeId);
         const to = shortReference(op.toNodeId);
-        items.push({ operation: kind, nodeTitle: `来源（引用 ${from}）`, targetNodeTitle: `目标（引用 ${to}）`, summary: `建立来源（引用 ${from}）→目标（引用 ${to}）的引用连线` });
+        items.push({ operation: kind, nodeTitle: translate("shared.canvas.agentApprovalPresentation.sourceReference", { v0: String(from) }), targetNodeTitle: translate("shared.canvas.agentApprovalPresentation.targetReference", { v0: String(to) }), summary: translate("shared.canvas.agentApprovalPresentation.connectSourceReferenceTargetReference", { v0: String(from), v1: String(to) }) });
     }
     const counts = items.reduce<Record<string, number>>((out, item) => { out[item.operation] = (out[item.operation] || 0) + 1; return out; }, {});
-    const parts = [counts.add_node ? `新增 ${counts.add_node} 个节点` : "", counts.update_node ? `修改 ${counts.update_node} 个节点` : "", counts.connect_nodes ? `建立 ${counts.connect_nodes} 条引用连线` : ""].filter(Boolean);
-    return { source: "fallback", kind: "canvas_mutation", title: "确认画布修改", description: parts.length ? `Agent 准备${parts.join("，")}。历史审批缺少画布快照，以下目标使用安全引用标识；无法确认具体目标时不会代替当前画布。` : "审批参数不完整，无法确认具体修改目标，请重新读取画布后再申请审批。", items, };
+    const parts = [counts.add_node ? translate("shared.canvas.agentApprovalPresentation.addNodes", { v0: String(counts.add_node) }) : "", counts.update_node ? translate("shared.canvas.agentApprovalPresentation.updateNodes", { v0: String(counts.update_node) }) : "", counts.connect_nodes ? translate("shared.canvas.agentApprovalPresentation.createReferenceConnections", { v0: String(counts.connect_nodes) }) : ""].filter(Boolean);
+    return { source: "fallback", kind: "canvas_mutation", title: translate("shared.canvas.agentApprovalPresentation.confirmCanvasChanges"), description: parts.length ? translate("shared.canvas.agentApprovalPresentation.agentPlansToThisPastApprovalHasNoCanvasSnapshot", { v0: String(parts.join("，")) }) : translate("shared.canvas.agentApprovalPresentation.approvalParametersAreIncompleteAndTheTargetsCannotBeConfirmed"), items, };
 }
 
 function mediaFallback(args: RecordValue | null, payload: RecordValue | null): AgentApprovalPresentation {
     const mode = text(args?.mode, 32).toLowerCase();
-    const type = mode === "video" ? "视频" : mode === "image" ? "图片" : mode === "audio" ? "音频" : "媒体";
+    const type = mode === "video" ? translate("account.feedback.video") : mode === "image" ? translate("account.feedback.image") : mode === "audio" ? translate("account.settings.modelConfig.capabilities.audio") : translate("shared.canvas.agentApprovalPresentation.media");
     const references = Array.isArray(args?.referenceNodeIds) ? args.referenceNodeIds.filter((id) => typeof id === "string") : [];
-    const title = text(args?.title, 120) || `未命名${type}`;
-    const details = [text(payload?.modelName) ? `模型：${text(payload?.modelName)}` : text(args?.channelModelKey) || text(args?.logicalModelId) ? `模型：${text(args?.channelModelKey) || text(args?.logicalModelId)}` : "", references.length ? `引用 ${references.length} 个画布资产，并建立连线` : "不引用画布媒体资产", typeof args?.durationSeconds === "number" && args.durationSeconds > 0 ? `时长：${args.durationSeconds} 秒` : "", text(args?.size) ? `画幅：${text(args?.size, 40)}` : "", text(args?.quality) ? `质量：${text(args?.quality, 40)}` : "", typeof args?.videoGenerateAudio === "boolean" ? `音频：${args.videoGenerateAudio ? "开启" : "关闭"}` : ""].filter(Boolean);
-    return { source: "fallback", kind: "media_generation", title: `确认生成${type}`, description: `${type}草稿节点和引用连线已创建，尚未提交生成。确认规格后批准才会提交收费任务；拒绝则保留草稿，结果自动回写画布。`, items: [{ operation: "generate_media", nodeTitle: title, nodeType: mode || undefined, nodeTypeLabel: type, details, summary: `生成${type}《${title}》` }] };
+    const title = text(args?.title, 120) || translate("shared.canvas.agentApprovalPresentation.untitled", { v0: String(type) });
+    const details = [text(payload?.modelName) ? translate("shared.canvas.agentApprovalPresentation.model", { v0: String(text(payload?.modelName)) }) : text(args?.channelModelKey) || text(args?.logicalModelId) ? translate("shared.canvas.agentApprovalPresentation.model", { v0: String(text(args?.channelModelKey) || text(args?.logicalModelId)) }) : "", references.length ? translate("shared.canvas.agentApprovalPresentation.referenceCanvasAssetsAndCreateConnections", { v0: String(references.length) }) : translate("shared.canvas.agentApprovalPresentation.noCanvasMediaAssetsReferenced"), typeof args?.durationSeconds === "number" && args.durationSeconds > 0 ? translate("shared.canvas.agentApprovalPresentation.durationSeconds", { v0: String(args.durationSeconds) }) : "", text(args?.size) ? translate("shared.canvas.agentApprovalPresentation.aspectRatio", { v0: String(text(args?.size, 40)) }) : "", text(args?.quality) ? translate("shared.canvas.agentApprovalPresentation.quality", { v0: String(text(args?.quality, 40)) }) : "", typeof args?.videoGenerateAudio === "boolean" ? translate("shared.canvas.agentApprovalPresentation.audio", { v0: String(args.videoGenerateAudio ? translate("shared.canvas.agentApprovalPresentation.on") : translate("common.close")) }) : ""].filter(Boolean);
+    return { source: "fallback", kind: "media_generation", title: translate("shared.canvas.agentApprovalPresentation.confirmGeneration", { v0: String(type) }), description: translate("shared.canvas.agentApprovalPresentation.draftNodesAndReferenceConnectionsHaveBeenCreatedGenerationHas", { v0: String(type) }), items: [{ operation: "generate_media", nodeTitle: title, nodeType: mode || undefined, nodeTypeLabel: type, details, summary: translate("shared.canvas.agentApprovalPresentation.generate", { v0: String(type), v1: String(title) }) }] };
 }
 
 export function agentApprovalPresentation(detail: unknown): AgentApprovalPresentation {
@@ -126,5 +128,5 @@ export function agentApprovalPresentation(detail: unknown): AgentApprovalPresent
     const args = approvalArguments(fn?.arguments ?? payload?.arguments);
     if (name === "canvas_apply_ops") return canvasFallback(args);
     if (name === "generate_media") return mediaFallback(args, payload);
-    return { source: "fallback", kind: "agent_approval", title: "确认执行操作", description: "Agent 请求执行一项操作，但审批参数无法识别；请重新读取画布后再申请审批。", items: [] };
+    return { source: "fallback", kind: "agent_approval", title: translate("shared.canvas.agentApprovalPresentation.confirmOperation"), description: translate("shared.canvas.agentApprovalPresentation.agentRequestedAnOperationButItsApprovalParametersCouldNot"), items: [] };
 }

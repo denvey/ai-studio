@@ -46,6 +46,8 @@ import { AdminDataTable, AdminExportButton, AdminRowActions, AdminStatusBadge, A
 import { AdminUserDetailDrawer } from "../components/admin-user-detail-drawer";
 import "./payments-page.css";
 import { Select } from "@/components/ui/base/select";
+import { translate } from "@/i18n";
+
 
 type ProviderFormValues = {
     enabled: boolean;
@@ -82,22 +84,22 @@ function splitConfigList(value?: string) {
 }
 
 const paymentOrderStatus: Record<string, { label: string; tone: "neutral" | "success" | "warning" | "error" | "info" }> = {
-    created: { label: "创建中", tone: "info" },
-    pending: { label: "待支付", tone: "warning" },
-    closing: { label: "关单中", tone: "warning" },
-    closed: { label: "已关闭", tone: "neutral" },
-    credited: { label: "已入账", tone: "success" },
-    create_failed: { label: "下单失败", tone: "error" },
+    created: { label: translate("adminPages.payments.paymentsPage.creating"), tone: "info" },
+    pending: { label: translate("adminPages.payments.paymentsPage.awaitingPayment"), tone: "warning" },
+    closing: { label: translate("adminPages.payments.paymentsPage.closingOrder"), tone: "warning" },
+    closed: { label: translate("adminPages.payments.paymentsPage.disabled"), tone: "neutral" },
+    credited: { label: translate("adminPages.payments.paymentsPage.credited"), tone: "success" },
+    create_failed: { label: translate("adminPages.payments.paymentsPage.orderCreationFailed"), tone: "error" },
 };
 
 const reconciliationResult: Record<string, { label: string; tone: "neutral" | "success" | "warning" | "error" | "info" }> = {
-    matched: { label: "一致", tone: "success" },
-    recovered: { label: "已自动补发", tone: "info" },
-    local_order_not_found: { label: "本地订单缺失", tone: "error" },
-    provider_record_missing: { label: "渠道记录缺失", tone: "error" },
-    amount_mismatch: { label: "金额不一致", tone: "error" },
-    trade_no_mismatch: { label: "交易号不一致", tone: "error" },
-    credit_failed: { label: "补发失败", tone: "error" },
+    matched: { label: translate("adminPages.payments.paymentsPage.matched"), tone: "success" },
+    recovered: { label: translate("adminPages.payments.paymentsPage.automaticallyCredited"), tone: "info" },
+    local_order_not_found: { label: translate("adminPages.payments.paymentsPage.localOrderMissing"), tone: "error" },
+    provider_record_missing: { label: translate("adminPages.payments.paymentsPage.providerRecordMissing"), tone: "error" },
+    amount_mismatch: { label: translate("adminPages.payments.paymentsPage.amountMismatch"), tone: "error" },
+    trade_no_mismatch: { label: translate("adminPages.payments.paymentsPage.transactionIDMismatch"), tone: "error" },
+    credit_failed: { label: translate("adminPages.payments.paymentsPage.creditDeliveryFailed"), tone: "error" },
 };
 
 export default function AdminPaymentsPage() {
@@ -192,7 +194,7 @@ export default function AdminPaymentsPage() {
             setRateDraft(settingsResult.settings.usdCnyRate || "");
             setBillProviderId((current) => current || providerResult.providers.find((item) => item.configured)?.id || providerResult.providers[0]?.id || "");
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "读取支付配置失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.payments.paymentsPage.failedToLoadPaymentSettings"));
         } finally {
             setLoading(false);
         }
@@ -214,7 +216,7 @@ export default function AdminPaymentsPage() {
             setAppliedOrders(filters);
             setOrdersReady(true);
         } catch (error) {
-            if (!controller.signal.aborted) message.error(error instanceof Error ? error.message : "读取支付订单失败");
+            if (!controller.signal.aborted) message.error(error instanceof Error ? error.message : translate("adminPages.payments.paymentsPage.failedToLoadPaymentOrders"));
         } finally {
             if (!controller.signal.aborted) setOrdersLoading(false);
         }
@@ -236,7 +238,7 @@ export default function AdminPaymentsPage() {
             setAppliedRuns(filters);
             setRunsReady(true);
         } catch (error) {
-            if (!controller.signal.aborted) message.error(error instanceof Error ? error.message : "读取对账记录失败");
+            if (!controller.signal.aborted) message.error(error instanceof Error ? error.message : translate("adminPages.payments.paymentsPage.failedToLoadReconciliationRecords"));
         } finally {
             if (!controller.signal.aborted) setRunsLoading(false);
         }
@@ -277,11 +279,11 @@ export default function AdminPaymentsPage() {
                 closeAfterMinutes: values.closeAfterMinutes,
                 values: Object.fromEntries(Object.entries(values.values || {}).map(([key, value]) => [key, String(value || "")])),
             });
-            message.success(`${providerDrawer.name}配置已保存为新版本`);
+            message.success(translate("adminPages.payments.paymentsPage.settingsSavedAsANewVersion", { v0: String(providerDrawer.name) }));
             setProviderDrawer(undefined);
             await loadBase();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "保存支付渠道失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.payments.paymentsPage.failedToSavePaymentChannel"));
         } finally {
             setProviderSaving(false);
         }
@@ -341,11 +343,11 @@ export default function AdminPaymentsPage() {
         try {
             if (productDrawer) await updateAdminTopupProduct(productDrawer.id, input);
             else await createAdminTopupProduct(input);
-            message.success(productDrawer ? "充值商品已更新" : "充值商品已创建");
+            message.success(productDrawer ? translate("adminPages.payments.paymentsPage.purchaseProductUpdated") : translate("adminPages.payments.paymentsPage.purchaseProductCreated"));
             setProductDrawer(undefined);
             await loadBase();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "保存充值商品失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.payments.paymentsPage.failedToSavePurchaseProduct"));
         } finally {
             setProductSaving(false);
         }
@@ -365,28 +367,28 @@ export default function AdminPaymentsPage() {
         } catch (error) {
             setDefaultCurrency(previous.defaultCurrency);
             setRateDraft(previous.usdCnyRate);
-            message.error(error instanceof Error ? error.message : "保存充值设置失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.payments.paymentsPage.failedToSavePurchaseSettings"));
         } finally {
             setCurrencySaving(false);
         }
     };
 
-    const saveDefaultCurrency = (currency: PaymentCurrency) => savePaymentSettings({ defaultCurrency: currency, usdCnyRate }, `默认充值货币已切换为 ${currency}`);
+    const saveDefaultCurrency = (currency: PaymentCurrency) => savePaymentSettings({ defaultCurrency: currency, usdCnyRate }, translate("adminPages.payments.paymentsPage.defaultPurchaseCurrencySwitchedTo", { v0: String(currency) }));
 
     const saveUsdCnyRate = () => {
         const rate = rateDraft.trim();
         if (rate === usdCnyRate) return;
-        void savePaymentSettings({ defaultCurrency, usdCnyRate: rate }, rate ? `汇率已更新为 1 USD = ${rate} CNY` : "已清除汇率，跨币种渠道将不可下单");
+        void savePaymentSettings({ defaultCurrency, usdCnyRate: rate }, rate ? translate("adminPages.payments.paymentsPage.exchangeRateUpdatedTo1USDCNY", { v0: String(rate) }) : translate("adminPages.payments.paymentsPage.exchangeRateClearedCrossCurrencyChannelsCannotAcceptOrders"));
     };
 
     const queryOrder = async (order: PaymentOrder) => {
         setOrderActionId(order.id);
         try {
             await queryAdminPaymentOrder(order.id);
-            message.success("已向支付渠道查单");
+            message.success(translate("adminPages.payments.paymentsPage.paymentStatusCheckedWithTheProvider"));
             await loadOrders();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "查单失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.payments.paymentsPage.failedToCheckOrder"));
         } finally {
             setOrderActionId("");
         }
@@ -394,18 +396,18 @@ export default function AdminPaymentsPage() {
 
     const closeOrder = (order: PaymentOrder) => {
         modal.confirm({
-            title: "关闭未支付订单？",
-            content: "系统会先向支付渠道查单；若渠道已支付则立即入账，否则执行关单。",
-            okText: "查单并关单",
-            cancelText: "取消",
+            title: translate("adminPages.payments.paymentsPage.closeTheUnpaidOrder"),
+            content: translate("adminPages.payments.paymentsPage.theSystemChecksThePaymentChannelFirstIfPaymentIs"),
+            okText: translate("adminPages.payments.paymentsPage.checkAndCloseOrder"),
+            cancelText: translate("common.cancel"),
             onOk: async () => {
                 setOrderActionId(order.id);
                 try {
                     await closeAdminPaymentOrder(order.id);
-                    message.success("订单状态已更新");
+                    message.success(translate("adminPages.payments.paymentsPage.orderStatusUpdated"));
                     await loadOrders();
                 } catch (error) {
-                    message.error(error instanceof Error ? error.message : "关单失败");
+                    message.error(error instanceof Error ? error.message : translate("adminPages.payments.paymentsPage.failedToCloseOrder"));
                     throw error;
                 } finally {
                     setOrderActionId("");
@@ -420,13 +422,13 @@ export default function AdminPaymentsPage() {
         try {
             const result = await runAdminPaymentReconciliation({ providerId: billProviderId, billDate: billDate.format("YYYY-MM-DD") });
             if (result.run.status === "running") {
-                message.info("该渠道与账单日期的对账正在执行，请稍后刷新查看结果");
+                message.info(translate("adminPages.payments.paymentsPage.reconciliationForThisProviderAndBillingDateIsAlreadyRunning"));
             } else {
-                message.success(result.run.recoveredItems ? `对账完成，自动补发 ${result.run.recoveredItems} 笔` : "对账完成");
+                message.success(result.run.recoveredItems ? translate("adminPages.payments.paymentsPage.reconciliationCompleteMissingPaymentsCreditedAutomatically", { v0: String(result.run.recoveredItems) }) : translate("adminPages.payments.paymentsPage.reconciliationComplete"));
             }
             await loadRuns(1, runPageSize);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "执行对账失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.payments.paymentsPage.reconciliationFailed2"));
             await loadRuns(1, runPageSize);
         } finally {
             setRunningBill(false);
@@ -451,7 +453,7 @@ export default function AdminPaymentsPage() {
             setDetailPageSize(response.pageSize);
             setDetailReady(true);
         } catch (error) {
-            if (!controller.signal.aborted) message.error(error instanceof Error ? error.message : "读取对账明细失败");
+            if (!controller.signal.aborted) message.error(error instanceof Error ? error.message : translate("adminPages.payments.paymentsPage.failedToLoadReconciliationDetails"));
         } finally {
             if (!controller.signal.aborted) setDetailLoading(false);
         }
@@ -461,7 +463,7 @@ export default function AdminPaymentsPage() {
 
     const providerColumns: ColumnsType<AdminPaymentProvider> = [
         {
-            title: "支付渠道",
+            title: translate("adminPages.payments.paymentsPage.paymentProvider"),
             key: "provider",
             render: (_, provider) => (
                 <div className="flex items-center gap-3">
@@ -473,31 +475,31 @@ export default function AdminPaymentsPage() {
                 </div>
             ),
         },
-        { title: "支付方式", dataIndex: "checkoutMode", width: 120, align: "center", render: (value) => (value === "qr_code" ? "扫码支付" : "网站跳转") },
+        { title: translate("account.wallet.topup.paymentMethod"), dataIndex: "checkoutMode", width: 120, align: "center", render: (value) => (value === "qr_code" ? translate("account.payment.scanTitle") : translate("adminPages.payments.paymentsPage.websiteRedirect")) },
         {
-            title: "状态",
+            title: translate("library.tasks.detail.status"),
             key: "status",
             width: 180,
             align: "center",
             render: (_, provider) => (
                 <div className="flex flex-col items-center gap-2">
-                    <AdminStatusBadge label={provider.enabled ? "可用" : "不可用"} tone={provider.enabled ? "success" : "neutral"} />
+                    <AdminStatusBadge label={provider.enabled ? translate("account.settings.channels.ready") : translate("adminPages.payments.paymentsPage.unavailable")} tone={provider.enabled ? "success" : "neutral"} />
                     <span className="text-xs text-foreground/45">
-                        插件{provider.pluginEnabled ? "已开放" : "已停用"} · 配置{provider.configEnabled ? "已启用" : "已停用"}
+                        {translate("adminPages.payments.paymentsPage.pluginConfigurationStatus", { plugin: provider.pluginEnabled ? translate("adminPages.payments.paymentsPage.available") : translate("adminPages.payments.paymentsPage.disabled2"), configuration: provider.configEnabled ? translate("account.layout.oss.enabled") : translate("adminPages.payments.paymentsPage.disabled2") })}
                     </span>
                 </div>
             ),
         },
-        { title: "未支付自动关闭", dataIndex: "closeAfterMinutes", width: 150, align: "center", render: (value) => `${value || 30} 分钟` },
-        { title: "配置版本", dataIndex: "version", width: 105, align: "center", render: (value) => (value ? `v${value}` : "未配置") },
+        { title: translate("adminPages.payments.paymentsPage.automaticallyCloseUnpaidOrders"), dataIndex: "closeAfterMinutes", width: 150, align: "center", render: (value) => translate("adminPages.payments.paymentsPage.minutes", { v0: String(value || 30) }) },
+        { title: translate("adminPages.payments.paymentsPage.configurationVersion"), dataIndex: "version", width: 105, align: "center", render: (value) => (value ? `v${value}` : translate("account.layout.oss.cdnAuthNone")) },
         {
-            title: "操作",
+            title: translate("account.settings.runninghub.actions"),
             key: "actions",
             width: 100,
             align: "center",
             render: (_, provider) => (
                 <Button size="small" icon={<Settings2 className="size-3.5" />} onClick={() => openProvider(provider)}>
-                    配置
+                    {translate("account.settings.channels.configure")}
                 </Button>
             ),
         },
@@ -505,62 +507,63 @@ export default function AdminPaymentsPage() {
 
     const productColumns: ColumnsType<TopupProduct> = [
         {
-            title: "商品",
+            title: translate("adminPages.payments.paymentsPage.product"),
             key: "name",
             render: (_, product) => (
                 <div>
                     <div className="font-medium">{product.name}</div>
-                    <div className="mt-0.5 text-xs text-foreground/45">{product.description || "无说明"}</div>
+                    <div className="mt-0.5 text-xs text-foreground/45">{product.description || translate("adminPages.payments.paymentsPage.noDescription")}</div>
                 </div>
             ),
         },
-        { title: "售价", dataIndex: "amountFen", width: 130, align: "right", render: (value, product) => <span className="font-medium tabular-nums">{formatPaymentAmount(value, product.currency)}</span> },
+        { title: translate("adminPages.payments.paymentsPage.salePrice"), dataIndex: "amountFen", width: 130, align: "right", render: (value, product) => <span className="font-medium tabular-nums">{formatPaymentAmount(value, product.currency)}</span> },
         {
-            title: "权益",
+            title: translate("adminPages.payments.paymentsPage.benefits"),
             key: "grant",
             width: 180,
             align: "right",
             render: (_, product) => (
-                <span className="tabular-nums">{product.kind === "storage" ? `+${formatStorageCapacity(product.storageBytes)} · ${formatStorageDuration(product.storageDurationDays)}` : `${formatCredits(product.creditsMicrocredits)} 积分`}</span>
+                <span className="tabular-nums">{product.kind === "storage" ? `+${formatStorageCapacity(product.storageBytes)} · ${formatStorageDuration(product.storageDurationDays)}` : translate("adminPages.payments.paymentsPage.credits", { v0: String(formatCredits(product.creditsMicrocredits)) })}</span>
             ),
         },
-        { title: "排序", dataIndex: "sortOrder", width: 90, align: "center" },
+        { title: translate("adminPages.payments.paymentsPage.order"), dataIndex: "sortOrder", width: 90, align: "center" },
         {
-            title: "上架策略",
+            title: translate("adminPages.payments.paymentsPage.salesPolicy"),
             key: "strategy",
             width: 180,
             render: (_, product) => {
                 const strategy = product.saleStrategy || "unlimited";
                 const label =
                     strategy === "periodic"
-                        ? `周期 ${product.periodDays} 天 / ${product.periodPurchaseLimit} 次`
+                        ? translate("adminPages.payments.paymentsPage.everyDaysTimes", { v0: String(product.periodDays), v1: String(product.periodPurchaseLimit) })
                         : strategy === "inventory"
-                          ? `库存 ${product.stockRemaining ?? 0} / ${product.stockTotal ?? 0}`
+                          ? translate("adminPages.payments.paymentsPage.stock", { v0: String(product.stockRemaining ?? 0), v1: String(product.stockTotal ?? 0) })
                           : strategy === "timed"
-                            ? `${product.saleStatus === "upcoming" ? "待发售" : product.saleStatus === "ended" ? "已结束" : "限时"}`
-                            : "不限量";
+                            ? `${product.saleStatus === "upcoming" ? translate("adminPages.payments.paymentsPage.notYetOnSale") : product.saleStatus === "ended" ? translate("account.wallet.topup.ended") : translate("adminPages.payments.paymentsPage.limitedTime")}`
+                            : translate("adminPages.payments.paymentsPage.unlimited");
                 return <span className="text-xs">{label}</span>;
             },
         },
         {
-            title: "状态",
+            title: translate("library.tasks.detail.status"),
             dataIndex: "enabled",
             width: 120,
             align: "center",
             render: (value, product) => {
                 const status = product.saleStatus;
-                const label = !value ? "已停用" : status === "upcoming" ? "待发售" : status === "ended" ? "已结束" : status === "sold_out" ? "已售罄" : "销售中";
-                return <AdminStatusBadge label={label} tone={label === "销售中" ? "success" : label === "已售罄" || label === "已结束" ? "warning" : "neutral"} />;
+                const label = !value ? translate("adminPages.payments.paymentsPage.disabled2") : status === "upcoming" ? translate("adminPages.payments.paymentsPage.notYetOnSale") : status === "ended" ? translate("account.wallet.topup.ended") : status === "sold_out" ? translate("account.wallet.topup.soldOut") : translate("adminPages.payments.paymentsPage.onSale");
+                const tone = !value || status === "upcoming" ? "neutral" : status === "sold_out" || status === "ended" ? "warning" : "success";
+                return <AdminStatusBadge label={label} tone={tone} />;
             },
         },
         {
-            title: "操作",
+            title: translate("account.settings.runninghub.actions"),
             key: "actions",
             width: 90,
             align: "center",
             render: (_, product) => (
                 <Button size="small" onClick={() => openProduct(product)}>
-                    编辑
+                    {translate("account.settings.channels.edit")}
                 </Button>
             ),
         },
@@ -568,7 +571,7 @@ export default function AdminPaymentsPage() {
 
     const orderColumns: ColumnsType<AdminPaymentOrder> = [
         {
-            title: "用户",
+            title: translate("adminPages.payments.paymentsPage.users"),
             key: "user",
             width: 230,
             render: (_, order) => (
@@ -584,12 +587,12 @@ export default function AdminPaymentsPage() {
                                 </span>
                             </div>
                             <div className="mt-1 truncate text-xs text-foreground/60" title={order.user.email}>
-                                {order.user.email || "未填写邮箱"}
+                                {order.user.email || translate("adminPages.payments.paymentsPage.noEmailAddress")}
                             </div>
                         </>
                     ) : (
                         <>
-                            <div className="text-foreground/60">用户不存在</div>
+                            <div className="text-foreground/60">{translate("adminPages.payments.paymentsPage.userDoesNotExist")}</div>
                             <Typography.Text className="text-xs" copyable={order.userId ? { text: order.userId } : false}>
                                 {order.userId ? `${order.userId.slice(0, 8)}…${order.userId.slice(-6)}` : "--"}
                             </Typography.Text>
@@ -599,7 +602,7 @@ export default function AdminPaymentsPage() {
             ),
         },
         {
-            title: "订单 / 商品",
+            title: translate("adminPages.payments.paymentsPage.orderProduct"),
             key: "order",
             width: 210,
             render: (_, order) => (
@@ -614,7 +617,7 @@ export default function AdminPaymentsPage() {
             ),
         },
         {
-            title: "渠道",
+            title: translate("adminPages.payments.paymentsPage.channel"),
             dataIndex: "providerId",
             width: 150,
             render: (value) => (
@@ -625,7 +628,7 @@ export default function AdminPaymentsPage() {
             ),
         },
         {
-            title: "金额 / 权益",
+            title: translate("adminPages.payments.paymentsPage.amountBenefits"),
             key: "amount",
             width: 170,
             align: "right",
@@ -634,17 +637,17 @@ export default function AdminPaymentsPage() {
                     <div className="font-medium tabular-nums">{formatPaymentAmount(order.amountFen, order.currency)}</div>
                     {order.chargeCurrency && order.chargeCurrency !== order.currency ? (
                         <div className="text-xs tabular-nums text-foreground/60" title={order.exchangeRate ? `1 USD = ${order.exchangeRate} CNY` : undefined}>
-                            实收 {formatPaymentAmount(order.chargeAmountFen, order.chargeCurrency)}
+                            {translate("adminPages.payments.paymentsPage.charged")} {formatPaymentAmount(order.chargeAmountFen, order.chargeCurrency)}
                         </div>
                     ) : null}
                     <div className="text-xs text-foreground/45">{paymentOrderGrantLabel(order)}</div>
                 </div>
             ),
         },
-        { title: "状态", dataIndex: "status", width: 110, align: "center", render: (value) => <AdminStatusBadge {...(paymentOrderStatus[value] || { label: value, tone: "neutral" as const })} /> },
-        { title: "创建时间", dataIndex: "createdAt", width: 130, render: (value) => <span title={formatDateTime(value)}>{dayjs(value).format("MM-DD HH:mm")}</span> },
+        { title: translate("library.tasks.detail.status"), dataIndex: "status", width: 110, align: "center", render: (value) => <AdminStatusBadge {...(paymentOrderStatus[value] || { label: value, tone: "neutral" as const })} /> },
+        { title: translate("library.tasks.detail.createdAt"), dataIndex: "createdAt", width: 130, render: (value) => <span title={formatDateTime(value)}>{dayjs(value).format("MM-DD HH:mm")}</span> },
         {
-            title: "操作",
+            title: translate("account.settings.runninghub.actions"),
             key: "actions",
             width: 220,
             fixed: "right",
@@ -652,11 +655,11 @@ export default function AdminPaymentsPage() {
             // 只显示当前状态下能执行的操作：已到账或已关闭的订单只剩“详情”，不再出现一排禁用按钮或“更多”。
             render: (_, order) => (
                 <AdminRowActions
-                    primary={{ label: "详情", icon: <Eye className="size-3.5" />, onClick: () => setSelectedOrder(order) }}
+                    primary={{ label: translate("account.layout.banner.details"), icon: <Eye className="size-3.5" />, onClick: () => setSelectedOrder(order) }}
                     actions={[
-                        ...(!["credited", "closed"].includes(order.status) ? [{ key: "sync", label: "同步状态", icon: <RefreshCw className="size-3.5" />, disabled: Boolean(orderActionId), onClick: () => queryOrder(order) }] : []),
+                        ...(!["credited", "closed"].includes(order.status) ? [{ key: "sync", label: translate("adminPages.payments.paymentsPage.syncStatus"), icon: <RefreshCw className="size-3.5" />, disabled: Boolean(orderActionId), onClick: () => queryOrder(order) }] : []),
                         ...(["created", "pending", "create_failed", "closing"].includes(order.status)
-                            ? [{ key: "close", label: "关闭", icon: <XCircle className="size-3.5" />, danger: true, disabled: Boolean(orderActionId), onClick: () => closeOrder(order) }]
+                            ? [{ key: "close", label: translate("common.close"), icon: <XCircle className="size-3.5" />, danger: true, disabled: Boolean(orderActionId), onClick: () => closeOrder(order) }]
                             : []),
                     ]}
                 />
@@ -665,9 +668,9 @@ export default function AdminPaymentsPage() {
     ];
 
     const runColumns: ColumnsType<PaymentReconciliationRun> = [
-        { title: "账单日期", dataIndex: "billDate", width: 120 },
+        { title: translate("adminPages.payments.paymentsPage.billingDate"), dataIndex: "billDate", width: 120 },
         {
-            title: "渠道",
+            title: translate("adminPages.payments.paymentsPage.channel"),
             dataIndex: "providerId",
             width: 190,
             render: (value) => (
@@ -678,50 +681,50 @@ export default function AdminPaymentsPage() {
             ),
         },
         {
-            title: "状态",
+            title: translate("library.tasks.detail.status"),
             dataIndex: "status",
             width: 110,
             align: "center",
-            render: (value) => <AdminStatusBadge label={value === "completed" ? "已完成" : value === "running" ? "执行中" : "失败"} tone={value === "completed" ? "success" : value === "running" ? "info" : "error"} />,
+            render: (value) => <AdminStatusBadge label={value === "completed" ? translate("library.tasks.filter.succeeded") : value === "running" ? translate("adminPages.payments.paymentsPage.running") : translate("library.assets.batch.failed")} tone={value === "completed" ? "success" : value === "running" ? "info" : "error"} />,
         },
-        { title: "一致", dataIndex: "matchItems", width: 80, align: "right" },
-        { title: "自动补发", dataIndex: "recoveredItems", width: 100, align: "right", render: (value) => <span className={value ? "font-medium text-status-success" : ""}>{value}</span> },
-        { title: "异常", dataIndex: "errorItems", width: 80, align: "right", render: (value) => <span className={value ? "font-medium text-status-error" : ""}>{value}</span> },
-        { title: "完成时间", dataIndex: "completedAt", width: 170, render: (value) => (value ? formatDateTime(value) : "--") },
+        { title: translate("adminPages.payments.paymentsPage.matched"), dataIndex: "matchItems", width: 80, align: "right" },
+        { title: translate("adminPages.payments.paymentsPage.automaticCreditRecovery"), dataIndex: "recoveredItems", width: 100, align: "right", render: (value) => <span className={value ? "font-medium text-status-success" : ""}>{value}</span> },
+        { title: translate("adminPages.payments.paymentsPage.error"), dataIndex: "errorItems", width: 80, align: "right", render: (value) => <span className={value ? "font-medium text-status-error" : ""}>{value}</span> },
+        { title: translate("adminPages.payments.paymentsPage.completedAt"), dataIndex: "completedAt", width: 170, render: (value) => (value ? formatDateTime(value) : "--") },
         {
-            title: "明细",
+            title: translate("adminPages.payments.paymentsPage.details"),
             key: "actions",
             width: 90,
             align: "center",
             render: (_, run) => (
                 <Button type="text" size="small" icon={<Eye className="size-3.5" />} onClick={() => void openRunDetails(run, 1, detailPageSize, "all")}>
-                    查看
+                    {translate("adminPages.payments.paymentsPage.view")}
                 </Button>
             ),
         },
     ];
 
     const detailColumns: ColumnsType<PaymentReconciliationItem> = [
-        { title: "结果", dataIndex: "result", width: 135, render: (value) => <AdminStatusBadge {...(reconciliationResult[value] || { label: value, tone: "neutral" as const })} /> },
-        { title: "商户订单号", dataIndex: "merchantOrderNo", width: 255, render: (value) => <span className="font-mono text-xs">{value}</span> },
-        { title: "渠道交易号", dataIndex: "providerTradeNo", width: 220, render: (value) => (value ? <span className="font-mono text-xs">{value}</span> : "--") },
-        { title: "金额", dataIndex: "amountFen", width: 110, align: "right", render: (value, item) => `${item.currency} ${(value / 100).toFixed(2)}` },
-        { title: "说明", dataIndex: "detail", render: (value) => value || "账单与本地订单一致" },
+        { title: translate("adminPages.payments.paymentsPage.result"), dataIndex: "result", width: 135, render: (value) => <AdminStatusBadge {...(reconciliationResult[value] || { label: value, tone: "neutral" as const })} /> },
+        { title: translate("adminPages.payments.paymentsPage.merchantOrderNumber"), dataIndex: "merchantOrderNo", width: 255, render: (value) => <span className="font-mono text-xs">{value}</span> },
+        { title: translate("adminPages.payments.paymentsPage.providerTransactionID"), dataIndex: "providerTradeNo", width: 220, render: (value) => (value ? <span className="font-mono text-xs">{value}</span> : "--") },
+        { title: translate("adminPages.payments.paymentsPage.amount"), dataIndex: "amountFen", width: 110, align: "right", render: (value, item) => `${item.currency} ${(value / 100).toFixed(2)}` },
+        { title: translate("library.ark.virtualFlow.descriptionLabel"), dataIndex: "detail", render: (value) => value || translate("adminPages.payments.paymentsPage.statementMatchesLocalOrders") },
     ];
 
     return (
         <AdminPageFrame
-            title="支付充值"
-            description="管理系统支付适配器、充值商品、支付订单与 T+1 对账"
+            title={translate("adminPages.payments.paymentsPage.paymentsAndTopUps")}
+            description={translate("adminPages.payments.paymentsPage.managePaymentAdaptersTopUpProductsPaymentOrdersAndNext")}
             actions={
                 <Button icon={<RefreshCw className="size-4" />} loading={loading || ordersLoading || runsLoading} onClick={() => void refresh()}>
-                    刷新
+                    {translate("common.refresh")}
                 </Button>
             }
             scroll
         >
-            <Callout className="my-4" tone="info" title="平台不提供支付退款">
-                管理端仅提供查单、关单和对账。关单前始终先向渠道查单；对账发现已支付未入账订单时会幂等补发积分。
+            <Callout className="my-4" tone="info" title={translate("adminPages.payments.paymentsPage.paymentRefundsAreNotAvailableOnThisPlatform")}>
+                {translate("adminPages.payments.paymentsPage.administratorsCanOnlyCheckOrdersCloseOrdersAndReconcilePayments")}
             </Callout>
             <Tabs
                 activeKey={activeTab}
@@ -729,37 +732,37 @@ export default function AdminPaymentsPage() {
                 items={[
                     {
                         key: "providers",
-                        label: "支付渠道",
-                        children: <AdminDataTable table={{ rowKey: "id", loading, columns: providerColumns, dataSource: providers, pagination: false, scroll: { x: 980 } }} empty={<AdminTableEmpty title="没有发现支付渠道插件" />} />,
+                        label: translate("adminPages.payments.paymentsPage.paymentProvider"),
+                        children: <AdminDataTable table={{ rowKey: "id", loading, columns: providerColumns, dataSource: providers, pagination: false, scroll: { x: 980 } }} empty={<AdminTableEmpty title={translate("adminPages.payments.paymentsPage.noPaymentProviderPluginsFound")} />} />,
                     },
                     {
                         key: "products",
-                        label: "充值商品",
+                        label: translate("adminPages.payments.paymentsPage.topUpProducts"),
                         children: (
                             <AdminDataTable
                                 toolbar={
-                                    <label className="flex items-center gap-2 text-sm" title="新建商品默认使用该货币，用户充值面板优先展示该货币的商品；已有商品价格不会被改写。">
-                                        <span className="text-foreground/65">默认充值货币</span>
+                                    <label className="flex items-center gap-2 text-sm" title={translate("adminPages.payments.paymentsPage.newProductsUseThisCurrencyByDefaultAndTheTop")}>
+                                        <span className="text-foreground/65">{translate("adminPages.payments.paymentsPage.defaultTopUpCurrency")}</span>
                                         <Select
                                             className="w-36"
-                                            aria-label="默认充值货币"
+                                            aria-label={translate("adminPages.payments.paymentsPage.defaultTopUpCurrency")}
                                             value={defaultCurrency}
                                             disabled={currencySaving}
                                             options={[
-                                                { value: "CNY", label: "CNY 人民币" },
-                                                { value: "USD", label: "USD 美元" },
+                                                { value: "CNY", label: translate("adminPages.payments.paymentsPage.cNYChineseYuan") },
+                                                { value: "USD", label: translate("adminPages.payments.paymentsPage.uSDUSDollar") },
                                             ]}
                                             onChange={(value) => void saveDefaultCurrency(value as PaymentCurrency)}
                                         />
                                         <span className="ml-3 text-foreground/65">1 USD =</span>
                                         <Input
                                             className="w-28"
-                                            aria-label="USD/CNY 汇率"
+                                            aria-label={translate("adminPages.payments.paymentsPage.uSDCNYExchangeRate")}
                                             inputMode="decimal"
                                             value={rateDraft}
                                             disabled={currencySaving}
-                                            placeholder="未配置"
-                                            title="商品货币与支付渠道结算货币不同时，按此汇率换算实收金额并写入订单；留空则跨币种渠道不可下单。已创建订单不受影响。"
+                                            placeholder={translate("account.layout.oss.cdnAuthNone")}
+                                            title={translate("adminPages.payments.paymentsPage.whenProductAndPaymentSettlementCurrenciesDifferThisRateConverts")}
                                             onChange={(event) => setRateDraft(event.target.value)}
                                             onBlur={saveUsdCnyRate}
                                             onPressEnter={saveUsdCnyRate}
@@ -769,17 +772,17 @@ export default function AdminPaymentsPage() {
                                 }
                                 trailing={
                                     <Button type="primary" className="admin-toolbar-primary-action" icon={<Plus className="size-4" />} onClick={() => openProduct()}>
-                                        新增商品
+                                        {translate("adminPages.payments.paymentsPage.addProduct")}
                                     </Button>
                                 }
                                 table={{ rowKey: "id", loading, columns: productColumns, dataSource: products, pagination: false, scroll: { x: 820 } }}
-                                empty={<AdminTableEmpty title="还没有充值商品" />}
+                                empty={<AdminTableEmpty title={translate("adminPages.payments.paymentsPage.noTopUpProductsYet")} />}
                             />
                         ),
                     },
                     {
                         key: "orders",
-                        label: "支付订单",
+                        label: translate("adminPages.payments.paymentsPage.paymentOrders"),
                         children: (
                             <AdminDataTable
                                 toolbar={
@@ -788,8 +791,8 @@ export default function AdminPaymentsPage() {
                                         allowClear
                                         prefix={<Search className="size-4 text-foreground/40" />}
                                         value={orderKeyword}
-                                        placeholder="搜索名称、用户名、邮箱、订单号"
-                                        title="支持名称、用户名、邮箱、订单号、渠道交易号和完整用户 ID"
+                                        placeholder={translate("adminPages.payments.paymentsPage.searchNameUsernameEmailOrOrderNumber")}
+                                        title={translate("adminPages.payments.paymentsPage.supportsNamesUsernamesEmailsOrderNumbersProviderTransactionIDsAnd")}
                                         onChange={(event) => setOrderKeyword(event.target.value)}
                                         onPressEnter={() => void loadOrders(1, orderPageSize, orderFilters)}
                                     />
@@ -798,118 +801,118 @@ export default function AdminPaymentsPage() {
                                     <>
                                         <Select
                                             className="w-36"
-                                            aria-label="订单状态"
+                                            aria-label={translate("adminPages.payments.paymentsPage.orderStatus")}
                                             value={orderStatusFilter}
                                             onChange={setOrderStatusFilter}
-                                            options={[{ value: "all", label: "全部状态" }, ...Object.entries(paymentOrderStatus).map(([value, item]) => ({ value, label: item.label }))]}
+                                            options={[{ value: "all", label: translate("library.ark.expiry.all") }, ...Object.entries(paymentOrderStatus).map(([value, item]) => ({ value, label: item.label }))]}
                                         />
                                         <Select
                                             className="min-w-44"
-                                            aria-label="订单支付渠道"
+                                            aria-label={translate("adminPages.payments.paymentsPage.orderPaymentProvider")}
                                             value={orderProviderFilter}
                                             onChange={setOrderProviderFilter}
-                                            options={[{ value: "all", label: "全部支付渠道" }, ...providers.map((provider) => ({ value: provider.id, label: provider.name }))]}
+                                            options={[{ value: "all", label: translate("adminPages.payments.paymentsPage.allPaymentProviders") }, ...providers.map((provider) => ({ value: provider.id, label: provider.name }))]}
                                         />
                                         <Select
                                             className="w-32"
-                                            aria-label="订单时间口径"
+                                            aria-label={translate("adminPages.payments.paymentsPage.orderTimeBasis")}
                                             value={orderTimeField}
                                             onChange={setOrderTimeField}
                                             options={[
-                                                { value: "created", label: "创建时间" },
-                                                { value: "paid", label: "支付时间" },
-                                                { value: "credited", label: "入账时间" },
+                                                { value: "created", label: translate("library.tasks.detail.createdAt") },
+                                                { value: "paid", label: translate("adminPages.payments.paymentsPage.paymentTime") },
+                                                { value: "credited", label: translate("adminPages.payments.paymentsPage.creditedTime") },
                                             ]}
                                         />
-                                        <DatePicker.RangePicker value={orderDates} onChange={setOrderDates} placeholder={["开始日期（北京时间）", "结束日期"]} />
+                                        <DatePicker.RangePicker value={orderDates} onChange={setOrderDates} placeholder={[translate("adminPages.payments.paymentsPage.startDateBeijingTime"), translate("adminPages.payments.paymentsPage.endDate")]} />
                                     </>
                                 }
                                 trailing={
                                     <div className="flex flex-wrap items-center gap-2">
-                                        {ordersDirty && <span className="text-xs text-foreground/45">请先查询以应用筛选条件</span>}
+                                        {ordersDirty && <span className="text-xs text-foreground/45">{translate("adminPages.payments.paymentsPage.runASearchToApplyTheFiltersFirst")}</span>}
                                         <Button loading={ordersLoading} onClick={() => void loadOrders(1, orderPageSize, orderFilters)}>
-                                            查询
+                                            {translate("adminPages.payments.paymentsPage.search")}
                                         </Button>
-                                        <span title="导出筛选后的全部订单，最多 10000 行">
+                                        <span title={translate("adminPages.payments.paymentsPage.exportAllFilteredOrdersUpTo10000Rows")}>
                                             <AdminExportButton
-                                                label="导出 CSV"
+                                                label={translate("adminPages.payments.paymentsPage.exportCSV")}
                                                 disabled={ordersDirty || !ordersReady || ordersLoading || orderTotal === 0}
                                                 exportFile={() => exportAdminPaymentOrders(appliedOrders)}
-                                                fileName={() => `支付订单-${dayjs().format("YYYYMMDD-HHmmss")}.csv`}
+                                                fileName={() => translate("adminPages.payments.paymentsPage.paymentOrdersCsv", { v0: String(dayjs().format("YYYYMMDD-HHmmss")) })}
                                             />
                                         </span>
                                     </div>
                                 }
                                 table={{ rowKey: "id", loading: ordersLoading, columns: orderColumns, dataSource: orders, pagination: false, tableLayout: "fixed", scroll: { x: 1110 } }}
-                                empty={<AdminTableEmpty filtered={Boolean(appliedOrders.keyword || appliedOrders.status || appliedOrders.providerId || appliedOrders.from)} title="没有支付订单" />}
+                                empty={<AdminTableEmpty filtered={Boolean(appliedOrders.keyword || appliedOrders.status || appliedOrders.providerId || appliedOrders.from)} title={translate("adminPages.payments.paymentsPage.noPaymentOrders")} />}
                                 footer={<PaginationBar alwaysShow current={orderPage} pageSize={orderPageSize} total={orderTotal} onChange={(page, size) => void loadOrders(size !== orderPageSize ? 1 : page, size)} />}
                             />
                         ),
                     },
                     {
                         key: "reconciliation",
-                        label: "支付对账",
+                        label: translate("adminPages.payments.paymentsPage.paymentReconciliation"),
                         children: (
                             <div className="space-y-4">
                                 <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/70 bg-card p-3">
                                     <Select
                                         className="min-w-52"
                                         value={billProviderId || undefined}
-                                        placeholder="选择支付渠道"
+                                        placeholder={translate("adminPages.payments.paymentsPage.selectPaymentProvider")}
                                         onChange={setBillProviderId}
                                         options={providers.map((provider) => ({ value: provider.id, label: provider.name, disabled: !provider.configured }))}
                                     />
                                     <DatePicker value={billDate} allowClear={false} disabledDate={(date) => !date.isBefore(dayjs(), "day") || date.isBefore(dayjs().subtract(3, "month"), "day")} onChange={(date) => date && setBillDate(date)} />
                                     <Button type="primary" loading={runningBill} disabled={!billProviderId} onClick={() => void runReconciliation()}>
-                                        执行对账
+                                        {translate("adminPages.payments.paymentsPage.runReconciliation")}
                                     </Button>
-                                    <span className="text-xs text-foreground/45">系统每天 10:15 后自动对账昨日账单；也可在此手动重跑最近三个月账单。</span>
+                                    <span className="text-xs text-foreground/45">{translate("adminPages.payments.paymentsPage.theSystemAutomaticallyReconcilesThePreviousDaySBillsAfter")}</span>
                                 </div>
                                 <AdminDataTable
                                     toolbar={
                                         <Select
                                             className="w-52"
-                                            aria-label="对账支付渠道"
+                                            aria-label={translate("adminPages.payments.paymentsPage.reconciliationPaymentProvider")}
                                             value={runProviderFilter}
                                             onChange={setRunProviderFilter}
-                                            options={[{ value: "all", label: "全部支付渠道" }, ...providers.map((provider) => ({ value: provider.id, label: provider.name }))]}
+                                            options={[{ value: "all", label: translate("adminPages.payments.paymentsPage.allPaymentProviders") }, ...providers.map((provider) => ({ value: provider.id, label: provider.name }))]}
                                         />
                                     }
                                     toolbarFilters={
                                         <>
                                             <Select
                                                 className="w-36"
-                                                aria-label="对账执行状态"
+                                                aria-label={translate("adminPages.payments.paymentsPage.reconciliationRunStatus")}
                                                 value={runStatusFilter}
                                                 onChange={setRunStatusFilter}
                                                 options={[
-                                                    { value: "all", label: "全部状态" },
-                                                    { value: "running", label: "执行中" },
-                                                    { value: "completed", label: "已完成" },
-                                                    { value: "failed", label: "失败" },
+                                                    { value: "all", label: translate("library.ark.expiry.all") },
+                                                    { value: "running", label: translate("adminPages.payments.paymentsPage.running") },
+                                                    { value: "completed", label: translate("library.tasks.filter.succeeded") },
+                                                    { value: "failed", label: translate("library.assets.batch.failed") },
                                                 ]}
                                             />
-                                            <DatePicker.RangePicker value={runDates} onChange={setRunDates} placeholder={["账单开始日期", "账单结束日期"]} />
+                                            <DatePicker.RangePicker value={runDates} onChange={setRunDates} placeholder={[translate("adminPages.payments.paymentsPage.billingStartDate"), translate("adminPages.payments.paymentsPage.billingEndDate")]} />
                                         </>
                                     }
                                     trailing={
                                         <div className="flex flex-wrap items-center gap-2">
-                                            {runsDirty && <span className="text-xs text-foreground/45">请先筛选以应用条件</span>}
+                                            {runsDirty && <span className="text-xs text-foreground/45">{translate("adminPages.payments.paymentsPage.applyTheFiltersFirst")}</span>}
                                             <Button loading={runsLoading} onClick={() => void loadRuns(1, runPageSize, runFilters)}>
-                                                筛选
+                                                {translate("account.layout.list.filter")}
                                             </Button>
-                                            <span title="导出筛选后的全部对账汇总，含失败原因，最多 10000 行">
+                                            <span title={translate("adminPages.payments.paymentsPage.exportAllFilteredReconciliationSummariesIncludingFailureReasonsUpTo")}>
                                                 <AdminExportButton
-                                                    label="导出汇总 CSV"
+                                                    label={translate("adminPages.payments.paymentsPage.exportSummaryCSV")}
                                                     disabled={runsDirty || !runsReady || runsLoading || runTotal === 0}
                                                     exportFile={() => exportAdminPaymentReconciliations(appliedRuns)}
-                                                    fileName={() => `支付对账汇总-${dayjs().format("YYYYMMDD-HHmmss")}.csv`}
+                                                    fileName={() => translate("adminPages.payments.paymentsPage.paymentReconciliationSummaryCsv", { v0: String(dayjs().format("YYYYMMDD-HHmmss")) })}
                                                 />
                                             </span>
                                         </div>
                                     }
                                     table={{ rowKey: "id", loading: runsLoading, columns: runColumns, dataSource: runs, pagination: false, scroll: { x: 1000 } }}
-                                    empty={<AdminTableEmpty title="还没有对账记录" />}
+                                    empty={<AdminTableEmpty title={translate("adminPages.payments.paymentsPage.noReconciliationRecordsYet")} />}
                                     footer={<PaginationBar alwaysShow current={runPage} pageSize={runPageSize} total={runTotal} onChange={(page, size) => void loadRuns(size !== runPageSize ? 1 : page, size)} />}
                                 />
                             </div>
@@ -918,7 +921,7 @@ export default function AdminPaymentsPage() {
                 ]}
             />
 
-            <AdminDrawer title="支付订单详情" size="min(680px, 100vw)" open={Boolean(selectedOrder)} onClose={() => setSelectedOrder(null)}>
+            <AdminDrawer title={translate("adminPages.payments.paymentsPage.paymentOrderDetails")} size="min(680px, 100vw)" open={Boolean(selectedOrder)} onClose={() => setSelectedOrder(null)}>
                 {selectedOrder && (
                     <Descriptions
                         column={1}
@@ -927,7 +930,7 @@ export default function AdminPaymentsPage() {
                         items={[
                             {
                                 key: "user",
-                                label: "用户",
+                                label: translate("adminPages.payments.paymentsPage.users"),
                                 children: selectedOrder.user ? (
                                     <button
                                         type="button"
@@ -940,13 +943,13 @@ export default function AdminPaymentsPage() {
                                         {selectedOrder.user.displayName || selectedOrder.user.username} · @{selectedOrder.user.username}
                                     </button>
                                 ) : (
-                                    "用户不存在"
+                                    translate("adminPages.payments.paymentsPage.userDoesNotExist")
                                 ),
                             },
-                            { key: "email", label: "邮箱", children: selectedOrder.user?.email || "未填写邮箱" },
+                            { key: "email", label: translate("auth.verification.email"), children: selectedOrder.user?.email || translate("adminPages.payments.paymentsPage.noEmailAddress") },
                             {
                                 key: "userId",
-                                label: "用户 ID",
+                                label: translate("adminPages.payments.paymentsPage.userID"),
                                 children: (
                                     <Typography.Text copyable className="break-all">
                                         {selectedOrder.userId || "--"}
@@ -955,7 +958,7 @@ export default function AdminPaymentsPage() {
                             },
                             {
                                 key: "order",
-                                label: "订单号",
+                                label: translate("adminPages.payments.paymentsPage.orderNumber"),
                                 children: (
                                     <Typography.Text copyable className="break-all">
                                         {selectedOrder.merchantOrderNo}
@@ -964,7 +967,7 @@ export default function AdminPaymentsPage() {
                             },
                             {
                                 key: "trade",
-                                label: "渠道交易号",
+                                label: translate("adminPages.payments.paymentsPage.providerTransactionID"),
                                 children: selectedOrder.providerTradeNo ? (
                                     <Typography.Text copyable className="break-all">
                                         {selectedOrder.providerTradeNo}
@@ -973,22 +976,22 @@ export default function AdminPaymentsPage() {
                                     "--"
                                 ),
                             },
-                            { key: "product", label: "商品", children: selectedOrder.productName },
-                            { key: "channel", label: "支付渠道", children: `${providerNames[selectedOrder.providerId] || selectedOrder.providerId}${selectedOrder.paymentMethod ? ` · ${selectedOrder.paymentMethod}` : ""}` },
-                            { key: "amount", label: "金额 / 权益", children: `${formatPaymentAmount(selectedOrder.amountFen, selectedOrder.currency)} / ${paymentOrderGrantLabel(selectedOrder)}` },
+                            { key: "product", label: translate("adminPages.payments.paymentsPage.product"), children: selectedOrder.productName },
+                            { key: "channel", label: translate("adminPages.payments.paymentsPage.paymentProvider"), children: `${providerNames[selectedOrder.providerId] || selectedOrder.providerId}${selectedOrder.paymentMethod ? ` · ${selectedOrder.paymentMethod}` : ""}` },
+                            { key: "amount", label: translate("adminPages.payments.paymentsPage.amountBenefits"), children: `${formatPaymentAmount(selectedOrder.amountFen, selectedOrder.currency)} / ${paymentOrderGrantLabel(selectedOrder)}` },
                             {
                                 key: "charge",
-                                label: "实收金额",
+                                label: translate("adminPages.payments.paymentsPage.amountReceived"),
                                 children: `${formatPaymentAmount(selectedOrder.chargeAmountFen, selectedOrder.chargeCurrency || selectedOrder.currency)}${selectedOrder.exchangeRate ? `（1 USD = ${selectedOrder.exchangeRate} CNY）` : ""}`,
                             },
-                            { key: "status", label: "状态", children: paymentOrderStatus[selectedOrder.status]?.label || selectedOrder.status },
+                            { key: "status", label: translate("library.tasks.detail.status"), children: paymentOrderStatus[selectedOrder.status]?.label || selectedOrder.status },
                             ...(
                                 [
-                                    { key: "createdAt", label: "创建时间" },
-                                    { key: "expiresAt", label: "过期时间" },
-                                    { key: "providerPaidAt", label: "支付时间" },
-                                    { key: "creditedAt", label: "入账时间" },
-                                    { key: "closedAt", label: "关闭时间" },
+                                    { key: "createdAt", label: translate("library.tasks.detail.createdAt") },
+                                    { key: "expiresAt", label: translate("adminPages.payments.paymentsPage.expiresAt") },
+                                    { key: "providerPaidAt", label: translate("adminPages.payments.paymentsPage.paymentTime") },
+                                    { key: "creditedAt", label: translate("adminPages.payments.paymentsPage.creditedTime") },
+                                    { key: "closedAt", label: translate("adminPages.payments.paymentsPage.closedAt") },
                                 ] as const
                             ).map(({ key, label }) => ({ key, label, children: selectedOrder[key] ? formatDateTime(selectedOrder[key]!) : "--" })),
                         ]}
@@ -998,14 +1001,14 @@ export default function AdminPaymentsPage() {
             <AdminUserDetailDrawer userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
 
             <AdminDrawer
-                title={providerDrawer ? `配置 ${providerDrawer.name}` : "配置支付渠道"}
+                title={providerDrawer ? translate("adminPages.payments.paymentsPage.configure2", { v0: String(providerDrawer.name) }) : translate("adminPages.payments.paymentsPage.configurePaymentProvider")}
                 width={620}
                 open={Boolean(providerDrawer)}
                 destroyOnHidden
                 onClose={() => setProviderDrawer(undefined)}
                 extra={
                     <Button type="primary" loading={providerSaving} onClick={() => void saveProvider()}>
-                        保存新版本
+                        {translate("adminPages.payments.paymentsPage.saveNewVersion")}
                     </Button>
                 }
             >
@@ -1014,17 +1017,17 @@ export default function AdminPaymentsPage() {
                         <Callout
                             className="mb-4"
                             tone={providerDrawer.pluginEnabled ? "info" : "warning"}
-                            title={providerDrawer.pluginEnabled ? "密钥会加密保存，历史订单固定使用创建时的配置版本。" : "该宿主插件当前已在插件管理中停用；保存配置后仍需开放插件才能接受新订单。"}
+                            title={providerDrawer.pluginEnabled ? translate("adminPages.payments.paymentsPage.secretsAreStoredEncryptedExistingOrdersContinueToUseThe") : translate("adminPages.payments.paymentsPage.thisHostPluginIsDisabledInPluginManagementAfterSaving")}
                         />
-                        <Form.Item name="enabled" label="渠道配置启用" valuePropName="checked">
+                        <Form.Item name="enabled" label={translate("adminPages.payments.paymentsPage.enableProviderConfiguration")} valuePropName="checked">
                             <Switch />
                         </Form.Item>
-                        <Form.Item name="closeAfterMinutes" label="未支付订单自动关闭时间（分钟）" rules={[{ required: true }, { type: "number", min: 5, max: 1440 }]}>
+                        <Form.Item name="closeAfterMinutes" label={translate("adminPages.payments.paymentsPage.automaticallyCloseUnpaidOrdersAfterMinutes")} rules={[{ required: true }, { type: "number", min: 5, max: 1440 }]}>
                             <InputNumber min={5} max={1440} precision={0} className="w-full" />
                         </Form.Item>
                         {providerDrawer.configFields.map((field) => {
                             const secretReady = Boolean(providerDrawer.secretConfigured[field.name]);
-                            const rules = field.required && !secretReady ? [{ required: true, message: `请输入${field.label || field.name}` }] : undefined;
+                            const rules = field.required && !secretReady ? [{ required: true, message: translate("adminPages.payments.paymentsPage.enter", { v0: String(field.label || field.name) }) }] : undefined;
                             const placeholder = field.secret && secretReady ? configuredSecretText : field.description || undefined;
                             const options = (field.values || []).map((value) => ({ value, label: value }));
                             if (field.type === "multiselect") {
@@ -1069,60 +1072,60 @@ export default function AdminPaymentsPage() {
             </AdminDrawer>
 
             <AdminDrawer
-                title={productDrawer ? "编辑商品" : "新增商品"}
+                title={productDrawer ? translate("adminPages.payments.paymentsPage.editProduct") : translate("adminPages.payments.paymentsPage.addProduct")}
                 width={520}
                 open={productDrawer !== undefined}
                 destroyOnHidden
                 onClose={() => setProductDrawer(undefined)}
                 extra={
                     <Button type="primary" loading={productSaving} onClick={() => void saveProduct()}>
-                        保存
+                        {translate("common.save")}
                     </Button>
                 }
             >
                 <Form form={productForm} layout="vertical" requiredMark="optional">
-                    <Form.Item name="name" label="商品名称" rules={[{ required: true, max: 120 }]}>
-                        <Input placeholder="例如：100 积分 / 50 GB 年包" />
+                    <Form.Item name="name" label={translate("adminPages.payments.paymentsPage.productName")} rules={[{ required: true, max: 120 }]}>
+                        <Input placeholder={translate("adminPages.payments.paymentsPage.forExample100Credits50GBAnnualPlan")} />
                     </Form.Item>
-                    <Form.Item name="description" label="商品说明" rules={[{ max: 500 }]}>
+                    <Form.Item name="description" label={translate("adminPages.payments.paymentsPage.productDescription")} rules={[{ max: 500 }]}>
                         <Input.TextArea rows={3} />
                     </Form.Item>
-                    <Form.Item name="kind" label="商品类型" rules={[{ required: true }]} extra={productDrawer ? "类型创建后不能修改；如需改类型请新建商品。" : "存储空间商品在关闭积分功能后仍可购买。"}>
+                    <Form.Item name="kind" label={translate("adminPages.payments.paymentsPage.productType")} rules={[{ required: true }]} extra={productDrawer ? translate("adminPages.payments.paymentsPage.productTypeCannotBeChangedAfterCreationCreateANew") : translate("adminPages.payments.paymentsPage.storageProductsRemainAvailableForPurchaseWhenCreditsAreDisabled")}>
                         <Select
                             disabled={Boolean(productDrawer)}
                             options={[
-                                { value: "credits", label: "积分充值" },
-                                { value: "storage", label: "存储空间扩容" },
+                                { value: "credits", label: translate("adminPages.payments.paymentsPage.creditTopUp") },
+                                { value: "storage", label: translate("adminPages.payments.paymentsPage.storageExpansion") },
                             ]}
                         />
                     </Form.Item>
-                    <Form.Item name="currency" label="售价货币" rules={[{ required: true }]} extra="支付渠道需支持所选货币；国内支付渠道通常只接受人民币。">
+                    <Form.Item name="currency" label={translate("adminPages.payments.paymentsPage.saleCurrency")} rules={[{ required: true }]} extra={translate("adminPages.payments.paymentsPage.thePaymentChannelMustSupportTheSelectedCurrencyDomesticPayment")}>
                         <Select
                             options={[
-                                { value: "CNY", label: "CNY 人民币" },
-                                { value: "USD", label: "USD 美元" },
+                                { value: "CNY", label: translate("adminPages.payments.paymentsPage.cNYChineseYuan") },
+                                { value: "USD", label: translate("adminPages.payments.paymentsPage.uSDUSDollar") },
                             ]}
                         />
                     </Form.Item>
                     <div className="grid grid-cols-2 gap-3">
-                        <Form.Item name="amountYuan" label={selectedProductCurrency === "USD" ? "售价（美元）" : "售价（元）"} rules={[{ required: true }, { type: "number", min: 0.01, max: 1_000_000 }]}>
+                        <Form.Item name="amountYuan" label={selectedProductCurrency === "USD" ? translate("adminPages.payments.paymentsPage.salePriceUSD") : translate("adminPages.payments.paymentsPage.salePriceCNY")} rules={[{ required: true }, { type: "number", min: 0.01, max: 1_000_000 }]}>
                             <InputNumber min={0.01} max={1_000_000} precision={2} className="w-full" />
                         </Form.Item>
                         {selectedProductKind === "storage" ? (
-                            <Form.Item name="storageGB" label="扩容容量（GB）" rules={[{ required: true }, { type: "integer", min: 1, max: 100_000, message: "请输入 1-100000 的整数 GB" }]}>
+                            <Form.Item name="storageGB" label={translate("adminPages.payments.paymentsPage.additionalCapacityGB")} rules={[{ required: true }, { type: "integer", min: 1, max: 100_000, message: translate("adminPages.payments.paymentsPage.enterAnIntegerFrom1To100000GB") }]}>
                                 <InputNumber min={1} max={100_000} precision={0} className="w-full" />
                             </Form.Item>
                         ) : (
                             <Form.Item
                                 name="credits"
-                                label="到账积分"
+                                label={translate("adminPages.payments.paymentsPage.creditsDelivered")}
                                 rules={[
                                     { required: true },
                                     {
                                         validator: (_, value) => {
                                             const credits = Number(value);
                                             const microcredits = Math.round(credits * 1_000_000);
-                                            return Number.isFinite(credits) && credits > 0 && credits <= 1_000_000_000 && Number.isSafeInteger(microcredits) ? Promise.resolve() : Promise.reject(new Error("请输入 0.000001 至 10 亿之间且可安全处理的积分"));
+                                            return Number.isFinite(credits) && credits > 0 && credits <= 1_000_000_000 && Number.isSafeInteger(microcredits) ? Promise.resolve() : Promise.reject(new Error(translate("adminPages.payments.paymentsPage.enterASafelyRepresentableCreditAmountFrom0000001To")));
                                         },
                                     },
                                 ]}
@@ -1133,67 +1136,67 @@ export default function AdminPaymentsPage() {
                     </div>
                     {selectedProductKind === "storage" ? (
                         <div className="grid grid-cols-2 gap-3">
-                            <Form.Item name="storageDurationMode" label="有效期" rules={[{ required: true }]}>
+                            <Form.Item name="storageDurationMode" label={translate("adminPages.payments.paymentsPage.validity")} rules={[{ required: true }]}>
                                 <Select
                                     options={[
-                                        { value: "days", label: "按天数" },
-                                        { value: "permanent", label: "永久有效" },
+                                        { value: "days", label: translate("adminPages.payments.paymentsPage.byNumberOfDays") },
+                                        { value: "permanent", label: translate("adminPages.payments.paymentsPage.neverExpires") },
                                     ]}
                                 />
                             </Form.Item>
                             {selectedStorageDurationMode === "days" ? (
-                                <Form.Item name="storageDurationDays" label="有效天数" extra="从支付确认时起算，常用 30 / 90 / 365 天。" rules={[{ required: true }, { type: "integer", min: 1, max: 3650, message: "请输入 1-3650 天" }]}>
+                                <Form.Item name="storageDurationDays" label={translate("adminPages.payments.paymentsPage.validForDays")} extra={translate("adminPages.payments.paymentsPage.startsWhenPaymentIsConfirmedCommonDurationsAre3090")} rules={[{ required: true }, { type: "integer", min: 1, max: 3650, message: translate("adminPages.payments.paymentsPage.enter13650Days") }]}>
                                     <InputNumber min={1} max={3650} precision={0} className="w-full" />
                                 </Form.Item>
                             ) : null}
                         </div>
                     ) : null}
-                    <Form.Item name="saleStrategy" label="上架策略" rules={[{ required: true }]}>
+                    <Form.Item name="saleStrategy" label={translate("adminPages.payments.paymentsPage.salesPolicy")} rules={[{ required: true }]}>
                         <Select
                             options={[
-                                { value: "unlimited", label: "不限量（默认）" },
-                                { value: "periodic", label: "周期性" },
-                                { value: "inventory", label: "库存性" },
-                                { value: "timed", label: "限时性" },
+                                { value: "unlimited", label: translate("adminPages.payments.paymentsPage.unlimitedDefault") },
+                                { value: "periodic", label: translate("adminPages.payments.paymentsPage.periodic") },
+                                { value: "inventory", label: translate("adminPages.payments.paymentsPage.stockLimited") },
+                                { value: "timed", label: translate("adminPages.payments.paymentsPage.timeLimited") },
                             ]}
                         />
                     </Form.Item>
                     {selectedProductStrategy === "periodic" ? (
                         <div className="grid grid-cols-2 gap-3">
-                            <Form.Item name="periodDays" label="周期天数" rules={[{ required: true }, { type: "number", min: 1, max: 3650 }]}>
+                            <Form.Item name="periodDays" label={translate("adminPages.payments.paymentsPage.periodLengthDays")} rules={[{ required: true }, { type: "number", min: 1, max: 3650 }]}>
                                 <InputNumber min={1} max={3650} precision={0} className="w-full" />
                             </Form.Item>
-                            <Form.Item name="periodPurchaseLimit" label="周期内可购买次数" rules={[{ required: true }, { type: "number", min: 1, max: 100000 }]}>
+                            <Form.Item name="periodPurchaseLimit" label={translate("adminPages.payments.paymentsPage.purchasesAllowedPerPeriod")} rules={[{ required: true }, { type: "number", min: 1, max: 100000 }]}>
                                 <InputNumber min={1} max={100000} precision={0} className="w-full" />
                             </Form.Item>
                         </div>
                     ) : null}
                     {selectedProductStrategy === "inventory" ? (
-                        <Form.Item name="stockTotal" label="平台总库存" extra="编辑库存时不能低于已售数量；未支付订单会暂时占用库存。" rules={[{ required: true }, { type: "number", min: 1, max: 9_000_000_000 }]}>
+                        <Form.Item name="stockTotal" label={translate("adminPages.payments.paymentsPage.totalPlatformStock")} extra={translate("adminPages.payments.paymentsPage.stockCannotBeReducedBelowTheNumberAlreadySoldUnpaid")} rules={[{ required: true }, { type: "number", min: 1, max: 9_000_000_000 }]}>
                             <InputNumber min={1} max={9_000_000_000} precision={0} className="w-full" />
                         </Form.Item>
                     ) : null}
                     {selectedProductStrategy === "timed" ? (
                         <div className="grid grid-cols-2 gap-3">
-                            <Form.Item name="saleStartAt" label="发售时间" rules={[{ required: true, message: "请选择发售时间" }]}>
+                            <Form.Item name="saleStartAt" label={translate("adminPages.payments.paymentsPage.saleStartTime")} rules={[{ required: true, message: translate("adminPages.payments.paymentsPage.selectSaleStartTime") }]}>
                                 <DatePicker showTime className="w-full" />
                             </Form.Item>
-                            <Form.Item name="saleEndAt" label="结束时间" rules={[{ required: true, message: "请选择结束时间" }]}>
+                            <Form.Item name="saleEndAt" label={translate("adminPages.payments.paymentsPage.endTime")} rules={[{ required: true, message: translate("adminPages.payments.paymentsPage.selectEndTime") }]}>
                                 <DatePicker showTime className="w-full" />
                             </Form.Item>
                         </div>
                     ) : null}
-                    <Form.Item name="sortOrder" label="排序" rules={[{ required: true }]}>
+                    <Form.Item name="sortOrder" label={translate("adminPages.payments.paymentsPage.order")} rules={[{ required: true }]}>
                         <InputNumber precision={0} className="w-full" />
                     </Form.Item>
-                    <Form.Item name="enabled" label="上架销售" valuePropName="checked">
+                    <Form.Item name="enabled" label={translate("adminPages.payments.paymentsPage.availableForSale")} valuePropName="checked">
                         <Switch />
                     </Form.Item>
                 </Form>
             </AdminDrawer>
 
             <AdminDrawer
-                title={detailRun ? `${providerNames[detailRun.providerId] || detailRun.providerId} · ${detailRun.billDate} 对账明细` : "对账明细"}
+                title={detailRun ? translate("adminPages.payments.paymentsPage.reconciliationDetails", { v0: String(providerNames[detailRun.providerId] || detailRun.providerId), v1: String(detailRun.billDate) }) : translate("adminPages.payments.paymentsPage.reconciliationDetails2")}
                 width="min(1080px, 94vw)"
                 open={Boolean(detailRun)}
                 destroyOnHidden
@@ -1205,7 +1208,7 @@ export default function AdminPaymentsPage() {
                 }}
             >
                 {detailRun?.error ? (
-                    <Callout className="mb-4" tone="error" title="对账执行失败">
+                    <Callout className="mb-4" tone="error" title={translate("adminPages.payments.paymentsPage.reconciliationFailed")}>
                         {detailRun.error}
                     </Callout>
                 ) : null}
@@ -1213,32 +1216,32 @@ export default function AdminPaymentsPage() {
                     toolbar={
                         <Select
                             className="w-44"
-                            aria-label="对账结果"
+                            aria-label={translate("adminPages.payments.paymentsPage.reconciliationResult")}
                             value={detailResult}
                             onChange={(value) => {
                                 setDetailResult(value);
                                 if (detailRun) void openRunDetails(detailRun, 1, detailPageSize, value);
                             }}
-                            options={[{ value: "all", label: "全部结果" }, { value: "abnormal", label: "仅异常" }, ...Object.entries(reconciliationResult).map(([value, item]) => ({ value, label: item.label }))]}
+                            options={[{ value: "all", label: translate("adminPages.payments.paymentsPage.allResults") }, { value: "abnormal", label: translate("adminPages.payments.paymentsPage.exceptionsOnly") }, ...Object.entries(reconciliationResult).map(([value, item]) => ({ value, label: item.label }))]}
                         />
                     }
                     trailing={
                         <div className="flex items-center gap-2">
                             <Button loading={detailLoading} onClick={() => detailRun && void openRunDetails(detailRun)}>
-                                刷新
+                                {translate("common.refresh")}
                             </Button>
-                            <span title={detailRun?.status === "running" ? "对账执行中，完成后可导出" : "导出当前账单及结果筛选下的全部明细，最多 10000 行"}>
+                            <span title={detailRun?.status === "running" ? translate("adminPages.payments.paymentsPage.reconciliationIsRunningExportIsAvailableWhenItFinishes") : translate("adminPages.payments.paymentsPage.exportAllDetailsForTheCurrentBillAndResultFilters")}>
                                 <AdminExportButton
-                                    label="导出明细 CSV"
+                                    label={translate("adminPages.payments.paymentsPage.exportDetailsCSV")}
                                     disabled={!detailReady || detailLoading || runningBill || detailRun?.status !== "completed" || detailTotal === 0}
                                     exportFile={() => exportAdminPaymentReconciliationItems(detailRun!.id, detailResult === "all" ? undefined : detailResult)}
-                                    fileName={() => `支付对账明细-${detailRun?.providerId}-${detailRun?.billDate}-${dayjs().format("YYYYMMDD-HHmmss")}.csv`}
+                                    fileName={() => translate("adminPages.payments.paymentsPage.paymentReconciliationDetailsCsv", { v0: String(detailRun?.providerId), v1: String(detailRun?.billDate), v2: String(dayjs().format("YYYYMMDD-HHmmss")) })}
                                 />
                             </span>
                         </div>
                     }
                     table={{ rowKey: "id", loading: detailLoading, columns: detailColumns, dataSource: detailItems, pagination: false, scroll: { x: 950 } }}
-                    empty={<AdminTableEmpty title={detailRun?.status === "failed" ? "本次对账未生成明细" : "账单没有交易记录"} />}
+                    empty={<AdminTableEmpty title={detailRun?.status === "failed" ? translate("adminPages.payments.paymentsPage.thisReconciliationProducedNoDetails") : translate("adminPages.payments.paymentsPage.theBillContainsNoTransactions")} />}
                     footer={<PaginationBar alwaysShow current={detailPage} pageSize={detailPageSize} total={detailTotal} onChange={(page, size) => detailRun && void openRunDetails(detailRun, size !== detailPageSize ? 1 : page, size, detailResult)} />}
                 />
             </AdminDrawer>

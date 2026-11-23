@@ -1,3 +1,5 @@
+
+import { translate } from "@/i18n";
 /**
  * 预演台键盘快捷键解析。
  *
@@ -54,44 +56,44 @@ const TRANSFORM_KEYS: Record<string, PrevisToolMode> = {
  */
 export const PREVIS_SHORTCUT_GUIDE: Array<{ group: string; items: Array<{ keys: string[]; label: string }> }> = [
     {
-        group: "选择与变换",
+        group: translate("shared.canvas.previs.previsShortcuts.selectionAndTransforms"),
         items: [
-            { keys: ["Q"], label: "选择工具（只点选，不显示手柄）" },
-            { keys: ["W"], label: "移动" },
-            { keys: ["E"], label: "旋转" },
-            { keys: ["R"], label: "缩放" },
-            { keys: ["Esc"], label: "取消选择" },
-            { keys: ["Delete"], label: "删除选中对象 / 灯光" },
-            { keys: ["Ctrl/⌘", "D"], label: "复制选中对象" },
-            { keys: ["H"], label: "显示 / 隐藏选中对象" },
+            { keys: ["Q"], label: translate("shared.canvas.previs.previsShortcuts.selectionToolClickToSelectNoHandles") },
+            { keys: ["W"], label: translate("shared.canvas.previs.previsShortcuts.move") },
+            { keys: ["E"], label: translate("shared.canvas.previs.previsShortcuts.rotate") },
+            { keys: ["R"], label: translate("shared.canvas.previs.previsShortcuts.zoom") },
+            { keys: ["Esc"], label: translate("shared.assets.assetLibraryPanels.clearSelection") },
+            { keys: ["Delete"], label: translate("shared.canvas.previs.previsShortcuts.deleteSelectedObjectsLights") },
+            { keys: ["Ctrl/⌘", "D"], label: translate("shared.canvas.previs.previsShortcuts.duplicateSelectedObjects") },
+            { keys: ["H"], label: translate("shared.canvas.previs.previsShortcuts.showHideSelectedObjects") },
         ],
     },
     {
-        group: "视图",
+        group: translate("shared.canvas.previs.previsShortcuts.view"),
         items: [
-            { keys: ["F"], label: "聚焦选中对象" },
-            { keys: ["A"], label: "适配全部对象" },
-            { keys: ["C"], label: "切换 3D / 机位视图" },
+            { keys: ["F"], label: translate("shared.canvas.previs.previsShortcuts.focusSelectedObjects") },
+            { keys: ["A"], label: translate("shared.canvas.previs.previsShortcuts.frameAllObjects") },
+            { keys: ["C"], label: translate("shared.canvas.previs.previsShortcuts.switchBetween3DAndCameraViews") },
         ],
     },
     {
-        group: "时间轴与输出",
+        group: translate("shared.canvas.previs.previsShortcuts.timelineAndOutput"),
         items: [
-            { keys: ["Space"], label: "播放 / 暂停" },
-            { keys: ["Ctrl/⌘", "Z"], label: "撤销" },
-            { keys: ["Ctrl/⌘", "Shift", "Z"], label: "重做" },
-            { keys: ["P"], label: "截取当前镜头画面" },
-            { keys: ["?"], label: "显示 / 隐藏快捷键" },
+            { keys: ["Space"], label: translate("shared.canvas.previs.previsShortcuts.playPause") },
+            { keys: ["Ctrl/⌘", "Z"], label: translate("account.settings.memory.actors.restore") },
+            { keys: ["Ctrl/⌘", "Shift", "Z"], label: translate("shared.canvas.toolRegistry.definitions.mainToolbarTools.redo") },
+            { keys: ["P"], label: translate("shared.canvas.previs.previsShortcuts.captureTheCurrentShot") },
+            { keys: ["?"], label: translate("shared.canvas.previs.previsShortcuts.showHideShortcuts") },
         ],
     },
 ];
 
 /** 工具名附带按键，dock 与提示条共用。 */
 export const PREVIS_TOOL_LABELS: Record<PrevisToolMode, string> = {
-    select: "选择 (Q)",
-    translate: "移动 (W)",
-    rotate: "旋转 (E)",
-    scale: "缩放 (R)",
+    select: translate("shared.canvas.previs.previsShortcuts.selectQ"),
+    translate: translate("shared.canvas.previs.previsShortcuts.moveW"),
+    rotate: translate("shared.canvas.previs.previsShortcuts.rotateE"),
+    scale: translate("shared.canvas.previs.previsShortcuts.scaleR"),
 };
 
 /**

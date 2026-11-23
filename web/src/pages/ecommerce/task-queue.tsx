@@ -7,6 +7,7 @@ import { listEcommerceProjectPage, projectPlan, type EcommerceProject } from "@/
 import { resolveResourceVariantUrl } from "@/services/api/resources";
 import { listGenerationTasks, type GenerationTask } from "@/services/api/task-center";
 
+import { translate } from "@/i18n";
 type QueueRow = { project: EcommerceProject; imageId: string; index: number; task?: GenerationTask };
 const finished = (task?: GenerationTask) => task?.status === "succeeded";
 
@@ -68,11 +69,11 @@ export function EcommerceTaskQueue({ onView, activeCount = 0 }: { onView: (proje
                 <div className="commerce-queue-panel">
                     <header>
                         <div>
-                            <strong>队列任务</strong>
-                            <span>最近 50 个项目的图片进度</span>
+                            <strong>{translate("ecommerce.taskQueue.taskQueue")}</strong>
+                            <span>{translate("ecommerce.taskQueue.imageProgressForTheLatest50Projects")}</span>
                         </div>
                         <Button size="small" onClick={() => void refresh()} loading={loading}>
-                            刷新
+                            {translate("common.refresh")}
                         </Button>
                     </header>
                     <Segmented
@@ -84,7 +85,7 @@ export function EcommerceTaskQueue({ onView, activeCount = 0 }: { onView: (proje
                             {
                                 label: (
                                     <span className="commerce-queue-tab">
-                                        进行中<span className="commerce-count-badge is-neutral">{active.length}</span>
+                                        {translate("canvasB.mediaVersion.inProgress")}<span className="commerce-count-badge is-neutral">{active.length}</span>
                                     </span>
                                 ),
                                 value: "active",
@@ -92,7 +93,7 @@ export function EcommerceTaskQueue({ onView, activeCount = 0 }: { onView: (proje
                             {
                                 label: (
                                     <span className="commerce-queue-tab">
-                                        已完成<span className="commerce-count-badge is-neutral">{completed.length}</span>
+                                        {translate("library.tasks.filter.succeeded")}<span className="commerce-count-badge is-neutral">{completed.length}</span>
                                     </span>
                                 ),
                                 value: "completed",
@@ -110,9 +111,9 @@ export function EcommerceTaskQueue({ onView, activeCount = 0 }: { onView: (proje
                                     </div>
                                     <div className="commerce-queue-detail">
                                         <strong>
-                                            {row.project.name || "电商项目"} · 第 {row.index + 1} 张
+                                            {row.project.name || translate("ecommerce.taskQueue.ecommerceProject")} {translate("ecommerce.taskQueue.image")} {row.index + 1} {translate("canvasA.characterLibrary.pageItem")}
                                         </strong>
-                                        <span>{finished(row.task) ? "图片生成成功" : row.task?.stage || (row.task?.status === "queued" ? "排队中" : "生成中")}</span>
+                                        <span>{finished(row.task) ? translate("ecommerce.taskQueue.imageGeneratedSuccessfully") : row.task?.stage || (row.task?.status === "queued" ? translate("canvasPage.taskStatus.queued") : translate("canvasB.mediaVersion.generating"))}</span>
                                         {!finished(row.task) ? <Progress percent={Math.max(0, Math.min(100, Math.round(row.task?.progress || 0)))} size="small" showInfo={false} /> : null}
                                     </div>
                                     <Button
@@ -122,19 +123,19 @@ export function EcommerceTaskQueue({ onView, activeCount = 0 }: { onView: (proje
                                             onView(row.project, row.imageId);
                                         }}
                                     >
-                                        查看
+                                        {translate("ecommerce.taskQueue.view")}
                                     </Button>
                                 </div>
                             ))
                         ) : (
-                            <div className="commerce-queue-empty">{loading ? <Spin size="small" /> : tab === "active" ? "目前没有进行中的图片" : "暂无已完成图片"}</div>
+                            <div className="commerce-queue-empty">{loading ? <Spin size="small" /> : tab === "active" ? translate("ecommerce.taskQueue.noImagesAreCurrentlyInProgress") : translate("ecommerce.taskQueue.noCompletedImagesYet")}</div>
                         )}
                     </div>
                 </div>
             }
         >
-            <Button className="commerce-queue-trigger" icon={<QueueIcon size={16} />} aria-label={badge ? `队列任务，${badge} 张图片生成中` : "队列任务"}>
-                队列任务
+            <Button className="commerce-queue-trigger" icon={<QueueIcon size={16} />} aria-label={badge ? translate("ecommerce.taskQueue.taskQueueImagesGenerating", { v0: String(badge) }) : translate("ecommerce.taskQueue.taskQueue")}>
+                {translate("ecommerce.taskQueue.taskQueue")}
                 {badge ? (
                     <span key={badge} className="commerce-queue-badge" aria-hidden="true">
                         {badge > 99 ? "99+" : badge}

@@ -1,5 +1,6 @@
 import { ApiError } from "@/services/api/request";
 
+import { translate } from "@/i18n";
 type ActiveTask = { status: string };
 
 type SlotOptions = {
@@ -18,7 +19,7 @@ export async function waitForCommerceGenerationSlot(options: SlotOptions) {
         await options.checkBatch?.();
         options.assertCurrent();
         const limit = options.activeLimit();
-        if (!Number.isInteger(limit) || limit < 1) throw new Error("账号任务上限尚未就绪，请刷新后继续");
+        if (!Number.isInteger(limit) || limit < 1) throw new Error(translate("ecommerce.generationSlot.accountTaskLimitsAreNotReadyRefreshToContinue"));
         // The task endpoint returns at most 100 records. A full page must keep
         // waiting rather than undercount a larger account limit.
         const pageLimit = Math.min(limit, 100);

@@ -47,12 +47,4 @@ export function translate(key: string, options?: Record<string, unknown>): strin
     return i18n.t(key, options) as string;
 }
 
-/**
- * 用户切换界面语言：保存偏好后整页刷新。部分文案在模块加载或缓存数据里生成，
- * 只靠组件重渲染会出现新旧语言混排；刷新保证整页使用同一种语言。
- */
-export function switchLocale(next: AppLocale) {
-    if (next === currentLocale()) return;
-    useLocaleStore.getState().setLocale(next);
-    if (typeof window !== "undefined") window.location.reload();
-}
+export { switchLocale } from "@/stores/use-locale-store";

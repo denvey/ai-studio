@@ -39,6 +39,8 @@ import { creationMessageNeedsResultSync } from "./creation-conversations";
 import "./creation-product.css";
 import "./creation-scrollbars.css";
 import { CreationAttachmentThumbnail, CreationMediaPreviewModal } from "./creation-workspace-messages";
+import { currentLocale, translate } from "@/i18n";
+
 
 export { CreationHistoryDrawer } from "./creation-workspace-history";
 export { CreationMessageView } from "./creation-workspace-messages";
@@ -46,7 +48,7 @@ export { CreationEmptyBanner, CreationEmptySuggest, CreationFeaturedWorks } from
 
 const CanvasPromptOptimizerDrawer = lazy(() => import("@/components/canvas/canvas-prompt-optimizer-drawer").then((module) => ({ default: module.CanvasPromptOptimizerDrawer })));
 
-export const creationAssetCategoryLabels: Record<string, string> = { all: "全部素材", ...ASSET_CATEGORY_LABELS };
+export const creationAssetCategoryLabels: Record<string, string> = { all: translate("canvasA.assetPicker.allAssets"), ...ASSET_CATEGORY_LABELS };
 
 export function CreationWorkspaceToolbar({
     shots,
@@ -79,15 +81,15 @@ export function CreationWorkspaceToolbar({
             <div className="creation-toolbar-shots" ref={railRef}>
                 <button type="button" className="creation-rail-trigger" aria-expanded={railOpen} aria-haspopup="listbox" onClick={() => setRailOpen((open) => !open)}>
                     <Clapperboard />
-                    镜头时间线{shots.length > 0 ? <em className="creation-rail-count">{shots.length}</em> : null}
+                    {translate("shared.create.creationWorkspace.shotTimeline")}{shots.length > 0 ? <em className="creation-rail-count">{shots.length}</em> : null}
                 </button>
                 {railOpen ? (
-                    <div className="creation-rail-pop" role="listbox" aria-label="镜头时间线">
+                    <div className="creation-rail-pop" role="listbox" aria-label={translate("shared.create.creationWorkspace.shotTimeline")}>
                         <div className="creation-rail-pop-head">
                             <span className="creation-rail-pop-title">
-                                镜头时间线<small>{shots.length ? `共 ${shots.length} 镜` : "空轨道"}</small>
+                                {translate("shared.create.creationWorkspace.shotTimeline")}<small>{shots.length ? translate("shared.create.creationWorkspace.shotsTotal", { v0: String(shots.length) }) : translate("shared.create.creationWorkspace.emptyTrack")}</small>
                             </span>
-                            <button type="button" className="creation-rail-pop-close" aria-label="关闭镜头列表" onClick={() => setRailOpen(false)}>
+                            <button type="button" className="creation-rail-pop-close" aria-label={translate("shared.create.creationWorkspace.closeShotList")} onClick={() => setRailOpen(false)}>
                                 <X />
                             </button>
                         </div>
@@ -96,7 +98,7 @@ export function CreationWorkspaceToolbar({
                                 {shots.map((shot) => {
                                     const resultStatus = shot.result?.status;
                                     const resultNeedsSync = Boolean(shot.result && creationMessageNeedsResultSync(shot.result));
-                                    const statusLabel = resultStatus === "done" ? "完成" : resultNeedsSync ? "待同步" : resultStatus === "error" ? "生成失败" : resultStatus === "pending" ? "生成中" : resultStatus === "cancelled" ? "已停止" : "待生成";
+                                    const statusLabel = resultStatus === "done" ? translate("account.payment.done") : resultNeedsSync ? translate("shared.create.creationWorkspace.awaitingSync") : resultStatus === "error" ? translate("canvasPage.batches.generationFailed") : resultStatus === "pending" ? translate("canvasB.mediaVersion.generating") : resultStatus === "cancelled" ? translate("create.status.stopped") : translate("shared.create.creationWorkspace.awaitingGeneration");
                                     return (
                                         <li key={shot.key}>
                                             <button
@@ -110,7 +112,7 @@ export function CreationWorkspaceToolbar({
                                                 }}
                                             >
                                                 <span className="creation-rail-row-shot">{formatShotOrdinal(shot.ordinal - 1)}</span>
-                                                <span className="creation-rail-row-prompt">{shot.user.content || "视频镜头"}</span>
+                                                <span className="creation-rail-row-prompt">{shot.user.content || translate("shared.create.creationWorkspace.videoShots")}</span>
                                                 <span className={`creation-rail-row-state is-${resultNeedsSync ? "sync" : resultStatus || "idle"}`}>{statusLabel}</span>
                                             </button>
                                         </li>
@@ -118,22 +120,22 @@ export function CreationWorkspaceToolbar({
                                 })}
                             </ol>
                         ) : (
-                            <p className="creation-rail-empty">在下方发送一条视频消息，就会自动成为第 1 镜。</p>
+                            <p className="creation-rail-empty">{translate("shared.create.creationWorkspace.sendAVideoMessageBelowToCreateYourFirstShot")}</p>
                         )}
                     </div>
                 ) : null}
             </div>
             <div className="creation-toolbar-actions">
                 <Button size="small" loading={openingCanvas} onClick={onContinueCanvas}>
-                    画布中继续
+                    {translate("shared.create.creationWorkspace.continueOnCanvas")}
                 </Button>
-                <Tooltip title="新建创作">
-                    <button type="button" aria-label="新建创作" className="creation-toolbar-action" onClick={onNewConversation}>
+                <Tooltip title={translate("create.history.new")}>
+                    <button type="button" aria-label={translate("create.history.new")} className="creation-toolbar-action" onClick={onNewConversation}>
                         <Plus />
                     </button>
                 </Tooltip>
-                <Tooltip title="历史对话">
-                    <button type="button" aria-label="查看历史对话" className="creation-toolbar-action" onClick={onOpenHistory}>
+                <Tooltip title={translate("create.history.title")}>
+                    <button type="button" aria-label={translate("create.page.viewHistory")} className="creation-toolbar-action" onClick={onOpenHistory}>
                         <History />
                     </button>
                 </Tooltip>
@@ -249,20 +251,20 @@ export function CreationComposer(props: ComposerProps) {
     }, [creditsEnabled, quoteRequest]);
     const generationCredits = routeQuote ? routeQuote.amountMicrocredits / 1_000_000 : credits;
     const showCost = creditsEnabled && generationCredits !== null && generationCredits !== undefined;
-    const formattedCredits = generationCredits?.toLocaleString("zh-CN", { maximumFractionDigits: 6 });
-    const actionLabel = props.referenceReplacementBusy ? "正在替换参考图" : interactionBusy || (props.generationActive && !canSubmit) ? "生成中" : showCost ? `${routeQuote?.estimated ? "预估" : "消耗"} ${formattedCredits} 积分，发送` : "发送";
+    const formattedCredits = generationCredits?.toLocaleString(currentLocale(), { maximumFractionDigits: 6 });
+    const actionLabel = props.referenceReplacementBusy ? translate("shared.create.creationWorkspace.replacingReferenceImage") : interactionBusy || (props.generationActive && !canSubmit) ? translate("canvasB.mediaVersion.generating") : showCost ? translate("shared.create.creationWorkspace.creditsSend", { v0: String(routeQuote?.estimated ? translate("shared.create.creationWorkspace.estimated2") : translate("shared.create.creationWorkspace.cost")), v1: String(formattedCredits) }) : translate("shared.testVoiceRecording.send");
     // Send-button working state must span the WHOLE generation (not just the
     // submit-lock window): spinner + glow stay while a message is pending and
     // the composer is empty; typing a next prompt returns the arrow so the
     // user knows a new send is possible.
     const showWorkingSpinner = interactionBusy || (props.generationActive && !canSubmit);
     const showWorkingGlow = props.generationActive && !canSubmit;
-    const placeholder = props.mode === "text" ? "描述你的故事、角色或想继续讨论的创意" : props.mode === "image" ? "描述画面、人物、场景、构图与风格" : "描述镜头内容、运动、光线与节奏";
-    const emptyPlaceholder = "输入你的镜头、画面或故事。也可以添加参考图开始创作";
+    const placeholder = props.mode === "text" ? translate("shared.create.creationWorkspace.describeYourStoryCharactersOrTheIdeaYouWantTo") : props.mode === "image" ? translate("shared.create.creationWorkspace.describeTheFrameCharactersSettingCompositionAndStyle") : translate("shared.create.creationWorkspace.describeTheShotSContentMovementLightingAndPacing");
+    const emptyPlaceholder = translate("shared.create.creationWorkspace.describeYourShotImageOrStoryYouCanAlsoAdd");
     const imageReferencesSupported = props.imageProfile.references.maxImages > 0;
     const referencesSupported = props.mode === "image" ? imageReferencesSupported : props.mode !== "video" || props.maxReferences > 0;
     const canAddMoreReferences = referencesSupported && props.attachments.length < props.maxReferences;
-    const addReferenceLabel = interactionBusy ? (props.referenceReplacementBusy ? "正在替换参考图" : "生成中暂不能添加参考内容") : canAddMoreReferences ? "添加更多参考内容" : `已达到当前模型的参考内容上限（${props.maxReferences} 个）`;
+    const addReferenceLabel = interactionBusy ? (props.referenceReplacementBusy ? translate("shared.create.creationWorkspace.replacingReferenceImage") : translate("shared.create.creationWorkspace.referencesCannotBeAddedDuringGeneration")) : canAddMoreReferences ? translate("shared.create.creationWorkspace.addMoreReferences") : translate("shared.create.creationWorkspace.referenceLimitReachedForTheCurrentModel", { v0: String(props.maxReferences) });
     const referenceCounts = useMemo(
         () =>
             props.attachments.reduce(
@@ -389,7 +391,7 @@ export function CreationComposer(props: ComposerProps) {
                         className="creation-chat-mention-editor creation-scrollbar"
                         style={{ color: "var(--creation-text)" }}
                         placeholder={props.placeholderOverride || (props.variant === "empty" ? emptyPlaceholder : placeholder)}
-                        aria-label="创作提示词，可使用 @ 引用当前参考内容或技能；回车发送，Shift+回车换行"
+                        aria-label={translate("shared.create.creationWorkspace.writeAPromptUseToReferenceCurrentContentOrSkills")}
                         spellCheck
                         disabled={interactionBusy}
                         activeDropReferenceId={dropTargetReferenceId}
@@ -402,14 +404,14 @@ export function CreationComposer(props: ComposerProps) {
                         <div className={`creation-reference-panel${trackState.isExpanded ? " is-expanded" : ""}`} aria-busy={interactionBusy}>
                             {trackState.isExpanded ? (
                                 <div className="creation-reference-panel-header">
-                                    <div className="creation-reference-filter-tabs" role="group" aria-label="筛选参考内容">
+                                    <div className="creation-reference-filter-tabs" role="group" aria-label={translate("shared.create.creationWorkspace.filterReferences")}>
                                         {(
                                             [
-                                                { id: "all", label: "全部", count: props.attachments.length },
-                                                { id: "image", label: "图片", count: referenceCounts.image },
-                                                { id: "video", label: "视频", count: referenceCounts.video },
-                                                { id: "audio", label: "音频", count: referenceCounts.audio },
-                                                { id: "file", label: "文件", count: referenceCounts.file },
+                                                { id: "all", label: translate("canvasA.toolPicker.all"), count: props.attachments.length },
+                                                { id: "image", label: translate("account.feedback.image"), count: referenceCounts.image },
+                                                { id: "video", label: translate("account.feedback.video"), count: referenceCounts.video },
+                                                { id: "audio", label: translate("account.settings.modelConfig.capabilities.audio"), count: referenceCounts.audio },
+                                                { id: "file", label: translate("shared.create.creationWorkspace.files"), count: referenceCounts.file },
                                             ] as const
                                         ).map((filter) => (
                                             <button key={filter.id} type="button" aria-pressed={referenceFilter === filter.id} className={referenceFilter === filter.id ? "is-active" : undefined} onClick={() => setReferenceFilter(filter.id)}>
@@ -421,11 +423,11 @@ export function CreationComposer(props: ComposerProps) {
                                     <div className="creation-reference-panel-actions">
                                         {props.attachments.length ? (
                                             <button type="button" onClick={props.onClearAttachments} disabled={interactionBusy}>
-                                                清空全部素材
+                                                {translate("shared.create.creationWorkspace.clearAllAssets")}
                                             </button>
                                         ) : null}
-                                        <Tooltip title="收起素材面板">
-                                            <button type="button" className="creation-reference-panel-collapse" onClick={() => setReferencePanelExpanded(false)} aria-label="收起素材面板">
+                                        <Tooltip title={translate("shared.create.creationWorkspace.collapseAssetPanel")}>
+                                            <button type="button" className="creation-reference-panel-collapse" onClick={() => setReferencePanelExpanded(false)} aria-label={translate("shared.create.creationWorkspace.collapseAssetPanel")}>
                                                 <Minimize2 aria-hidden="true" />
                                             </button>
                                         </Tooltip>
@@ -435,7 +437,7 @@ export function CreationComposer(props: ComposerProps) {
                             <div className="creation-reference-track-wrapper">
                                 <div className="creation-reference-stack-shell">
                                     {trackState.canScrollLeft ? (
-                                        <button type="button" className="creation-reference-track-button is-left" onClick={() => scrollAttachmentTrack(-1)} aria-label="向左浏览参考内容" title="向左浏览参考内容">
+                                        <button type="button" className="creation-reference-track-button is-left" onClick={() => scrollAttachmentTrack(-1)} aria-label={translate("shared.create.creationWorkspace.browseReferencesLeft")} title={translate("shared.create.creationWorkspace.browseReferencesLeft")}>
                                             <ChevronLeft aria-hidden="true" />
                                         </button>
                                     ) : null}
@@ -448,7 +450,7 @@ export function CreationComposer(props: ComposerProps) {
                                         onReorder={reorderVisibleAttachments}
                                         layoutScroll
                                         role="list"
-                                        aria-label="参考内容轨道"
+                                        aria-label={translate("shared.create.creationWorkspace.referenceTrack")}
                                         onScroll={updateTrackScrollState}
                                     >
                                         {visibleAttachments.map((item) => (
@@ -481,26 +483,26 @@ export function CreationComposer(props: ComposerProps) {
                                                 <CreationAttachmentThumbnail item={item} onPreview={previewAttachment} onRemove={props.onRemoveAttachment} />
                                             </Reorder.Item>
                                         ))}
-                                        {!visibleAttachments.length && props.attachments.length ? <li className="creation-reference-filter-empty">该类型暂无参考内容</li> : null}
+                                        {!visibleAttachments.length && props.attachments.length ? <li className="creation-reference-filter-empty">{translate("shared.create.creationWorkspace.noReferencesOfThisTypeYet")}</li> : null}
                                         {referencesSupported ? (
                                             <li className="creation-reference-add-slot">
                                                 <Tooltip title={addReferenceLabel}>
                                                     <button type="button" className="creation-reference-add-button" onClick={props.onOpenLibrary} disabled={interactionBusy || !canAddMoreReferences} aria-label={addReferenceLabel}>
                                                         <Plus aria-hidden="true" />
-                                                        <span>参考内容</span>
+                                                        <span>{translate("library.picker.eyebrow")}</span>
                                                     </button>
                                                 </Tooltip>
                                             </li>
                                         ) : null}
                                     </Reorder.Group>
                                     {trackState.canScrollRight ? (
-                                        <button type="button" className="creation-reference-track-button is-right" onClick={() => scrollAttachmentTrack(1)} aria-label="向右浏览参考内容" title="向右浏览参考内容">
+                                        <button type="button" className="creation-reference-track-button is-right" onClick={() => scrollAttachmentTrack(1)} aria-label={translate("shared.create.creationWorkspace.browseReferencesRight")} title={translate("shared.create.creationWorkspace.browseReferencesRight")}>
                                             <ChevronRight aria-hidden="true" />
                                         </button>
                                     ) : null}
                                     {!trackState.isExpanded && props.attachments.length ? (
-                                        <Tooltip title="查看全部">
-                                            <button type="button" className="creation-reference-panel-expand" onClick={() => setReferencePanelExpanded(true)} aria-label={`查看全部 ${props.attachments.length} 个参考内容`} aria-expanded="false">
+                                        <Tooltip title={translate("create.recent.viewAll")}>
+                                            <button type="button" className="creation-reference-panel-expand" onClick={() => setReferencePanelExpanded(true)} aria-label={translate("shared.create.creationWorkspace.viewAllReferences", { v0: String(props.attachments.length) })} aria-expanded="false">
                                                 <Maximize2 aria-hidden="true" />
                                             </button>
                                         </Tooltip>
@@ -518,16 +520,16 @@ export function CreationComposer(props: ComposerProps) {
                         <Tooltip title={addReferenceLabel}>
                             <button type="button" className="creation-chat-control" onClick={props.onOpenLibrary} disabled={interactionBusy || !canAddMoreReferences} aria-label={addReferenceLabel}>
                                 <Plus aria-hidden="true" />
-                                <span>参考内容</span>
+                                <span>{translate("library.picker.eyebrow")}</span>
                             </button>
                         </Tooltip>
                     ) : null}
                     <VoiceRecordingButton className="creation-voice-trigger" disabled={interactionBusy} onTranscribed={(text) => props.setPrompt(props.prompt.trim() ? `${props.prompt} ${text}` : text)} />
                     {canOptimizePrompt ? (
-                        <Tooltip title="用 AI 优化提示词">
-                            <button type="button" className="creation-chat-control" onClick={() => setPromptOptimizerOpen(true)} aria-label="优化提示词" aria-expanded={promptOptimizerOpen} aria-haspopup="dialog">
+                        <Tooltip title={translate("shared.create.creationWorkspace.optimizePromptWithAI")}>
+                            <button type="button" className="creation-chat-control" onClick={() => setPromptOptimizerOpen(true)} aria-label={translate("shared.create.creationWorkspace.optimizePrompt")} aria-expanded={promptOptimizerOpen} aria-haspopup="dialog">
                                 <PenLine />
-                                <span>优化</span>
+                                <span>{translate("shared.create.creationWorkspace.optimize")}</span>
                             </button>
                         </Tooltip>
                     ) : null}
@@ -538,7 +540,7 @@ export function CreationComposer(props: ComposerProps) {
                         capability={props.mode}
                         requirements={props.modelRequirements}
                         className="creation-model-picker"
-                        placeholder={`选择${modeLabels[props.mode]}模型`}
+                        placeholder={translate("shared.create.creationWorkspace.selectAModel", { v0: String(modeLabels[props.mode]) })}
                         showSelectedPrice={false}
                         showOptionPrices
                         variant="creation"
@@ -547,10 +549,10 @@ export function CreationComposer(props: ComposerProps) {
                     {props.mode === "video" ? <DurationMenu profile={props.videoProfile} seconds={props.seconds} onChange={props.setSeconds} /> : null}
                     {props.mode === "text" ? (
                         <>
-                            <Tooltip title={interactionBusy ? "生成中，此开关将在下次发送时生效" : props.textStreaming ? "流式输出已开启" : "流式输出已关闭"}>
+                            <Tooltip title={interactionBusy ? translate("shared.create.creationWorkspace.generationInProgressThisToggleTakesEffectOnYourNext") : props.textStreaming ? translate("shared.create.creationWorkspace.streamingEnabled") : translate("shared.create.creationWorkspace.streamingDisabled")}>
                                 <button type="button" className="creation-chat-control" aria-pressed={props.textStreaming} disabled={interactionBusy} onClick={() => props.setTextStreaming(!props.textStreaming)}>
                                     <Waves />
-                                    <span>流式</span>
+                                    <span>{translate("shared.create.creationWorkspace.streaming")}</span>
                                     {props.textStreaming ? <span className="size-1.5 rounded-full bg-blue-400 shrink-0 shadow-sm" /> : null}
                                 </button>
                             </Tooltip>
@@ -558,10 +560,10 @@ export function CreationComposer(props: ComposerProps) {
                         </>
                     ) : null}
                     {props.prompt.trim() || props.attachments.length || props.references.some((reference) => reference.active) ? (
-                        <Tooltip title="清空提示词和参考内容">
-                            <button type="button" className="creation-chat-control is-clear" onClick={props.onClearComposer} disabled={interactionBusy} aria-label="清空提示词和参考内容">
+                        <Tooltip title={translate("shared.create.creationWorkspace.clearPromptAndReferences")}>
+                            <button type="button" className="creation-chat-control is-clear" onClick={props.onClearComposer} disabled={interactionBusy} aria-label={translate("shared.create.creationWorkspace.clearPromptAndReferences")}>
                                 <Trash2 />
-                                <span>清空</span>
+                                <span>{translate("canvasA.outbox.clear")}</span>
                             </button>
                         </Tooltip>
                     ) : null}
@@ -578,18 +580,18 @@ export function CreationComposer(props: ComposerProps) {
                     }
                     onClick={interactionBusy ? undefined : props.onSubmit}
                     aria-label={actionLabel}
-                    title={!canSubmit && !interactionBusy ? "输入创作想法后即可生成" : actionLabel}
+                    title={!canSubmit && !interactionBusy ? translate("shared.create.creationWorkspace.enterYourIdeaToStartGenerating") : actionLabel}
                 >
                     {showWorkingGlow ? <WorkingGlow active color="var(--creation-text)" radius="var(--button-radius)" /> : null}
                     {showCost ? (
                         <span className="creation-submit-cost" title={routeQuote ? modelQuoteDescription(routeQuote) : undefined}>
                             <CreditSymbol />
-                            <span>{routeQuote?.estimated ? `预估:${formattedCredits}` : formattedCredits}</span>
+                            <span>{routeQuote?.estimated ? translate("shared.create.creationWorkspace.estimated", { v0: String(formattedCredits) }) : formattedCredits}</span>
                         </span>
                     ) : null}
                     <span className="creation-submit-action" aria-hidden>
                         {showWorkingSpinner ? <LoaderCircle className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
-                        <span>{showWorkingSpinner ? "生成中" : "开始创作"}</span>
+                        <span>{showWorkingSpinner ? translate("canvasB.mediaVersion.generating") : translate("account.welcome.start")}</span>
                     </span>
                 </Button>
             </footer>
@@ -628,9 +630,9 @@ export function CreationComposer(props: ComposerProps) {
 }
 
 const creationModeItems: { mode: CreationMode; icon: ReactNode; label: string }[] = [
-    { mode: "video", icon: <Film />, label: "视频" },
-    { mode: "image", icon: <ImageIcon />, label: "图片" },
-    { mode: "text", icon: <MessageSquareText />, label: "文本" },
+    { mode: "video", icon: <Film />, label: translate("account.feedback.video") },
+    { mode: "image", icon: <ImageIcon />, label: translate("account.feedback.image") },
+    { mode: "text", icon: <MessageSquareText />, label: translate("account.settings.modelConfig.capabilities.text") },
 ];
 
 type CreationModeKey = CreationMode | "agent";
@@ -657,13 +659,13 @@ export function CreationModeCard({ mode, agentActive, onModeChange, onAgentSelec
           };
     return (
         <HoverBorderGradient as="div" duration={2.2} containerClassName="creation-mode-card" className="creation-mode-card-inner">
-            <div className="creation-mode-folder" role="group" aria-label="创作模式" data-active-mode={activeKey} style={{ "--creation-mode-count": keys.length } as CSSProperties}>
+            <div className="creation-mode-folder" role="group" aria-label={translate("shared.create.creationWorkspace.creationMode")} data-active-mode={activeKey} style={{ "--creation-mode-count": keys.length } as CSSProperties}>
                 <motion.span className="creation-mode-folder-tab" aria-hidden initial={false} animate={{ left: `${activeIndex * step}%`, right: `${(keys.length - 1 - activeIndex) * step}%` }} transition={tabTransition}>
                     <CreationModeFolderWing side="start" />
                     <CreationModeFolderWing side="end" />
                 </motion.span>
                 {creationModeItems.map((item) => (
-                    <button key={item.mode} type="button" className="creation-mode-folder-button" data-mode={item.mode} aria-pressed={activeKey === item.mode} aria-label={`${item.label}生成`} onClick={() => onModeChange(item.mode)}>
+                    <button key={item.mode} type="button" className="creation-mode-folder-button" data-mode={item.mode} aria-pressed={activeKey === item.mode} aria-label={translate("shared.create.creationWorkspace.generation", { v0: String(item.label) })} onClick={() => onModeChange(item.mode)}>
                         {item.icon}
                         <span>{item.label}</span>
                     </button>
@@ -693,9 +695,9 @@ function CreationModeTabs({ mode, onModeChange, orientation = "horizontal" }: { 
     const indicator = (pressed: boolean) => (pressed ? <motion.span layoutId={`creation-mode-indicator-${orientation}`} className="creation-mode-indicator" aria-hidden transition={reducedMotion ? { duration: 0 } : aceternityMotion.spring.dock} /> : null);
     return (
         <LayoutGroup id={`creation-mode-tabs-${orientation}`}>
-            <div className="creation-mode-tabs" role="group" aria-label="创作模式" data-active-mode={mode} data-orientation={orientation} style={{ gridTemplateColumns: orientation === "vertical" ? "minmax(0, 1fr)" : "repeat(3, minmax(0, 1fr))" }}>
+            <div className="creation-mode-tabs" role="group" aria-label={translate("shared.create.creationWorkspace.creationMode")} data-active-mode={mode} data-orientation={orientation} style={{ gridTemplateColumns: orientation === "vertical" ? "minmax(0, 1fr)" : "repeat(3, minmax(0, 1fr))" }}>
                 {creationModeItems.map((item) => (
-                    <button key={item.mode} type="button" className="creation-mode-button" data-mode={item.mode} aria-pressed={item.mode === mode} aria-label={`${item.label}生成`} onClick={() => onModeChange(item.mode)}>
+                    <button key={item.mode} type="button" className="creation-mode-button" data-mode={item.mode} aria-pressed={item.mode === mode} aria-label={translate("shared.create.creationWorkspace.generation", { v0: String(item.label) })} onClick={() => onModeChange(item.mode)}>
                         {indicator(item.mode === mode)}
                         {item.icon}
                         <span>{item.label}</span>
@@ -712,8 +714,8 @@ function ModePicker({ mode, onModeChange }: { mode: CreationMode; onModeChange: 
 
 function GenerationSettingsMenu(props: ComposerProps) {
     const [open, setOpen] = useState(false);
-    const activeQualityOptions = props.imageProfile.quality.values.map((value) => qualityOptions.find((item) => item.value === value) || { value, label: imageQualityLabel(value), description: "模型支持的质量/分辨率" });
-    const qualityLabel = activeQualityOptions.find((item) => item.value === props.quality)?.label || qualityOptions.find((item) => item.value === props.quality)?.label || props.quality || "自动";
+    const activeQualityOptions = props.imageProfile.quality.values.map((value) => qualityOptions.find((item) => item.value === value) || { value, label: imageQualityLabel(value), description: translate("shared.create.creationWorkspace.qualityResolutionSupportedByTheModel") });
+    const qualityLabel = activeQualityOptions.find((item) => item.value === props.quality)?.label || qualityOptions.find((item) => item.value === props.quality)?.label || props.quality || translate("account.layout.oss.auto");
     // 尺寸/比例/分辨率选项取同显示名分组内全部模型的并集，路由模型只决定发送参数。
     const mergedProfile = mergedImageCapabilityConfig(props.config, props.model || props.config.imageModel);
     const usesImageResolutionPicker = props.mode === "image" && supportsImageResolutionPresets(mergedProfile.size);
@@ -770,7 +772,7 @@ function GenerationSettingsMenu(props: ComposerProps) {
                         }}
                     />
                 ) : videoRatioSupported ? (
-                    <SettingSection title="画幅" value={props.ratio}>
+                    <SettingSection title={translate("shared.create.creationWorkspace.frameSize")} value={props.ratio}>
                         <div className="creation-choice-grid is-ratio">
                             {ratios.map((value) => (
                                 <button key={value} type="button" aria-pressed={value === props.ratio} className={value === props.ratio ? "is-selected" : ""} onClick={() => props.setRatio(value)}>
@@ -785,12 +787,12 @@ function GenerationSettingsMenu(props: ComposerProps) {
                 ) : null}
                 {props.mode === "image" && referenceImageSizeValue ? (
                     <button type="button" className="creation-custom-trigger" onClick={selectReferenceImageSize}>
-                        使用参考图尺寸 · {referenceImageSizeLabel}
+                        {translate("shared.create.creationWorkspace.useReferenceImageDimensions")} {referenceImageSizeLabel}
                     </button>
                 ) : null}
                 {props.mode === "video" ? (
                     videoResolutionSupported ? (
-                        <SettingSection title="清晰度" value={videoResolutionLabel(props.videoQuality)}>
+                        <SettingSection title={translate("shared.create.creationWorkspace.sharpness")} value={videoResolutionLabel(props.videoQuality)}>
                             <div className="creation-choice-grid is-resolution">
                                 {resolutions.map((option) => (
                                     <button key={option.value} type="button" aria-pressed={option.value === props.videoQuality} className={option.value === props.videoQuality ? "is-selected" : ""} onClick={() => props.setVideoQuality(option.value)}>
@@ -803,7 +805,7 @@ function GenerationSettingsMenu(props: ComposerProps) {
                 ) : (
                     <>
                         {props.imageProfile.quality.supported && !imageResolutionUsesQuality(mergedProfile) ? (
-                            <SettingSection title={activeQualityOptions.some((item) => item.value === "1k" || item.value === "2k") ? "分辨率" : "图片质量"} value={qualityLabel}>
+                            <SettingSection title={activeQualityOptions.some((item) => item.value === "1k" || item.value === "2k") ? translate("library.tasks.params.resolution") : translate("shared.create.creationWorkspace.imageQuality")} value={qualityLabel}>
                                 <div className="creation-choice-grid is-quality">
                                     {activeQualityOptions.map((option) => (
                                         <button key={option.value} type="button" aria-pressed={option.value === props.quality} className={option.value === props.quality ? "is-selected" : ""} onClick={() => props.setQuality(option.value)}>
@@ -815,7 +817,7 @@ function GenerationSettingsMenu(props: ComposerProps) {
                             </SettingSection>
                         ) : null}
                         {props.imageProfile.maxOutputs > 1 ? (
-                            <SettingSection title="生成张数" value={`${props.count} 张`}>
+                            <SettingSection title={translate("shared.create.creationWorkspace.imageCount")} value={translate("shared.create.creationWorkspace.images", { v0: String(props.count) })}>
                                 <div className="creation-parameter-content">
                                     <div className="creation-choice-grid is-count">
                                         {countOptions
@@ -827,15 +829,15 @@ function GenerationSettingsMenu(props: ComposerProps) {
                                             ))}
                                     </div>
                                     <label className="creation-custom-value">
-                                        <span>自定义</span>
+                                        <span>{translate("account.settings.models.scopeCustom")}</span>
                                         <input
                                             inputMode="numeric"
                                             pattern="[0-9]*"
                                             value={props.count}
                                             onChange={(event) => props.setCount(String(Math.max(1, Math.min(props.imageProfile.maxOutputs, Number(event.target.value) || 1))))}
-                                            aria-label={`生成张数，范围 1 到 ${props.imageProfile.maxOutputs}`}
+                                            aria-label={translate("shared.create.creationWorkspace.imageCountFrom1To", { v0: String(props.imageProfile.maxOutputs) })}
                                         />
-                                        <em>张</em>
+                                        <em>{translate("canvasA.characterLibrary.pageItem")}</em>
                                     </label>
                                 </div>
                             </SettingSection>
@@ -854,7 +856,7 @@ function GenerationSettingsMenu(props: ComposerProps) {
             classNames={{ root: "creation-control-popover", container: "creation-control-popover-surface", content: "creation-control-popover-content" }}
             content={panel}
         >
-            <button type="button" className="creation-chat-control" aria-label={`生成设置：${summary}`}>
+            <button type="button" className="creation-chat-control" aria-label={translate("shared.create.creationWorkspace.generationSettings", { v0: String(summary) })}>
                 <SlidersHorizontal />
                 <span>{summary}</span>
                 <ChevronDown className={open ? "is-open" : ""} />
@@ -896,13 +898,13 @@ function DurationMenu({ profile, seconds, onChange }: { profile: VideoCapability
     const durationControl =
         profile.duration.selection === "range" ? (
             <>
-                <input className="h-8 w-full" style={{ accentColor: "var(--creation-text)" }} type="range" min={min} max={max} step={step} value={value} aria-label="视频时长（秒）" onChange={(event) => onChange(event.target.value)} />
+                <input className="h-8 w-full" style={{ accentColor: "var(--creation-text)" }} type="range" min={min} max={max} step={step} value={value} aria-label={translate("shared.create.creationWorkspace.videoDurationSeconds")} onChange={(event) => onChange(event.target.value)} />
                 <div className="flex justify-between px-0.5 text-[var(--fs-tiny)] text-[var(--creation-muted)]">
                     <span>{min}s</span>
                     <span>{max}s</span>
                 </div>
                 <label className="creation-custom-value is-duration">
-                    <span>自定义时长</span>
+                    <span>{translate("shared.create.creationWorkspace.customDuration")}</span>
                     <span className="creation-duration-custom-field">
                         <input
                             type="number"
@@ -914,9 +916,9 @@ function DurationMenu({ profile, seconds, onChange }: { profile: VideoCapability
                             onFocus={(event) => event.currentTarget.select()}
                             onBlur={() => onChange(String(value))}
                             onChange={(event) => onChange(event.target.value)}
-                            aria-label="自定义视频时长，单位秒"
+                            aria-label={translate("shared.create.creationWorkspace.customVideoDurationInSeconds")}
                         />
-                        <em>秒</em>
+                        <em>{translate("account.settings.models.unitSecond")}</em>
                     </span>
                 </label>
             </>
@@ -940,14 +942,14 @@ function DurationMenu({ profile, seconds, onChange }: { profile: VideoCapability
             content={
                 <div className="creation-duration-menu">
                     <div className="creation-duration-heading">
-                        <span>时长</span>
-                        <strong>{value} 秒</strong>
+                        <span>{translate("canvasA.assetView.duration")}</span>
+                        <strong>{value} {translate("account.settings.models.unitSecond")}</strong>
                     </div>
                     {durationControl}
                 </div>
             }
         >
-            <button type="button" className="creation-chat-control is-duration" aria-label={`视频时长：${value}秒`}>
+            <button type="button" className="creation-chat-control is-duration" aria-label={translate("shared.create.creationWorkspace.videoDurationSeconds2", { v0: String(value) })}>
                 <Clock3 />
                 <span>{value}s</span>
                 <ChevronDown className={open ? "is-open" : ""} />

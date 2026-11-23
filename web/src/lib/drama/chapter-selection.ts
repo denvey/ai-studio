@@ -1,3 +1,5 @@
+
+import { translate } from "@/i18n";
 // 长篇导入时“先做几章”：选中的章节进入资产提取、分集与改编，其余章节保存为预留章节，之后在制作台加入。
 // 新建页与制作台的选章弹窗共用这里的选择与分组规则，分组与服务端 groupDramaChapterEpisodes 一致。
 
@@ -43,7 +45,7 @@ export function groupChapterEpisodes(chapters: ChapterGroupInput[], size: number
         const group = sorted.slice(start, end);
         const first = group[0].position + 1;
         const last = group[group.length - 1].position + 1;
-        groups.push({ label: group.length > 1 ? `第 ${first}–${last} 章` : `第 ${first} 章`, chars: group.reduce((sum, chapter) => sum + chapter.chars, 0), count: group.length });
+        groups.push({ label: group.length > 1 ? translate("shared.drama.chapterSelection.chapters", { v0: String(first), v1: String(last) }) : translate("shared.drama.chapterSelection.chapter", { v0: String(first) }), chars: group.reduce((sum, chapter) => sum + chapter.chars, 0), count: group.length });
         start = end;
     }
     return groups;

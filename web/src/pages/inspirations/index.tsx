@@ -17,6 +17,8 @@ import { useUserStore } from "@/stores/use-user-store";
 import { InspirationCover, InspirationDetailModal } from "./inspiration-detail-modal";
 import { InspirationEditorModal, type InspirationCategoryChoice } from "./inspiration-editor-modal";
 import "./inspirations.css";
+import { currentLocale, translate } from "@/i18n";
+
 
 type SourceFilter = "all" | InspirationSourceId;
 type ViewFilter = "all" | "favorites" | "hidden";
@@ -28,14 +30,14 @@ type CategoryChoice = InspirationCategoryChoice & { count: number };
 /** 来源筛选的顺序。必须覆盖 inspirationSources 里全部有内容的来源，漏掉就会有条目筛不到。 */
 const SOURCE_ORDER: InspirationSourceId[] = ["original", "chatgpt-prompts", "seedance", "haohaoxue", "youmind"];
 const VIEW_OPTIONS: { label: string; value: ViewFilter }[] = [
-    { label: "全部", value: "all" },
-    { label: "收藏", value: "favorites" },
-    { label: "已隐藏", value: "hidden" },
+    { label: translate("canvasA.toolPicker.all"), value: "all" },
+    { label: translate("shared.inspirations.favorite"), value: "favorites" },
+    { label: translate("shared.inspirations.hidden"), value: "hidden" },
 ];
 const SORT_OPTIONS = [
-    { label: "每日推荐", value: "daily" },
-    { label: "最新上架", value: "latest" },
-    { label: "按标题", value: "title" },
+    { label: translate("shared.inspirations.dailyPicks"), value: "daily" },
+    { label: translate("shared.inspirations.newestFirst"), value: "latest" },
+    { label: translate("shared.inspirations.byTitle"), value: "title" },
 ];
 
 /** 标签页隔夜后回到前台时换成新的一天，推荐顺序随之轮换，不必刷新页面。 */
@@ -133,7 +135,7 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
                 if (!cancelled) setCatalog(loaded);
             })
             .catch((error) => {
-                if (!cancelled) setLoadError(error instanceof Error ? error.message : "灵感目录加载失败");
+                if (!cancelled) setLoadError(error instanceof Error ? error.message : translate("shared.inspirations.failedToLoadTheInspirationCatalog"));
             });
         return () => {
             cancelled = true;
@@ -170,7 +172,7 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
     const categoryLabel = useCallback(
         (item: CreationInspiration) => {
             const code = item.category?.trim();
-            if (!code) return "未分类";
+            if (!code) return translate("account.settings.models.uncategorized");
             return categoryLabels.get(item.sourceId ?? "original")?.get(code) ?? code;
         },
         [categoryLabels],
@@ -217,20 +219,20 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
         () =>
             (
                 [
-                    { label: "全部", value: "all" },
-                    { label: "图片", value: "image" },
-                    { label: "视频", value: "video" },
-                    { label: "文本", value: "text" },
+                    { label: translate("canvasA.toolPicker.all"), value: "all" },
+                    { label: translate("account.feedback.image"), value: "image" },
+                    { label: translate("account.feedback.video"), value: "video" },
+                    { label: translate("account.settings.modelConfig.capabilities.text"), value: "text" },
                 ] as const
             ).map((option) => ({
                 value: option.value,
                 label: (
                     <>
                         <span>{option.label}</span>
-                        {catalog ? <span className="inspiration-mode-count app-segmented-count">{modeCounts[option.value].toLocaleString("zh-CN")}</span> : null}
+                        {catalog ? <span className="inspiration-mode-count app-segmented-count">{modeCounts[option.value].toLocaleString(currentLocale())}</span> : null}
                     </>
                 ),
-                title: catalog ? `${option.label} ${modeCounts[option.value]} 条` : option.label,
+                title: catalog ? translate("shared.inspirations.items", { v0: String(option.label), v1: String(modeCounts[option.value]) }) : option.label,
             })),
         [catalog, modeCounts],
     );
@@ -285,8 +287,8 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
     const handleCopy = useCallback(
         (text: string, label: string) => {
             void navigator.clipboard.writeText(text).then(
-                () => message.success(`${label}已复制`),
-                () => message.error("复制失败，请手动选中文本"),
+                () => message.success(translate("shared.inspirations.copied", { v0: String(label) })),
+                () => message.error(translate("shared.inspirations.copyFailedSelectTheTextManually")),
             );
         },
         [message],
@@ -298,15 +300,15 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
             const isCustom = isCustomInspiration(id);
             modal.confirm({
                 className: "workspace-modal workspace-modal-compact",
-                title: isCustom ? "删除这条灵感？" : "从库中隐藏这条灵感？",
-                content: isCustom ? `「${item.title}」会从本地灵感库移除，此操作不可撤销。` : `「${item.title}」来自外部目录，不能真正删除；隐藏后可用「已隐藏」视图恢复，重新导入外部目录也不会让它复现。`,
-                okText: isCustom ? "删除" : "隐藏",
+                title: isCustom ? translate("shared.inspirations.deleteThisInspiration") : translate("shared.inspirations.hideThisInspirationFromTheLibrary"),
+                content: isCustom ? translate("shared.inspirations.willBeRemovedFromYourLocalInspirationLibraryThisAction", { v0: String(item.title) }) : translate("shared.inspirations.comesFromAnExternalCatalogAndCannotBeDeletedHide", { v0: String(item.title) }),
+                okText: isCustom ? translate("common.delete") : translate("shared.inspirations.hide"),
                 okButtonProps: { danger: true },
-                cancelText: "保留",
+                cancelText: translate("create.page.deleteKeep"),
                 onOk: () => {
                     removeEntry(id);
                     if (detail && catalogIdOf(detail) === id) setDetail(null);
-                    message.success(isCustom ? "已删除" : "已隐藏");
+                    message.success(isCustom ? translate("canvasB.historyDrawer.deleted") : translate("shared.inspirations.hidden"));
                 },
             });
         },
@@ -317,7 +319,7 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
         (draft: Parameters<typeof createEntry>[0]) => {
             if (editing) {
                 updateEntry(catalogIdOf(editing), draft);
-                message.success("已保存修改");
+                message.success(translate("shared.inspirations.changesSaved"));
                 setDetail((current) => (current && catalogIdOf(current) === catalogIdOf(editing) ? { ...current, ...draft } : current));
                 setEditing(null);
                 return;
@@ -332,23 +334,23 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
             setSort("daily");
             setSearch("");
             setPage(1);
-            message.success("灵感已创建");
+            message.success(translate("shared.inspirations.inspirationCreated"));
         },
         [createEntry, editing, message, updateEntry],
     );
 
     const handleExport = useCallback(() => {
         downloadText(exportPayload(), exportFileName());
-        message.success("已导出本地改动（自建条目 / 改写 / 隐藏 / 收藏）");
+        message.success(translate("shared.inspirations.localChangesExportedCustomEntriesRewritesHiddenItemsFavorites"));
     }, [exportPayload, message]);
 
     const handleImportFile = useCallback(
         async (file: File) => {
             try {
                 const result = importPayload(await file.text());
-                message.success(`导入完成：新增 ${result.created}，覆盖 ${result.updated}${result.skipped ? `，跳过 ${result.skipped} 条无效数据` : ""}`);
+                message.success(translate("shared.inspirations.importCompleteAddedReplaced", { v0: String(result.created), v1: String(result.updated), v2: String(result.skipped ? translate("shared.inspirations.skippedInvalidEntries", { v0: String(result.skipped) }) : "") }));
             } catch (error) {
-                message.error(error instanceof Error ? error.message : "导入失败");
+                message.error(error instanceof Error ? error.message : translate("shared.inspirations.importFailed"));
             }
         },
         [importPayload, message],
@@ -369,8 +371,8 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
         <section ref={sectionRef} id="creation-inspirations" className="inspiration-hall" aria-labelledby="inspiration-hall-title">
             <header className="inspiration-hall-header">
                 <div>
-                    <h2 id="inspiration-hall-title">灵感大厅</h2>
-                    <p>每天换一批推荐，新上架的排在前面。点开查看完整提示词，用喜欢的创意继续创作。</p>
+                    <h2 id="inspiration-hall-title">{translate("shared.inspirations.inspirationGallery")}</h2>
+                    <p>{translate("shared.inspirations.discoverFreshRecommendationsEveryDayWithNewAdditionsFirstOpen")}</p>
                 </div>
                 <div className="inspiration-hall-actions">
                     <Button
@@ -381,15 +383,15 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
                             setEditorOpen(true);
                         }}
                     >
-                        新建灵感
+                        {translate("shared.inspirations.newInspiration")}
                     </Button>
                     <Dropdown
                         trigger={["click"]}
                         placement="bottomRight"
                         menu={{
                             items: [
-                                { key: "import", label: "导入灵感", icon: <Import className="size-4" />, disabled: !hydrated },
-                                { key: "export", label: "导出本地灵感", icon: <Download className="size-4" />, disabled: !hydrated },
+                                { key: "import", label: translate("shared.inspirations.importInspirations"), icon: <Import className="size-4" />, disabled: !hydrated },
+                                { key: "export", label: translate("shared.inspirations.exportLocalInspirations"), icon: <Download className="size-4" />, disabled: !hydrated },
                             ],
                             onClick: ({ key }) => {
                                 if (key === "import") importRef.current?.click();
@@ -397,35 +399,35 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
                             },
                         }}
                     >
-                        <Button type="text" icon={<MoreHorizontal className="size-4" />} aria-label="更多灵感管理操作" title="更多操作" />
+                        <Button type="text" icon={<MoreHorizontal className="size-4" />} aria-label={translate("shared.inspirations.moreInspirationManagementActions")} title={translate("canvasB.common.moreActions")} />
                     </Dropdown>
                 </div>
             </header>
 
             <div className="inspiration-hall-toolbar">
-                <SegmentedControl options={modeOptions} value={modeFilter} onChange={(value) => setModeFilter(value as ModeFilter)} ariaLabel="按创作类型筛选灵感" className="inspiration-hall-modes" />
-                <Input allowClear prefix={<Search className="size-4" />} placeholder="搜索标题、描述或标签" aria-label="搜索灵感" value={search} onChange={(event) => setSearch(event.target.value)} className="inspiration-hall-search" />
+                <SegmentedControl options={modeOptions} value={modeFilter} onChange={(value) => setModeFilter(value as ModeFilter)} ariaLabel={translate("shared.inspirations.filterInspirationsByCreationType")} className="inspiration-hall-modes" />
+                <Input allowClear prefix={<Search className="size-4" />} placeholder={translate("shared.inspirations.searchTitlesDescriptionsOrTags")} aria-label={translate("shared.inspirations.searchInspirations")} value={search} onChange={(event) => setSearch(event.target.value)} className="inspiration-hall-search" />
                 <Button type="text" icon={<SlidersHorizontal className="size-4" />} aria-expanded={filtersOpen} aria-controls="inspiration-hall-filters" onClick={() => setFiltersOpen((open) => !open)} className="inspiration-hall-filter-toggle">
-                    更多筛选{advancedFilterCount ? ` · ${advancedFilterCount}` : ""}
+                    {translate("shared.inspirations.moreFilters")}{advancedFilterCount ? ` · ${advancedFilterCount}` : ""}
                     <ChevronDown className={filtersOpen ? "is-open" : undefined} aria-hidden="true" />
                 </Button>
                 <span className="inspiration-hall-count" role="status">
-                    {catalog && hydrated ? `共 ${visible.length.toLocaleString("zh-CN")} 条${freshCount ? ` · 本周上新 ${freshCount.toLocaleString("zh-CN")} 条` : ""}` : ""}
+                    {catalog && hydrated ? translate("shared.inspirations.itemsTotal", { v0: String(visible.length.toLocaleString(currentLocale())), v1: String(freshCount ? translate("shared.inspirations.newThisWeek", { v0: String(freshCount.toLocaleString(currentLocale())) }) : "") }) : ""}
                 </span>
             </div>
 
             {filtersOpen ? (
-                <div id="inspiration-hall-filters" className="inspiration-hall-filters" role="group" aria-label="灵感进阶筛选">
+                <div id="inspiration-hall-filters" className="inspiration-hall-filters" role="group" aria-label={translate("shared.inspirations.advancedInspirationFilters")}>
                     <div className="inspiration-hall-field">
-                        <span>浏览范围</span>
-                        <Select options={VIEW_OPTIONS} value={view} onChange={(value) => setView(value as ViewFilter)} ariaLabel="按全部、收藏或隐藏状态筛选灵感" />
+                        <span>{translate("shared.inspirations.browseScope")}</span>
+                        <Select options={VIEW_OPTIONS} value={view} onChange={(value) => setView(value as ViewFilter)} ariaLabel={translate("shared.inspirations.filterAllFavoritedOrHiddenInspirations")} />
                     </div>
                     {inspirationSourcesVisible ? (
                         <div className="inspiration-hall-field">
-                            <span>来源</span>
+                            <span>{translate("canvasA.assetView.origin")}</span>
                             <Select
                                 options={[
-                                    { label: "全部来源", value: "all" },
+                                    { label: translate("shared.inspirations.allSources"), value: "all" },
                                     ...SOURCE_ORDER.filter((key) => (sourceCounts.get(key) ?? 0) > 0).map((key) => ({
                                         label: `${inspirationSources[key].name ?? inspirationSources[key].label} (${sourceCounts.get(key) ?? 0})`,
                                         value: key,
@@ -436,28 +438,28 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
                                     setSource(value as SourceFilter);
                                     setCategory("all");
                                 }}
-                                ariaLabel="按来源筛选灵感"
+                                ariaLabel={translate("shared.inspirations.filterInspirationsBySource")}
                             />
                         </div>
                     ) : null}
                     <div className="inspiration-hall-field">
-                        <span>分类</span>
+                        <span>{translate("library.picker.category")}</span>
                         <Select
                             showSearch
                             optionFilterProp="label"
-                            options={[{ label: "全部分类", value: "all" }, ...categoryChoices.map((choice) => ({ value: choice.value, label: `${choice.label} (${choice.count})` }))]}
+                            options={[{ label: translate("canvasA.skillLibrary.allCategories"), value: "all" }, ...categoryChoices.map((choice) => ({ value: choice.value, label: `${choice.label} (${choice.count})` }))]}
                             value={category}
                             onChange={setCategory}
-                            ariaLabel="按分类筛选灵感"
+                            ariaLabel={translate("shared.inspirations.filterInspirationsByCategory")}
                         />
                     </div>
                     <div className="inspiration-hall-field">
-                        <span>排序</span>
-                        <Select options={SORT_OPTIONS} value={sort} onChange={(value) => setSort(value as SortKey)} ariaLabel="灵感排序" />
+                        <span>{translate("shared.inspirations.sort")}</span>
+                        <Select options={SORT_OPTIONS} value={sort} onChange={(value) => setSort(value as SortKey)} ariaLabel={translate("shared.inspirations.sortInspirations")} />
                     </div>
                     {hasFilters ? (
                         <Button type="text" icon={<RotateCcw className="size-4" />} onClick={resetFilters} className="inspiration-hall-reset">
-                            重置筛选
+                            {translate("shared.inspirations.resetFilters")}
                         </Button>
                     ) : null}
                 </div>
@@ -467,9 +469,9 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
                 {!shouldLoadCatalog ? (
                     <div className="inspiration-hall-deferred" aria-hidden="true" />
                 ) : loadError ? (
-                    <WorkspaceErrorState title="灵感目录加载失败" description={loadError} onRetry={() => setReloadKey((key) => key + 1)} />
+                    <WorkspaceErrorState title={translate("shared.inspirations.failedToLoadTheInspirationCatalog")} description={loadError} onRetry={() => setReloadKey((key) => key + 1)} />
                 ) : !catalog || !hydrated ? (
-                    <WorkspaceLoadingState label="正在准备灵感" rows={3} />
+                    <WorkspaceLoadingState label={translate("shared.inspirations.preparingInspirations")} rows={3} />
                 ) : paged.length ? (
                     <>
                         <div className="inspiration-gallery">
@@ -487,7 +489,7 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
                                         onToggleFavorite={() => toggleFavorite(id)}
                                         onRestore={() => {
                                             restoreEntry(id);
-                                            message.success("灵感已恢复显示");
+                                            message.success(translate("shared.inspirations.inspirationIsVisibleAgain"));
                                         }}
                                         onEdit={() => {
                                             setEditing(item);
@@ -504,9 +506,9 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
                     <WorkspaceState
                         icon="empty"
                         kind={hasFilters ? "no-results" : "first-use"}
-                        title={hasFilters && search.trim() ? `没有找到与“${search.trim()}”相关的灵感` : view === "favorites" ? "还没有收藏" : view === "hidden" ? "没有隐藏的条目" : "没有符合条件的灵感"}
-                        description={view === "favorites" ? "点卡片右上角的爱心，把喜欢的创意留在这里。" : "试试其他类型、分类或关键词。"}
-                        action={hasFilters ? <Button onClick={resetFilters}>清除筛选</Button> : undefined}
+                        title={hasFilters && search.trim() ? translate("shared.inspirations.noInspirationsFoundFor", { v0: String(search.trim()) }) : view === "favorites" ? translate("shared.inspirations.noFavoritesYet") : view === "hidden" ? translate("shared.inspirations.noHiddenItems") : translate("shared.inspirations.noInspirationsMatchYourFilters")}
+                        description={view === "favorites" ? translate("shared.inspirations.clickTheHeartAtTheTopRightOfACard") : translate("shared.inspirations.tryAnotherTypeCategoryOrKeyword")}
+                        action={hasFilters ? <Button onClick={resetFilters}>{translate("account.layout.state.clearFilters")}</Button> : undefined}
                     />
                 )}
             </div>
@@ -575,14 +577,14 @@ function InspirationCard({
     onDelete: () => void;
 }) {
     const [menuOpen, setMenuOpen] = useState(false);
-    const favoriteLabel = favorite ? "取消收藏" : "收藏";
+    const favoriteLabel = favorite ? translate("shared.inspirations.inspirationDetailModal.removeFromFavorites") : translate("shared.inspirations.inspirationDetailModal.favorite");
     return (
         <article className="inspiration-card">
-            <button type="button" className="inspiration-card-open" aria-label={`查看灵感：${item.title}`} aria-haspopup="dialog" onClick={onOpen}>
+            <button type="button" className="inspiration-card-open" aria-label={translate("shared.inspirations.viewInspiration", { v0: String(item.title) })} aria-haspopup="dialog" onClick={onOpen}>
                 <span className="inspiration-card-cover">
                     <InspirationCover key={item.image} image={item.image} />
-                    {isFreshInspiration(item, Date.now()) ? <span className="inspiration-card-new">新</span> : null}
-                    {showSources ? <span className="inspiration-card-source">{inspirationSourceOf(item)?.label ?? "未标注来源"}</span> : null}
+                    {isFreshInspiration(item, Date.now()) ? <span className="inspiration-card-new">{translate("shared.inspirations.new")}</span> : null}
+                    {showSources ? <span className="inspiration-card-source">{inspirationSourceOf(item)?.label ?? translate("shared.inspirations.sourceNotSpecified")}</span> : null}
                 </span>
                 <span className="inspiration-card-body">
                     <strong className="inspiration-card-title">{item.title}</strong>
@@ -603,8 +605,8 @@ function InspirationCard({
                     </button>
                 </Tooltip>
                 {hidden ? (
-                    <Tooltip title="恢复显示">
-                        <button type="button" data-icon-only className="inspiration-card-action" aria-label={`恢复显示：${item.title}`} onClick={onRestore}>
+                    <Tooltip title={translate("shared.inspirations.unhide")}>
+                        <button type="button" data-icon-only className="inspiration-card-action" aria-label={translate("shared.inspirations.unhide2", { v0: String(item.title) })} onClick={onRestore}>
                             <span aria-hidden="true">
                                 <RotateCcw className="size-3.5" />
                             </span>
@@ -618,12 +620,12 @@ function InspirationCard({
                         onOpenChange={setMenuOpen}
                         menu={{
                             items: [
-                                { key: "edit", icon: <Pencil className="size-3.5" />, label: "编辑", onClick: onEdit },
-                                { key: "delete", icon: <Trash2 className="size-3.5" />, label: isCustomInspiration(catalogIdOf(item)) ? "删除" : "隐藏", danger: true, onClick: onDelete },
+                                { key: "edit", icon: <Pencil className="size-3.5" />, label: translate("account.settings.channels.edit"), onClick: onEdit },
+                                { key: "delete", icon: <Trash2 className="size-3.5" />, label: isCustomInspiration(catalogIdOf(item)) ? translate("common.delete") : translate("shared.inspirations.hide"), danger: true, onClick: onDelete },
                             ],
                         }}
                     >
-                        <button type="button" data-icon-only className="inspiration-card-action" aria-label={`更多灵感操作：${item.title}`} aria-haspopup="menu" aria-expanded={menuOpen}>
+                        <button type="button" data-icon-only className="inspiration-card-action" aria-label={translate("shared.inspirations.moreInspirationActions", { v0: String(item.title) })} aria-haspopup="menu" aria-expanded={menuOpen}>
                             <span aria-hidden="true">
                                 <MoreHorizontal className="size-3.5" />
                             </span>

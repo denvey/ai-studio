@@ -1,3 +1,5 @@
+
+import { translate } from "@/i18n";
 /**
  * 文本模型思考等级：与后端 internal/app/text_thinking.go 保持同一套档位、预设与归一规则。
  * 后端是权威实现（任务执行时再解析一次）；前端用它决定显示哪些档位和默认选中项。
@@ -22,18 +24,18 @@ export type TextThinkingConfig = {
 };
 
 export const THINKING_LEVEL_LABELS: Record<ThinkingLevel, string> = {
-    off: "关闭",
-    minimal: "极简",
-    low: "轻度",
-    medium: "标准",
-    high: "深度",
-    max: "极限",
+    off: translate("common.close"),
+    minimal: translate("shared.textThinking.minimal"),
+    low: translate("shared.textThinking.low"),
+    medium: translate("library.assets.density.standard"),
+    high: translate("canvasC.previsMonitor.mode.depth"),
+    max: translate("shared.textThinking.maximum"),
 };
 
 export const THINKING_REQUEST_OPTIONS: Array<{ label: string; value: ThinkingRequest }> = [
-    { label: "模型默认", value: "auto" },
+    { label: translate("shared.textThinking.modelDefault"), value: "auto" },
     ...THINKING_LEVELS.map((level) => ({ label: THINKING_LEVEL_LABELS[level], value: level })),
-    { label: "尽可能深（不含极限）", value: "deep" },
+    { label: translate("shared.textThinking.deepestAvailableExcludingMaximum"), value: "deep" },
 ];
 
 export type ThinkingPreset = { id: string; label: string; hint: string; config: Omit<TextThinkingConfig, "preset"> };
@@ -43,44 +45,44 @@ export const THINKING_PRESETS: ThinkingPreset[] = [
     {
         id: "openai-gpt5",
         label: "OpenAI GPT-5.x",
-        hint: "reasoning_effort / reasoning.effort，关闭发 none，极限发 xhigh",
+        hint: translate("shared.textThinking.reasoningEffortReasoningEffortOffSendsNoneMaximumSendsXhigh"),
         config: { mode: "levels", levels: ["off", "minimal", "low", "medium", "high", "max"], switch: { kind: "effort-none" }, intensity: { kind: "effort", values: { max: "xhigh" } } },
     },
-    { id: "openai-o", label: "OpenAI o 系列", hint: "只能调强度，不能关闭", config: { mode: "always", levels: ["low", "medium", "high"], default: "medium", switch: { kind: "none" }, intensity: { kind: "effort" } } },
+    { id: "openai-o", label: translate("shared.textThinking.openAIOSeries"), hint: translate("shared.textThinking.effortCanBeAdjustedReasoningCannotBeTurnedOff"), config: { mode: "always", levels: ["low", "medium", "high"], default: "medium", switch: { kind: "none" }, intensity: { kind: "effort" } } },
     {
         id: "claude-adaptive",
-        label: "Claude 自适应",
-        hint: "较新 Claude 模型思考常开：thinking.type=adaptive + output_config.effort；预算型旧模型选「Claude 预算」",
+        label: translate("shared.textThinking.claudeAdaptive"),
+        hint: translate("shared.textThinking.newerClaudeModelsAlwaysReasonThinkingTypeAdaptiveOutputConfig"),
         config: { mode: "always", levels: ["low", "medium", "high", "max"], switch: { kind: "none" }, intensity: { kind: "effort", field: "output_config.effort" } },
     },
     {
         id: "claude-budget",
-        label: "Claude 预算",
-        hint: "仅用于仍支持 budget_tokens 的较旧 Claude 模型；较新模型选自适应 effort",
+        label: translate("shared.textThinking.claudeBudget"),
+        hint: translate("shared.textThinking.forOlderClaudeModelsThatStillSupportBudgetTokensUse"),
         config: { mode: "levels", levels: ["off", "low", "medium", "high"], default: "off", switch: { kind: "omit" }, intensity: { kind: "budget", field: "thinking.budget_tokens" } },
     },
-    { id: "gemini-3-pro", label: "Gemini 3 Pro", hint: "thinkingLevel low/high，不能关闭", config: { mode: "always", levels: ["low", "high"], switch: { kind: "none" }, intensity: { kind: "gemini-level" } } },
-    { id: "gemini-3-flash", label: "Gemini 3 Flash", hint: "thinkingLevel minimal–high，不能关闭", config: { mode: "always", levels: ["minimal", "low", "medium", "high"], switch: { kind: "none" }, intensity: { kind: "gemini-level" } } },
-    { id: "gemini-2.5", label: "Gemini 2.5", hint: "thinkingBudget，关闭发 0（2.5 Pro 不能关闭，请去掉「关闭」）", config: { mode: "levels", levels: ["off", "low", "medium", "high"], switch: { kind: "budget-zero" }, intensity: { kind: "budget" } } },
+    { id: "gemini-3-pro", label: "Gemini 3 Pro", hint: translate("shared.textThinking.thinkingLevelLowHighReasoningCannotBeTurnedOff"), config: { mode: "always", levels: ["low", "high"], switch: { kind: "none" }, intensity: { kind: "gemini-level" } } },
+    { id: "gemini-3-flash", label: "Gemini 3 Flash", hint: translate("shared.textThinking.thinkingLevelMinimalHighReasoningCannotBeTurnedOff"), config: { mode: "always", levels: ["minimal", "low", "medium", "high"], switch: { kind: "none" }, intensity: { kind: "gemini-level" } } },
+    { id: "gemini-2.5", label: "Gemini 2.5", hint: translate("shared.textThinking.thinkingBudgetOffSends025ProCannotTurnReasoning"), config: { mode: "levels", levels: ["off", "low", "medium", "high"], switch: { kind: "budget-zero" }, intensity: { kind: "budget" } } },
     {
         id: "deepseek",
         label: "DeepSeek",
         hint: "thinking.type + reasoning_effort low/high/max",
         config: { mode: "levels", levels: ["off", "low", "high", "max"], switch: { kind: "thinking-type" }, intensity: { kind: "effort", field: "reasoning_effort" } },
     },
-    { id: "qwen-hybrid", label: "Qwen 混合思考", hint: "enable_thinking 开关", config: { mode: "toggle", levels: ["off", "medium"], switch: { kind: "enable-flag" }, intensity: { kind: "none" } } },
-    { id: "qwen-budget", label: "Qwen 思考预算", hint: "enable_thinking + thinking_budget", config: { mode: "levels", levels: ["off", "low", "medium", "high"], switch: { kind: "enable-flag" }, intensity: { kind: "budget", field: "thinking_budget" } } },
-    { id: "thinking-type-toggle", label: "豆包 / Kimi / GLM 开关", hint: "thinking.type enabled/disabled", config: { mode: "toggle", levels: ["off", "medium"], switch: { kind: "thinking-type" }, intensity: { kind: "none" } } },
+    { id: "qwen-hybrid", label: translate("shared.textThinking.qwenHybridReasoning"), hint: translate("shared.textThinking.enableThinkingToggle"), config: { mode: "toggle", levels: ["off", "medium"], switch: { kind: "enable-flag" }, intensity: { kind: "none" } } },
+    { id: "qwen-budget", label: translate("shared.textThinking.qwenReasoningBudget"), hint: "enable_thinking + thinking_budget", config: { mode: "levels", levels: ["off", "low", "medium", "high"], switch: { kind: "enable-flag" }, intensity: { kind: "budget", field: "thinking_budget" } } },
+    { id: "thinking-type-toggle", label: translate("shared.textThinking.doubaoKimiGLMToggle"), hint: "thinking.type enabled/disabled", config: { mode: "toggle", levels: ["off", "medium"], switch: { kind: "thinking-type" }, intensity: { kind: "none" } } },
     {
         id: "openrouter",
-        label: "OpenRouter 统一参数",
+        label: translate("shared.textThinking.openRouterUnifiedParameters"),
         hint: "reasoning.effort",
         config: { mode: "levels", levels: ["off", "minimal", "low", "medium", "high", "max"], switch: { kind: "effort-none" }, intensity: { kind: "effort", field: "reasoning.effort" } },
     },
     {
         id: "model-suffix",
-        label: "模型名后缀（NewAPI 等网关）",
-        hint: "开启时在上游模型名后追加后缀",
+        label: translate("shared.textThinking.modelNameSuffixNewAPIAndSimilarGateways"),
+        hint: translate("shared.textThinking.appendASuffixToTheProviderModelNameWhenEnabled"),
         config: { mode: "toggle", levels: ["off", "medium"], default: "off", switch: { kind: "omit" }, intensity: { kind: "model-suffix", values: { medium: "-thinking" } } },
     },
 ];

@@ -23,6 +23,8 @@ import { Select } from "@/components/ui/base/select";
 import { AdminSearchInput } from "../components/admin-search-input";
 import { useAdminContext } from "../admin-context";
 import { useAdminUserOptions } from "../components/use-admin-user-options";
+import { currentLocale, translate } from "@/i18n";
+
 
 // 后端单次查询最多覆盖 366 天（含首尾），超出时服务端会静默截断，所以在界面上直接拒绝。
 const MAX_RANGE_DAYS = 366;
@@ -106,7 +108,7 @@ export default function LogsPage() {
             })
             .catch((error) => {
                 if (sequence !== requestSequence.current) return;
-                const text = error instanceof Error ? error.message : "读取请求明细失败";
+                const text = error instanceof Error ? error.message : translate("adminPages.logs.logsPage.failedToLoadRequestDetails2");
                 setLoadError(text);
                 message.error(text);
             })
@@ -118,54 +120,54 @@ export default function LogsPage() {
 
     const fullColumns: ColumnsType<ApiCallLog> = [
         {
-            title: "时间",
+            title: translate("adminPages.logs.logsPage.time"),
             width: 168,
             render: (_, log) => (
-                <button type="button" className="admin-log-detail-link" aria-label={`查看请求 ${log.id} 详情`} onClick={() => setDetailLogId(log.id)}>
+                <button type="button" className="admin-log-detail-link" aria-label={translate("adminPages.logs.logsPage.viewRequestDetails", { v0: String(log.id) })} onClick={() => setDetailLogId(log.id)}>
                     {formatTime(log.startedAt || log.createdAt)}
                 </button>
             ),
         },
         {
-            title: "用户",
+            title: translate("adminPages.logs.logsPage.users"),
             width: 180,
             render: (_, log) => (
                 <div className="min-w-0">
-                    <div className="truncate font-medium text-foreground/85">{log.userDisplayName || log.userAccount || "未知用户"}</div>
-                    <div className="truncate text-xs text-foreground/45">{log.userAccount ? `@${log.userAccount}` : "账号未记录"}</div>
+                    <div className="truncate font-medium text-foreground/85">{log.userDisplayName || log.userAccount || translate("adminPages.logs.logsPage.unknownUser")}</div>
+                    <div className="truncate text-xs text-foreground/45">{log.userAccount ? `@${log.userAccount}` : translate("adminPages.logs.logsPage.noAccountRecorded")}</div>
                 </div>
             ),
         },
         {
-            title: "渠道 / 模型",
+            title: translate("adminPages.logs.logsPage.channelModel"),
             width: 230,
             render: (_, log) => (
                 <div className="min-w-0">
-                    <div className="truncate text-foreground/78">{log.channelName || "未记录渠道"}</div>
+                    <div className="truncate text-foreground/78">{log.channelName || translate("adminPages.logs.logsPage.noChannelRecorded")}</div>
                     <div className="truncate text-xs text-foreground/45" title={log.model}>
-                        {log.model || "未识别模型"}
+                        {log.model || translate("adminPages.logs.logsPage.unrecognizedModel")}
                     </div>
                 </div>
             ),
         },
-        { title: "能力", dataIndex: "capability", width: 88, render: capabilityText },
-        { title: "结果", width: 118, render: (_, log) => <MediaResult log={log} onPreview={(url, kind) => setMediaPreview({ url, kind, title: `${capabilityText(log.capability)}结果` })} /> },
-        { title: "请求阶段 / 状态", width: 160, render: (_, log) => <CallStatus log={log} /> },
+        { title: translate("adminPages.logs.logsPage.capability"), dataIndex: "capability", width: 88, render: capabilityText },
+        { title: translate("adminPages.logs.logsPage.result"), width: 118, render: (_, log) => <MediaResult log={log} onPreview={(url, kind) => setMediaPreview({ url, kind, title: translate("adminPages.logs.logsPage.result2", { v0: String(capabilityText(log.capability)) }) })} /> },
+        { title: translate("adminPages.logs.logsPage.requestStageStatus"), width: 160, render: (_, log) => <CallStatus log={log} /> },
         {
-            title: "错误信息",
+            title: translate("adminPages.logs.logsPage.errorMessage"),
             width: 260,
             render: (_, log) =>
                 log.status === "failed" || log.error || log.errorCode ? (
                     <div className="min-w-0" title={[log.errorCode, log.error].filter(Boolean).join(" · ")}>
-                        <div className="truncate text-xs font-medium text-red-500">{log.errorCode || `HTTP ${log.statusCode || "失败"}`}</div>
-                        <div className="line-clamp-2 text-xs leading-5 text-foreground/55">{log.error || "上游未返回错误详情"}</div>
+                        <div className="truncate text-xs font-medium text-red-500">{log.errorCode || `HTTP ${log.statusCode || translate("library.assets.batch.failed")}`}</div>
+                        <div className="line-clamp-2 text-xs leading-5 text-foreground/55">{log.error || translate("adminPages.logs.logsPage.upstreamReturnedNoErrorDetails")}</div>
                     </div>
                 ) : (
                     <span className="text-foreground/30">--</span>
                 ),
         },
-        { title: "耗时", dataIndex: "durationMs", width: 112, render: (value) => <span className="tabular-nums">{formatDuration(value)}</span> },
-        { title: "积分计算", width: 195, render: (_, log) => <BillingSummary log={log} /> },
+        { title: translate("library.tasks.detail.duration"), dataIndex: "durationMs", width: 112, render: (value) => <span className="tabular-nums">{formatDuration(value)}</span> },
+        { title: translate("adminPages.logs.logsPage.creditCalculation"), width: 195, render: (_, log) => <BillingSummary log={log} /> },
         {
             title: "Tokens",
             width: 166,
@@ -173,65 +175,65 @@ export default function LogsPage() {
                 log.usageAvailable ? (
                     <div className="space-y-0.5 text-xs tabular-nums">
                         <div>
-                            <span className="text-foreground/40">输入</span> {log.inputTokens.toLocaleString()}
+                            <span className="text-foreground/40">{translate("adminPages.logs.logsPage.input")}</span> {log.inputTokens.toLocaleString(currentLocale())}
                         </div>
                         <div>
-                            <span className="text-foreground/40">输出</span> {log.outputTokens.toLocaleString()}
+                            <span className="text-foreground/40">{translate("adminPages.logs.logsPage.output")}</span> {log.outputTokens.toLocaleString(currentLocale())}
                         </div>
                         {log.cachedTokens > 0 ? (
                             <div>
-                                <span className="text-foreground/40">缓存命中</span> {log.cachedTokens.toLocaleString()}
+                                <span className="text-foreground/40">{translate("adminPages.logs.logsPage.cacheHits")}</span> {log.cachedTokens.toLocaleString(currentLocale())}
                             </div>
                         ) : null}
                         {(log.cacheWriteTokens ?? 0) > 0 ? (
                             <div>
-                                <span className="text-foreground/40">缓存写入</span> {(log.cacheWriteTokens ?? 0).toLocaleString()}
+                                <span className="text-foreground/40">{translate("adminPages.logs.logsPage.cacheWrites")}</span> {(log.cacheWriteTokens ?? 0).toLocaleString(currentLocale())}
                             </div>
                         ) : null}
                     </div>
                 ) : (
-                    <span className="text-foreground/35">未返回</span>
+                    <span className="text-foreground/35">{translate("adminPages.logs.logsPage.notReturned")}</span>
                 ),
         },
     ];
 
     const identityColumns: ColumnsType<ApiCallLog> = [
         {
-            title: "时间 / 详情",
+            title: translate("adminPages.logs.logsPage.timeDetails"),
             key: "time",
             width: 142,
             render: (_, log) => (
-                <button type="button" className="admin-log-detail-link" title={formatTime(log.startedAt || log.createdAt)} aria-label={`查看请求 ${log.id} 详情`} onClick={() => setDetailLogId(log.id)}>
+                <button type="button" className="admin-log-detail-link" title={formatTime(log.startedAt || log.createdAt)} aria-label={translate("adminPages.logs.logsPage.viewRequestDetails", { v0: String(log.id) })} onClick={() => setDetailLogId(log.id)}>
                     {formatCompactTime(log.startedAt || log.createdAt)}
                 </button>
             ),
         },
-        { title: "状态", key: "status", width: 88, render: (_, log) => <AdminStatusBadge {...logStatus(log)} /> },
-        { title: "模型", dataIndex: "model", width: 170, ellipsis: true, render: (value) => value || "未识别模型" },
-        { title: "渠道", dataIndex: "channelName", width: 116, ellipsis: true, render: (value) => value || "未记录渠道" },
-        { title: "用户", key: "user", width: 110, ellipsis: true, render: (_, log) => <span title={[log.userDisplayName, log.userAccount].filter(Boolean).join(" · ")}>{log.userDisplayName || log.userAccount || "未知用户"}</span> },
+        { title: translate("library.tasks.detail.status"), key: "status", width: 88, render: (_, log) => <AdminStatusBadge {...logStatus(log)} /> },
+        { title: translate("canvasA.assetView.model"), dataIndex: "model", width: 170, ellipsis: true, render: (value) => value || translate("adminPages.logs.logsPage.unrecognizedModel") },
+        { title: translate("adminPages.logs.logsPage.channel"), dataIndex: "channelName", width: 116, ellipsis: true, render: (value) => value || translate("adminPages.logs.logsPage.noChannelRecorded") },
+        { title: translate("adminPages.logs.logsPage.users"), key: "user", width: 110, ellipsis: true, render: (_, log) => <span title={[log.userDisplayName, log.userAccount].filter(Boolean).join(" · ")}>{log.userDisplayName || log.userAccount || translate("adminPages.logs.logsPage.unknownUser")}</span> },
     ];
     const compactColumns: ColumnsType<ApiCallLog> =
         view === "billing"
             ? [
                   ...identityColumns,
-                  { title: "预授权", key: "reserved", align: "right", width: 100, render: (_, log) => (log.billable && log.billingAvailable ? formatCredits(log.billingReservedMicrocredits) : "—") },
-                  { title: "实收", key: "settled", align: "right", width: 100, render: (_, log) => (log.billable && log.billingAvailable && log.billingSettledMicrocredits !== undefined ? formatCredits(log.billingSettledMicrocredits) : "—") },
-                  { title: "成本积分", key: "cost", align: "right", width: 108, render: (_, log) => (log.creditCostMicrocredits !== undefined ? formatCredits(log.creditCostMicrocredits) : log.creditCostConfigured ? "待核算" : "未配置") },
-                  { title: "账务状态", key: "billingStatus", width: 100, render: (_, log) => logBillingLabel(log) },
-                  { title: "Tokens 入 / 出", key: "usage", width: 142, render: (_, log) => (log.usageAvailable ? `${log.inputTokens.toLocaleString()} / ${log.outputTokens.toLocaleString()}` : "未返回") },
+                  { title: translate("adminPages.logs.logsPage.preauthorization"), key: "reserved", align: "right", width: 100, render: (_, log) => (log.billable && log.billingAvailable ? formatCredits(log.billingReservedMicrocredits) : "—") },
+                  { title: translate("adminPages.logs.logsPage.charged"), key: "settled", align: "right", width: 100, render: (_, log) => (log.billable && log.billingAvailable && log.billingSettledMicrocredits !== undefined ? formatCredits(log.billingSettledMicrocredits) : "—") },
+                  { title: translate("adminPages.logs.logsPage.costInCredits"), key: "cost", align: "right", width: 108, render: (_, log) => (log.creditCostMicrocredits !== undefined ? formatCredits(log.creditCostMicrocredits) : log.creditCostConfigured ? translate("adminPages.logs.logsPage.pendingCalculation") : translate("account.layout.oss.cdnAuthNone")) },
+                  { title: translate("adminPages.logs.logsPage.billingStatus"), key: "billingStatus", width: 100, render: (_, log) => logBillingLabel(log) },
+                  { title: translate("adminPages.logs.logsPage.tokensInOut"), key: "usage", width: 142, render: (_, log) => (log.usageAvailable ? `${log.inputTokens.toLocaleString(currentLocale())} / ${log.outputTokens.toLocaleString(currentLocale())}` : translate("adminPages.logs.logsPage.notReturned")) },
               ]
             : [
                   ...identityColumns,
-                  { title: "阶段", key: "kind", width: 90, render: (_, log) => requestKindText(log.requestKind) },
-                  { title: "耗时", dataIndex: "durationMs", align: "right", width: 90, render: formatDuration },
+                  { title: translate("adminPages.logs.logsPage.stage"), key: "kind", width: 90, render: (_, log) => requestKindText(log.requestKind) },
+                  { title: translate("library.tasks.detail.duration"), dataIndex: "durationMs", align: "right", width: 90, render: formatDuration },
                   {
-                      title: "错误摘要",
+                      title: translate("adminPages.logs.logsPage.errorSummary"),
                       key: "error",
                       ellipsis: true,
                       render: (_, log) => (
                           <span className={logStatus(log).tone === "error" ? "admin-log-error" : undefined} title={[log.errorCode, log.error].filter(Boolean).join(" · ")}>
-                              {[log.errorCode, log.error].filter(Boolean).join(" · ") || (logStatus(log).tone === "error" ? `HTTP ${log.statusCode || "失败"} · 未返回详情` : "—")}
+                              {[log.errorCode, log.error].filter(Boolean).join(" · ") || (logStatus(log).tone === "error" ? translate("adminPages.logs.logsPage.hTTPNoDetailsReturned", { v0: String(log.statusCode || translate("library.assets.batch.failed")) }) : "—")}
                           </span>
                       ),
                   },
@@ -240,14 +242,14 @@ export default function LogsPage() {
     const columns: ColumnsType<ApiCallLog> = [
         ...baseColumns,
         {
-            title: "操作",
+            title: translate("account.settings.runninghub.actions"),
             key: "actions",
             width: 126,
             fixed: "right",
             render: (_, log) =>
                 videoRecoveryAvailable(log) ? (
                     <Button type="link" size="small" icon={<RefreshCw className="size-3.5" />} onClick={() => setDetailLogId(log.id)}>
-                        恢复任务
+                        {translate("adminPages.logs.logsPage.recoverTasks")}
                     </Button>
                 ) : (
                     <span className="text-foreground/30">--</span>
@@ -257,7 +259,7 @@ export default function LogsPage() {
 
     const applyDateRange = (start: Dayjs | null, end: Dayjs | null) => {
         if (start && end && end.diff(start, "day") + 1 > MAX_RANGE_DAYS) {
-            message.warning(`单次最多查询 ${MAX_RANGE_DAYS} 天，请缩小日期范围`);
+            message.warning(translate("adminPages.logs.logsPage.youCanQueryAtMostDaysAtATimeNarrow", { v0: String(MAX_RANGE_DAYS) }));
             return;
         }
         updateUrl({ from: start && end ? start.format("YYYY-MM-DD") : "", to: start && end ? end.format("YYYY-MM-DD") : "", page: 1 });
@@ -268,7 +270,7 @@ export default function LogsPage() {
         const videoIds = selectedLogs.filter(videoRecoveryAvailable).map((log) => log.id);
         const skipped = selectedIds.length - videoIds.length;
         if (videoIds.length === 0) {
-            message.info("所选记录中没有可恢复的失败视频任务");
+            message.info(translate("adminPages.logs.logsPage.theSelectedRecordsContainNoRecoverableFailedVideoTasks"));
             return;
         }
         setBatchRecovering(true);
@@ -276,17 +278,17 @@ export default function LogsPage() {
             const result = await batchRecoverAdminApiLogs(videoIds);
             const totalSkipped = skipped + result.skipped;
             modal.info({
-                title: "批量恢复处理结果",
+                title: translate("adminPages.logs.logsPage.batchRecoveryResults"),
                 width: 560,
                 content: (
                     <div className="max-h-[50vh] space-y-2 overflow-auto">
                         <div className="mb-3">
-                            成功 {result.success} 条，失败 {result.failed} 条，跳过 {totalSkipped} 条
+                            {translate("adminPages.logs.logsPage.bulkRecoveryCounts", { succeeded: result.success, failed: result.failed, skipped: totalSkipped })}
                         </div>
                         {result.items.map((item) => (
                             <div key={item.logId} className="rounded border border-border/70 px-3 py-2 text-xs">
                                 <div className="font-mono">{item.logId}</div>
-                                <div>{item.recovered ? "成功" : item.error?.startsWith("跳过") ? item.error : item.providerStatus ? `仍在生成中（${item.providerStatus}）` : `失败：${item.error || "未恢复"}`}</div>
+                                <div>{item.recovered ? translate("adminPages.logs.logsPage.success") : item.error?.startsWith("跳过") ? item.error : item.providerStatus ? translate("adminPages.logs.logsPage.stillGenerating", { v0: String(item.providerStatus) }) : translate("adminPages.logs.logsPage.failed", { v0: String(item.error || translate("adminPages.logs.logsPage.notRecovered")) })}</div>
                             </div>
                         ))}
                     </div>
@@ -295,7 +297,7 @@ export default function LogsPage() {
             if (result.success > 0) window.dispatchEvent(new CustomEvent("wallet:updated"));
             setRetry((value) => value + 1);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "批量恢复失败");
+            message.error(error instanceof Error ? error.message : translate("adminPages.logs.logsPage.bulkRecoveryFailed"));
         } finally {
             setBatchRecovering(false);
         }
@@ -303,8 +305,8 @@ export default function LogsPage() {
 
     return (
         <AdminPageFrame
-            title="请求明细"
-            description="模型生成与结果下载记录；仅计费调用扣除积分"
+            title={translate("adminPages.logs.logsPage.requestDetails")}
+            description={translate("adminPages.logs.logsPage.modelGenerationAndResultDownloadRecordsOnlyBillableCallsConsume")}
             actions={
                 <>
                     <Button
@@ -315,14 +317,14 @@ export default function LogsPage() {
                             setRetry((value) => value + 1);
                         }}
                     >
-                        刷新列表
+                        {translate("adminPages.logs.logsPage.refreshList")}
                     </Button>
                     <AdminExportButton
                         exportFile={() => exportAdminApiLogs(queryFilters)}
-                        fileName={() => `请求明细-${new Date().toISOString().slice(0, 10)}.csv`}
-                        label="导出当前筛选"
-                        successMessage="已按当前筛选导出请求明细"
-                        errorMessage="导出请求明细失败"
+                        fileName={() => translate("adminPages.logs.logsPage.requestDetailsCsv", { v0: String(new Date().toISOString().slice(0, 10)) })}
+                        label={translate("adminPages.logs.logsPage.exportCurrentFilter")}
+                        successMessage={translate("adminPages.logs.logsPage.exportedRequestDetailsForTheCurrentFilter")}
+                        errorMessage={translate("adminPages.logs.logsPage.failedToExportRequestDetails")}
                     />
                 </>
             }
@@ -331,11 +333,11 @@ export default function LogsPage() {
                 <Alert
                     type="error"
                     showIcon
-                    title="请求明细读取失败"
+                    title={translate("adminPages.logs.logsPage.failedToLoadRequestDetails")}
                     description={loadError}
                     action={
                         <Button size="small" onClick={() => setRetry((value) => value + 1)}>
-                            重试
+                            {translate("common.retry")}
                         </Button>
                     }
                 />
@@ -344,13 +346,13 @@ export default function LogsPage() {
                 className={view === "all" ? "admin-logs-full" : "admin-logs-compact"}
                 trailing={
                     <Segmented
-                        aria-label="请求明细视图"
+                        aria-label={translate("adminPages.logs.logsPage.requestDetailsView")}
                         value={view}
                         onChange={(value) => updateUrl({ view: value })}
                         options={[
-                            { label: "排障", value: "troubleshoot" },
-                            { label: "计费", value: "billing" },
-                            { label: "全部字段", value: "all" },
+                            { label: translate("adminPages.logs.logsPage.troubleshoot"), value: "troubleshoot" },
+                            { label: translate("canvasC.taskItem.billing"), value: "billing" },
+                            { label: translate("adminPages.logs.logsPage.allFields"), value: "all" },
                         ]}
                     />
                 }
@@ -360,38 +362,38 @@ export default function LogsPage() {
                         className="app-list-search"
                         prefix={<Search className="size-4 text-foreground/40" />}
                         value={keyword}
-                        placeholder="搜索用户、渠道、模型、路径或请求号"
+                        placeholder={translate("adminPages.logs.logsPage.searchUserChannelModelPathOrRequestID")}
                         onValueChange={(value) => updateUrl({ filter: value, page: 1 }, true)}
                     />
                 }
                 toolbarActiveFilters={
                     <>
-                        {keyword ? <AdminFilterChip label={`搜索：${keyword}`} onRemove={() => updateUrl({ filter: "", page: 1 })} /> : null}
-                        {status !== "all" ? <AdminFilterChip label={`结果：${status === "succeeded" ? "成功" : "失败"}`} onRemove={() => updateUrl({ status: "all", page: 1 })} /> : null}
-                        {capability !== "all" ? <AdminFilterChip label={`能力：${capabilityText(capability)}`} onRemove={() => updateUrl({ capability: "all", page: 1 })} /> : null}
+                        {keyword ? <AdminFilterChip label={translate("adminPages.logs.logsPage.search", { v0: String(keyword) })} onRemove={() => updateUrl({ filter: "", page: 1 })} /> : null}
+                        {status !== "all" ? <AdminFilterChip label={translate("adminPages.logs.logsPage.result3", { v0: String(status === "succeeded" ? translate("adminPages.logs.logsPage.success") : translate("library.assets.batch.failed")) })} onRemove={() => updateUrl({ status: "all", page: 1 })} /> : null}
+                        {capability !== "all" ? <AdminFilterChip label={translate("adminPages.logs.logsPage.capability2", { v0: String(capabilityText(capability)) })} onRemove={() => updateUrl({ capability: "all", page: 1 })} /> : null}
                     </>
                 }
                 toolbarFilters={
                     <>
                         <DatePicker.RangePicker
-                            aria-label="请求日期范围"
+                            aria-label={translate("adminPages.logs.logsPage.requestDateRange")}
                             value={explicitRange ? [dayjs(fromDay), dayjs(toDay)] : [dayjs(defaultRange.from), dayjs(defaultRange.to)]}
                             prefix={
-                                <span className="text-xs text-foreground/50" title="按 UTC 自然日筛选，含结束日；未选择时为近 30 天">
+                                <span className="text-xs text-foreground/50" title={translate("adminPages.logs.logsPage.filterByUTCCalendarDaysIncludingTheEndDateDefaults")}>
                                     UTC
                                 </span>
                             }
-                            placeholder={["开始日期", "结束日期"]}
+                            placeholder={[translate("adminPages.logs.logsPage.startDate"), translate("adminPages.logs.logsPage.endDate")]}
                             disabledDate={(day) => day.format("YYYY-MM-DD") > defaultRange.to}
                             onChange={(dates) => applyDateRange(dates?.[0] || null, dates?.[1] || null)}
                         />
                         <Select
-                            aria-label="按用户筛选"
+                            aria-label={translate("adminPages.logs.logsPage.filterByUser")}
                             className="w-44"
                             allowClear
                             showSearch
                             filterOption={false}
-                            placeholder="全部用户"
+                            placeholder={translate("adminPages.logs.logsPage.allUsers")}
                             loading={userOptions.searching}
                             value={userId || undefined}
                             options={userOptions.options}
@@ -399,60 +401,60 @@ export default function LogsPage() {
                             onChange={(value) => updateUrl({ userId: value || "", page: 1 })}
                         />
                         <Select
-                            aria-label="按模型筛选"
+                            aria-label={translate("adminPages.logs.logsPage.filterByModel")}
                             className="w-48"
                             allowClear
                             showSearch
                             optionFilterProp="label"
-                            placeholder="全部模型"
+                            placeholder={translate("library.tasks.page.allModels")}
                             value={modelFilter || undefined}
                             options={modelOptions}
                             onChange={(value) => updateUrl({ model: value || "", page: 1 })}
                         />
                         <Select
-                            aria-label="按渠道筛选"
+                            aria-label={translate("adminPages.logs.logsPage.filterByChannel")}
                             className="w-40"
                             allowClear
                             showSearch
                             optionFilterProp="label"
-                            placeholder="全部渠道"
+                            placeholder={translate("adminPages.logs.logsPage.allChannels")}
                             value={channelId || undefined}
                             options={channelOptions}
                             onChange={(value) => updateUrl({ channelId: value || "", page: 1 })}
                         />
                         <Select
-                            aria-label="明细类型"
+                            aria-label={translate("adminPages.logs.logsPage.recordType")}
                             className="w-32"
                             value={recordType}
                             onChange={(value) => updateUrl({ recordType: value, page: 1 })}
                             options={[
-                                { label: "仅请求", value: "request" },
-                                { label: "仅下载", value: "download" },
-                                { label: "全部明细", value: "all" },
+                                { label: translate("adminPages.logs.logsPage.requestsOnly"), value: "request" },
+                                { label: translate("adminPages.logs.logsPage.downloadsOnly"), value: "download" },
+                                { label: translate("adminPages.logs.logsPage.allRecords"), value: "all" },
                             ]}
                         />
                         <Select
-                            aria-label="能力类型"
+                            aria-label={translate("adminPages.logs.logsPage.capabilityType")}
                             className="w-28"
                             value={capability}
                             onChange={(value) => updateUrl({ capability: value, page: 1 })}
                             options={[
-                                { label: "全部能力", value: "all" },
-                                { label: "文本", value: "text" },
-                                { label: "图片", value: "image" },
-                                { label: "视频", value: "video" },
-                                { label: "音频", value: "audio" },
+                                { label: translate("adminPages.logs.logsPage.allCapabilities"), value: "all" },
+                                { label: translate("account.settings.modelConfig.capabilities.text"), value: "text" },
+                                { label: translate("account.feedback.image"), value: "image" },
+                                { label: translate("account.feedback.video"), value: "video" },
+                                { label: translate("account.settings.modelConfig.capabilities.audio"), value: "audio" },
                             ]}
                         />
                         <Select
-                            aria-label="请求结果"
+                            aria-label={translate("adminPages.logs.logsPage.requestResult")}
                             className="w-32"
                             value={status}
                             onChange={(value) => updateUrl({ status: value, page: 1 })}
                             options={[
-                                { label: "全部结果", value: "all" },
-                                { label: "成功", value: "succeeded" },
-                                { label: "失败", value: "failed" },
+                                { label: translate("adminPages.logs.logsPage.allResults"), value: "all" },
+                                { label: translate("adminPages.logs.logsPage.success"), value: "succeeded" },
+                                { label: translate("library.assets.batch.failed"), value: "failed" },
                             ]}
                         />
                     </>
@@ -462,16 +464,16 @@ export default function LogsPage() {
                 batchActions={
                     <AdminBatchBar count={selectedIds.length} onClear={() => setSelectedIds([])}>
                         <Button size="small" icon={<RefreshCw className="size-3.5" />} loading={batchRecovering} onClick={() => void runBatchRecovery()}>
-                            批量恢复
+                            {translate("adminPages.logs.logsPage.batchRecovery")}
                         </Button>
                         <AdminExportButton
                             type="primary"
                             size="small"
                             exportFile={() => exportAdminApiLogs({ recordType, ids: selectedIds })}
-                            fileName={() => `请求明细-已选${selectedIds.length}条.csv`}
-                            label="导出已选"
-                            successMessage={`已导出选中的 ${selectedIds.length} 条请求明细`}
-                            errorMessage="导出请求明细失败"
+                            fileName={() => translate("adminPages.logs.logsPage.requestDetailsSelectedCsv", { v0: String(selectedIds.length) })}
+                            label={translate("adminPages.logs.logsPage.exportSelected")}
+                            successMessage={translate("adminPages.logs.logsPage.exportedSelectedRequestRecords", { v0: String(selectedIds.length) })}
+                            errorMessage={translate("adminPages.logs.logsPage.failedToExportRequestDetails")}
                         />
                     </AdminBatchBar>
                 }
@@ -495,19 +497,19 @@ export default function LogsPage() {
                     pagination: false,
                     scroll: { x: view === "all" ? 1901 : view === "billing" ? 1338 : 1186 },
                 }}
-                empty={loadError ? <span role="status">数据暂不可用，请重试</span> : <AdminTableEmpty filtered={hasFilters} />}
+                empty={loadError ? <span role="status">{translate("adminPages.logs.logsPage.dataIsTemporarilyUnavailableTryAgain")}</span> : <AdminTableEmpty filtered={hasFilters} />}
                 footer={<PaginationBar alwaysShow current={page} pageSize={pageSize} total={total} onChange={(nextPage, nextSize) => updateUrl({ page: nextSize !== pageSize ? 1 : nextPage, pageSize: nextSize })} />}
             />
             <ApiLogDetailDrawer logId={detailLogId} onClose={() => setDetailLogId(null)} onLogUpdated={(next) => setLogs((items) => items.map((item) => (item.id === next.id ? next : item)))} />
             <AdminModal
-                title={mediaPreview?.title || "媒体预览"}
+                title={mediaPreview?.title || translate("adminPages.logs.logsPage.mediaPreview")}
                 open={Boolean(mediaPreview)}
                 width={880}
                 onCancel={() => setMediaPreview(null)}
                 footer={
                     mediaPreview ? (
                         <Button icon={<Download className="size-4" />} onClick={() => downloadMedia(mediaPreview.url, mediaPreview.kind)}>
-                            下载原文件
+                            {translate("adminPages.logs.logsPage.downloadOriginalFile")}
                         </Button>
                     ) : null
                 }
@@ -553,35 +555,35 @@ function normalizeStatus(value: string | null): "all" | "succeeded" | "failed" {
     return value === "succeeded" || value === "failed" ? value : "all";
 }
 function formatTime(value?: string) {
-    return value ? new Date(value).toLocaleString("zh-CN", { hour12: false }) : "--";
+    return value ? new Date(value).toLocaleString(currentLocale(), { hour12: false }) : "--";
 }
 function formatCompactTime(value: string) {
     if (!value) return "--";
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "--";
-    return date.toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+    return date.toLocaleString(currentLocale(), { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
 }
 function capabilityText(value: string) {
-    return ({ text: "文本", image: "图片", video: "视频", audio: "音频" } as Record<string, string>)[value] || "未知";
+    return ({ text: translate("account.settings.modelConfig.capabilities.text"), image: translate("account.feedback.image"), video: translate("account.feedback.video"), audio: translate("account.settings.modelConfig.capabilities.audio") } as Record<string, string>)[value] || translate("adminPages.logs.logsPage.unknown");
 }
 function formatDuration(value: number) {
     if (value < 1_000) return `${value} ms`;
-    if (value < 60_000) return `${(value / 1_000).toFixed(value < 10_000 ? 1 : 0)} 秒`;
+    if (value < 60_000) return translate("adminPages.logs.logsPage.s", { v0: String((value / 1_000).toFixed(value < 10_000 ? 1 : 0)) });
     const minutes = Math.floor(value / 60_000);
     const seconds = Math.round((value % 60_000) / 1_000);
-    return `${minutes} 分 ${seconds} 秒`;
+    return translate("adminPages.logs.logsPage.mS", { v0: String(minutes), v1: String(seconds) });
 }
 
 function BillingSummary({ log }: { log: ApiCallLog }) {
-    if (!log.billable) return <span className="text-foreground/45">不计费</span>;
-    if (!log.billingAvailable) return <span className="text-foreground/35">未扣积分</span>;
+    if (!log.billable) return <span className="text-foreground/45">{translate("adminPages.logs.logsPage.notBilled")}</span>;
+    if (!log.billingAvailable) return <span className="text-foreground/35">{translate("adminPages.logs.logsPage.noCreditsCharged")}</span>;
     const status = log.billingStatus || "reserved";
-    const statusLabel = ({ settled: "已结算", refunded: "已退回", uncertain: "待核对", running: "运行中", reserved: "已预授权" } as const)[status];
+    const statusLabel = ({ settled: translate("adminPages.logs.logsPage.settled"), refunded: translate("adminPages.logs.logsPage.refunded"), uncertain: translate("adminPages.logs.logsPage.pendingReview"), running: translate("library.tasks.filter.active"), reserved: translate("adminPages.logs.logsPage.preauthorized2") } as const)[status];
     return (
         <div>
-            <div className="tabular-nums">预授权：{formatCredits(log.billingReservedMicrocredits)} 积分</div>
-            <div className="tabular-nums">实收：{log.billingSettledMicrocredits !== undefined ? `${formatCredits(log.billingSettledMicrocredits)} 积分` : "未结算"}</div>
-            <div className="tabular-nums text-xs text-foreground/60">成本价格：{log.creditCostMicrocredits !== undefined ? `${formatCredits(log.creditCostMicrocredits)} 积分` : log.creditCostConfigured ? "待核算" : "未配置"}</div>
+            <div className="tabular-nums">{translate("adminPages.logs.logsPage.preauthorized")}{formatCredits(log.billingReservedMicrocredits)} {translate("shell.credits")}</div>
+            <div className="tabular-nums">{translate("adminPages.logs.logsPage.charged2")}{log.billingSettledMicrocredits !== undefined ? translate("adminPages.logs.logsPage.credits", { v0: String(formatCredits(log.billingSettledMicrocredits)) }) : translate("adminPages.logs.logsPage.notSettled")}</div>
+            <div className="tabular-nums text-xs text-foreground/60">{translate("adminPages.logs.logsPage.costPrice")}{log.creditCostMicrocredits !== undefined ? translate("adminPages.logs.logsPage.credits", { v0: String(formatCredits(log.creditCostMicrocredits)) }) : log.creditCostConfigured ? translate("adminPages.logs.logsPage.pendingCalculation") : translate("account.layout.oss.cdnAuthNone")}</div>
             <div className="text-xs text-foreground/40">{statusLabel}</div>
         </div>
     );
@@ -597,13 +599,13 @@ function MediaResult({ log, onPreview }: { log: ApiCallLog; onPreview: (url: str
         <div className="flex w-[90px] items-center gap-2">
             <button
                 type="button"
-                title={previewUnavailable ? "预览不可用，素材可能已删除" : `预览${kind === "video" ? "视频" : "图片"}`}
-                aria-label={previewUnavailable ? "预览不可用，素材可能已删除" : `预览${kind === "video" ? "视频" : "图片"}`}
+                title={previewUnavailable ? translate("adminPages.logs.logsPage.previewUnavailableTheAssetMayHaveBeenDeleted") : translate("adminPages.logs.logsPage.preview", { v0: String(kind === "video" ? translate("account.feedback.video") : translate("account.feedback.image")) })}
+                aria-label={previewUnavailable ? translate("adminPages.logs.logsPage.previewUnavailableTheAssetMayHaveBeenDeleted") : translate("adminPages.logs.logsPage.preview", { v0: String(kind === "video" ? translate("account.feedback.video") : translate("account.feedback.image")) })}
                 disabled={previewUnavailable}
                 className="group relative h-11 w-16 shrink-0 overflow-hidden rounded border border-border/75 bg-black/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => onPreview(url, kind)}
             >
-                <MediaPreview src={url} kind={kind} alt="生成结果" loading="lazy" className="size-full object-cover" fallbackClassName="text-white/55" fallbackLabel="预览不可用" onUnavailable={() => setUnavailableUrl(url)} />
+                <MediaPreview src={url} kind={kind} alt={translate("library.tasks.detail.generated")} loading="lazy" className="size-full object-cover" fallbackClassName="text-white/55" fallbackLabel={translate("library.tasks.row.previewUnavailable")} onUnavailable={() => setUnavailableUrl(url)} />
                 {!previewUnavailable ? (
                     <span className="absolute inset-0 grid place-items-center bg-black/0 text-white opacity-0 transition group-hover:bg-black/35 group-hover:opacity-100 group-focus-visible:bg-black/35 group-focus-visible:opacity-100">
                         {kind === "video" ? <Play className="size-4 fill-current" /> : <Eye className="size-4" />}
@@ -611,7 +613,7 @@ function MediaResult({ log, onPreview }: { log: ApiCallLog; onPreview: (url: str
                 ) : null}
                 {!previewUnavailable && log.mediaCount > 1 ? <span className="absolute bottom-0.5 right-0.5 rounded-sm bg-black/65 px-1 text-[var(--fs-micro)] leading-4 text-white">{log.mediaCount}</span> : null}
             </button>
-            <IconButton size="sm" variant="ghost" icon={Download} onClick={() => downloadMedia(url, kind)} title="下载原文件" aria-label="下载原文件" />
+            <IconButton size="sm" variant="ghost" icon={Download} onClick={() => downloadMedia(url, kind)} title={translate("adminPages.logs.logsPage.downloadOriginalFile")} aria-label={translate("adminPages.logs.logsPage.downloadOriginalFile")} />
         </div>
     );
 }
@@ -626,22 +628,22 @@ function CallStatus({ log }: { log: ApiCallLog }) {
             <div className="mb-1 text-xs font-medium text-foreground/70">{requestKindText(log.requestKind)}</div>
             <AdminStatusBadge {...logStatus(log)} />
             {log.mediaStage ? <div className="mt-1 text-xs text-foreground/60">{mediaDeliverySummary(log.taskStatus, log.mediaStage)}</div> : null}
-            {log.capability === "video" ? <div className="mt-1 text-xs tabular-nums text-foreground/45">已轮询 {log.pollCount || 0} 次</div> : null}
+            {log.capability === "video" ? <div className="mt-1 text-xs tabular-nums text-foreground/45">{translate("adminPages.logs.logsPage.polled")} {log.pollCount || 0} {translate("account.settings.models.unitCall")}</div> : null}
         </div>
     );
 }
 
 function requestKindText(value: ApiCallLog["requestKind"]) {
     const labels: Partial<Record<ApiCallLog["requestKind"], string>> = {
-        create: "模型生成",
-        poll: "状态查询",
-        download: "结果下载",
-        upload: "上传 OSS",
-        local_save: "保存文件",
-        local_fallback: "本地兜底保存",
-        offload: "同步 OSS",
-        register: "登记素材",
-        repair: "结果修复",
+        create: translate("adminPages.logs.logsPage.modelGeneration"),
+        poll: translate("adminPages.logs.logsPage.statusQuery"),
+        download: translate("adminPages.logs.logsPage.resultDownload"),
+        upload: translate("adminPages.logs.logsPage.uploadToOSS"),
+        local_save: translate("adminPages.logs.logsPage.saveFile"),
+        local_fallback: translate("adminPages.logs.logsPage.localFallbackSave"),
+        offload: translate("adminPages.logs.logsPage.syncToOSS"),
+        register: translate("adminPages.logs.logsPage.registerAsset"),
+        repair: translate("adminPages.logs.logsPage.repairResult"),
     };
-    return labels[value] || "上游请求";
+    return labels[value] || translate("adminPages.logs.logsPage.upstreamRequest");
 }

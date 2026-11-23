@@ -1,5 +1,8 @@
 import { http, ApiError } from "@/services/api/request";
+import { localizedApiErrorMessage } from "@/services/api/error-codes";
 import type { ClientDiagnosticEvent } from "./client-diagnostics";
+import { translate } from "@/i18n";
+
 
 export type DiagnosticExportInput = {
     from: string;
@@ -52,17 +55,17 @@ export async function exportDiagnosticBundle(input: DiagnosticExportInput): Prom
             try {
                 const payload = raw ? (JSON.parse(raw) as { code?: number; msg?: string }) : null;
                 if (payload) {
-                    const message = status === 404 ? "诊断接口未部署，请重启或重新构建后端" : payload.msg || "导出诊断包失败";
+                    const message = status === 404 ? translate("shared.diagnostics.diagnosticsApi.theDiagnosticsEndpointIsNotDeployedRestartOrRebuildThe") : localizedApiErrorMessage(undefined, payload.msg || translate("shared.diagnostics.diagnosticsApi.failedToExportTheDiagnosticsBundle"));
                     throw new ApiError(message, { status, code: payload.code, cause: error });
                 }
             } catch (parseError) {
                 if (parseError instanceof ApiError) throw parseError;
             }
             if (status === 404) {
-                throw new ApiError("诊断接口未部署，请重启或重新构建后端", { status, cause: error });
+                throw new ApiError(translate("shared.diagnostics.diagnosticsApi.theDiagnosticsEndpointIsNotDeployedRestartOrRebuildThe"), { status, cause: error });
             }
             if (status === 502 || status === 503 || status === 504) {
-                throw new ApiError("后端服务暂时不可用，请重启后端后重试", { status, cause: error });
+                throw new ApiError(translate("shared.diagnostics.diagnosticsApi.theBackendIsTemporarilyUnavailableRestartItAndTryAgain"), { status, cause: error });
             }
         }
         throw error;

@@ -1,5 +1,7 @@
 import { apiBaseURL } from "@/services/api/request";
 import { isSystemProxyBaseUrl, type AiConfig, type ChannelHeader } from "@/stores/use-config-store";
+import { translate } from "@/i18n";
+
 
 type RelayConfig = Pick<AiConfig, "baseUrl" | "apiKey" | "apiFormat"> & { headers?: ChannelHeader[] };
 
@@ -16,8 +18,8 @@ export function channelRequest(config: RelayConfig, upstreamUrl: string, headers
         return { url: upstreamUrl, headers: Object.fromEntries(normalizedHeaders.entries()), credentials: "include" };
     }
 
-    const normalizedBaseUrl = requireHttpUrl(config.baseUrl, "当前模型渠道 Base URL");
-    const normalizedUpstreamUrl = requireHttpUrl(upstreamUrl, "当前模型请求地址");
+    const normalizedBaseUrl = requireHttpUrl(config.baseUrl, translate("shared.api.customChannelRelay.currentModelChannelBaseURL"));
+    const normalizedUpstreamUrl = requireHttpUrl(upstreamUrl, translate("shared.api.customChannelRelay.currentModelRequestURL"));
     normalizedHeaders.delete("X-Canvas-Upstream-Headers");
     normalizedHeaders.delete("x-goog-api-key");
     normalizedHeaders.set("Authorization", `Bearer ${config.apiKey}`);
@@ -38,10 +40,10 @@ function requireHttpUrl(value: string, label: string) {
     try {
         parsed = new URL(normalized);
     } catch {
-        throw new Error(`${label} 无效，请填写完整地址，例如：https://api.example.com/v1`);
+        throw new Error(translate("shared.api.customChannelRelay.invalidEnterAFullURLForExampleHttpsApiExample", { v0: String(label) }));
     }
     if (!parsed.hostname || (parsed.protocol !== "http:" && parsed.protocol !== "https:")) {
-        throw new Error(`${label} 无效，请填写完整地址，例如：https://api.example.com/v1`);
+        throw new Error(translate("shared.api.customChannelRelay.invalidEnterAFullURLForExampleHttpsApiExample", { v0: String(label) }));
     }
     return parsed.toString();
 }

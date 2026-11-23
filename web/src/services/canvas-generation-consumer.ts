@@ -29,6 +29,8 @@ import {
     type CanvasProject,
 } from "@/stores/canvas/use-canvas-store";
 import type { CanvasAssistantSession, CanvasConnection, CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 function throwIfAborted(signal?: AbortSignal) {
     if (signal?.aborted) throw new DOMException("The operation was aborted", "AbortError");
@@ -54,9 +56,9 @@ export async function prepareCanvasMediaNodeAsset(projectId: string, node: Canva
     try {
         const assetId = node.metadata?.assetId;
         if (assetId && findCanvasNodeAsset(useAssetStore.getState().assets, node, projectId)?.id === assetId) return node;
-        if (requiresMaterializedCanvasAsset(node)) throw new Error("生成结果尚未绑定已物化素材，请重新读取结果");
+        if (requiresMaterializedCanvasAsset(node)) throw new Error(translate("shared.canvasGenerationConsumer.theResultIsNotLinkedToAMaterializedAssetYet"));
         const project = useCanvasStore.getState().projects.find((item) => item.id === projectId);
-        if (!project) throw new Error("画布项目已不存在，无法登记结果素材");
+        if (!project) throw new Error(translate("shared.canvasGenerationConsumer.theCanvasProjectNoLongerExistsResultAssetsCannotBe"));
         const asset = await ensureCanvasNodeAsset({ canvasId: projectId, domainProjectId: project.projectId, node, source: node.metadata?.taskId ? "canvas-generation" : "canvas-manual", signal });
         await flushAssetStorePersistence();
         throwIfAborted(signal);
@@ -152,7 +154,7 @@ export async function applyCanvasGenerationTaskNodeEffect(input: {
     throwIfAborted(input.signal);
     const snapshot = input.nodesRef.current;
     const before = snapshot.find((node) => node.id === input.nodeId);
-    if (!before) throw new Error("画布中找不到对应任务节点");
+    if (!before) throw new Error(translate("canvasPage.taskRecovery.nodeMissing"));
     const groupSignature = before.metadata?.imageLayerGroup ? imageLayerCompositeSignature(before.metadata.imageLayerGroup, snapshot) : undefined;
     const groupChanged = (nodes: CanvasNodeData[]) => {
         if (!groupSignature) return false;
@@ -160,14 +162,14 @@ export async function applyCanvasGenerationTaskNodeEffect(input: {
         return !group || imageLayerCompositeSignature(group, nodes) !== groupSignature;
     };
     const applied = await applyMaterializedGenerationTaskResultToNodes(snapshot, input.task, input.output, input.effectKey, input.nodeId);
-    if (!applied.updated || !applied.node) throw new Error("画布中找不到对应任务节点");
+    if (!applied.updated || !applied.node) throw new Error(translate("canvasPage.taskRecovery.nodeMissing"));
     throwIfAborted(input.signal);
     const node = await prepareCanvasMediaNodeAsset(input.projectId, applied.node, input.signal);
     const additionalNodes = await Promise.all(applied.additionalNodes.map((child) => prepareCanvasMediaNodeAsset(input.projectId, child, input.signal)));
     throwIfAborted(input.signal);
     const imageBatchRootId = ["mask", "region"].includes(generationTaskInput(input.task)?.metadata?.edit || "") ? before.metadata?.batchRootId : undefined;
     const previousNodes = input.nodesRef.current;
-    if (groupChanged(previousNodes)) throw new CanvasGenerationDurableAckError(new Error("图层已修改，请按当前图层重新读取结果"));
+    if (groupChanged(previousNodes)) throw new CanvasGenerationDurableAckError(new Error(translate("shared.canvasGenerationConsumer.layersHaveChangedFetchResultsAgainForTheCurrentLayers")));
     const nodes = commitCanvasGenerationResult(previousNodes, before, node, input.task.id, additionalNodes);
     try {
         await persistCanvasGenerationEffect({
@@ -202,7 +204,7 @@ export async function persistCanvasOperationContinuationEffect(input: {
     const previousNodes = input.previousNodes ?? input.nodesRef.current;
     const currentNodes = input.nodesRef.current;
     const currentNode = currentNodes.find((node) => node.id === input.nodeId);
-    if (!currentNode) throw new Error("画布中找不到 Agent continuation 节点");
+    if (!currentNode) throw new Error(translate("shared.canvasGenerationConsumer.agentContinuationNodeNotFoundOnTheCanvas"));
     if (generationEffectApplied(currentNode.metadata || {}, input.effectKey) && currentNode.metadata?.agentGenerationContinuation?.status === "completed") return;
 
     const nodes = currentNodes.map((node) =>
@@ -460,7 +462,7 @@ function generationProjectDelta(input: CanvasGenerationEffectInput, memoryProjec
     const stampedNodes = (input.nodes || []).filter((node) => generationEffectApplied(node.metadata || {}, input.effectKey));
     const stampedSessions = (input.chatSessions || []).filter((session) => generationEffectApplied(session, input.effectKey));
 
-    if (input.connections && !input.previousConnections) throw new Error("生成副作用缺少连接前置快照");
+    if (input.connections && !input.previousConnections) throw new Error(translate("shared.canvasGenerationConsumer.generationEffectsAreMissingThePriorConnectionSnapshot"));
 
     const baseProject: CanvasProject = {
         ...memoryProject,
@@ -511,15 +513,15 @@ export async function persistCanvasGenerationEffect(input: CanvasGenerationEffec
         const { loadCanvasProjectForEditing } = await import("@/services/user-data-sync");
         await loadCanvasProjectForEditing(input.projectId);
         throwIfAborted(input.signal);
-        if (scope !== getActiveUserScope()) throw new Error("账号已切换，无法写入生成结果");
+        if (scope !== getActiveUserScope()) throw new Error(translate("shared.canvasGenerationConsumer.accountChangedGenerationResultsCannotBeWritten"));
     }
     const baseRevision = canvasStoreStorageRevision(scope);
     const memoryProjects = useCanvasStore.getState().projects;
     const memoryProject = memoryProjects.find((candidate) => candidate.id === input.projectId);
-    if (!memoryProject) throw new Error("画布项目不存在，无法持久化生成副作用");
+    if (!memoryProject) throw new Error(translate("shared.canvasGenerationConsumer.theCanvasProjectDoesNotExistGenerationEffectsCannotBe"));
 
     const delta = generationProjectDelta(input, memoryProject);
-    if (!delta.stamped) throw new Error("生成副作用缺少持久幂等标记");
+    if (!delta.stamped) throw new Error(translate("shared.canvasGenerationConsumer.generationEffectsAreMissingAPersistentIdempotencyMarker"));
 
     const unregisterAttempt = registerCanvasGenerationPersistenceAttempt(scope, input.projectId, input.effectKey, {
         previousNodes: input.previousNodes,
@@ -559,7 +561,7 @@ export async function persistCanvasGenerationEffect(input: CanvasGenerationEffec
                 // Commit that final document instead of rejecting the whole result.
                 if (rebased.conflicts.some((conflict) => conflict.reason !== "concurrent-update")) {
                     reconcileLiveOnFailure = true;
-                    throw new Error("画布生成副作用与已删除内容冲突");
+                    throw new Error(translate("shared.canvasGenerationConsumer.canvasGenerationEffectsConflictWithDeletedContent"));
                 }
 
                 // 批量子图并发完成时，在锁内从最新子图派生主图，避免争写父节点。
@@ -589,7 +591,7 @@ export async function persistCanvasGenerationEffect(input: CanvasGenerationEffec
                 latestDurable = finalDocument;
                 recordCanvasStorageDocument(scope, finalDocument);
                 const persistedProject = rebaseCommittedCanvasGenerationOntoLiveProject(scope, input.projectId, finalDocument, memoryProject, baseRevision) ?? generationCommittedProject;
-                if (!persistedProject) throw new Error("画布项目不存在，无法确认生成副作用");
+                if (!persistedProject) throw new Error(translate("shared.canvasGenerationConsumer.theCanvasProjectDoesNotExistGenerationEffectsCannotBe2"));
                 if (getActiveUserScope() === scope) {
                     const publish = () => {
                         useCanvasStore.setState((state) => ({

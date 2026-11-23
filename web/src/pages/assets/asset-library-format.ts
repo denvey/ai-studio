@@ -8,6 +8,8 @@ import { type AssetKind } from "@/stores/use-asset-store";
 import { type AssetGridDensity, parseAssetGridDensity } from "./asset-grid-density";
 import { type Asset } from "@/stores/use-asset-store";
 import { type LucideIcon, FileText, Image as ImageIcon, Clapperboard, AudioLines, Box, UserRound, Mountain, Package, Layers, Shapes, ShieldCheck } from "lucide-react";
+import { currentLocale, translate } from "@/i18n";
+
 
 export type LibraryAsset = Asset;
 
@@ -37,13 +39,13 @@ export const assetCategoryIcons: Record<AssetCategory, LucideIcon> = {
  * 像素尺寸、大小和格式留在素材档案里（见 assetSummaryDetail 与 assetArchiveFacts）。
  */
 export function assetSummary(asset: LibraryAsset, audioSampleRate?: number) {
-    if (asset.kind === "entity") return asset.category === "environment" || asset.category === "prop" ? String(asset.data.definition.description || "待生成图片") : characterAssetSummary(asset);
+    if (asset.kind === "entity") return asset.category === "environment" || asset.category === "prop" ? String(asset.data.definition.description || translate("shared.assets.assetLibraryPanels.imagePendingGeneration")) : characterAssetSummary(asset);
     if (asset.kind === "text") return asset.data.content;
     if (asset.kind === "audio") return [formatAssetClock(asset.data.durationMs) || formatAssetDuration(asset.data.durationMs), formatAudioSampleRate(audioSampleRate)].filter(Boolean).join(" · ");
     if (asset.kind === "model") return `${asset.data.fileName} · ${formatBytes(asset.data.bytes)} · ${asset.data.mimeType}`;
     const tier = asset.kind === "video" ? videoResolutionTierLabel(asset.data.width, asset.data.height) : imageResolutionTierLabel(asset.data.width, asset.data.height);
     const spec = [tier, mediaAspectRatioLabel(asset.data.width, asset.data.height)].filter(Boolean).join(" · ");
-    return spec || `尺寸未知 · ${formatBytes(asset.data.bytes)}`;
+    return spec || translate("shared.assets.assetLibraryFormat.unknownDimensions", { v0: String(formatBytes(asset.data.bytes)) });
 }
 
 /** 卡片摘要悬停提示：补上像素尺寸、文件大小和格式，不必打开档案也能核对。 */
@@ -58,7 +60,7 @@ export function assetSummaryDetail(asset: LibraryAsset, audioSampleRate?: number
 
 export function assetSizeLabel(width: number, height: number) {
     // 旧版本后端把未知尺寸写成 1×1 占位；1 像素的边长不是真实媒体尺寸，同样按未知显示。
-    return width > 1 && height > 1 ? `${width}x${height}` : "未知";
+    return width > 1 && height > 1 ? `${width}x${height}` : translate("shared.assets.assetLibraryPanels.unknown");
 }
 
 export function assetSearchText(asset: LibraryAsset) {
@@ -69,19 +71,19 @@ export function assetSearchText(asset: LibraryAsset) {
 export function assetProjectLabel(asset: LibraryAsset) {
     const projectName = asset.metadata?.projectName;
     if (typeof projectName === "string" && projectName.trim()) return projectName;
-    return Array.isArray(asset.metadata?.projectIds) && asset.metadata.projectIds.length ? "已关联项目" : "未关联项目";
+    return Array.isArray(asset.metadata?.projectIds) && asset.metadata.projectIds.length ? translate("shared.assets.assetLibraryFormat.linkedProject") : translate("shared.assets.assetLibraryFormat.noLinkedProject");
 }
 
 export function assetKindLabel(kind: AssetKind, category?: string) {
-    if (kind === "entity" && (category === "environment" || category === "prop")) return `${assetCategoryLabel(category)}设定`;
-    return kind === "image" ? "图片" : kind === "video" ? "视频" : kind === "audio" ? "音频" : kind === "model" ? "3D 模型" : kind === "entity" ? "角色" : "文本";
+    if (kind === "entity" && (category === "environment" || category === "prop")) return translate("shared.assets.assetLibraryFormat.profile", { v0: String(assetCategoryLabel(category)) });
+    return kind === "image" ? translate("account.feedback.image") : kind === "video" ? translate("account.feedback.video") : kind === "audio" ? translate("account.settings.modelConfig.capabilities.audio") : kind === "model" ? translate("library.assets.kind.model") : kind === "entity" ? translate("account.welcome.chapters.world.label") : translate("account.settings.modelConfig.capabilities.text");
 }
 
 export function assetDownloadLabel(asset: LibraryAsset) {
-    if (asset.kind === "video") return "下载视频";
-    if (asset.kind === "audio") return "下载音频";
-    if (asset.kind === "model") return "下载模型";
-    return "下载图片";
+    if (asset.kind === "video") return translate("shared.assets.assetLibraryFormat.downloadVideo");
+    if (asset.kind === "audio") return translate("shared.assets.assetLibraryFormat.downloadAudio");
+    if (asset.kind === "model") return translate("shared.assets.assetLibraryFormat.downloadModel");
+    return translate("shared.assets.assetLibraryFormat.downloadImage");
 }
 
 export function readAssetGridDensity(): AssetGridDensity {
@@ -100,8 +102,8 @@ export function assetCountMap<T extends { label: string; value: string }>(option
 }
 
 export function formatAssetDuration(durationMs?: number) {
-    if (!durationMs) return "时长未知";
-    return `${Math.round(durationMs / 100) / 10} 秒`;
+    if (!durationMs) return translate("shared.assets.assetLibraryFormat.durationUnknown");
+    return translate("shared.create.creationWorkspaceMessages.s", { v0: String(Math.round(durationMs / 100) / 10) });
 }
 
 export function formatAssetClock(durationMs?: number) {
@@ -114,11 +116,11 @@ export function formatAssetClock(durationMs?: number) {
 
 export function formatAssetTime(value: string) {
     const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit" });
+    return Number.isNaN(date.getTime()) ? "-" : date.toLocaleDateString(currentLocale(), { month: "2-digit", day: "2-digit" });
 }
 
 export function formatAssetDateTime(value: string) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "-";
-    return date.toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+    return date.toLocaleString(currentLocale(), { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 }

@@ -1,4 +1,6 @@
 import type { CanvasFaceBox } from "./canvas-emotion";
+import { translate } from "@/i18n";
+
 
 type DetectFaceResponse = {
     id: number;
@@ -25,9 +27,9 @@ let requestSequence = 0;
 const pendingRequests = new Map<number, PendingRequest>();
 
 export async function detectCanvasFaces(dataUrl: string, signal?: AbortSignal): Promise<CanvasFaceDetectionResult> {
-    if (signal?.aborted) throw new DOMException("人脸识别已取消", "AbortError");
+    if (signal?.aborted) throw new DOMException(translate("shared.canvas.canvasFaceDetection.faceDetectionCanceled"), "AbortError");
     const response = await fetch(dataUrl, { signal });
-    if (!response.ok) throw new Error("无法读取源图片，请重新上传后再试");
+    if (!response.ok) throw new Error(translate("shared.canvas.canvasFaceDetection.couldNotReadTheSourceImageReUploadItAnd"));
     const image = await createImageBitmap(await response.blob());
     const worker = getDetectorWorker();
     const id = ++requestSequence;
@@ -37,7 +39,7 @@ export async function detectCanvasFaces(dataUrl: string, signal?: AbortSignal): 
             if (!request) return;
             pendingRequests.delete(id);
             request.cleanup();
-            reject(new DOMException("人脸识别已取消", "AbortError"));
+            reject(new DOMException(translate("shared.canvas.canvasFaceDetection.faceDetectionCanceled"), "AbortError"));
         };
         const cleanup = () => signal?.removeEventListener("abort", abort);
         pendingRequests.set(id, { resolve, reject, cleanup });
@@ -65,7 +67,7 @@ function getDetectorWorker() {
         });
     };
     worker.onerror = (event) => {
-        const error = new Error(event.message || "人脸识别服务初始化失败");
+        const error = new Error(event.message || translate("shared.canvas.canvasFaceDetection.failedToInitializeTheFaceDetectionService"));
         pendingRequests.forEach((request) => {
             request.cleanup();
             request.reject(error);

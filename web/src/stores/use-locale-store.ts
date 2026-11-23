@@ -25,3 +25,31 @@ export const useLocaleStore = create<LocaleStore>()(
         },
     ),
 );
+
+const LOCALE_PARAM = "set-locale";
+
+/**
+ * 等新页面真正加载后再保存语言：设置页可能通过 beforeunload 取消跳转，
+ * 提前落库会使界面与偏好不一致。整页加载也能更新模块级的翻译常量。
+ */
+export function switchLocale(next: AppLocale) {
+    if (!isAppLocale(next) || next === useLocaleStore.getState().locale) return;
+    if (typeof window === "undefined") {
+        useLocaleStore.getState().setLocale(next);
+        return;
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set(LOCALE_PARAM, next);
+    window.location.replace(url.toString());
+}
+
+// 必须先消费参数，i18n 才能在模块初始化时读到本次页面真正采用的语言。
+if (typeof window !== "undefined") {
+    const url = new URL(window.location.href);
+    const pending = url.searchParams.get(LOCALE_PARAM);
+    if (isAppLocale(pending)) {
+        useLocaleStore.getState().setLocale(pending);
+        url.searchParams.delete(LOCALE_PARAM);
+        window.history.replaceState(window.history.state, "", url.toString());
+    }
+}

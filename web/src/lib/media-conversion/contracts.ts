@@ -1,4 +1,6 @@
 import type { CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 export const MEDIA_CONVERSION_SCHEMA_VERSION = 1 as const;
 
@@ -26,21 +28,21 @@ export type MediaConversionNodeState = {
 };
 
 export const MEDIA_CONVERSION_OPERATION_LABELS: Record<MediaConversionOperation, string> = {
-    grayscale: "灰度图",
-    "edge-canny": "Canny 边缘",
-    lineart: "AI 线稿",
-    depth: "深度图",
-    pose: "姿态骨架",
-    cutout: "透明抠图",
+    grayscale: translate("shared.mediaConversion.contracts.grayscale"),
+    "edge-canny": translate("shared.mediaConversion.contracts.cannyEdges"),
+    lineart: translate("shared.mediaConversion.contracts.aILineArt"),
+    depth: translate("shared.mediaConversion.contracts.depthMap"),
+    pose: translate("shared.mediaConversion.contracts.poseSkeleton"),
+    cutout: translate("shared.mediaConversion.contracts.backgroundRemoval"),
 };
 
 export const MEDIA_CONVERSION_OPERATION_DESCRIPTIONS: Record<MediaConversionOperation, string> = {
-    grayscale: "普通图像算法，适合先检查明暗层次",
-    "edge-canny": "普通图像算法，提取清晰轮廓",
-    lineart: "本机 ControlNet Aux 线稿预处理，需要另行部署本机模型服务",
-    depth: "本机 Depth Anything V2 Small，需要另行部署本机模型服务",
-    pose: "本机 OpenPose 人体骨架预处理，需要另行部署本机模型服务",
-    cutout: "需要安装并验证本地抠图模型",
+    grayscale: translate("shared.mediaConversion.contracts.standardImageProcessingForInspectingTonalContrast"),
+    "edge-canny": translate("shared.mediaConversion.contracts.standardImageProcessingForExtractingClearEdges"),
+    lineart: translate("shared.mediaConversion.contracts.localControlNetAuxLineArtPreprocessingRequiresASeparatelyDeployed"),
+    depth: translate("shared.mediaConversion.contracts.localDepthAnythingV2SmallRequiresASeparatelyDeployedLocal"),
+    pose: translate("shared.mediaConversion.contracts.localOpenPoseBodyPosePreprocessingRequiresASeparatelyDeployedLocal"),
+    cutout: translate("shared.mediaConversion.contracts.requiresAnInstalledAndVerifiedLocalBackgroundRemovalModel"),
 };
 
 export function createDefaultMediaConversionState(): MediaConversionNodeState {

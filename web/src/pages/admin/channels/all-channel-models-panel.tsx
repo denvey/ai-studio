@@ -17,15 +17,16 @@ import { ChannelModelEditor } from "../components/channel-model-editor";
 import { ChannelModelHealthCell, channelModelHealthKey } from "../components/channel-model-health";
 import { ChannelModelRepriceDialog } from "../components/channel-model-reprice-dialog";
 import { ChannelModelProtocolDialog } from "../components/channel-model-protocol-dialog";
+import { currentLocale, translate } from "@/i18n";
 
 type StatusFilter = "all" | "enabled" | "disabled" | "unhealthy";
 
 const capabilityOptions = [
-    { label: "全部能力", value: "all" },
-    { label: "文本", value: "text" },
-    { label: "图片", value: "image" },
-    { label: "视频", value: "video" },
-    { label: "音频", value: "audio" },
+    { label: translate("admin.channels.allChannelModelsPanel.allCapabilities"), value: "all" },
+    { label: translate("account.settings.modelConfig.capabilities.text"), value: "text" },
+    { label: translate("account.feedback.image"), value: "image" },
+    { label: translate("account.feedback.video"), value: "video" },
+    { label: translate("account.settings.modelConfig.capabilities.audio"), value: "audio" },
 ];
 
 /**
@@ -87,7 +88,7 @@ export function AllChannelModelsPanel({
         setLoadError("");
         void listAdminAllChannelModels()
             .then((result) => active && setItems(result.models))
-            .catch((error) => active && setLoadError(error instanceof Error ? error.message : "读取模型列表失败"))
+            .catch((error) => active && setLoadError(error instanceof Error ? error.message : translate("admin.channels.allChannelModelsPanel.failedToLoadModels")))
             .finally(() => active && setLoading(false));
         return () => {
             active = false;
@@ -101,7 +102,7 @@ export function AllChannelModelsPanel({
             setProtocols(await fetchPluginProviderCatalog("admin.system-channel"));
         } catch (error) {
             setProtocols([]);
-            setProtocolError(error instanceof Error ? error.message : "无法读取协议目录");
+            setProtocolError(error instanceof Error ? error.message : translate("admin.channels.allChannelModelsPanel.unableToLoadTheProtocolCatalog"));
         } finally {
             setProtocolLoading(false);
         }
@@ -126,7 +127,7 @@ export function AllChannelModelsPanel({
                 }
                 return true;
             })
-            .sort((left, right) => (left.displayName || left.modelKey).localeCompare(right.displayName || right.modelKey, "zh-CN") || left.modelKey.localeCompare(right.modelKey) || left.channelName.localeCompare(right.channelName, "zh-CN"));
+            .sort((left, right) => (left.displayName || left.modelKey).localeCompare(right.displayName || right.modelKey, currentLocale()) || left.modelKey.localeCompare(right.modelKey) || left.channelName.localeCompare(right.channelName, currentLocale()));
     }, [capability, channelFilter, health, items, keyword, status]);
 
     const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -138,9 +139,9 @@ export function AllChannelModelsPanel({
             await setAdminChannelModelEnabled(item.channelId, item.id, enabled);
             setItems((current) => current.map((entry) => (entry.id === item.id ? { ...entry, enabled } : entry)));
             await onChanged();
-            message.success(enabled ? "模型已启用" : "模型已停用");
+            message.success(enabled ? translate("admin.channels.allChannelModelsPanel.modelEnabled") : translate("admin.channels.allChannelModelsPanel.modelDisabled"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "更新模型状态失败");
+            message.error(error instanceof Error ? error.message : translate("admin.channels.allChannelModelsPanel.failedToUpdateModelStatus"));
         } finally {
             setTogglingId(null);
         }
@@ -152,10 +153,10 @@ export function AllChannelModelsPanel({
             return;
         }
         modal.confirm({
-            title: `停用 ${item.channelName} 的 ${item.displayName || item.modelKey}？`,
-            content: "停用后新任务不再使用这个渠道的该模型，引用它的前台模型会切换到其他可用线路；配置保留，可随时重新启用。",
-            okText: "确认停用",
-            cancelText: "取消",
+            title: translate("admin.channels.allChannelModelsPanel.disableIn", { v0: String(item.channelName), v1: String(item.displayName || item.modelKey) }),
+            content: translate("admin.channels.allChannelModelsPanel.newTasksWillStopUsingThisModelOnThisChannel"),
+            okText: translate("admin.channels.allChannelModelsPanel.confirmDeactivation"),
+            cancelText: translate("common.cancel"),
             okButtonProps: { danger: true },
             onOk: () => applyEnabled(item, false),
         });
@@ -167,7 +168,7 @@ export function AllChannelModelsPanel({
 
     const columns: ColumnsType<AdminChannelModelListItem> = [
         {
-            title: "模型",
+            title: translate("canvasA.assetView.model"),
             width: 240,
             fixed: "left",
             render: (_, item) => (
@@ -185,36 +186,36 @@ export function AllChannelModelsPanel({
             ),
         },
         {
-            title: "渠道",
+            title: translate("admin.channels.allChannelModelsPanel.channel"),
             width: 170,
             render: (_, item) => (
                 <div className="min-w-0">
-                    <button type="button" className="admin-table-primary-link truncate" onClick={() => onOpenChannel(item.channelId)} title="在渠道中查看">
+                    <button type="button" className="admin-table-primary-link truncate" onClick={() => onOpenChannel(item.channelId)} title={translate("admin.channels.allChannelModelsPanel.viewInChannel")}>
                         {item.channelName}
                     </button>
-                    {!item.channelEnabled ? <div className="text-xs text-foreground/45">渠道已停用</div> : null}
+                    {!item.channelEnabled ? <div className="text-xs text-foreground/45">{translate("admin.channels.allChannelModelsPanel.channelDisabled")}</div> : null}
                 </div>
             ),
         },
-        { title: "能力", dataIndex: "capability", width: 72, render: (value: string) => capabilityOptions.find((option) => option.value === value)?.label || "待配置" },
-        { title: "稳定性（24h）", key: "health", width: 150, render: (_, item) => <ChannelModelHealthCell health={health.get(channelModelHealthKey(item.channelId, item.modelKey))} loading={healthLoading} /> },
-        { title: "规格成本价 / 销售价 / 加价", width: 300, render: (_, item) => <ChannelModelCostSummary item={item} /> },
+        { title: translate("admin.channels.allChannelModelsPanel.capability"), dataIndex: "capability", width: 72, render: (value: string) => capabilityOptions.find((option) => option.value === value)?.label || translate("account.settings.modelConfig.capabilities.pending") },
+        { title: translate("admin.channels.allChannelModelsPanel.reliability24h"), key: "health", width: 150, render: (_, item) => <ChannelModelHealthCell health={health.get(channelModelHealthKey(item.channelId, item.modelKey))} loading={healthLoading} /> },
+        { title: translate("admin.channels.allChannelModelsPanel.tierCostSellingPriceMarkup"), width: 300, render: (_, item) => <ChannelModelCostSummary item={item} /> },
         {
-            title: "状态",
+            title: translate("library.tasks.detail.status"),
             width: 90,
-            render: (_, item) => (item.enabled ? item.channelEnabled ? <AdminStatusBadge label="启用" tone="success" /> : <AdminStatusBadge label="渠道停用" tone="warning" /> : <AdminStatusBadge label="停用" tone="neutral" />),
+            render: (_, item) => (item.enabled ? item.channelEnabled ? <AdminStatusBadge label={translate("account.layout.oss.switchOn")} tone="success" /> : <AdminStatusBadge label={translate("admin.channels.allChannelModelsPanel.channelDisabled2")} tone="warning" /> : <AdminStatusBadge label={translate("account.layout.oss.switchOff")} tone="neutral" />),
         },
         {
-            title: "操作",
+            title: translate("account.settings.runninghub.actions"),
             width: 150,
             fixed: "right",
             render: (_, item) => (
                 <Space size={4}>
                     <Button size="small" icon={<Pencil className="size-3.5" />} onClick={() => openEditor(item)}>
-                        编辑
+                        {translate("account.settings.channels.edit")}
                     </Button>
                     <Button size="small" danger={item.enabled} icon={<Power className="size-3.5" />} loading={togglingId === item.id} disabled={togglingId !== null && togglingId !== item.id} onClick={() => toggleEnabled(item)}>
-                        {item.enabled ? "停用" : "启用"}
+                        {item.enabled ? translate("account.layout.oss.switchOff") : translate("account.layout.oss.switchOn")}
                     </Button>
                 </Space>
             ),
@@ -233,47 +234,47 @@ export function AllChannelModelsPanel({
                         className="app-list-search"
                         prefix={<Search className="size-4 text-foreground/40" />}
                         value={keyword}
-                        aria-label="按模型名称搜索全部渠道"
-                        placeholder="按模型名称、标识或上游 ID 搜索全部渠道"
+                        aria-label={translate("admin.channels.allChannelModelsPanel.searchAllChannelsByModelName")}
+                        placeholder={translate("admin.channels.allChannelModelsPanel.searchAllChannelsByModelNameKeyOrUpstreamID")}
                         onValueChange={(value) => updateFilter({ q: value })}
                     />
                 }
                 toolbarFilters={
                     <>
-                        <Select aria-label="筛选模型能力" className="w-28" value={capability} options={capabilityOptions} onChange={(value) => updateFilter({ capability: value })} />
+                        <Select aria-label={translate("admin.channels.allChannelModelsPanel.filterByModelCapability")} className="w-28" value={capability} options={capabilityOptions} onChange={(value) => updateFilter({ capability: value })} />
                         <Select
-                            aria-label="筛选模型状态"
+                            aria-label={translate("admin.channels.allChannelModelsPanel.filterByModelStatus")}
                             className="w-44"
                             value={status}
                             options={[
-                                { label: "全部状态", value: "all" },
-                                { label: "可用（模型与渠道均启用）", value: "enabled" },
-                                { label: "不可用", value: "disabled" },
-                                { label: "24h 成功率低于 80%", value: "unhealthy" },
+                                { label: translate("library.ark.expiry.all"), value: "all" },
+                                { label: translate("admin.channels.allChannelModelsPanel.availableModelAndChannelEnabled"), value: "enabled" },
+                                { label: translate("admin.channels.allChannelModelsPanel.unavailable"), value: "disabled" },
+                                { label: translate("admin.channels.allChannelModelsPanel.item24hSuccessRateBelow80"), value: "unhealthy" },
                             ]}
                             onChange={(value) => updateFilter({ modelStatus: value })}
                         />
                         <Select
-                            aria-label="筛选渠道"
+                            aria-label={translate("admin.channels.allChannelModelsPanel.filterByChannel")}
                             className="w-40"
                             showSearch
                             optionFilterProp="label"
                             value={channelFilter}
-                            options={[{ label: "全部渠道", value: "all" }, ...channels.map((channel) => ({ label: channel.name, value: channel.id }))]}
+                            options={[{ label: translate("admin.channels.allChannelModelsPanel.allChannels"), value: "all" }, ...channels.map((channel) => ({ label: channel.name, value: channel.id }))]}
                             onChange={(value) => updateFilter({ modelChannel: value })}
                         />
                     </>
                 }
                 toolbarActive={hasFilters}
                 onReset={() => updateFilter({ q: "", capability: "", modelStatus: "", modelChannel: "" })}
-                trailing={<span className="text-xs text-foreground/50 tabular-nums">{loading ? "读取中…" : `${filtered.length} 个模型 · ${enabledCount} 个可用`}</span>}
+                trailing={<span className="text-xs text-foreground/50 tabular-nums">{loading ? translate("admin.channels.allChannelModelsPanel.loading") : translate("admin.channels.allChannelModelsPanel.modelsAvailable", { v0: String(filtered.length), v1: String(enabledCount) })}</span>}
                 batchActions={
                     <AdminBatchBar count={selectedIds.length} onClear={() => setSelectedIds([])}>
                         <Button size="small" disabled={loading || Boolean(loadError)} onClick={() => setRepriceItems(items.filter((item) => selectedIds.includes(item.id)))}>
-                            统一调价
+                            {translate("admin.channels.allChannelModelsPanel.bulkPriceAdjustment")}
                         </Button>
                         <Button size="small" disabled={loading || Boolean(loadError)} onClick={() => setProtocolItems(items.filter((item) => selectedIds.includes(item.id)))}>
-                            修改协议
+                            {translate("admin.channels.allChannelModelsPanel.changeProtocol")}
                         </Button>
                     </AdminBatchBar>
                 }
@@ -287,7 +288,7 @@ export function AllChannelModelsPanel({
                         preserveSelectedRowKeys: true,
                         onChange: (keys) => {
                             const next = keys.map(String);
-                            if (next.length > 100) message.warning("单次最多选择 100 个模型");
+                            if (next.length > 100) message.warning(translate("admin.channels.allChannelModelsPanel.selectUpTo100ModelsAtATime"));
                             setSelectedIds(next.slice(0, 100));
                         },
                     },
@@ -299,13 +300,13 @@ export function AllChannelModelsPanel({
                 empty={
                     loadError ? (
                         <div className="admin-inline-load-error" role="status">
-                            <span>模型列表暂不可用：{loadError}</span>
+                            <span>{translate("admin.channels.allChannelModelsPanel.modelListTemporarilyUnavailable")}{loadError}</span>
                             <Button size="small" onClick={() => setRetry((value) => value + 1)}>
-                                重试
+                                {translate("common.retry")}
                             </Button>
                         </div>
                     ) : (
-                        <AdminTableEmpty filtered={hasFilters} title={hasFilters ? undefined : "还没有任何渠道模型"} />
+                        <AdminTableEmpty filtered={hasFilters} title={hasFilters ? undefined : translate("admin.channels.allChannelModelsPanel.noChannelModelsYet")} />
                     )
                 }
                 footer={

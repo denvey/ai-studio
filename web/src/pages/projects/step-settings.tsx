@@ -8,20 +8,21 @@ import { THINKING_REQUEST_OPTIONS, type ThinkingRequest } from "@/lib/text-think
 
 import { DramaModelPicker, useDramaModelCatalog } from "./drama-model-picker";
 import { PromptSkillField, type DramaSkillStep } from "./prompt-skill";
+import { translate } from "@/i18n";
 
 // 制作步骤的模型与技能：每个文字步骤一行（文本模型 + 写作技能），每类参考图一行（图片模型 + 分辨率）。
 // 单独指定的模型为空时沿用“制作模型”里的默认模型，行内显示实际会用哪个。
 
 const TEXT_STEPS: Array<{ step: DramaSkillStep; override: DramaModelOverride; label: string; hint: string }> = [
-    { step: "bible", override: "bibleText", label: "资产提取", hint: "从原文提取角色、道具、场景与全剧画面规则" },
-    { step: "script", override: "scriptText", label: "分镜拆分", hint: "每集改编为镜头表，输出最长、最慢的一步" },
-    { step: "prompt", override: "promptText", label: "视频提示词", hint: "按镜头表把每个剧情段写成完整视频提示词" },
+    { step: "bible", override: "bibleText", label: translate("drama.stepSettings.assetExtraction"), hint: translate("drama.stepSettings.extractCharactersPropsScenesAndProductionWideVisualRulesFrom") },
+    { step: "script", override: "scriptText", label: translate("drama.stepSettings.storyboardBreakdown"), hint: translate("drama.stepSettings.adaptEachEpisodeIntoAShotListTheLongestAnd") },
+    { step: "prompt", override: "promptText", label: translate("drama.stepSettings.videoPrompt"), hint: translate("drama.stepSettings.writeAFullVideoPromptForEachStorySegmentFrom") },
 ];
 
 const IMAGE_KINDS: Array<{ kind: DramaCastKind; override: DramaModelOverride; resolution: "resolution" | "propResolution" | "sceneResolution"; label: string; hint: string }> = [
-    { kind: "character", override: "characterImage", resolution: "resolution", label: "角色", hint: "画幅按参考图方案" },
-    { kind: "prop", override: "propImage", resolution: "propResolution", label: "道具", hint: "16:9 单件展示" },
-    { kind: "scene", override: "sceneImage", resolution: "sceneResolution", label: "场景", hint: "16:9 空间全景" },
+    { kind: "character", override: "characterImage", resolution: "resolution", label: translate("account.welcome.chapters.world.label"), hint: translate("drama.stepSettings.aspectRatioFollowsTheReferenceScheme") },
+    { kind: "prop", override: "propImage", resolution: "propResolution", label: translate("drama.stepSettings.props"), hint: translate("drama.stepSettings.item169SingleItemView") },
+    { kind: "scene", override: "sceneImage", resolution: "sceneResolution", label: translate("drama.stepSettings.scene"), hint: translate("drama.stepSettings.item169WideViewOfTheSpace") },
 ];
 
 export type DramaStepSkills = { bible?: DramaSkillRef; script?: DramaSkillRef; prompt?: DramaSkillRef };
@@ -42,10 +43,10 @@ function tierLabel(tier: string) {
 function OverridePicker({ capability, value, fallback, onChange }: { capability: "text" | "image"; value?: DramaModelChoice; fallback?: DramaModelChoice; onChange: (choice?: DramaModelChoice) => void }) {
     return (
         <div className="drama-step-model">
-            <DramaModelPicker capability={capability} size="sm" showPrice={false} value={value} placeholder={`跟随默认${fallback?.label ? ` · ${fallback.label}` : ""}`} onChange={onChange} />
+            <DramaModelPicker capability={capability} size="sm" showPrice={false} value={value} placeholder={translate("drama.stepSettings.useDefault", { v0: String(fallback?.label ? ` · ${fallback.label}` : "") })} onChange={onChange} />
             {value ? (
                 <Button size="small" type="text" onClick={() => onChange(undefined)}>
-                    跟随默认
+                    {translate("drama.stepSettings.useDefault2")}
                 </Button>
             ) : null}
         </div>
@@ -69,23 +70,23 @@ export function DramaTextSteps({
     onThinkingChange: (step: DramaTextStep, value: ThinkingRequest) => void;
 }) {
     return (
-        <div className="drama-steps" role="list" aria-label="文字步骤">
+        <div className="drama-steps" role="list" aria-label={translate("drama.stepSettings.textStages")}>
             <div className="drama-step-row" role="listitem">
                 <div className="drama-step-label">
-                    <strong>分集规划</strong>
-                    <small>小说自动分集时把章节组织为连续剧集</small>
+                    <strong>{translate("drama.stepSettings.episodePlanning")}</strong>
+                    <small>{translate("drama.stepSettings.organizeChaptersIntoConsecutiveEpisodesDuringAutomaticNovelAdaptation")}</small>
                 </div>
                 <div className="drama-step-field">
-                    <span className="drama-step-caption">文本模型</span>
-                    <small className="drama-step-note">跟随制作模型{models?.text?.label ? ` · ${models.text.label}` : ""}</small>
+                    <span className="drama-step-caption">{translate("drama.stepSettings.textModel")}</span>
+                    <small className="drama-step-note">{translate("drama.stepSettings.useProductionModel")}{models?.text?.label ? ` · ${models.text.label}` : ""}</small>
                 </div>
                 <div className="drama-step-field">
-                    <span className="drama-step-caption">技能</span>
-                    <small className="drama-step-note">系统内置分集规则</small>
+                    <span className="drama-step-caption">{translate("nav.sidebar.skills")}</span>
+                    <small className="drama-step-note">{translate("drama.stepSettings.builtInEpisodePlanningRules")}</small>
                 </div>
                 <div className="drama-step-field">
-                    <span className="drama-step-caption">思考等级</span>
-                    <Select aria-label="分集规划思考等级" value={textThinking.plan || "auto"} options={THINKING_REQUEST_OPTIONS} onChange={(value) => onThinkingChange("plan", value)} />
+                    <span className="drama-step-caption">{translate("drama.stepSettings.thinkingLevel")}</span>
+                    <Select aria-label={translate("drama.stepSettings.episodePlanningThinkingLevel")} value={textThinking.plan || "auto"} options={THINKING_REQUEST_OPTIONS} onChange={(value) => onThinkingChange("plan", value)} />
                 </div>
             </div>
             {TEXT_STEPS.map((item) => (
@@ -95,16 +96,16 @@ export function DramaTextSteps({
                         <small>{item.hint}</small>
                     </div>
                     <div className="drama-step-field">
-                        <span className="drama-step-caption">文本模型</span>
+                        <span className="drama-step-caption">{translate("drama.stepSettings.textModel")}</span>
                         <OverridePicker capability="text" value={overrideOf(models, item.override)} fallback={models?.text} onChange={(choice) => onModelsChange({ [item.override]: choice || {} })} />
                     </div>
                     <div className="drama-step-field">
-                        <span className="drama-step-caption">技能</span>
+                        <span className="drama-step-caption">{translate("nav.sidebar.skills")}</span>
                         <PromptSkillField compact step={item.step} value={skills[SKILL_FIELD[item.step]]} onChange={(value) => onSkillChange(item.step, value)} />
                     </div>
                     <div className="drama-step-field">
-                        <span className="drama-step-caption">思考等级</span>
-                        <Select aria-label={`${item.label}思考等级`} value={textThinking[item.step] || "auto"} options={THINKING_REQUEST_OPTIONS} onChange={(value) => onThinkingChange(item.step, value)} />
+                        <span className="drama-step-caption">{translate("drama.stepSettings.thinkingLevel")}</span>
+                        <Select aria-label={translate("drama.stepSettings.thinkingLevel2", { v0: String(item.label) })} value={textThinking[item.step] || "auto"} options={THINKING_REQUEST_OPTIONS} onChange={(value) => onThinkingChange(item.step, value)} />
                     </div>
                 </div>
             ))}
@@ -127,7 +128,7 @@ export function DramaAssetImageModels({
     const catalog = useDramaModelCatalog().data;
     const optionFor = (choice?: DramaModelChoice) => catalog?.options.image?.find((option) => dramaChoiceKey(option.choice) === dramaChoiceKey(choice));
     return (
-        <div className="drama-steps" role="list" aria-label="参考图模型与分辨率">
+        <div className="drama-steps" role="list" aria-label={translate("drama.stepSettings.referenceImageModelsAndResolutions")}>
             {IMAGE_KINDS.map((item) => {
                 const override = overrideOf(models, item.override);
                 const option = optionFor(override || models?.image);
@@ -140,17 +141,17 @@ export function DramaAssetImageModels({
                             <small>{item.hint}</small>
                         </div>
                         <div className="drama-step-field">
-                            <span className="drama-step-caption">图片模型</span>
+                            <span className="drama-step-caption">{translate("drama.stepSettings.imageModel")}</span>
                             <OverridePicker capability="image" value={override} fallback={models?.image} onChange={(choice) => onModelsChange({ [item.override]: choice || {} })} />
                         </div>
                         <div className="drama-step-field">
-                            <span className="drama-step-caption">分辨率</span>
+                            <span className="drama-step-caption">{translate("library.tasks.params.resolution")}</span>
                             {!option ? (
-                                <small className="drama-step-note">选好图片模型后可选</small>
+                                <small className="drama-step-note">{translate("drama.stepSettings.availableAfterSelectingAnImageModel")}</small>
                             ) : tiers.length ? (
-                                <div className="drama-tabs drama-res-tabs" role="radiogroup" aria-label={`${item.label}参考图分辨率`}>
+                                <div className="drama-tabs drama-res-tabs" role="radiogroup" aria-label={translate("drama.stepSettings.referenceResolution", { v0: String(item.label) })}>
                                     <button type="button" role="radio" className="drama-tab" aria-checked={!value} disabled={!assets} onClick={() => assets && onAssetsChange({ ...assets, [item.resolution]: undefined })}>
-                                        默认{option.defaultImageResolution ? ` · ${tierLabel(option.defaultImageResolution)}` : ""}
+                                        {translate("canvasB.common.default")}{option.defaultImageResolution ? ` · ${tierLabel(option.defaultImageResolution)}` : ""}
                                     </button>
                                     {tiers.map((tier) => (
                                         <button key={tier} type="button" role="radio" className="drama-tab" aria-checked={value === tier} disabled={!assets} onClick={() => assets && onAssetsChange({ ...assets, [item.resolution]: tier })}>
@@ -159,12 +160,12 @@ export function DramaAssetImageModels({
                                     ))}
                                 </div>
                             ) : (
-                                <small className="drama-step-note">该模型不提供分辨率档位，按默认尺寸出图</small>
+                                <small className="drama-step-note">{translate("drama.stepSettings.thisModelHasNoResolutionPresetsAndUsesItsDefault")}</small>
                             )}
                             {value && option && !tiers.includes(value) ? (
                                 <p className="drama-step-warn" role="alert">
                                     <TriangleAlert className="size-3.5" />
-                                    该模型不支持 {tierLabel(value)}，保存时会被拒绝，请改选
+                                    {translate("drama.stepSettings.thisModelDoesNotSupport")} {tierLabel(value)}{translate("drama.stepSettings.savingWillBeRejectedChooseAnotherOption")}
                                 </p>
                             ) : null}
                         </div>
@@ -180,23 +181,23 @@ export function VideoResolutionField({ option, value, onChange }: { option?: Dra
     if (!option) {
         return value ? (
             <div className="drama-step-model">
-                <small className="drama-step-note">已指定 {formatVideoResolutionLabel(value)}</small>
+                <small className="drama-step-note">{translate("drama.stepSettings.specified")} {formatVideoResolutionLabel(value)}</small>
                 <Button size="small" type="text" onClick={() => onChange(undefined)}>
-                    改回默认
+                    {translate("drama.stepSettings.resetToDefault")}
                 </Button>
             </div>
         ) : (
-            <small className="drama-step-note">选好视频模型后可选</small>
+            <small className="drama-step-note">{translate("drama.stepSettings.availableAfterSelectingAVideoModel")}</small>
         );
     }
     const values = option.videoResolutions || [];
     const issue = dramaVideoResolutionIssue(option, value);
-    if (!values.length && !value) return <small className="drama-step-note">该模型不提供可选分辨率，按默认出片</small>;
+    if (!values.length && !value) return <small className="drama-step-note">{translate("drama.stepSettings.thisModelHasNoSelectableResolutionsAndUsesItsDefault")}</small>;
     return (
         <div className="drama-step-field">
-            <div className="drama-tabs drama-res-tabs" role="radiogroup" aria-label="视频分辨率">
+            <div className="drama-tabs drama-res-tabs" role="radiogroup" aria-label={translate("drama.stepSettings.videoResolution")}>
                 <button type="button" role="radio" className="drama-tab" aria-checked={!value} onClick={() => onChange(undefined)}>
-                    默认{option.defaultVideoResolution ? ` · ${formatVideoResolutionLabel(option.defaultVideoResolution)}` : ""}
+                    {translate("canvasB.common.default")}{option.defaultVideoResolution ? ` · ${formatVideoResolutionLabel(option.defaultVideoResolution)}` : ""}
                 </button>
                 {values.map((item) => (
                     <button key={item} type="button" role="radio" className="drama-tab" aria-checked={Boolean(value) && videoResolutionComparisonKey(value) === videoResolutionComparisonKey(item)} onClick={() => onChange(item)}>
@@ -207,10 +208,10 @@ export function VideoResolutionField({ option, value, onChange }: { option?: Dra
             {issue ? (
                 <p className="drama-step-warn" role="alert">
                     <TriangleAlert className="size-3.5" />
-                    当前视频模型{issue}，保存时会被拒绝，请改选
+                    {translate("drama.stepSettings.currentVideoModel")}{issue}{translate("drama.stepSettings.savingWillBeRejectedChooseAnotherOption")}
                 </p>
             ) : (
-                <small className="drama-step-note">分辨率越高越清晰，单段越贵；横竖由作品画幅决定</small>
+                <small className="drama-step-note">{translate("drama.stepSettings.higherResolutionsAreClearerAndCostMorePerSegmentOrientation")}</small>
             )}
         </div>
     );

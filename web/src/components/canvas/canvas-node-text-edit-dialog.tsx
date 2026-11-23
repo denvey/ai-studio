@@ -4,6 +4,7 @@ import { FileText, RefreshCw, ScanText, X, Check } from "lucide-react";
 
 import { modelDisplayName, useEffectiveConfig } from "@/stores/use-config-store";
 import { canvasTextDetectionModel, canvasTextDetectionPriceLabel, canvasTextDetectionSupportError } from "./canvas-node-text-detection";
+import { translate } from "@/i18n";
 
 export type CanvasImageTextLine = { original: string; text: string; location: string };
 export type CanvasImageTextEditPayload = { lines: CanvasImageTextLine[] };
@@ -45,7 +46,7 @@ export function CanvasNodeTextEditDialog({
             const detected = await onDetect();
             setLines(detected.map((line) => ({ ...line, text: line.text || line.original })));
         } catch (reason) {
-            setError(reason instanceof Error ? reason.message : "文字识别失败");
+            setError(reason instanceof Error ? reason.message : translate("canvasTools.canvasNodeTextEditDialog.textRecognitionFailed"));
         } finally {
             setLoading(false);
         }
@@ -60,24 +61,24 @@ export function CanvasNodeTextEditDialog({
     }, [dataUrl, open]);
 
     const changed = lines.some((line) => line.text.trim() && line.text !== line.original);
-    const billingNote = modelName ? `识别会调用文字模型「${modelName}」，按该模型计费${priceLabel ? `（${priceLabel}）` : ""}。` : "识别需要先在设置中配置文字模型。";
+    const billingNote = modelName ? translate("canvasTools.canvasNodeTextEditDialog.recognitionUsesTextModelAndIsBilledAccordingToThat", { v0: String(modelName), v1: String(priceLabel ? `（${priceLabel}）` : "") }) : translate("canvasTools.canvasNodeTextEditDialog.configureATextModelInSettingsBeforeRecognizingText");
 
     const body = loading ? (
         <div className="flex flex-1 items-center justify-center gap-2 text-sm opacity-65">
             <Spin size="small" />
-            正在识别图片文字…
+            {translate("canvasTools.canvasNodeTextEditDialog.recognizingTextInImage")}
         </div>
     ) : error ? (
         <div className="space-y-3">
             <Alert type="error" showIcon message={error} />
-            <Button onClick={() => void detect()}>重试</Button>
+            <Button onClick={() => void detect()}>{translate("common.retry")}</Button>
         </div>
     ) : !requested ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
             <p className="text-sm opacity-65">{billingNote}</p>
             {supportError ? <Alert type="warning" showIcon className="text-left" message={supportError} /> : null}
             <Button type="primary" icon={<ScanText className="size-4" />} disabled={Boolean(supportError)} onClick={() => void detect()}>
-                识别文字
+                {translate("canvasTools.canvasNodeTextEditDialog.recognizeText")}
             </Button>
         </div>
     ) : lines.length ? (
@@ -87,7 +88,7 @@ export function CanvasNodeTextEditDialog({
                     <div className="mb-2 flex items-center gap-2 text-xs opacity-60">
                         <FileText className="size-3.5" />
                         <span>
-                            第 {index + 1} 行 · {line.location}
+                            {translate("canvasTools.inline.canvasNodeTextEditDialog.line", { v0: String(index + 1), v1: String(line.location) })}
                         </span>
                     </div>
                     <Input value={line.text} placeholder={line.original} onChange={(event) => setLines((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, text: event.target.value } : item)))} />
@@ -95,34 +96,34 @@ export function CanvasNodeTextEditDialog({
             ))}
         </div>
     ) : (
-        <div className="flex flex-1 items-center justify-center text-sm opacity-55">没有识别到可编辑文字</div>
+        <div className="flex flex-1 items-center justify-center text-sm opacity-55">{translate("canvasPage.mediaTools.noEditableText")}</div>
     );
 
     return (
-        <Modal open={open && Boolean(dataUrl)} onCancel={onClose} footer={null} centered destroyOnHidden width={980} title="图片文字编辑">
+        <Modal open={open && Boolean(dataUrl)} onCancel={onClose} footer={null} centered destroyOnHidden width={980} title={translate("canvasTools.canvasNodeTextEditDialog.editTextInImage")}>
             <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_390px]">
                 <div className="grid min-h-[360px] place-items-center overflow-hidden rounded-xl bg-black/5 p-3 dark:bg-white/[0.04]">
-                    <img src={dataUrl} alt="待编辑图片" className="max-h-[64vh] max-w-full object-contain" draggable={false} />
+                    <img src={dataUrl} alt={translate("canvasTools.canvasNodeTextEditDialog.imageToEdit")} className="max-h-[64vh] max-w-full object-contain" draggable={false} />
                 </div>
                 <div className="flex min-h-[360px] flex-col gap-3">
                     <div className="flex items-start justify-between gap-3">
                         <div>
-                            <h3 className="text-lg font-semibold">识别图片文字</h3>
-                            <p className="mt-1 text-sm opacity-60">逐行修改文字，位置描述只用于帮助模型定位。</p>
+                            <h3 className="text-lg font-semibold">{translate("canvasTools.canvasNodeTextEditDialog.recognizeTextInImage")}</h3>
+                            <p className="mt-1 text-sm opacity-60">{translate("canvasTools.canvasNodeTextEditDialog.editTextLineByLinePositionDescriptionsOnlyHelpThe")}</p>
                         </div>
                         {requested ? (
                             <Button size="small" icon={<RefreshCw className="size-3.5" />} onClick={() => void detect()} disabled={loading}>
-                                重新识别
+                                {translate("canvasTools.canvasNodeTextEditDialog.recognizeAgain")}
                             </Button>
                         ) : null}
                     </div>
                     {body}
                     <div className="mt-auto flex justify-end gap-2 border-t pt-3">
                         <Button icon={<X className="size-4" />} onClick={onClose}>
-                            取消
+                            {translate("common.cancel")}
                         </Button>
                         <Button type="primary" icon={<Check className="size-4" />} disabled={!changed || loading} onClick={() => onConfirm({ lines })}>
-                            生成修改结果
+                            {translate("canvasTools.canvasNodeTextEditDialog.generateEditedImage")}
                         </Button>
                     </div>
                 </div>

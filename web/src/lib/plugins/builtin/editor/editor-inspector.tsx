@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { useEditorStoreContext } from "@/components/editor/editor-context";
 import { formatTimelineTime } from "@/lib/timeline/timeline-view";
 import type { TimelineClip } from "@/types/timeline";
+import { translate } from "@/i18n";
+
 
 export function EditorInspector() {
     const { project, selectedClipId, dispatch, selectClip } = useEditorStoreContext();
@@ -15,8 +17,8 @@ export function EditorInspector() {
         return (
             <div className="flex h-full flex-col bg-[var(--previs-sequencer-surface)]">
                 <div className="flex flex-1 flex-col items-center justify-center gap-2 p-4 text-center">
-                    <p className="text-xs text-[var(--previs-dock-fg)]/60">未选中片段</p>
-                    <p className="max-w-[180px] text-[var(--fs-label)] leading-relaxed text-[var(--previs-dock-fg)]/45">在时间线中点击片段后，可在此编辑属性</p>
+                    <p className="text-xs text-[var(--previs-dock-fg)]/60">{translate("shared.plugins.builtin.editor.editorInspector.noClipSelected")}</p>
+                    <p className="max-w-[180px] text-[var(--fs-label)] leading-relaxed text-[var(--previs-dock-fg)]/45">{translate("shared.plugins.builtin.editor.editorInspector.clickAClipOnTheTimelineToEditItsProperties")}</p>
                 </div>
             </div>
         );
@@ -25,24 +27,24 @@ export function EditorInspector() {
     return (
         <div className="flex h-full flex-col bg-[var(--previs-sequencer-surface)]">
             <div className="director-scroll min-h-0 flex-1 overflow-y-auto px-3 py-3">
-                <SectionTitle>片段</SectionTitle>
+                <SectionTitle>{translate("shared.plugins.builtin.editor.editorInspector.clip")}</SectionTitle>
                 <ClipSummary clip={clip} />
-                <SectionTitle>基本</SectionTitle>
+                <SectionTitle>{translate("shared.plugins.builtin.editor.editorInspector.general")}</SectionTitle>
                 <PropertyField
-                    label="名称"
+                    label={translate("shared.plugins.builtin.editor.editorInspector.name")}
                     value={clip.title ?? clip.nodeId ?? clip.id}
                     onChange={(value) => dispatch({ op: "setClipProperty", payload: { id: clip.id, patch: { title: value } } })}
                 />
                 {clip.kind === "subtitle" && (
                     <PropertyField
-                        label="字幕文本"
+                        label={translate("shared.plugins.builtin.editor.editorInspector.subtitleText")}
                         value={clip.text ?? ""}
                         onChange={(value) => dispatch({ op: "setClipProperty", payload: { id: clip.id, patch: { text: value } } })}
                     />
                 )}
                 {clip.kind === "audio" && (
                     <PropertyField
-                        label="音量"
+                        label={translate("shared.plugins.builtin.editor.editorInspector.volume")}
                         type="range"
                         min={0}
                         max={1}
@@ -54,9 +56,9 @@ export function EditorInspector() {
                 )}
                 {(clip.kind === "video" || clip.kind === "audio") && (
                     <>
-                        <SectionTitle>转场</SectionTitle>
+                        <SectionTitle>{translate("shared.plugins.builtin.editor.editorInspector.transition")}</SectionTitle>
                         <PropertyField
-                            label="淡入"
+                            label={translate("shared.plugins.builtin.editor.editorInspector.fadeIn")}
                             type="range"
                             min={0}
                             max={2000}
@@ -66,7 +68,7 @@ export function EditorInspector() {
                             onChange={(value) => dispatch({ op: "setClipProperty", payload: { id: clip.id, patch: { fadeInMs: Number(value) } } })}
                         />
                         <PropertyField
-                            label="淡出"
+                            label={translate("shared.plugins.builtin.editor.editorInspector.fadeOut")}
                             type="range"
                             min={0}
                             max={2000}
@@ -84,7 +86,7 @@ export function EditorInspector() {
                     onClick={() => selectClip(null)}
                     className="w-full rounded-md border border-[var(--previs-sequencer-border)] py-2 text-xs text-[var(--previs-dock-fg)] hover:bg-[var(--previs-control-hover)]"
                 >
-                    清除选中
+                    {translate("shared.plugins.builtin.editor.editorInspector.clearSelection")}
                 </button>
             </div>
         </div>
@@ -101,11 +103,11 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function ClipSummary({ clip }: { clip: TimelineClip }) {
     const kindLabel: Record<TimelineClip["kind"], string> = {
-        video: "视频",
-        audio: "音频",
-        subtitle: "字幕",
-        text: "文本",
-        image: "图片",
+        video: translate("account.feedback.video"),
+        audio: translate("account.settings.modelConfig.capabilities.audio"),
+        subtitle: translate("shared.plugins.builtin.editor.editorInspector.subtitles"),
+        text: translate("account.settings.modelConfig.capabilities.text"),
+        image: translate("account.feedback.image"),
     };
     return (
         <div>
@@ -115,19 +117,19 @@ function ClipSummary({ clip }: { clip: TimelineClip }) {
             </div>
             <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[var(--fs-label)]">
                 <div className="flex items-baseline justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--previs-dock-fg)]/45">起点</dt>
+                    <dt className="shrink-0 text-[var(--previs-dock-fg)]/45">{translate("shared.plugins.builtin.editor.editorInspector.start")}</dt>
                     <dd className="tabular-nums text-[var(--previs-dock-fg)]/80">{formatTimelineTime(clip.startMs)}</dd>
                 </div>
                 <div className="flex items-baseline justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--previs-dock-fg)]/45">时长</dt>
+                    <dt className="shrink-0 text-[var(--previs-dock-fg)]/45">{translate("canvasA.assetView.duration")}</dt>
                     <dd className="tabular-nums text-[var(--previs-dock-fg)]/80">{formatTimelineTime(clip.durationMs)}</dd>
                 </div>
                 <div className="flex items-baseline justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--previs-dock-fg)]/45">源起点</dt>
+                    <dt className="shrink-0 text-[var(--previs-dock-fg)]/45">{translate("shared.plugins.builtin.editor.editorInspector.sourceStart")}</dt>
                     <dd className="tabular-nums text-[var(--previs-dock-fg)]/80">{formatTimelineTime(clip.sourceStartMs ?? 0)}</dd>
                 </div>
                 <div className="flex items-baseline justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--previs-dock-fg)]/45">结束</dt>
+                    <dt className="shrink-0 text-[var(--previs-dock-fg)]/45">{translate("shared.plugins.builtin.editor.editorInspector.end")}</dt>
                     <dd className="tabular-nums text-[var(--previs-dock-fg)]/80">{formatTimelineTime(clip.startMs + clip.durationMs)}</dd>
                 </div>
             </dl>

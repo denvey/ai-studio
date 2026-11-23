@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { VoiceRecordingInline } from "./voice-recording-inline";
 import { canvasThemes } from "@/lib/canvas-theme";
 import { useActiveTheme } from "@/stores/canvas/use-canvas-theme-store";
+import { translate } from "@/i18n";
+
 
 type VoiceRecordingButtonProps = {
     /** 转写完成回调，返回转写文本 */
@@ -27,7 +29,7 @@ export function VoiceRecordingButton({ onTranscribed, disabled, className }: Voi
 
     return (
         <>
-            <Tooltip title="实时对话">
+            <Tooltip title={translate("shared.conversation.voiceRecordingButton.liveConversation")}>
                 <Button
                     type="text"
                     shape="circle"
@@ -36,7 +38,7 @@ export function VoiceRecordingButton({ onTranscribed, disabled, className }: Voi
                     style={className ? undefined : { color: theme.node.muted }}
                     icon={<Mic className="size-4" />}
                     onClick={() => setOpen(true)}
-                    aria-label="实时对话"
+                    aria-label={translate("shared.conversation.voiceRecordingButton.liveConversation")}
                 />
             </Tooltip>
             {open ? (

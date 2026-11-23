@@ -30,6 +30,8 @@ import { Button } from "antd";
 import { CanvasImagePreview } from "@/components/canvas/canvas-image-preview";
 import { AppModal } from "@/components/ui/product/app-modal";
 import { creationResultEntries } from "./creation-result-urls";
+import { translate } from "@/i18n";
+
 
 export function CreationMessageView({
     item,
@@ -67,16 +69,16 @@ export function CreationMessageView({
     const heading =
         mode !== "text" ? (
             <>
-                {shotNumber > 0 ? <span className="creation-shot-badge">镜 {shotNumber}</span> : null}
+                {shotNumber > 0 ? <span className="creation-shot-badge">{translate("shared.create.creationWorkspaceMessages.shotLabel", { shot: shotNumber })}</span> : null}
                 <span className="creation-message-mark">
                     <Orbit />
                 </span>
-                <strong>{mode === "image" ? "图像生成" : "视频生成"}</strong>
-                {item.status === "done" ? <span className="creation-message-progress-copy">你的{mode === "video" ? "视频" : "图像"}已创建</span> : null}
+                <strong>{mode === "image" ? translate("create.message.imageGeneration") : translate("nav.sidebar.toolboxVideo")}</strong>
+                {item.status === "done" ? <span className="creation-message-progress-copy">{translate(mode === "video" ? "shared.create.creationWorkspaceMessages.videoCreated" : "shared.create.creationWorkspaceMessages.imageCreated")}</span> : null}
                 {item.status === "done" ? (
                     <button type="button" className="creation-message-variant-action" onClick={onCreateVariant}>
                         <RefreshCw />
-                        生成同款
+                        {translate("shared.create.creationWorkspaceMessages.generateSimilar")}
                     </button>
                 ) : null}
                 {item.createdAt ? <time dateTime={item.createdAt}>{formatMessageTime(item.createdAt)}</time> : null}
@@ -84,7 +86,7 @@ export function CreationMessageView({
             </>
         ) : (
             <>
-                {shotNumber > 0 ? <span className="creation-shot-badge">镜 {shotNumber}</span> : null}
+                {shotNumber > 0 ? <span className="creation-shot-badge">{translate("shared.create.creationWorkspaceMessages.shotLabel", { shot: shotNumber })}</span> : null}
                 <span className="creation-message-mark">
                     <Orbit />
                 </span>
@@ -110,7 +112,7 @@ export function CreationMessageView({
                         ) : (
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                                 <WorkingDots dotSize={5} gap={2} />
-                                <span>正在生成…</span>
+                                <span>{translate("shared.create.creationWorkspaceMessages.generating")}</span>
                             </span>
                         )}
                     </div>
@@ -139,7 +141,7 @@ export function CreationMessageView({
                     <span>{generationErrorMessage(item.error)}</span>
                     <button type="button" onClick={onRetryFailure}>
                         <RefreshCw />
-                        重新生成
+                        {translate("shared.create.creationWorkspaceMessages.regenerate")}
                     </button>
                 </div>
             ) : null}
@@ -151,12 +153,12 @@ type CreationMessageStateTone = "pending" | "syncing" | "sync" | "error" | "canc
 
 // 消息头部的状态标签：区分“生成中 / 重新连接中 / 结果待同步 / 生成失败 / 已停止”，不把页面没跟上说成生成失败。
 function creationMessageState(item: CreationMessage): { tone: CreationMessageStateTone; label: string } | null {
-    if (item.status === "pending" || item.status === "streaming") return item.syncInterrupted ? { tone: "syncing", label: "重新连接中" } : item.status === "pending" ? { tone: "pending", label: "生成中" } : null;
-    if (item.status === "cancelled") return { tone: "cancelled", label: "已停止" };
+    if (item.status === "pending" || item.status === "streaming") return item.syncInterrupted ? { tone: "syncing", label: translate("shared.create.creationWorkspaceMessages.reconnecting") } : item.status === "pending" ? { tone: "pending", label: translate("canvasB.mediaVersion.generating") } : null;
+    if (item.status === "cancelled") return { tone: "cancelled", label: translate("create.status.stopped") };
     if (item.status === "error") {
-        if (creationMessageNeedsResultSync(item)) return { tone: "sync", label: "结果待同步" };
-        if (item.mediaRecoverable) return { tone: "sync", label: "保存未完成" };
-        return isGenerationCostUncertainError(item.error) ? { tone: "sync", label: "费用待核对" } : { tone: "error", label: "生成失败" };
+        if (creationMessageNeedsResultSync(item)) return { tone: "sync", label: translate("shared.create.creationWorkspaceMessages.resultAwaitingSync") };
+        if (item.mediaRecoverable) return { tone: "sync", label: translate("shared.create.creationWorkspaceMessages.saveIncomplete") };
+        return isGenerationCostUncertainError(item.error) ? { tone: "sync", label: translate("shared.create.creationWorkspaceMessages.costAwaitingReconciliation") } : { tone: "error", label: translate("canvasPage.batches.generationFailed") };
     }
     return null;
 }
@@ -166,15 +168,15 @@ function CreationSyncNotice({ refreshing, onRefresh, onRetry }: { refreshing: bo
         <div className="creation-sync-notice" role="status">
             <span>
                 <CloudOff aria-hidden="true" />
-                连接中断，正在自动重连
+                {translate("shared.create.creationWorkspaceMessages.connectionInterruptedReconnectingAutomatically")}
             </span>
             <button type="button" onClick={onRefresh} disabled={refreshing} aria-busy={refreshing || undefined}>
                 <RefreshCw aria-hidden="true" className={refreshing ? "animate-spin" : undefined} />
-                {refreshing ? "正在刷新" : "立即刷新"}
+                {refreshing ? translate("shared.create.creationWorkspaceMessages.refreshing") : translate("shared.create.creationWorkspaceMessages.refreshNow")}
             </button>
             {/* 原任务一直拿不到（例如已在任务中心删除）时的出口；点击后会先确认再次扣费。 */}
             <button type="button" className="is-quiet" onClick={onRetry}>
-                重新生成
+                {translate("shared.create.creationWorkspaceMessages.regenerate")}
             </button>
         </div>
     );
@@ -189,9 +191,9 @@ export function CreationUserMessage({ item, shotNumber, onEditUserMessage }: { i
     return (
         <article className="creation-user-message">
             <div className="creation-user-message-meta">
-                {shotNumber > 0 ? <span className="creation-shot-badge">镜 {shotNumber}</span> : null}
+                {shotNumber > 0 ? <span className="creation-shot-badge">{translate("shared.create.creationWorkspaceMessages.shotLabel", { shot: shotNumber })}</span> : null}
                 {item.createdAt ? <time dateTime={item.createdAt}>{formatMessageTime(item.createdAt)}</time> : null}
-                <strong>{user?.displayName || "你"}</strong>
+                <strong>{user?.displayName || translate("account.settings.memory.actors.user")}</strong>
                 {user ? (
                     <UserAvatar user={user} className="creation-user-avatar" />
                 ) : (
@@ -222,13 +224,13 @@ export function CreationUserMessage({ item, shotNumber, onEditUserMessage }: { i
                                     setPreviewType(kind === "video" ? "video" : "image");
                                     setPreviewUrl(kind === "video" ? attachment.url || "" : previewUrl);
                                 }}
-                                aria-label={previewable ? `预览 ${attachment.name || "附件"}` : attachment.name || "附件"}
+                                aria-label={previewable ? translate("shared.create.creationWorkspaceMessages.preview", { v0: String(attachment.name || translate("shared.create.creationWorkspaceMessages.attachment")) }) : attachment.name || translate("shared.create.creationWorkspaceMessages.attachment")}
                                 disabled={previewable && !previewUrl}
                             >
                                 {kind === "video" ? (
                                     <video src={attachment.url || ""} poster={url !== attachment.url ? url : undefined} muted playsInline preload="metadata" />
                                 ) : kind === "image" ? (
-                                    <CachedResourceImage storageKey={attachment.storageKey} src={imageUrl} alt={attachment.name || "附件"} width={44} height={44} loading="lazy" decoding="async" />
+                                    <CachedResourceImage storageKey={attachment.storageKey} src={imageUrl} alt={attachment.name || translate("shared.create.creationWorkspaceMessages.attachment")} width={44} height={44} loading="lazy" decoding="async" />
                                 ) : kind === "audio" ? (
                                     <Music2 />
                                 ) : (
@@ -245,13 +247,13 @@ export function CreationUserMessage({ item, shotNumber, onEditUserMessage }: { i
                 </div>
             ) : null}
             <div className="creation-user-message-actions">
-                <Tooltip title="复制提示词">
-                    <button type="button" className="creation-user-message-copy" aria-label="复制提示词" onClick={() => copyText(visiblePrompt, "提示词已复制")}>
+                <Tooltip title={translate("canvasA.artCritique.copyPrompt")}>
+                    <button type="button" className="creation-user-message-copy" aria-label={translate("canvasA.artCritique.copyPrompt")} onClick={() => copyText(visiblePrompt, translate("shared.create.creationWorkspaceMessages.promptCopied"))}>
                         <Copy />
                     </button>
                 </Tooltip>
-                <Tooltip title="编辑并重新发送">
-                    <button type="button" className="creation-user-message-edit" aria-label="编辑提示词" onClick={() => onEditUserMessage(visiblePrompt)}>
+                <Tooltip title={translate("shared.create.creationWorkspaceMessages.editAndResend")}>
+                    <button type="button" className="creation-user-message-edit" aria-label={translate("shared.create.creationWorkspaceMessages.editPrompt")} onClick={() => onEditUserMessage(visiblePrompt)}>
                         <Pencil />
                     </button>
                 </Tooltip>
@@ -366,21 +368,21 @@ export function MediaResult({
             <CreationMediaNotice
                 tone="neutral"
                 icon={ImageOff}
-                title="暂时没有可预览的结果"
-                description={item.taskIds?.length ? "结果可能还在载入或链接已过期，重新获取不会重新生成。" : "这次生成没有返回可预览的内容。"}
+                title={translate("shared.create.creationWorkspaceMessages.noResultAvailableToPreviewYet")}
+                description={item.taskIds?.length ? translate("shared.create.creationWorkspaceMessages.theResultMayStillBeLoadingOrItsLinkMay") : translate("shared.create.creationWorkspaceMessages.thisGenerationReturnedNoPreviewableContent")}
                 actions={
                     item.taskIds?.length ? (
                         <>
-                            <CreationNoticeButton primary icon={RefreshCw} busy={refreshingResult} busyLabel="正在获取" onClick={onRefreshResult}>
-                                重新获取结果
+                            <CreationNoticeButton primary icon={RefreshCw} busy={refreshingResult} busyLabel={translate("shared.create.creationWorkspaceMessages.fetching")} onClick={onRefreshResult}>
+                                {translate("shared.create.creationWorkspaceMessages.fetchResultAgain")}
                             </CreationNoticeButton>
                             <CreationNoticeButton icon={RotateCcw} onClick={onRetryFailure}>
-                                重新生成
+                                {translate("shared.create.creationWorkspaceMessages.regenerate")}
                             </CreationNoticeButton>
                         </>
                     ) : (
                         <CreationNoticeButton primary icon={RotateCcw} onClick={onRetryFailure}>
-                            重新生成
+                            {translate("shared.create.creationWorkspaceMessages.regenerate")}
                         </CreationNoticeButton>
                     )
                 }
@@ -403,15 +405,15 @@ export function MediaResult({
                         setPreviewType("video");
                         setPreviewUrl(displayResultUrls[0]);
                     }}
-                    aria-label={videoState === "error" ? "视频加载失败，点击重新加载" : "预览生成视频"}
+                    aria-label={videoState === "error" ? translate("shared.create.creationWorkspaceMessages.videoFailedToLoadClickToReload") : translate("shared.create.creationWorkspaceMessages.previewGeneratedVideo")}
                 >
                     {displayResultUrls[0] ? (
                         <video key={`${videoKey}:${mediaAttempts[videoKey] || 0}`} muted preload="metadata" src={displayResultUrls[0]} onLoadedMetadata={() => markResultMedia(videoKey, "loaded")} onError={() => markResultMedia(videoKey, "error")} />
                     ) : null}
-                    {videoState === "error" ? <CreationResultMediaError label="视频加载失败，点击重试" /> : null}
+                    {videoState === "error" ? <CreationResultMediaError label={translate("shared.create.creationWorkspaceMessages.videoFailedToLoadClickToRetry")} /> : null}
                     <span>
                         <Maximize2 />
-                        预览视频
+                        {translate("shared.create.creationWorkspaceMessages.previewVideo")}
                     </span>
                 </button>
             ) : (
@@ -429,13 +431,13 @@ export function MediaResult({
                                 setPreviewType("image");
                                 setPreviewUrl(url);
                             }}
-                            aria-label={mediaStates[key] === "error" ? "图片加载失败，点击重新加载" : mediaStates[key] === "loaded" ? "预览生成图片" : "图片加载中"}
+                            aria-label={mediaStates[key] === "error" ? translate("shared.create.creationWorkspaceMessages.imageFailedToLoadClickToReload") : mediaStates[key] === "loaded" ? translate("shared.create.creationWorkspaceMessages.previewGeneratedImage") : translate("shared.create.creationWorkspaceMessages.loadingImage")}
                             aria-busy={mediaStates[key] === "loaded" || mediaStates[key] === "error" ? undefined : true}
                         >
                             <img
                                 key={`${key}:${mediaAttempts[key] || 0}`}
                                 src={url}
-                                alt="生成结果"
+                                alt={translate("library.tasks.detail.generated")}
                                 decoding="async"
                                 onLoad={(event) => {
                                     const { naturalWidth, naturalHeight } = event.currentTarget;
@@ -444,7 +446,7 @@ export function MediaResult({
                                 }}
                                 onError={() => markResultMedia(key, "error")}
                             />
-                            {mediaStates[key] === "error" ? <CreationResultMediaError label="图片加载失败，点击重试" /> : null}
+                            {mediaStates[key] === "error" ? <CreationResultMediaError label={translate("shared.create.creationWorkspaceMessages.imageFailedToLoadClickToRetry")} /> : null}
                             <span>
                                 <Maximize2 />
                             </span>
@@ -456,18 +458,18 @@ export function MediaResult({
                 </div>
             )}
             <div className="creation-media-actions">
-                <span>{isVideo ? "视频结果" : `${displayResultUrls.length} 张图片`}</span>
-                <Button type="link" size="small" loading={openingCanvas} disabled={!canContinueWithResults} title={canContinueWithResults ? undefined : "素材保存完成后才能转入画布"} onClick={() => onContinueCanvas(resultAssetIds)}>
-                    添加到画布
+                <span>{isVideo ? translate("shared.create.creationWorkspaceMessages.videoResult") : translate("shared.create.creationWorkspaceMessages.images", { v0: String(displayResultUrls.length) })}</span>
+                <Button type="link" size="small" loading={openingCanvas} disabled={!canContinueWithResults} title={canContinueWithResults ? undefined : translate("shared.create.creationWorkspaceMessages.theAssetMustFinishSavingBeforeItCanBeSent")} onClick={() => onContinueCanvas(resultAssetIds)}>
+                    {translate("shared.create.creationWorkspaceMessages.addToCanvas")}
                 </Button>
                 {displayResultUrls.map((url, index) => (
                     <a key={`download-${index}`} href={url} download>
                         {displayResultUrls.length > 1 ? (
-                            `下载 ${index + 1}`
+                            translate("shared.create.creationWorkspaceMessages.download", { v0: String(index + 1) })
                         ) : (
                             <>
                                 <Download />
-                                下载
+                                {translate("canvasA.assetView.download")}
                             </>
                         )}
                     </a>
@@ -517,7 +519,7 @@ export function CreationMediaPending({ item, refreshing, onRefresh, onRetry }: {
                 <span className="creation-media-pending-title" role="status">
                     {generationPhaseLabel(phase, kind, item.generationStage)}
                 </span>
-                <span className="creation-media-pending-meta">{[progress !== null ? `${progress}%` : "", item.createdAt ? `已用时 ${elapsed}` : ""].filter(Boolean).join(" · ")}</span>
+                <span className="creation-media-pending-meta">{[progress !== null ? `${progress}%` : "", item.createdAt ? translate("shared.create.creationWorkspaceMessages.elapsed", { v0: String(elapsed) }) : ""].filter(Boolean).join(" · ")}</span>
                 {hint ? <span className="creation-media-pending-hint">{hint}</span> : null}
             </span>
             <span className="creation-media-pending-foot">
@@ -555,9 +557,9 @@ function creationPendingSpecs(item: CreationMessage) {
     const settings = item.settings;
     if (!settings) return "";
     const ratio = settings.ratio && settings.ratio.toLowerCase() !== "auto" ? settings.ratio : "";
-    if (item.mode === "video") return [ratio, settings.seconds ? `${settings.seconds} 秒` : "", settings.videoQuality ? `${settings.videoQuality.replace(/p$/i, "")}P` : ""].filter(Boolean).join(" · ");
+    if (item.mode === "video") return [ratio, settings.seconds ? translate("shared.create.creationWorkspaceMessages.s", { v0: String(settings.seconds) }) : "", settings.videoQuality ? `${settings.videoQuality.replace(/p$/i, "")}P` : ""].filter(Boolean).join(" · ");
     const count = Number(settings.count) || 1;
-    return [ratio, count > 1 ? `${count} 张` : ""].filter(Boolean).join(" · ");
+    return [ratio, count > 1 ? translate("shared.create.creationWorkspaceMessages.images2", { v0: String(count) }) : ""].filter(Boolean).join(" · ");
 }
 
 /**
@@ -566,17 +568,17 @@ function creationPendingSpecs(item: CreationMessage) {
  * 上游网关超时等费用不确定的失败 → 先核对再决定；后端确认失败 → 重新生成。
  */
 function CreationMediaFailure({ item, refreshing, onRefresh, onRecoverMedia, onRetry }: { item: CreationMessage; refreshing: boolean; onRefresh: () => void; onRecoverMedia: () => void; onRetry: () => void }) {
-    const reason = generationErrorMessage(item.error || "生成失败");
+    const reason = generationErrorMessage(item.error || translate("canvasPage.batches.generationFailed"));
     if (item.status === "cancelled") {
         return (
             <CreationMediaNotice
                 tone="neutral"
                 icon={CircleStop}
-                title="已停止生成"
-                description={item.content && item.content !== "已停止" ? item.content : "可以调整后重新生成。"}
+                title={translate("shared.create.creationWorkspaceMessages.generationStopped")}
+                description={item.content && item.content !== "已停止" ? item.content : translate("shared.create.creationWorkspaceMessages.adjustTheSettingsAndGenerateAgain")}
                 actions={
                     <CreationNoticeButton icon={RotateCcw} onClick={onRetry}>
-                        重新生成
+                        {translate("shared.create.creationWorkspaceMessages.regenerate")}
                     </CreationNoticeButton>
                 }
             />
@@ -587,16 +589,16 @@ function CreationMediaFailure({ item, refreshing, onRefresh, onRecoverMedia, onR
             <CreationMediaNotice
                 tone="warning"
                 icon={CloudOff}
-                title="结果暂未同步"
-                description="作品可能已在后台生成，只是页面没有及时拿到。重新获取不会重新生成，也不会重复扣费。"
-                detail={reason ? `原因：${reason}` : undefined}
+                title={translate("shared.create.creationWorkspaceMessages.resultNotSyncedYet")}
+                description={translate("shared.create.creationWorkspaceMessages.yourWorkMayAlreadyBeGeneratedInTheBackgroundBut")}
+                detail={reason ? translate("shared.create.creationWorkspaceMessages.reason", { v0: String(reason) }) : undefined}
                 actions={
                     <>
-                        <CreationNoticeButton primary icon={RefreshCw} busy={refreshing} busyLabel="正在获取" onClick={onRefresh}>
-                            重新获取结果
+                        <CreationNoticeButton primary icon={RefreshCw} busy={refreshing} busyLabel={translate("shared.create.creationWorkspaceMessages.fetching")} onClick={onRefresh}>
+                            {translate("shared.create.creationWorkspaceMessages.fetchResultAgain")}
                         </CreationNoticeButton>
                         <CreationNoticeButton icon={RotateCcw} onClick={onRetry}>
-                            重新生成
+                            {translate("shared.create.creationWorkspaceMessages.regenerate")}
                         </CreationNoticeButton>
                     </>
                 }
@@ -608,16 +610,16 @@ function CreationMediaFailure({ item, refreshing, onRefresh, onRecoverMedia, onR
             <CreationMediaNotice
                 tone="warning"
                 icon={AlertTriangle}
-                title="作品已生成，保存未完成"
-                description="保存到素材库时出错。重新保存会接着上次的进度，不会重新生成，也不会重复扣费。"
-                detail={reason ? `原因：${reason}` : undefined}
+                title={translate("shared.create.creationWorkspaceMessages.generatedButSavingIsIncomplete")}
+                description={translate("shared.create.creationWorkspaceMessages.anErrorOccurredSavingToTheAssetLibrarySavingAgain")}
+                detail={reason ? translate("shared.create.creationWorkspaceMessages.reason", { v0: String(reason) }) : undefined}
                 actions={
                     <>
-                        <CreationNoticeButton primary icon={RefreshCw} busy={refreshing} busyLabel="正在保存" onClick={onRecoverMedia}>
-                            重新保存
+                        <CreationNoticeButton primary icon={RefreshCw} busy={refreshing} busyLabel={translate("shared.create.creationWorkspaceMessages.saving")} onClick={onRecoverMedia}>
+                            {translate("shared.create.creationWorkspaceMessages.saveAgain")}
                         </CreationNoticeButton>
                         <CreationNoticeButton icon={RotateCcw} onClick={onRetry}>
-                            重新生成
+                            {translate("shared.create.creationWorkspaceMessages.regenerate")}
                         </CreationNoticeButton>
                     </>
                 }
@@ -631,12 +633,12 @@ function CreationMediaFailure({ item, refreshing, onRefresh, onRecoverMedia, onR
             <CreationMediaNotice
                 tone="warning"
                 icon={AlertTriangle}
-                title="上游超时，费用待核对"
-                description="这次请求可能仍在上游执行并产生费用。使用平台积分时，冻结的积分会保留到核对完成后再结算或退回；重新生成会提交新任务并再次计费。"
-                detail={reason ? `原因：${reason}` : undefined}
+                title={translate("shared.create.creationWorkspaceMessages.providerTimedOutChargesPendingReview")}
+                description={translate("shared.create.creationWorkspaceMessages.thisRequestMayStillBeRunningWithTheProviderAnd")}
+                detail={reason ? translate("shared.create.creationWorkspaceMessages.reason", { v0: String(reason) }) : undefined}
                 actions={
                     <CreationNoticeButton icon={RotateCcw} onClick={onRetry}>
-                        重新生成
+                        {translate("shared.create.creationWorkspaceMessages.regenerate")}
                     </CreationNoticeButton>
                 }
             />
@@ -647,11 +649,11 @@ function CreationMediaFailure({ item, refreshing, onRefresh, onRecoverMedia, onR
         <CreationMediaNotice
             tone="error"
             icon={AlertCircle}
-            title={started ? "生成失败" : "未能开始生成"}
+            title={started ? translate("canvasPage.batches.generationFailed") : translate("shared.create.creationWorkspaceMessages.unableToStartGeneration")}
             description={reason}
             actions={
                 <CreationNoticeButton primary icon={RotateCcw} onClick={onRetry}>
-                    {started ? "重新生成" : "重新编辑"}
+                    {started ? translate("shared.create.creationWorkspaceMessages.regenerate") : translate("shared.create.creationWorkspaceMessages.editAgain")}
                 </CreationNoticeButton>
             }
         />
@@ -685,7 +687,7 @@ function CreationNoticeButton({ primary = false, icon: Icon, busy = false, busyL
 
 export function CreationMessageReferences({ references }: { references: CreationReference[] }) {
     return (
-        <div className="creation-user-message-references" aria-label="本次引用">
+        <div className="creation-user-message-references" aria-label={translate("shared.create.creationWorkspaceMessages.thisReference")}>
             {references.map((reference) => {
                 const Icon = reference.kind === "skill" ? Blocks : reference.kind === "image" ? ImageIcon : reference.kind === "video" ? Film : reference.kind === "audio" ? Music2 : FileText;
                 const imageUrl = reference.kind === "image" ? resolveResourceUrl(reference.storageKey, reference.previewUrl) : reference.previewUrl;
@@ -707,7 +709,7 @@ export function CreationMessageReferences({ references }: { references: Creation
 }
 
 export function CreationMediaPreviewModal({ url, type, onClose }: { url: string; type: "image" | "video"; onClose: () => void }) {
-    if (type === "image") return <CanvasImagePreview src={url} alt="媒体预览" onClose={onClose} />;
+    if (type === "image") return <CanvasImagePreview src={url} alt={translate("shared.create.creationWorkspaceMessages.mediaPreview")} onClose={onClose} />;
 
     return (
         <AppModal flush open={Boolean(url)} title={null} footer={null} centered destroyOnHidden width="min(1160px, calc(100vw - 32px))" onCancel={onClose} className="creation-media-preview-modal">
@@ -747,7 +749,7 @@ export function CreationAttachmentThumbnail({ item, onPreview, onRemove }: { ite
     return (
         <div className="creation-reference-card-content">
             {previewable ? (
-                <button type="button" className="creation-reference-card-preview" onClick={() => onPreview(kind === "video" ? "video" : "image", previewUrl)} aria-label={`放大预览 ${item.name}`} disabled={!previewUrl}>
+                <button type="button" className="creation-reference-card-preview" onClick={() => onPreview(kind === "video" ? "video" : "image", previewUrl)} aria-label={translate("shared.create.creationWorkspaceMessages.enlargePreview", { v0: String(item.name) })} disabled={!previewUrl}>
                     {content}
                     <span aria-hidden="true">
                         <Maximize2 />
@@ -767,7 +769,7 @@ export function CreationAttachmentThumbnail({ item, onPreview, onRemove }: { ite
                     event.stopPropagation();
                     onRemove(item.id);
                 }}
-                aria-label={`移除 ${item.name}`}
+                aria-label={translate("shared.create.creationWorkspaceMessages.remove", { v0: String(item.name) })}
             >
                 <X />
             </button>
@@ -778,9 +780,9 @@ export function CreationAttachmentThumbnail({ item, onPreview, onRemove }: { ite
 export type CreationThinking = { title: string; hint: string; steps: string[]; activity: string };
 
 export function thinkingFor(mode: CreationMode, brandName: string): CreationThinking {
-    if (mode === "image") return { title: "正在为你画这一镜", hint: `${brandName}正在理解你的构图意图，并把画面交给模型出图。`, steps: ["理解构图", "定调画风", "生成画面"], activity: "正在理解构图并把画面交给模型出图" };
-    if (mode === "text") return { title: "正在为你写这段", hint: `${brandName}正在梳理你的创作脉络，组织语言与结构。`, steps: ["梳理脉络", "组织语言", "输出段落"], activity: "正在梳理脉络并组织语言" };
-    return { title: "正在为你拍这一镜", hint: `${brandName}正在拆解你的镜头脚本，设计运镜与光线，并交给模型渲染成片。`, steps: ["拆解镜头", "设计运镜", "定调布光", "渲染成片"], activity: "正在按导演思路拆解镜头并渲染" };
+    if (mode === "image") return { title: translate("shared.create.creationWorkspaceMessages.drawingThisShotForYou"), hint: translate("shared.create.creationWorkspaceMessages.isInterpretingYourCompositionAndSendingItToTheImage", { v0: String(brandName) }), steps: [translate("shared.create.creationWorkspaceMessages.understandComposition"), translate("shared.create.creationWorkspaceMessages.setVisualStyle"), translate("shared.create.creationWorkspaceMessages.generateImage")], activity: translate("shared.create.creationWorkspaceMessages.analyzingTheCompositionAndSendingItToTheImageModel") };
+    if (mode === "text") return { title: translate("shared.create.creationWorkspaceMessages.writingThisPassageForYou"), hint: translate("shared.create.creationWorkspaceMessages.isOrganizingYourCreativeDirectionLanguageAndStructure", { v0: String(brandName) }), steps: [translate("shared.create.creationWorkspaceMessages.organizeContext"), translate("shared.create.creationWorkspaceMessages.composeText"), translate("shared.create.creationWorkspaceMessages.writePassage")], activity: translate("shared.create.creationWorkspaceMessages.organizingContextAndComposingTheText") };
+    return { title: translate("shared.create.creationWorkspaceMessages.creatingThisShotForYou"), hint: translate("shared.create.creationWorkspaceMessages.isBreakingDownYourShotScriptDesigningCameraMovementAnd", { v0: String(brandName) }), steps: [translate("shared.create.creationWorkspaceMessages.breakDownShots"), translate("shared.create.creationWorkspaceMessages.planCameraMovement"), translate("shared.create.creationWorkspaceMessages.setLighting"), translate("shared.create.creationWorkspaceMessages.renderVideo")], activity: translate("shared.create.creationWorkspaceMessages.planningShotsAndRenderingWithADirectorSApproach") };
 }
 
 export function formatMessageTime(value: string) {

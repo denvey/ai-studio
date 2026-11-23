@@ -21,6 +21,7 @@ import { GenerationPhaseSteps } from "@/components/ai/generation-phase-steps";
 import type { CanvasTheme } from "@/lib/canvas-theme";
 import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
 import type { CanvasNodeContentProps } from "./canvas-node-content";
+import { translate } from "@/i18n";
 
 function canvasNodeGenerationKind(type: CanvasNodeData["type"]): GenerationMediaKind {
     if (type === CanvasNodeType.Video) return "video";
@@ -55,7 +56,7 @@ function TaskDetailButton({ node, onOpenTaskDetails }: Pick<CanvasNodeContentPro
         <button
             type="button"
             className="canvas-gen-detail"
-            title={`任务 ${taskId}`}
+            title={translate("canvasTools.canvasNodeStatusContent.task", { v0: String(taskId) })}
             onMouseDown={stopCanvasPointer}
             onPointerDown={stopCanvasPointer}
             onClick={(event) => {
@@ -64,7 +65,7 @@ function TaskDetailButton({ node, onOpenTaskDetails }: Pick<CanvasNodeContentPro
             }}
         >
             <FileText aria-hidden="true" />
-            查看详情
+            {translate("library.tasks.row.viewDetail")}
         </button>
     );
 }
@@ -84,14 +85,14 @@ export function LoadingContent({ node, theme, onOpenTaskDetails }: Pick<CanvasNo
     const kind = canvasNodeGenerationKind(node.type);
     const Icon = generationKindIcon[kind];
     const uncertain = phase === "uncertain";
-    const title = workflow ? (workflow.stage === "planning" ? "正在规划拆层" : `正在拆层 · 共 ${workflow.total} 张`) : metadata?.experimentalLayerPlan?.progress || generationPhaseLabel(phase, kind, metadata?.taskStage);
+    const title = workflow ? (workflow.stage === "planning" ? translate("canvasTools.canvasNodeStatusContent.planningLayers") : translate("canvasTools.canvasNodeStatusContent.splittingLayersImagesTotal", { v0: String(workflow.total) })) : metadata?.experimentalLayerPlan?.progress || generationPhaseLabel(phase, kind, metadata?.taskStage);
     const progress = taskId && generationTaskShowsProgress(displayTask) && typeof metadata?.taskProgress === "number" ? Math.max(0, Math.min(100, Math.round(metadata.taskProgress))) : null;
     const startedAt = workflow?.startedAt || metadata?.taskCreatedAt;
     const elapsed = useTaskElapsed(startedAt, taskTerminalStatus(metadata?.taskStatus) ? metadata?.taskCompletedAt : undefined);
     // 恢复监听没能确认状态时会在生成中节点上留下诊断（例如“最近任务中未找到对应记录”），以前完全不可见。
     const diagnostic = metadata?.errorDetails ? generationErrorMessage(metadata.errorDetails) : "";
     const hint = workflow ? "" : generationPhaseHint(phase, kind, metadata?.taskStage);
-    const meta = uncertain ? "" : [progress !== null ? `${progress}%` : "", startedAt ? `已用时 ${elapsed}` : ""].filter(Boolean).join(" · ");
+    const meta = uncertain ? "" : [progress !== null ? `${progress}%` : "", startedAt ? translate("canvasTools.canvasNodeStatusContent.elapsed", { v0: String(elapsed) }) : ""].filter(Boolean).join(" · ");
     return (
         <div className="canvas-gen-state" data-phase={phase} data-saving={phase === "saving" ? generationTaskSavingState(metadata?.taskStage) : undefined} style={canvasGenerationStateStyle(theme)}>
             <span className="canvas-gen-indicator" aria-hidden="true">
@@ -139,18 +140,18 @@ function canvasFailureView(node: CanvasNodeData): CanvasFailureView {
     const metadata = node.metadata;
     const reason = generationErrorMessage(metadata?.errorDetails);
     if (isGenerationTaskSubmissionUncertain({ status: (metadata?.taskStatus || "failed") as GenerationTask["status"], stage: metadata?.taskStage })) {
-        return { kind: "uncertain", tone: "warning", icon: AlertTriangle, title: "提交结果待确认", description: "为避免重复扣费，未自动重试，可在详情里核对", detail: reason };
+        return { kind: "uncertain", tone: "warning", icon: AlertTriangle, title: translate("canvasTools.canvasNodeStatusContent.submissionResultAwaitingConfirmation"), description: translate("canvasTools.canvasNodeStatusContent.notRetriedAutomaticallyToAvoidDuplicateChargesCheckTheDetails"), detail: reason };
     }
     if (metadata?.generationErrorCode === CONTENT_MODERATION_ERROR_CODE || isContentModerationError(metadata?.errorDetails)) {
-        return { kind: "moderation", tone: "error", icon: ShieldAlert, title: "未通过内容审核", description: reason };
+        return { kind: "moderation", tone: "error", icon: ShieldAlert, title: translate("canvasTools.canvasNodeStatusContent.contentModerationFailed"), description: reason };
     }
-    if (metadata?.taskCanRecoverMedia) return { kind: "recover-media", tone: "warning", icon: AlertTriangle, title: "作品保存未完成", description: "作品已生成，重新保存不会重新生成", detail: reason };
+    if (metadata?.taskCanRecoverMedia) return { kind: "recover-media", tone: "warning", icon: AlertTriangle, title: translate("canvasTools.canvasNodeStatusContent.savingTheOutputIsIncomplete"), description: translate("canvasTools.canvasNodeStatusContent.theOutputHasBeenGeneratedSavingAgainWillNotRegenerate"), detail: reason };
     if (canvasNodeCanResyncTask(metadata)) {
         return metadata?.resourceReloadAvailable
-            ? { kind: "resync", tone: "warning", icon: CloudOff, title: "作品载入失败", description: "作品已生成，重新获取不会重新生成", detail: reason }
-            : { kind: "resync", tone: "warning", icon: CloudOff, title: "状态同步中断", description: "任务仍在后台进行，重新获取不会重新生成", detail: reason };
+            ? { kind: "resync", tone: "warning", icon: CloudOff, title: translate("canvasTools.canvasNodeStatusContent.failedToLoadOutput"), description: translate("canvasTools.canvasNodeStatusContent.theOutputHasBeenGeneratedFetchingItAgainWillNot"), detail: reason }
+            : { kind: "resync", tone: "warning", icon: CloudOff, title: translate("canvasTools.canvasNodeStatusContent.statusSynchronizationInterrupted"), description: translate("canvasTools.canvasNodeStatusContent.theTaskIsStillRunningInTheBackgroundFetchingIt"), detail: reason };
     }
-    return { kind: "failed", tone: "error", icon: AlertCircle, title: metadata?.isBatchRoot ? "部分图片未生成" : "生成失败", description: reason };
+    return { kind: "failed", tone: "error", icon: AlertCircle, title: metadata?.isBatchRoot ? translate("canvasTools.canvasNodeStatusContent.someImagesWereNotGenerated") : translate("canvasPage.batches.generationFailed"), description: reason };
 }
 
 export function ErrorContent({ node, theme, onRetry, onReloadResource, onOpenTaskDetails }: Pick<CanvasNodeContentProps, "node" | "theme" | "onRetry" | "onReloadResource" | "onOpenTaskDetails">) {
@@ -177,23 +178,23 @@ export function ErrorContent({ node, theme, onRetry, onReloadResource, onOpenTas
                     {view.kind === "recover-media" ? (
                         <button {...actionProps} className="canvas-gen-action is-primary" onClick={runAction(onRetry)}>
                             <RefreshCw aria-hidden="true" />
-                            重新保存
+                            {translate("canvasTools.canvasNodeStatusContent.saveAgain")}
                         </button>
                     ) : view.kind === "resync" ? (
                         <>
                             <button {...actionProps} className="canvas-gen-action is-primary" onClick={runAction(onReloadResource)}>
                                 <RefreshCw aria-hidden="true" />
-                                重新获取
+                                {translate("canvasTools.canvasNodeStatusContent.fetchAgain")}
                             </button>
                             <button {...actionProps} className="canvas-gen-action" onClick={runAction(onRetry)}>
                                 <RotateCcw aria-hidden="true" />
-                                重新生成
+                                {translate("canvasTools.canvasNodeStatusContent.regenerate")}
                             </button>
                         </>
                     ) : (
                         <button {...actionProps} className="canvas-gen-action is-primary" onClick={runAction(onRetry)}>
                             <RotateCcw aria-hidden="true" />
-                            {node.metadata?.isBatchRoot ? "重新生成失败项" : "重新生成"}
+                            {node.metadata?.isBatchRoot ? translate("canvasTools.canvasNodeStatusContent.regenerateFailedItems") : translate("canvasTools.canvasNodeStatusContent.regenerate")}
                         </button>
                     )}
                 </span>
@@ -206,7 +207,7 @@ export function ErrorContent({ node, theme, onRetry, onReloadResource, onOpenTas
 export function UnknownNodeContent({ theme }: Pick<CanvasNodeContentProps, "theme">) {
     return (
         <div className="flex h-full w-full items-center justify-center text-sm" style={{ color: theme.node.placeholder }}>
-            未知节点
+            {translate("canvasTools.canvasNodeStatusContent.unknownNode")}
         </div>
     );
 }

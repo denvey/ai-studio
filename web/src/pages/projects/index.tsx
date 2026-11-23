@@ -13,15 +13,18 @@ import { formatCredits, MediaThumb, STATUS_LABEL } from "./drama-shared";
 import { progressFillStyle } from "@/lib/progress-fill";
 import { RelativeTime } from "@/components/ui/product/relative-time";
 import "./drama.css";
+import { translate } from "@/i18n";
+import { dramaStyleDisplayName } from "./style-copy";
+
 
 const PAGE_SIZES = [24, 48, 96];
-const PIPELINE = ["解析章节", "建立角色、道具与场景", "分集改编与段提示词", "按剧情段生成视频", "合成成片"];
+const PIPELINE = [translate("drama.page.parseChapters"), translate("drama.page.buildCharactersPropsAndScenes"), translate("drama.page.episodeAdaptationAndSegmentPrompts"), translate("drama.page.generateVideoByStorySegment"), translate("drama.page.renderFinalCut")];
 const STATUS_FILTERS: Array<{ value: DramaStatus | "all"; label: string }> = [
-    { value: "all", label: "全部" },
-    { value: "running", label: "制作中" },
-    { value: "paused", label: "已暂停" },
-    { value: "completed", label: "已完成" },
-    { value: "draft", label: "未开始" },
+    { value: "all", label: translate("canvasA.toolPicker.all") },
+    { value: "running", label: translate("drama.page.inProduction") },
+    { value: "paused", label: translate("drama.page.paused") },
+    { value: "completed", label: translate("library.tasks.filter.succeeded") },
+    { value: "draft", label: translate("drama.page.notStarted") },
 ];
 const ACCEPT = ".txt,.md,.markdown,text/plain,text/markdown";
 
@@ -47,10 +50,10 @@ export default function DramaListPage() {
     const remove = useMutation({
         mutationFn: deleteDrama,
         onSuccess: () => {
-            message.success("作品已删除");
+            message.success(translate("drama.page.productionDeleted"));
             void queryClient.invalidateQueries({ queryKey: ["dramas"] });
         },
-        onError: (error) => message.error(error instanceof Error ? error.message : "删除失败"),
+        onError: (error) => message.error(error instanceof Error ? error.message : translate("library.picker.deleteFailed")),
     });
     const data = query.data;
     const counts = data?.statusCounts || {};
@@ -59,11 +62,11 @@ export default function DramaListPage() {
     const openFile = (file: File) => navigate("/projects/new", { state: { file } });
     const confirmDelete = (item: DramaListItem) => {
         modal.confirm({
-            title: `删除《${item.project.name}》？`,
-            content: "小说原文、剧本、分镜与成片记录都会删除。此操作无法撤销。",
-            okText: "删除",
+            title: translate("drama.page.delete", { v0: String(item.project.name) }),
+            content: translate("drama.page.theNovelSourceScriptsStoryboardsAndFinalCutRecordsWill"),
+            okText: translate("common.delete"),
             okButtonProps: { danger: true },
-            cancelText: "取消",
+            cancelText: translate("common.cancel"),
             centered: true,
             onOk: () => remove.mutateAsync(item.project.id),
         });
@@ -90,23 +93,23 @@ export default function DramaListPage() {
     if (query.isLoading)
         return (
             <WorkspacePage className="studio-collection-page">
-                <WorkspaceLoadingState label="正在读取作品" />
+                <WorkspaceLoadingState label={translate("drama.page.loadingProductions")} />
             </WorkspacePage>
         );
     if (query.isError && !data)
         return (
             <WorkspacePage className="studio-collection-page">
-                <WorkspaceErrorState description="作品列表暂时无法读取。" onRetry={() => void query.refetch()} />
+                <WorkspaceErrorState description={translate("drama.page.theProductionListIsTemporarilyUnavailable")} onRetry={() => void query.refetch()} />
             </WorkspacePage>
         );
 
     const actions = (
         <div className="collection-header-actions">
             <Button icon={<ClipboardPaste />} onClick={() => navigate("/projects/new?paste=1")}>
-                粘贴正文
+                {translate("drama.page.pasteSourceText")}
             </Button>
             <Button type="primary" icon={<Plus />} onClick={() => fileRef.current?.click()}>
-                上传小说
+                {translate("drama.page.uploadNovel")}
             </Button>
         </div>
     );
@@ -115,18 +118,18 @@ export default function DramaListPage() {
         <WorkspacePage className="studio-collection-page drama-library">
             <div className="drama-root" {...dragProps}>
                 <div className="studio-band">
-                    <PageHeader title="短剧" description="上传一本小说，流水线自动改编、拆集、建角色、出分镜并合成成片。" meta={<span className="app-projects-header-meta">{total} 部</span>} actions={total ? actions : undefined} />
+                    <PageHeader title={translate("drama.page.shortDramas")} description={translate("drama.page.uploadANovelToAutomaticallyAdaptItPlanEpisodesBuild")} meta={<span className="app-projects-header-meta">{total} {translate("drama.page.productions")}</span>} actions={total ? actions : undefined} />
                     {total ? (
                         <CollectionToolbar
-                            label="短剧浏览工具"
+                            label={translate("drama.page.shortDramaBrowsingTools")}
                             active={filtered}
                             onReset={() => {
                                 setKeyword("");
                                 setStatus("all");
                             }}
                         >
-                            <Input prefix={<Search />} value={keyword} allowClear placeholder="搜索作品名" aria-label="搜索作品名" onChange={(event) => setKeyword(event.target.value)} />
-                            <div className="drama-library-status" role="radiogroup" aria-label="按状态筛选">
+                            <Input prefix={<Search />} value={keyword} allowClear placeholder={translate("drama.page.searchProductionNames")} aria-label={translate("drama.page.searchProductionNames")} onChange={(event) => setKeyword(event.target.value)} />
+                            <div className="drama-library-status" role="radiogroup" aria-label={translate("drama.page.filterByStatus")}>
                                 {STATUS_FILTERS.map((item) => {
                                     const count = item.value === "all" ? total : counts[item.value] || 0;
                                     if (item.value !== "all" && !count && status !== item.value) return null;
@@ -156,7 +159,7 @@ export default function DramaListPage() {
                             current={page}
                             pageSize={pageSize}
                             total={data.total}
-                            itemLabel="部"
+                            itemLabel={translate("drama.page.productions")}
                             pageSizeOptions={PAGE_SIZES}
                             onChange={(next, size) => {
                                 setPage(next);
@@ -168,7 +171,7 @@ export default function DramaListPage() {
                     <WorkspaceNoResultsState
                         icon="projects"
                         query={keyword}
-                        description="换一个作品名，或清除状态筛选。"
+                        description={translate("drama.page.tryAnotherProductionNameOrClearTheStatusFilter")}
                         onClear={() => {
                             setKeyword("");
                             setStatus("all");
@@ -180,8 +183,8 @@ export default function DramaListPage() {
                     <div className="drama-library-drop" aria-hidden>
                         <div>
                             <FileUp className="size-8" />
-                            <strong>松开即可开始新短剧</strong>
-                            <span>TXT / Markdown，自动识别编码与章节</span>
+                            <strong>{translate("drama.page.dropToStartANewShortDrama")}</strong>
+                            <span>{translate("drama.page.tXTMarkdownWithAutomaticEncodingAndChapterDetection")}</span>
                         </div>
                     </div>
                 ) : null}
@@ -208,14 +211,14 @@ function UploadHero({ onPick, onPaste }: { onPick: () => void; onPaste: () => vo
             <span className="drama-drop-icon">
                 <BookOpenText className="size-7" />
             </span>
-            <h2>拖入一本小说，开始做短剧</h2>
-            <p>支持 TXT / Markdown，最多 600 万字。确认风格、参考图方案和审阅方式后，系统自动改编、拆集、建角色、出分镜并合成成片。</p>
+            <h2>{translate("drama.page.dropANovelToStartMakingAShortDrama")}</h2>
+            <p>{translate("drama.page.supportsTXTMarkdownUpTo6MillionCharactersChooseA")}</p>
             <div className="flex flex-wrap justify-center gap-2">
                 <Button type="primary" size="large" icon={<FileUp className="size-4" />} onClick={onPick}>
-                    选择小说文件
+                    {translate("drama.page.chooseNovelFile")}
                 </Button>
                 <Button size="large" icon={<ClipboardPaste className="size-4" />} onClick={onPaste}>
-                    粘贴正文
+                    {translate("drama.page.pasteSourceText")}
                 </Button>
             </div>
             <div className="drama-drop-steps">
@@ -256,19 +259,19 @@ function DramaCard({ item, onDelete }: { item: DramaListItem; onDelete: () => vo
     const needsAction = item.status === "paused" && Boolean(item.pauseReason);
     // 保存了创建页表单的草稿回到创建页继续编辑，其余进入制作台。
     const href = item.hasDraftForm ? `/projects/new?draft=${encodeURIComponent(item.project.id)}` : `/projects/${item.project.id}`;
-    const stage = item.episodeCount ? `${item.doneCount}/${item.episodeCount} 集成片` : item.status === "running" ? "正在改编小说" : item.status === "draft" ? "尚未开始" : "等待分集";
+    const stage = item.episodeCount ? translate("drama.page.episodesRendered", { v0: String(item.doneCount), v1: String(item.episodeCount) }) : item.status === "running" ? translate("drama.page.adaptingNovel") : item.status === "draft" ? translate("drama.page.notStarted2") : translate("drama.page.awaitingEpisodePlan");
     return (
         <article className={`drama-library-card is-${item.status}`}>
-            <Link to={href} className="drama-library-open" aria-label={`打开《${item.project.name}》`}>
+            <Link to={href} className="drama-library-open" aria-label={translate("drama.page.open", { v0: String(item.project.name) })}>
                 <DramaCover item={item} />
                 <span className={`drama-chip drama-library-badge is-${needsAction ? "paused" : item.status}`}>
                     <span className="drama-dot" />
-                    {needsAction ? "需要处理" : STATUS_LABEL[item.status]}
+                    {needsAction ? translate("drama.page.needsAttention") : STATUS_LABEL[item.status]}
                 </span>
                 <div className="drama-library-body">
                     <h3 title={item.project.name}>{item.project.name}</h3>
                     <div className="drama-library-meta">
-                        {item.styleName ? <span>{item.styleName}</span> : null}
+                        {item.styleName ? <span>{dramaStyleDisplayName(item.styleName)}</span> : null}
                         <span>{item.aspectRatio}</span>
                         <RelativeTime value={item.updatedAt || item.project.updatedAt} />
                     </div>
@@ -278,7 +281,7 @@ function DramaCard({ item, onDelete }: { item: DramaListItem; onDelete: () => vo
                         </span>
                         <span className="drama-library-progress-text">
                             <b>{stage}</b>
-                            {item.spentMicrocredits ? <span>{formatCredits(item.spentMicrocredits)} 积分</span> : null}
+                            {item.spentMicrocredits ? <span>{formatCredits(item.spentMicrocredits)} {translate("shell.credits")}</span> : null}
                         </span>
                     </div>
                     {needsAction ? (
@@ -294,13 +297,13 @@ function DramaCard({ item, onDelete }: { item: DramaListItem; onDelete: () => vo
                     placement="bottomRight"
                     menu={{
                         items: [
-                            { key: "open", icon: <ExternalLink className="size-3.5" />, label: <Link to={href}>{item.hasDraftForm ? "编辑草稿" : "打开制作台"}</Link> },
+                            { key: "open", icon: <ExternalLink className="size-3.5" />, label: <Link to={href}>{item.hasDraftForm ? translate("drama.page.editDraft") : translate("drama.page.openStudio")}</Link> },
                             { type: "divider" },
-                            { key: "delete", danger: true, icon: <Trash2 className="size-3.5" />, label: "删除作品", onClick: onDelete },
+                            { key: "delete", danger: true, icon: <Trash2 className="size-3.5" />, label: translate("drama.page.deleteProduction"), onClick: onDelete },
                         ],
                     }}
                 >
-                    <button type="button" className="product-icon-button" aria-label={`${item.project.name} 更多操作`}>
+                    <button type="button" className="product-icon-button" aria-label={translate("drama.page.moreActionsFor", { v0: String(item.project.name) })}>
                         <MoreHorizontal />
                     </button>
                 </Dropdown>

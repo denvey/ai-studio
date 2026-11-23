@@ -8,6 +8,7 @@ import { listDramaJobs, type DramaJob, type DramaSummary } from "@/services/api/
 import { formatCredits } from "../drama-shared";
 import { formatJobTime, JOB_KIND_LABEL, JobDetailModal, JobStatusIcon } from "./job-detail";
 import { dramaKeys } from "./use-studio";
+import { translate } from "@/i18n";
 
 type JobFilter = "all" | "active" | "failed";
 
@@ -31,23 +32,23 @@ export function QueueBar({ projectId, summary, retrying, onRetry, onJump }: { pr
         <div className="drama-queue">
             <div className="drama-queue-bar">
                 <span className={`drama-queue-stat ${(jobCounts.running || 0) > 0 ? "is-run" : ""}`}>
-                    {(jobCounts.running || 0) > 0 ? <Loader2 className="size-3.5 animate-spin" /> : <span className="drama-dot opacity-40" />}运行中 <b>{jobCounts.running || 0}</b>
+                    {(jobCounts.running || 0) > 0 ? <Loader2 className="size-3.5 animate-spin" /> : <span className="drama-dot opacity-40" />}{translate("library.tasks.filter.active")} <b>{jobCounts.running || 0}</b>
                 </span>
                 <span className="drama-queue-stat">
-                    排队 <b>{jobCounts.queued || 0}</b>
+                    {translate("drama.studio.queueBar.queued")} <b>{jobCounts.queued || 0}</b>
                 </span>
                 <span className="drama-queue-stat">
-                    已完成 <b>{jobCounts.succeeded || 0}</b>
+                    {translate("library.tasks.filter.succeeded")} <b>{jobCounts.succeeded || 0}</b>
                 </span>
                 {failedItems ? (
                     <span className="drama-queue-stat is-err">
                         <AlertCircle className="size-3.5" />
-                        待重试 <b>{failedItems}</b>
+                        {translate("drama.studio.queueBar.awaitingRetry")} <b>{failedItems}</b>
                     </span>
                 ) : null}
                 {failedItems ? (
                     <Button size="small" type="text" icon={<RotateCcw className="size-3.5" />} loading={retrying} onClick={onRetry}>
-                        全部重试
+                        {translate("drama.studio.queueBar.retryAll")}
                     </Button>
                 ) : null}
                 <span className="drama-queue-budget">
@@ -56,30 +57,30 @@ export function QueueBar({ projectId, summary, retrying, onRetry, onJump }: { pr
                             <span className={usage >= 0.9 ? "is-warn" : ""} style={{ width: `${Math.max(usage * 100, committed ? 3 : 0)}%` }} />
                         </span>
                     ) : null}
-                    已用 <b>{formatCredits(production.spentMicrocredits)}</b>
-                    {held > 0 ? <> · 冻结 {formatCredits(held)}</> : null}
-                    {budget ? <> / {formatCredits(budget)} 积分</> : " 积分 · 不限预算"}
+                    {translate("drama.studio.queueBar.used")} <b>{formatCredits(production.spentMicrocredits)}</b>
+                    {held > 0 ? <> {translate("drama.studio.queueBar.reserved")} {formatCredits(held)}</> : null}
+                    {budget ? <> / {formatCredits(budget)} {translate("shell.credits")}</> : (" " + translate("drama.studio.queueBar.creditsUnlimitedBudget"))}
                 </span>
                 <button type="button" className="drama-queue-toggle" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
                     {open ? <ChevronDown className="size-3.5" /> : <ChevronUp className="size-3.5" />}
-                    {open ? "收起队列" : "展开队列"}
+                    {open ? translate("drama.studio.queueBar.collapseQueue") : translate("drama.studio.queueBar.expandQueue")}
                 </button>
             </div>
             {open ? (
                 <div className="drama-queue-panel">
-                    <div className="drama-queue-filters" role="tablist" aria-label="队列筛选">
+                    <div className="drama-queue-filters" role="tablist" aria-label={translate("drama.studio.queueBar.queueFilters")}>
                         {(
                             [
-                                ["all", "全部"],
-                                ["active", "进行中"],
-                                ["failed", "失败"],
+                                ["all", translate("canvasA.toolPicker.all")],
+                                ["active", translate("canvasB.mediaVersion.inProgress")],
+                                ["failed", translate("library.assets.batch.failed")],
                             ] as const
                         ).map(([key, label]) => (
                             <button key={key} type="button" role="tab" className="drama-filter" aria-pressed={filter === key} aria-selected={filter === key} onClick={() => setFilter(key)}>
                                 {label}
                             </button>
                         ))}
-                        <span className="ml-auto drama-queue-hint">点击任一行查看请求详情</span>
+                        <span className="ml-auto drama-queue-hint">{translate("drama.studio.queueBar.selectARowToViewRequestDetails")}</span>
                     </div>
                     <div className="drama-queue-list thin-scrollbar" role="list">
                         {jobs.map((job) => (
@@ -100,14 +101,14 @@ export function QueueBar({ projectId, summary, retrying, onRetry, onJump }: { pr
                                     </span>
                                 )}
                                 <span className="drama-job-time">{formatJobTime(job.finishedAt || job.startedAt || job.createdAt)}</span>
-                                <span className="drama-job-cost">{job.costMicrocredits ? `${formatCredits(job.costMicrocredits)} 积分` : ""}</span>
+                                <span className="drama-job-cost">{job.costMicrocredits ? translate("drama.studio.queueBar.credits", { v0: String(formatCredits(job.costMicrocredits)) }) : ""}</span>
                                 <ChevronRight className="drama-job-chevron size-3.5" />
                             </button>
                         ))}
                         {jobsQuery.isLoading ? (
-                            <div className="drama-queue-empty">正在读取队列…</div>
+                            <div className="drama-queue-empty">{translate("drama.studio.queueBar.loadingQueue")}</div>
                         ) : !jobs.length ? (
-                            <div className="drama-queue-empty">{filter === "failed" ? "没有失败的工作" : filter === "active" ? "没有进行中的工作" : "还没有调度记录"}</div>
+                            <div className="drama-queue-empty">{filter === "failed" ? translate("drama.studio.queueBar.noFailedJobs") : filter === "active" ? translate("drama.studio.queueBar.noJobsInProgress") : translate("drama.studio.queueBar.noSchedulingHistoryYet")}</div>
                         ) : null}
                     </div>
                 </div>

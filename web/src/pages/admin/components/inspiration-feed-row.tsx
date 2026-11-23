@@ -8,6 +8,7 @@ import { Switch } from "@/pages/admin/ui/controls";
 import { getAdminInspirationFeed, syncAdminInspirationFeed, updateAdminInspirationFeed, type AdminInspirationFeedStatus } from "@/services/api/inspiration-feed";
 import { invalidateInspirationCatalog } from "@/services/inspiration-catalog";
 import { AdminStatusBadge } from "./admin-ui";
+import { currentLocale, translate } from "@/i18n";
 
 const QUERY_KEY = ["admin", "inspiration-feed"] as const;
 const SOURCE_NAMES: Record<string, string> = { youmind: "YouMind", seedance: "awesome-seedance" };
@@ -32,9 +33,9 @@ export function InspirationFeedRow() {
         setBusy("toggle");
         try {
             apply(await updateAdminInspirationFeed({ enabled }));
-            message.success(enabled ? "灵感上新已开启，稍后自动同步" : "灵感上新已关闭，前台只展示内置目录");
+            message.success(enabled ? translate("admin.inspirationFeedRow.inspirationUpdatesEnabledAutomaticSyncingWillBeginShortly") : translate("admin.inspirationFeedRow.inspirationUpdatesDisabledUsersWillSeeOnlyTheBuiltIn"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "保存灵感上新设置失败");
+            message.error(error instanceof Error ? error.message : translate("admin.inspirationFeedRow.failedToSaveInspirationUpdateSettings"));
         } finally {
             setBusy(null);
         }
@@ -46,10 +47,10 @@ export function InspirationFeedRow() {
             const next = await syncAdminInspirationFeed();
             apply(next);
             const created = next.sources.reduce((sum, item) => sum + item.created, 0);
-            if (next.lastError) message.warning(`部分来源同步失败：${next.lastError}`);
-            else message.success(created ? `同步完成，新收录 ${created} 条` : "同步完成，上游暂无新内容");
+            if (next.lastError) message.warning(translate("admin.inspirationFeedRow.someSourcesFailedToSync", { v0: String(next.lastError) }));
+            else message.success(created ? translate("admin.inspirationFeedRow.syncCompleteAddedEntries", { v0: String(created) }) : translate("admin.inspirationFeedRow.syncCompleteNoNewUpstreamContent"));
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "灵感上新同步失败");
+            message.error(error instanceof Error ? error.message : translate("admin.inspirationFeedRow.failedToSyncInspirationUpdates"));
             void query.refetch();
         } finally {
             setBusy(null);
@@ -65,29 +66,29 @@ export function InspirationFeedRow() {
                 </span>
                 <div className="afp-row-copy">
                     <div className="afp-row-title">
-                        <strong>灵感上新</strong>
-                        <span className="afp-location">创作首页 · 灵感</span>
+                        <strong>{translate("admin.inspirationFeedRow.inspirationUpdates")}</strong>
+                        <span className="afp-location">{translate("admin.inspirationFeedRow.creationHomeInspiration")}</span>
                     </div>
-                    <p>每 {status?.intervalHours ?? 6} 小时从 YouMind、awesome-seedance 同步正文为中文的新提示词，补充到灵感大厅；英文条目仍随版本更新。</p>
+                    <p>{translate("admin.inspirationFeedRow.every")} {status?.intervalHours ?? 6} {translate("admin.inspirationFeedRow.hoursSyncNewChineseLanguagePromptsFromYouMindAndAwesome")}</p>
                     {query.isError ? (
                         <p className="afp-row-warning" role="alert">
                             <AlertTriangle className="size-3.5 shrink-0" aria-hidden="true" />
-                            <span>{query.error instanceof Error ? query.error.message : "读取灵感上新状态失败"}</span>
+                            <span>{query.error instanceof Error ? query.error.message : translate("admin.inspirationFeedRow.failedToLoadInspirationUpdateStatus")}</span>
                         </p>
                     ) : status ? (
                         <>
                             <p>
-                                已收录 {status.total.toLocaleString("zh-CN")} 条
+                                {translate("admin.inspirationFeedRow.collected")} {status.total.toLocaleString(currentLocale())} {translate("account.layout.pagination.item")}
                                 {status.lastAttemptAt ? (
                                     <>
-                                        {" · 上次同步 "}
+                                        {(" " + translate("admin.inspirationFeedRow.lastSynced") + " ")}
                                         <RelativeTime value={status.lastAttemptAt} />
-                                        {status.sources.length ? `（${status.sources.map((item) => `${SOURCE_NAMES[item.sourceId] ?? item.sourceId} 新增 ${item.created}`).join("，")}）` : ""}
+                                        {status.sources.length ? `（${status.sources.map((item) => translate("admin.inspirationFeedRow.added", { v0: String(SOURCE_NAMES[item.sourceId] ?? item.sourceId), v1: String(item.created) })).join("，")}）` : ""}
                                     </>
                                 ) : enabled ? (
-                                    " · 等待首次同步（服务启动约 2 分钟后）"
+                                    (" " + translate("admin.inspirationFeedRow.waitingForFirstSyncAbout2MinutesAfterServiceStartup"))
                                 ) : null}
-                                ，与内置目录重复的条目在灵感大厅自动去重。
+                                {translate("admin.inspirationFeedRow.entriesDuplicatedInTheBuiltInCatalogAreAutomaticallyDeduplicated")}
                             </p>
                             {status.lastError ? (
                                 <p className="afp-row-warning" role="alert">
@@ -100,11 +101,11 @@ export function InspirationFeedRow() {
                 </div>
             </div>
             <div className="afp-row-control">
-                <AdminStatusBadge label={!status ? "读取中" : enabled ? "已开放" : "已关闭"} tone={enabled ? "success" : "neutral"} />
+                <AdminStatusBadge label={!status ? translate("account.settings.diagnostics.loading") : enabled ? translate("admin.inspirationFeedRow.enabled") : translate("account.feedback.status.closed")} tone={enabled ? "success" : "neutral"} />
                 <Button size="small" icon={<RefreshCw className="size-3.5" />} loading={busy === "sync"} disabled={!enabled || busy !== null} onClick={() => void sync()}>
-                    立即同步
+                    {translate("admin.inspirationFeedRow.syncNow")}
                 </Button>
-                <Switch checked={enabled} loading={busy === "toggle"} disabled={!status || busy !== null} onChange={(checked) => void toggle(checked)} aria-label="灵感上新，切换后立即保存" />
+                <Switch checked={enabled} loading={busy === "toggle"} disabled={!status || busy !== null} onChange={(checked) => void toggle(checked)} aria-label={translate("admin.inspirationFeedRow.inspirationUpdatesSavedImmediatelyWhenToggled")} />
             </div>
         </article>
     );

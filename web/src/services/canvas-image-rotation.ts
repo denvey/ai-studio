@@ -3,6 +3,8 @@ import { getImageBlob, uploadImage, type UploadedImage } from "@/services/image-
 import { getActiveUserScope } from "@/lib/user-scope";
 import { resourceIdFromStorageKey } from "@/services/api/resources";
 import type { CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 const MAX_ROTATION_PIXELS = 64_000_000;
 
@@ -10,7 +12,7 @@ async function readOriginalBlob(image: RotationImage) {
     const stored = image.storageKey ? await getImageBlob(image.storageKey) : null;
     if (stored) return stored;
     const response = await fetch(image.content, { mode: "cors", credentials: "same-origin" });
-    if (!response.ok) throw new Error(`原图读取失败（${response.status}）`);
+    if (!response.ok) throw new Error(translate("shared.canvasImageRotation.failedToReadSourceImage", { v0: String(response.status) }));
     return response.blob();
 }
 
@@ -20,17 +22,17 @@ function rotationImage(image: UploadedImage): RotationImage & { storageKey: stri
 
 /** Integer transforms copy pixels without interpolation; PNG preserves transparent pixels. */
 export async function rotateImageBlob(blob: Blob, quarterTurns: Exclude<ImageQuarterTurns, 0>) {
-    if (![1, 2, 3].includes(quarterTurns)) throw new Error("旋转角度无效");
+    if (![1, 2, 3].includes(quarterTurns)) throw new Error(translate("shared.canvasImageRotation.invalidRotationAngle"));
     const bitmap = await createImageBitmap(blob, { imageOrientation: "from-image" });
     let canvas: OffscreenCanvas | HTMLCanvasElement | undefined;
     try {
         const { width, height } = bitmap;
-        if (width * height > MAX_ROTATION_PIXELS) throw new Error("图片超过 6400 万像素，请先调整图片尺寸后旋转");
+        if (width * height > MAX_ROTATION_PIXELS) throw new Error(translate("shared.canvasImageRotation.theImageExceeds64MegapixelsResizeItBeforeRotating"));
         const rotatedWidth = quarterTurns % 2 ? height : width;
         const rotatedHeight = quarterTurns % 2 ? width : height;
         canvas = typeof OffscreenCanvas !== "undefined" ? new OffscreenCanvas(rotatedWidth, rotatedHeight) : Object.assign(document.createElement("canvas"), { width: rotatedWidth, height: rotatedHeight });
         const context = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D | null;
-        if (!context) throw new Error("浏览器不支持图片旋转");
+        if (!context) throw new Error(translate("shared.canvasImageRotation.theBrowserDoesNotSupportImageRotation"));
         context.imageSmoothingEnabled = false;
         if (quarterTurns === 1) context.setTransform(0, 1, -1, 0, height, 0);
         if (quarterTurns === 2) context.setTransform(-1, 0, 0, -1, width, height);
@@ -39,7 +41,7 @@ export async function rotateImageBlob(blob: Blob, quarterTurns: Exclude<ImageQua
         const result =
             "convertToBlob" in canvas
                 ? await canvas.convertToBlob({ type: "image/png" })
-                : await new Promise<Blob>((resolve, reject) => (canvas as HTMLCanvasElement).toBlob((png) => (png ? resolve(png) : reject(new Error("旋转图片导出失败"))), "image/png"));
+                : await new Promise<Blob>((resolve, reject) => (canvas as HTMLCanvasElement).toBlob((png) => (png ? resolve(png) : reject(new Error(translate("shared.canvasImageRotation.failedToExportRotatedImage")))), "image/png"));
         return { blob: result, width: rotatedWidth, height: rotatedHeight, originalWidth: width, originalHeight: height };
     } finally {
         bitmap.close();

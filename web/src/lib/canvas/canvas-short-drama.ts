@@ -3,6 +3,8 @@ import { nanoid } from "nanoid";
 import { createCanvasNode } from "@/lib/canvas/canvas-project-domain";
 import { scopedLocalStorage } from "@/lib/user-scope";
 import { CanvasNodeType, type CanvasConnection, type CanvasNodeData, type Position } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 const SHORT_DRAMA_GUIDE_STORAGE_KEY = "canvas-short-drama-guide-v1";
 
@@ -102,11 +104,11 @@ export function deriveShortDramaProgress(nodes: CanvasNodeData[], connections: C
     const firstIncomplete = done.findIndex((value) => !value);
     const firstShotNode = shotNodes[0];
     const definitions: Array<{ id: CanvasShortDramaStepId; label: string; nodeId?: string }> = [
-        { id: "style", label: "选择画风", nodeId: styleNode?.id },
-        { id: "story", label: "输入故事", nodeId: storyNode?.id },
-        { id: "storyboard", label: "生成分镜", nodeId: scriptNode?.id || firstShotNode?.id },
-        { id: "video", label: "生成视频", nodeId: scriptNode?.id || firstShotNode?.id || completedShotVideos[0]?.id },
-        { id: "final", label: "合并成片", nodeId: finalNode?.id || finalNodes[0]?.id || completedShotVideos[0]?.id },
+        { id: "style", label: translate("shared.canvas.canvasShortDrama.chooseAStyle"), nodeId: styleNode?.id },
+        { id: "story", label: translate("shared.canvas.canvasShortDrama.enterYourStory"), nodeId: storyNode?.id },
+        { id: "storyboard", label: translate("shared.canvas.canvasShortDrama.generateStoryboard"), nodeId: scriptNode?.id || firstShotNode?.id },
+        { id: "video", label: translate("shared.canvas.canvasShortDrama.generateVideo"), nodeId: scriptNode?.id || firstShotNode?.id || completedShotVideos[0]?.id },
+        { id: "final", label: translate("canvasPage.mediaTools.mergeFinalTitle"), nodeId: finalNode?.id || finalNodes[0]?.id || completedShotVideos[0]?.id },
     ];
     const steps = definitions.map((step, index): CanvasShortDramaStep => ({
         ...step,

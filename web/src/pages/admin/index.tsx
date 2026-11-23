@@ -3,6 +3,8 @@ import { AdminProvider } from "./admin-context";
 import { AdminShell } from "./components/admin-shell";
 import "./theme/admin-tokens.css";
 import "./theme/admin-chrome.css";
+import { translate } from "@/i18n";
+
 
 export default function AdminPage() {
     const actor = useUserStore((state) => state.user);
@@ -13,8 +15,8 @@ export default function AdminPage() {
         return (
             <main data-admin-root className="admin-unauthorized">
                 <div className="admin-unauthorized-card">
-                    <h1>无权限</h1>
-                    <p>当前账号不是管理员，无法访问后台。</p>
+                    <h1>{translate("adminPages.page.noPermission")}</h1>
+                    <p>{translate("adminPages.page.thisAccountIsNotAnAdministratorAndCannotAccessThe")}</p>
                 </div>
             </main>
         );

@@ -31,6 +31,7 @@ import { primeResourceBlobCache } from "@/services/resource-blob-cache";
 import { useSyncProgressStore } from "@/stores/use-sync-progress-store";
 import { ensureCanvasNodeAsset } from "@/services/project-asset-sync";
 import { useAppearanceStore } from "@/stores/use-appearance-store";
+import { translate } from "@/i18n";
 
 const CanvasDeleteProjectsDialog = lazy(() => import("@/components/canvas/canvas-delete-projects-dialog").then((module) => ({ default: module.CanvasDeleteProjectsDialog })));
 
@@ -97,8 +98,8 @@ export default function CanvasPage() {
         [forwardedQuery, navigate, preloadProject],
     );
     const createAndEnter = () => {
-        void createCanvasProjectWithRemoteSync(`自由画布 ${projects.length + 1}`).then(({ id, syncError }) => {
-            if (syncError) message.warning(syncError instanceof Error ? `画布已在本地创建，云端同步失败：${syncError.message}` : "画布已在本地创建，云端同步失败");
+        void createCanvasProjectWithRemoteSync(translate("canvasTools.page.freeCanvas", { v0: String(projects.length + 1) })).then(({ id, syncError }) => {
+            if (syncError) message.warning(syncError instanceof Error ? translate("canvasTools.page.canvasCreatedLocallyButCloudSyncFailed", { v0: String(syncError.message) }) : translate("canvasTools.page.canvasCreatedLocallyButCloudSyncFailed2"));
             enterProject(id);
         });
     };
@@ -115,13 +116,13 @@ export default function CanvasPage() {
     const hasRenderableProjects = visibleProjects.length > 0;
     const hasMore = userId ? libraryQuery.hasNextPage : visibleProjects.length < filteredProjects.length;
     const selectedProjects = projects.filter((project) => selectedIds.includes(project.id));
-    const projectFilterLabel = projectFilter === "all" ? "全部画布" : projectFilter === "independent" ? "自由画布" : projectNames.get(projectFilter) || "项目画布";
-    const sortLabel = sort === "name" ? "按名称" : sort === "nodes" ? "按节点" : "最近更新";
-    const projectFilterItems = useMemo(() => [{ key: "all", label: "全部画布" }, { key: "independent", label: "自由画布" }, ...(projectQuery.data?.projects || []).map(({ project }) => ({ key: project.id, label: project.name }))], [projectQuery.data]);
+    const projectFilterLabel = projectFilter === "all" ? translate("library.tasks.page.allCanvases") : projectFilter === "independent" ? translate("canvasB.folderCard.freeCanvas") : projectNames.get(projectFilter) || translate("canvasTools.page.projectCanvases");
+    const sortLabel = sort === "name" ? translate("canvasTools.page.byName") : sort === "nodes" ? translate("canvasTools.page.byNode") : translate("canvasTools.page.lastUpdated");
+    const projectFilterItems = useMemo(() => [{ key: "all", label: translate("library.tasks.page.allCanvases") }, { key: "independent", label: translate("canvasB.folderCard.freeCanvas") }, ...(projectQuery.data?.projects || []).map(({ project }) => ({ key: project.id, label: project.name }))], [projectQuery.data]);
     const sortItems = [
-        { key: "updated", label: "最近更新", icon: <Clock3 className="size-3.5" /> },
-        { key: "name", label: "按名称", icon: <ArrowDownAZ className="size-3.5" /> },
-        { key: "nodes", label: "按节点数量", icon: <ListFilter className="size-3.5" /> },
+        { key: "updated", label: translate("canvasTools.page.lastUpdated"), icon: <Clock3 className="size-3.5" /> },
+        { key: "name", label: translate("canvasTools.page.byName"), icon: <ArrowDownAZ className="size-3.5" /> },
+        { key: "nodes", label: translate("canvasTools.page.byNodeCount"), icon: <ListFilter className="size-3.5" /> },
     ];
     useEffect(() => {
         setLoadedProjectCount(50);
@@ -147,10 +148,10 @@ export default function CanvasPage() {
             for (const id of selectedIds) await loadCanvasProjectForEditing(id);
             selectedIds.forEach((id) => updateProject(id, { projectId }));
             await saveRemoteUserDataNow(selectedIds);
-            message.success(projectId ? "已加入项目" : "已移出项目，画布仍保留");
+            message.success(projectId ? translate("canvasTools.page.addedToTheProject") : translate("canvasTools.page.removedFromTheProjectTheCanvasIsKept"));
             setAssociationOpen(false);
         } catch (error) {
-            message.error(error instanceof Error ? `画布关系保存失败：${error.message}` : "画布关系保存失败");
+            message.error(error instanceof Error ? translate("canvasTools.page.couldNotSaveTheCanvasLink", { v0: String(error.message) }) : translate("canvasTools.page.couldNotSaveTheCanvasLink2"));
         }
     };
     const exportSelected = async () => {
@@ -158,25 +159,25 @@ export default function CanvasPage() {
             const selected = [];
             for (const id of selectedIds) {
                 const project = await loadCanvasProjectForEditing(id);
-                if (!project) throw new Error("画布不存在，无法导出");
+                if (!project) throw new Error(translate("canvasTools.page.canvasDoesNotExistAndCannotBeExported"));
                 selected.push(project);
             }
-            await exportCanvasProjects(selected, `${brandName}画布-${selected.length}个画布`);
-        } catch (error) { message.error(error instanceof Error ? error.message : "导出失败"); }
+            await exportCanvasProjects(selected, translate("canvasTools.page.canvasesCanvases", { v0: String(brandName), v1: String(selected.length) }));
+        } catch (error) { message.error(error instanceof Error ? error.message : translate("account.settings.memory.exportFailed")); }
     };
     const importCanvas = async (file?: File) => {
         if (!file) return;
-        const hideLoading = message.loading({ content: "正在解压并准备导入画布...", duration: 0 });
+        const hideLoading = message.loading({ content: translate("canvasTools.page.extractingArchiveAndPreparingCanvasImport"), duration: 0 });
         try {
             const zip = await readZip(file);
             const projectFile = zip.get("projects.json");
-            if (!projectFile) throw new Error("缺少 projects.json 元数据文件");
+            if (!projectFile) throw new Error(translate("canvasTools.page.missingProjectsJsonMetadataFile"));
             const data = JSON.parse(await projectFile.text()) as CanvasExportFile;
-            if (!Array.isArray(data.projects)) throw new Error("projects.json 中缺少画布列表");
+            if (!Array.isArray(data.projects)) throw new Error(translate("canvasTools.page.canvasListMissingFromProjectsJson"));
             for (const item of data.projects) {
-                if (!Array.isArray(item.files)) throw new Error(`画布「${item.project?.title || "未命名画布"}」的媒体清单无效`);
+                if (!Array.isArray(item.files)) throw new Error(translate("canvasTools.page.invalidMediaManifestForCanvas", { v0: String(item.project?.title || translate("canvasB.common.untitledCanvas")) }));
                 const missing = item.files.find((entry) => !zip.get(entry.path));
-                if (missing) throw new Error(`压缩包缺少媒体文件：${missing.path}`);
+                if (missing) throw new Error(translate("canvasTools.page.mediaFileMissingFromArchive", { v0: String(missing.path) }));
             }
             const remoteSyncEnabled = hasRemoteUserDataSyncSession();
             // 源画布所属项目可能属于其他账号或已被删除，项目素材关联会直接拒绝；不属于当前账号时按自由画布导入。
@@ -190,7 +191,7 @@ export default function CanvasPage() {
                 const importedProjectId = importProject({
                     ...item.project,
                     projectId: domainProjectId,
-                    title: item.project.title || "导入画布",
+                    title: item.project.title || translate("canvasTools.page.importCanvas"),
                     nodes: item.project.nodes || [],
                 });
 
@@ -200,7 +201,7 @@ export default function CanvasPage() {
                         total: totalFiles,
                         completed: 0,
                         phase: "uploading",
-                        message: "正在上传媒体至云端",
+                        message: translate("canvasTools.page.uploadingMediaToCloud"),
                     });
                 }
 
@@ -369,7 +370,7 @@ export default function CanvasPage() {
 
                     useSyncProgressStore.getState().setProjectProgress(importedProjectId, {
                         phase: "saving",
-                        message: remoteSyncEnabled ? "正在保存画布结构" : "正在保存本地画布",
+                        message: remoteSyncEnabled ? translate("canvasTools.page.savingCanvasStructure") : translate("canvasTools.page.savingLocalCanvas"),
                     });
                     await flushCanvasStorePersistence();
                     if (remoteSyncEnabled) {
@@ -384,7 +385,7 @@ export default function CanvasPage() {
                 } catch (error) {
                     useSyncProgressStore.getState().setProjectProgress(importedProjectId, {
                         phase: "error",
-                        message: error instanceof Error ? error.message : "画布导入未完成",
+                        message: error instanceof Error ? error.message : translate("canvasTools.page.canvasImportIncomplete"),
                     });
                     throw error;
                 } finally {
@@ -394,14 +395,14 @@ export default function CanvasPage() {
 
             await flushCanvasStorePersistence();
             if (remoteSyncWarning) {
-                message.warning(`已导入 ${data.projects.length} 个画布，云端同步未完成，将自动重试`);
+                message.warning(translate("canvasTools.page.importedCanvasesCloudSyncIsIncompleteAndWillRetryAutomatically", { v0: String(data.projects.length) }));
             } else {
-                message.success(remoteSyncEnabled ? `已导入 ${data.projects.length} 个画布并完成云端同步` : `已导入 ${data.projects.length} 个画布并保存到本地`);
+                message.success(remoteSyncEnabled ? translate("canvasTools.page.importedCanvasesAndCompletedCloudSync", { v0: String(data.projects.length) }) : translate("canvasTools.page.importedCanvasesAndSavedLocally", { v0: String(data.projects.length) }));
             }
         } catch (error) {
             hideLoading();
             console.error("导入画布失败", error);
-            message.error(error instanceof Error ? `导入失败：${error.message}` : "导入失败，请选择有效的画布压缩包");
+            message.error(error instanceof Error ? translate("canvasTools.page.importFailed", { v0: String(error.message) }) : translate("canvasTools.page.importFailedChooseAValidCanvasArchive"));
         } finally {
             if (inputRef.current) inputRef.current.value = "";
         }
@@ -414,45 +415,45 @@ export default function CanvasPage() {
             enterProject(projects[0].id);
             return;
         }
-        void createCanvasProjectWithRemoteSync(`自由画布 ${projects.length + 1}`).then(({ id, syncError }) => {
-            if (syncError) message.warning(syncError instanceof Error ? `画布已在本地创建，云端同步失败：${syncError.message}` : "画布已在本地创建，云端同步失败");
+        void createCanvasProjectWithRemoteSync(translate("canvasTools.page.freeCanvas", { v0: String(projects.length + 1) })).then(({ id, syncError }) => {
+            if (syncError) message.warning(syncError instanceof Error ? translate("canvasTools.page.canvasCreatedLocallyButCloudSyncFailed", { v0: String(syncError.message) }) : translate("canvasTools.page.canvasCreatedLocallyButCloudSyncFailed2"));
             enterProject(id);
         });
     }, [hydrated, message, mode, projects, sessionHydrated, userId, libraryQuery.isSuccess]);
 
-    if (hydrated && !libraryQuery.isError && (mode === "new" || mode === "recent" || mode === "handoff")) return <main className="flex h-full items-center justify-center bg-background text-sm text-stone-500">正在打开画布...</main>;
+    if (hydrated && !libraryQuery.isError && (mode === "new" || mode === "recent" || mode === "handoff")) return <main className="flex h-full items-center justify-center bg-background text-sm text-stone-500">{translate("canvasTools.page.openingTheCanvas")}</main>;
 
     return (
         <WorkspacePage className="studio-collection-page">
             <div className="studio-band">
                 <PageHeader
-                    title="我的画布"
-                    description="把镜头、素材和想法留在同一张画布里。"
-                    meta={<span className="app-projects-header-meta">{totalProjects} 个</span>}
+                    title={translate("canvasTools.page.myCanvases")}
+                    description={translate("canvasTools.page.keepShotsAssetsAndIdeasOnOneCanvas")}
+                    meta={<span className="app-projects-header-meta">{translate("canvasTools.inline.index.items", { v0: String(totalProjects) })}</span>}
                     actions={
                         <div className="collection-header-actions">
                             <Button type="primary" disabled={!hydrated} icon={<Plus />} onClick={createAndEnter}>
-                                新建画布
+                                {translate("canvasTools.page.newCanvas")}
                             </Button>
                             <Button disabled={!hydrated} icon={<FileUp />} onClick={() => inputRef.current?.click()}>
-                                导入
+                                {translate("account.settings.memory.actors.seed")}
                             </Button>
                         </div>
                     }
                 />
 
                 <CollectionToolbar
-                    label="画布浏览工具"
+                    label={translate("canvasTools.page.canvasNavigationTools")}
                     active={Boolean(keyword || projectFilter !== "all" || sort !== "updated")}
                     onReset={() => { setKeyword(""); setProjectFilter("all"); setSort("updated"); }}
-                    trailing={<Button type="text" icon={<History />} onClick={() => setHistoryOpen(true)}>创作历史</Button>}
+                    trailing={<Button type="text" icon={<History />} onClick={() => setHistoryOpen(true)}>{translate("library.tasks.page.title")}</Button>}
                 >
-                    <Input prefix={<Search />} value={keyword} allowClear placeholder="搜索画布" aria-label="搜索画布" onChange={(event) => setKeyword(event.target.value)} />
+                    <Input prefix={<Search />} value={keyword} allowClear placeholder={translate("canvasTools.page.searchCanvases")} aria-label={translate("canvasTools.page.searchCanvases")} onChange={(event) => setKeyword(event.target.value)} />
                     <Dropdown trigger={["click"]} placement="bottomLeft" menu={{ items: projectFilterItems, selectedKeys: [projectFilter], onClick: ({ key }) => setProjectFilter(String(key)) }}>
-                        <Button icon={<SlidersHorizontal />} aria-label="按所属项目筛选">{projectFilterLabel}</Button>
+                        <Button icon={<SlidersHorizontal />} aria-label={translate("canvasTools.page.filterByProject")}>{projectFilterLabel}</Button>
                     </Dropdown>
                     <Dropdown trigger={["click"]} placement="bottomLeft" menu={{ items: sortItems, selectedKeys: [sort], onClick: ({ key }) => setSort(key as typeof sort) }}>
-                        <Button icon={sort === "updated" ? <Clock3 /> : sort === "name" ? <ArrowDownAZ /> : <ListFilter />} aria-label="画布排序">{sortLabel}</Button>
+                        <Button icon={sort === "updated" ? <Clock3 /> : sort === "name" ? <ArrowDownAZ /> : <ListFilter />} aria-label={translate("canvasTools.page.canvasOrder")}>{sortLabel}</Button>
                     </Dropdown>
                 </CollectionToolbar>
             </div>
@@ -460,7 +461,7 @@ export default function CanvasPage() {
             <div className="collection-content">
                 {selectedIds.length ? (
                     <div className="collection-selection-bar">
-                        <strong className="mr-auto font-medium">已选 {selectedIds.length} 个画布</strong>
+                        <strong className="mr-auto font-medium">{translate("canvasTools.inline.index.canvasesSelected", { v0: String(selectedIds.length) })}</strong>
                         <Button
                             size="small"
                             disabled={!hydrated || projectQuery.isLoading}
@@ -469,7 +470,7 @@ export default function CanvasPage() {
                                 setAssociationOpen(true);
                             }}
                         >
-                            加入项目
+                            {translate("canvasTools.page.addToProject")}
                         </Button>
                         {selectedProjects.some((project) => project.projectId) ? (
                             <Button
@@ -480,22 +481,22 @@ export default function CanvasPage() {
                                     void associateSelected("");
                                 }}
                             >
-                                移出项目
+                                {translate("canvasTools.page.removeFromProject")}
                             </Button>
                         ) : null}
                         <Button size="small" disabled={!hydrated} icon={<Download className="size-3.5" />} onClick={() => void exportSelected()}>
-                            导出
+                            {translate("canvasTools.page.export")}
                         </Button>
                         <Button size="small" danger disabled={!hydrated} onClick={() => setDeleteIds(selectedIds)}>
-                            删除
+                            {translate("common.delete")}
                         </Button>
                     </div>
                 ) : null}
 
                 {userId && libraryQuery.isError && !hasRenderableProjects ? (
-                    <WorkspaceErrorState compact title="画布列表读取失败" description={libraryQuery.error instanceof Error ? libraryQuery.error.message : "请检查网络后重试。"} actionLabel="重试" onRetry={() => void libraryQuery.refetch()} />
+                    <WorkspaceErrorState compact title={translate("canvasTools.page.failedToLoadCanvasList")} description={libraryQuery.error instanceof Error ? libraryQuery.error.message : translate("canvasTools.page.checkYourNetworkAndTryAgain")} actionLabel={translate("common.retry")} onRetry={() => void libraryQuery.refetch()} />
                 ) : !hydrated || (userId && libraryQuery.isPending && !hasRenderableProjects) ? (
-                    <WorkspaceLoadingState label="正在恢复画布" detail="读取本地缓存与账号同步状态" />
+                    <WorkspaceLoadingState label={translate("canvasTools.page.restoringTheCanvas")} detail={translate("canvasTools.page.readingTheLocalCacheAndAccountSyncStatus")} />
                 ) : visibleProjects.length ? (
                     <>
                         <CollectionGrid className={`canvas-collection-grid${libraryQuery.isFetching && !libraryQuery.isPlaceholderData ? " is-stale" : ""}`}>
@@ -503,29 +504,29 @@ export default function CanvasPage() {
                                 <CanvasFolderCard
                                     key={project.id}
                                     project={project}
-                                    projectName={project.projectId ? projectNames.get(project.projectId) || "未同步项目" : undefined}
+                                    projectName={project.projectId ? projectNames.get(project.projectId) || translate("canvasTools.page.notSyncedToAProject") : undefined}
                                     onClick={() => enterProject(project.id)}
                                     onPrefetch={preloadProject}
                                     opening={openingProjectId === project.id}
                                 />
                             ))}
                         </CollectionGrid>
-                        {libraryQuery.isError ? <p role="status" className="mt-3 text-center text-xs text-foreground/55">{libraryQuery.error instanceof Error ? libraryQuery.error.message : "正在显示上次缓存的画布列表"}</p> : null}
+                        {libraryQuery.isError ? <p role="status" className="mt-3 text-center text-xs text-foreground/55">{libraryQuery.error instanceof Error ? libraryQuery.error.message : translate("canvasTools.page.showingTheLastCachedCanvasList")}</p> : null}
                     </>
                 ) : (
                     keyword || projectFilter !== "all" ? (
                         <WorkspaceNoResultsState icon="canvas" query={keyword} onClear={() => { setKeyword(""); setProjectFilter("all"); }} />
                     ) : (
-                        <WorkspaceState icon="canvas" title="让第一个想法落在画布上" description="图片、分镜和灵感，都可以在这里自由组织。" action={<Button type="primary" icon={<Plus />} disabled={!hydrated} title={hydrated ? undefined : "正在恢复本地画布，完成后可新建"} onClick={createAndEnter}>新建画布</Button>} />
+                        <WorkspaceState icon="canvas" title={translate("canvasTools.page.bringYourFirstIdeaToTheCanvas")} description={translate("canvasTools.page.organizeImagesStoryboardsAndIdeasFreelyHere")} action={<Button type="primary" icon={<Plus />} disabled={!hydrated} title={hydrated ? undefined : translate("canvasTools.page.restoringLocalCanvasesYouCanCreateOneWhenRestorationCompletes")} onClick={createAndEnter}>{translate("canvasTools.page.newCanvas")}</Button>} />
                     )
                 )}
                 {/* 无限滚动哨兵：只在加载中显示安静的 spinner、失败时给重试；全部加载后不再输出总数文案。 */}
                 {hydrated && visibleProjects.length && (hasMore || libraryQuery.isFetchNextPageError) ? (
                     <div ref={loadMoreRef} className="library-load-more" aria-live="polite" aria-busy={libraryQuery.isFetchingNextPage}>
                         {libraryQuery.isFetchNextPageError ? (
-                            <Button onClick={() => void libraryQuery.fetchNextPage()}>加载失败，重试</Button>
+                            <Button onClick={() => void libraryQuery.fetchNextPage()}>{translate("canvasTools.page.failedToLoadRetry")}</Button>
                         ) : libraryQuery.isFetchingNextPage ? (
-                            <LoaderCircle className="size-4 animate-spin" role="img" aria-label="正在加载更多画布" />
+                            <LoaderCircle className="size-4 animate-spin" role="img" aria-label={translate("canvasTools.page.loadingMoreCanvases")} />
                         ) : null}
                     </div>
                 ) : null}
@@ -533,19 +534,19 @@ export default function CanvasPage() {
 
             <input ref={inputRef} type="file" accept="application/zip,.zip" className="hidden" onChange={(event) => void importCanvas(event.target.files?.[0])} />
             <Modal
-                title="加入项目"
+                title={translate("canvasTools.page.addToProject")}
                 open={associationOpen}
-                okText="保存关联"
-                cancelText="取消"
+                okText={translate("canvasTools.page.saveLink")}
+                cancelText={translate("common.cancel")}
                 okButtonProps={{ disabled: !associationProjectId, loading: projectQuery.isFetching }}
                 onCancel={() => setAssociationOpen(false)}
                 onOk={() => void associateSelected()}
             >
-                <p className="mb-3 text-sm text-foreground/60">选中的画布会保留原有节点和本地媒体，只增加项目关联。</p>
+                <p className="mb-3 text-sm text-foreground/60">{translate("canvasTools.page.theSelectedCanvasesKeepTheirNodesAndLocalMediaOnly")}</p>
                 <Select
                     className="w-full"
                     value={associationProjectId || undefined}
-                    placeholder="选择项目"
+                    placeholder={translate("canvasTools.page.chooseAProject")}
                     options={(projectQuery.data?.projects || []).map((item) => ({ label: item.project.name, value: item.project.id }))}
                     onChange={setAssociationProjectId}
                 />

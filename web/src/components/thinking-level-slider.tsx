@@ -1,6 +1,8 @@
 import { useId, useRef, useState, type CSSProperties } from "react";
 import { THINKING_LEVEL_LABELS, type ThinkingLevel, type ThinkingRequest } from "@/lib/text-thinking";
 import "./thinking-level-slider.css";
+import { translate } from "@/i18n";
+
 
 type Props = {
     levels: ThinkingLevel[];
@@ -15,7 +17,7 @@ export function ThinkingLevelSlider({ levels, value, resolvedLevel, onChange, di
     const dragging = useRef(false);
     const pending = useRef(0);
     const [draft, setDraft] = useState<number | null>(null);
-    if (!levels.length) return <span className="thinking-level-unavailable">不可调节</span>;
+    if (!levels.length) return <span className="thinking-level-unavailable">{translate("shared.thinkingLevelSlider.notAdjustable")}</span>;
     const options: ThinkingRequest[] = ["auto", ...levels];
     const automatic = !value || value === "auto";
     const effective = resolvedLevel || (value === "deep" ? levels.filter((level) => level !== "off" && level !== "max").at(-1) : value);
@@ -23,7 +25,7 @@ export function ThinkingLevelSlider({ levels, value, resolvedLevel, onChange, di
     const position = draft ?? savedIndex;
     const index = Math.max(0, Math.min(options.length - 1, Math.round(position)));
     const selected = options[index];
-    const label = selected === "auto" ? "默认" : THINKING_LEVEL_LABELS[selected as ThinkingLevel];
+    const label = selected === "auto" ? translate("canvasB.common.default") : THINKING_LEVEL_LABELS[selected as ThinkingLevel];
     const tone = selected === "max" ? "max" : selected === "off" || selected === "auto" ? "off" : "on";
     const commit = () => {
         if (!dragging.current) return;
@@ -50,7 +52,7 @@ export function ThinkingLevelSlider({ levels, value, resolvedLevel, onChange, di
                     step="any"
                     value={position}
                     disabled={disabled}
-                    aria-label="思考等级"
+                    aria-label={translate("shared.thinkingLevelSlider.thinkingLevel")}
                     aria-valuetext={label}
                     onPointerDown={(event) => {
                         if (disabled || event.button !== 0) return;

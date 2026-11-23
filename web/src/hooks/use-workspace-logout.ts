@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useAuthEntry } from "@/hooks/use-auth-entry";
 import { applyUserSession } from "@/lib/user-session";
 import { logout } from "@/services/api/auth";
+import { translate } from "@/i18n";
+
 
 /**
  * 工作区退出登录：供侧栏底部与顶部账户菜单共用。
@@ -20,10 +22,10 @@ export function useWorkspaceLogout() {
         try {
             await logout();
             await applyUserSession({ user: null });
-            message.success("已退出登录");
+            message.success(translate("account.layout.footerMenu.loggedOut"));
             showLoginAfterSignOut();
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "退出失败");
+            message.error(error instanceof Error ? error.message : translate("account.layout.footerMenu.logoutFailed"));
         } finally {
             setLoggingOut(false);
         }

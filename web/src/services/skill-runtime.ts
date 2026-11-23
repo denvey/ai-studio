@@ -5,6 +5,8 @@ import {
     type Skill,
     type SkillPackageFile,
 } from "@/services/api/skills";
+import { translate } from "@/i18n";
+
 
 export type SkillRuntimeProfile = "canvas" | "creation" | "shortDrama" | "director";
 export type SkillRuntimeDelivery = "linked-context";
@@ -160,7 +162,7 @@ export function createSkillRuntime(dependencies: SkillRuntimeDependencies = {
             const config = SKILL_RUNTIME_PROFILES[input.profile];
             const selectedSkills = resolveSkillMentions(input.prompt, input.skills, input.selectedSkillIds).slice(0, config.maxSkills);
             const adapter = deliveryAdapters[config.delivery as keyof typeof deliveryAdapters];
-            if (!adapter) throw new Error(`技能运行模式 ${config.delivery} 不支持直接准备上下文`);
+            if (!adapter) throw new Error(translate("shared.skillRuntime.skillRuntimeModeDoesNotSupportDirectContextPreparation", { v0: String(config.delivery) }));
             return adapter.prepare({ prompt: normalizeSkillTokens(input.prompt, input.skills), selectedSkills, config }) as Promise<SkillRuntimeResultByProfile[P]>;
         },
     };
@@ -185,7 +187,7 @@ async function prepareLinkedContext(input: PreparedSkillInput, dependencies: Ski
 
 async function loadLinkedSkill(skill: Skill, prompt: string, budget: number, maxLinkedFiles: number, dependencies: SkillRuntimeDependencies) {
     const [entryResult, fileList] = await Promise.all([dependencies.getFile(skill.skillId, "SKILL.md"), dependencies.listFiles(skill.skillId)]);
-    if (entryResult.file.binary) throw new Error(`技能「${skill.skillName}」的 SKILL.md 不是文本文件`);
+    if (entryResult.file.binary) throw new Error(translate("shared.skillRuntime.sKILLMdInSkillIsNotATextFile", { v0: String(skill.skillName) }));
 
     let remaining = budget;
     const entryContent = boundedText(entryResult.file.content, remaining);

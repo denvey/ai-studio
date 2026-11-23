@@ -1,4 +1,6 @@
 import type { TimelineClip, TimelineProject } from "@/types/timeline";
+import { translate } from "@/i18n";
+
 
 export const FILMSTRIP_TILE_WIDTH = 64;
 
@@ -10,7 +12,7 @@ export function getPreviewClipAtTime(project: TimelineProject, timeMs: number, s
 }
 
 export function getTimelineClipTitle(clip: TimelineClip): string {
-    return clip.text || clip.title || clip.directMedia?.title || { video: "视频片段", image: "图片片段", audio: "音频片段", subtitle: "字幕片段", text: "文字片段" }[clip.kind];
+    return clip.text || clip.title || clip.directMedia?.title || { video: translate("shared.timeline.timelineClipView.videoClip"), image: translate("shared.timeline.timelineClipView.imageClip"), audio: translate("shared.timeline.timelineClipView.audioClip"), subtitle: translate("shared.timeline.timelineClipView.subtitleClip"), text: translate("shared.timeline.timelineClipView.textClip") }[clip.kind];
 }
 
 export function getClipSeekTime(clip: TimelineClip, offsetPx: number, pxPerMs: number): number {

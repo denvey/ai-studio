@@ -6,6 +6,8 @@ import { useCanvasStore, type CanvasProject } from "@/stores/canvas/use-canvas-s
 import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
 import type { TimelineDirectMedia } from "@/types/timeline";
 import { getActiveUserScope } from "@/lib/user-scope";
+import { translate } from "@/i18n";
+
 
 export type CanvasAssetRepairResult = {
     createdAssets: number;
@@ -175,7 +177,7 @@ export async function repairMissingCanvasVideoPreviews(projectIds?: Set<string>,
             }
         }));
     }
-    if (getActiveUserScope() !== scope) throw new Error("账号已切换，已停止修复视频封面");
+    if (getActiveUserScope() !== scope) throw new Error(translate("shared.canvasAssetRepair.accountChangedVideoCoverRepairStopped"));
     if (!invalidIds.size) return { clearedPreviews: 0, updatedProjects: 0 };
 
     let clearedPreviews = 0;

@@ -1,4 +1,6 @@
 import { inflateSync } from "fflate";
+import { translate } from "@/i18n";
+
 
 /**
  * 按中央目录随机读取 ZIP 条目，只读取需要的字节，适合打开含视频的大资产包。
@@ -26,7 +28,7 @@ async function bytesAt(file: Blob, start: number, end: number) {
 
 function uint64(view: DataView, offset: number) {
     const value = view.getUint32(offset, true) + view.getUint32(offset + 4, true) * 2 ** 32;
-    if (!Number.isSafeInteger(value)) throw new Error("压缩包过大，无法读取");
+    if (!Number.isSafeInteger(value)) throw new Error(translate("shared.zipEntries.theArchiveIsTooLargeToRead"));
     return value;
 }
 
@@ -40,7 +42,7 @@ function decodeName(bytes: Uint8Array, utf8Flag: boolean) {
 }
 
 export async function listZipEntries(file: Blob): Promise<ZipEntry[]> {
-    if (file.size < 22) throw new Error("不是有效的 ZIP 压缩包");
+    if (file.size < 22) throw new Error(translate("shared.zipEntries.notAValidZIPArchive"));
     const tailStart = Math.max(0, file.size - MAX_EOCD_SEARCH);
     const tail = await bytesAt(file, tailStart, file.size);
     let eocd = -1;
@@ -50,27 +52,27 @@ export async function listZipEntries(file: Blob): Promise<ZipEntry[]> {
             break;
         }
     }
-    if (eocd < 0) throw new Error("不是有效的 ZIP 压缩包");
+    if (eocd < 0) throw new Error(translate("shared.zipEntries.notAValidZIPArchive"));
     let count = tail.getUint16(eocd + 10, true);
     let directorySize = tail.getUint32(eocd + 12, true);
     let directoryOffset = tail.getUint32(eocd + 16, true);
     if (count === 0xffff || directorySize === 0xffffffff || directoryOffset === 0xffffffff) {
         const locator = eocd - 20;
-        if (locator < 0 || tail.getUint32(locator, true) !== ZIP64_LOCATOR_SIGNATURE) throw new Error("ZIP64 目录缺失，压缩包可能已损坏");
+        if (locator < 0 || tail.getUint32(locator, true) !== ZIP64_LOCATOR_SIGNATURE) throw new Error(translate("shared.zipEntries.theZIP64DirectoryIsMissingTheArchiveMayBeCorrupted"));
         const recordOffset = uint64(tail, locator + 8);
         const record = await bytesAt(file, recordOffset, recordOffset + 56);
-        if (record.getUint32(0, true) !== ZIP64_EOCD_SIGNATURE) throw new Error("ZIP64 目录无效，压缩包可能已损坏");
+        if (record.getUint32(0, true) !== ZIP64_EOCD_SIGNATURE) throw new Error(translate("shared.zipEntries.theZIP64DirectoryIsInvalidTheArchiveMayBeCorrupted"));
         count = uint64(record, 32);
         directorySize = uint64(record, 40);
         directoryOffset = uint64(record, 48);
     }
-    if (directoryOffset + directorySize > file.size) throw new Error("压缩包目录超出文件范围，可能未下载完整");
+    if (directoryOffset + directorySize > file.size) throw new Error(translate("shared.zipEntries.theArchiveDirectoryExceedsTheFileSizeTheDownloadMay"));
     const directory = await bytesAt(file, directoryOffset, directoryOffset + directorySize);
     const raw = new Uint8Array(directory.buffer, directory.byteOffset, directory.byteLength);
     const entries: ZipEntry[] = [];
     let cursor = 0;
     for (let index = 0; index < count; index++) {
-        if (cursor + 46 > directory.byteLength || directory.getUint32(cursor, true) !== CENTRAL_SIGNATURE) throw new Error("压缩包目录损坏");
+        if (cursor + 46 > directory.byteLength || directory.getUint32(cursor, true) !== CENTRAL_SIGNATURE) throw new Error(translate("shared.zipEntries.theArchiveDirectoryIsCorrupted"));
         const flags = directory.getUint16(cursor + 8, true);
         const method = directory.getUint16(cursor + 10, true);
         let compressedSize = directory.getUint32(cursor + 20, true);
@@ -108,12 +110,12 @@ export async function listZipEntries(file: Blob): Promise<ZipEntry[]> {
 /** 读取一个条目；存储条目直接切片，不复制字节。 */
 export async function readZipEntry(file: Blob, entry: ZipEntry, type = ""): Promise<Blob> {
     const header = await bytesAt(file, entry.localHeaderOffset, entry.localHeaderOffset + 30);
-    if (header.getUint32(0, true) !== LOCAL_SIGNATURE) throw new Error(`压缩包条目损坏：${entry.name}`);
+    if (header.getUint32(0, true) !== LOCAL_SIGNATURE) throw new Error(translate("shared.zipEntries.corruptedArchiveEntry", { v0: String(entry.name) }));
     const start = entry.localHeaderOffset + 30 + header.getUint16(26, true) + header.getUint16(28, true);
     const data = file.slice(start, start + entry.compressedSize, type);
     if (entry.method === 0) return data;
-    if (entry.method !== 8) throw new Error(`不支持的压缩方式：${entry.name}`);
-    if (entry.size > MAX_INFLATE_BYTES) throw new Error(`文件过大，无法在浏览器中解压：${entry.name}`);
+    if (entry.method !== 8) throw new Error(translate("shared.zipEntries.unsupportedCompressionMethod", { v0: String(entry.name) }));
+    if (entry.size > MAX_INFLATE_BYTES) throw new Error(translate("shared.zipEntries.theFileIsTooLargeToExtractInTheBrowser", { v0: String(entry.name) }));
     const inflated = inflateSync(new Uint8Array(await data.arrayBuffer()), { out: new Uint8Array(entry.size) });
     return new Blob([inflated], { type });
 }

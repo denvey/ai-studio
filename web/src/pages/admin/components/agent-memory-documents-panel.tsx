@@ -8,6 +8,7 @@ import { listAdminAgentMemoryDocuments, type AdminAgentMemoryDocument } from "@/
 import { AGENT_MEMORY_MODES, AGENT_MEMORY_SECTIONS } from "@/services/api/agent-memory";
 import { AdminDataTable, AdminStatusBadge, AdminTableEmpty } from "./admin-ui";
 import { useAdminUserOptions } from "./use-admin-user-options";
+import { currentLocale, translate } from "@/i18n";
 
 function ownerLabel(record: AdminAgentMemoryDocument) {
     if (record.displayName && record.username) return `${record.displayName}（${record.username}）`;
@@ -16,12 +17,12 @@ function ownerLabel(record: AdminAgentMemoryDocument) {
 
 function sourceLabel(source?: string) {
     if (source === "agent") return "Agent";
-    if (source === "lesson_import") return "旧版导入";
-    return "用户";
+    if (source === "lesson_import") return translate("admin.agentMemoryDocumentsPanel.legacyImport");
+    return translate("admin.agentMemoryDocumentsPanel.users");
 }
 
 function DocumentEntries({ record }: { record: AdminAgentMemoryDocument }) {
-    if (!record.entries.length) return <p className="py-2 text-xs text-muted-foreground">记忆文件为空。</p>;
+    if (!record.entries.length) return <p className="py-2 text-xs text-muted-foreground">{translate("admin.agentMemoryDocumentsPanel.theMemoryFileIsEmpty")}</p>;
     return (
         <div className="grid gap-4 py-2 md:grid-cols-2">
             {AGENT_MEMORY_SECTIONS.map((section) => {
@@ -30,7 +31,7 @@ function DocumentEntries({ record }: { record: AdminAgentMemoryDocument }) {
                     <section key={section.key} aria-label={section.label} className="min-w-0">
                         <h4 className="mb-2 text-xs font-semibold">
                             {section.label}
-                            <span className="ml-2 font-normal text-muted-foreground">{entries.length} 条</span>
+                            <span className="ml-2 font-normal text-muted-foreground">{entries.length} {translate("account.layout.pagination.item")}</span>
                         </h4>
                         {entries.length ? (
                             <ul className="space-y-1.5 text-xs leading-5">
@@ -42,7 +43,7 @@ function DocumentEntries({ record }: { record: AdminAgentMemoryDocument }) {
                                 ))}
                             </ul>
                         ) : (
-                            <p className="text-xs text-muted-foreground">暂无</p>
+                            <p className="text-xs text-muted-foreground">{translate("admin.agentMemoryDocumentsPanel.noneYet")}</p>
                         )}
                     </section>
                 );
@@ -68,7 +69,7 @@ export default function AgentMemoryDocumentsPanel() {
             if (seq !== seqRef.current) return;
             setItems(data.documents || []);
         } catch (error) {
-            if (seq === seqRef.current) message.error(error instanceof Error ? error.message : "读取记忆文件失败");
+            if (seq === seqRef.current) message.error(error instanceof Error ? error.message : translate("admin.agentMemoryDocumentsPanel.failedToLoadMemoryDocuments"));
         } finally {
             if (seq === seqRef.current) setLoading(false);
         }
@@ -80,7 +81,7 @@ export default function AgentMemoryDocumentsPanel() {
 
     const columns: ColumnsType<AdminAgentMemoryDocument> = [
         {
-            title: "用户",
+            title: translate("admin.agentMemoryDocumentsPanel.users"),
             key: "owner",
             render: (_, record) => (
                 <div className="flex flex-col gap-0.5">
@@ -90,44 +91,44 @@ export default function AgentMemoryDocumentsPanel() {
             ),
         },
         {
-            title: "模式",
+            title: translate("library.tasks.params.mode"),
             dataIndex: "mode",
             width: 104,
             render: (value: string) => <Tag>{AGENT_MEMORY_MODES.find((mode) => mode.value === value)?.label || value}</Tag>,
         },
         {
-            title: "用量",
+            title: translate("account.settings.memory.usage"),
             key: "usage",
             width: 128,
             render: (_, record) => (
                 <span className="tabular-nums opacity-80">
-                    {record.charCount.toLocaleString()} / {record.capacity.toLocaleString()} 字
+                    {record.charCount.toLocaleString()} / {record.capacity.toLocaleString()} {translate("admin.agentMemoryDocumentsPanel.characters")}
                 </span>
             ),
         },
         {
-            title: "条目",
+            title: translate("admin.agentMemoryDocumentsPanel.entries"),
             key: "entries",
             width: 72,
             render: (_, record) => <span className="tabular-nums opacity-80">{record.entries.length}</span>,
         },
         {
-            title: "待确认",
+            title: translate("account.settings.memory.statusPending"),
             dataIndex: "pendingCount",
             width: 88,
-            render: (value: number) => (value ? <AdminStatusBadge label={`${value} 条`} tone="warning" /> : <span className="opacity-50">—</span>),
+            render: (value: number) => (value ? <AdminStatusBadge label={translate("admin.agentMemoryDocumentsPanel.entries2", { v0: String(value) })} tone="warning" /> : <span className="opacity-50">—</span>),
         },
         {
-            title: "更新时间",
+            title: translate("admin.agentMemoryDocumentsPanel.updatedAt"),
             dataIndex: "updatedAt",
             width: 176,
-            render: (value: string) => <span className="tabular-nums opacity-80">{value ? new Date(value).toLocaleString("zh-CN", { hour12: false }) : "--"}</span>,
+            render: (value: string) => <span className="tabular-nums opacity-80">{value ? new Date(value).toLocaleString(currentLocale(), { hour12: false }) : "--"}</span>,
         },
     ];
 
     return (
         <div className="flex flex-col gap-3">
-            <p className="text-xs text-foreground/60">每个用户一份记忆文件，由该用户的 Agent 在对话中维护，用户可随时编辑和撤销。这里只读，展开行查看正文。</p>
+            <p className="text-xs text-foreground/60">{translate("admin.agentMemoryDocumentsPanel.eachUserHasAMemoryFileMaintainedByTheirAgent")}</p>
             <AdminDataTable
                 toolbar={
                     <div className="flex flex-wrap items-center gap-2">
@@ -136,7 +137,7 @@ export default function AgentMemoryDocumentsPanel() {
                             showSearch
                             filterOption={false}
                             loading={userOptions.searching}
-                            placeholder="筛选用户"
+                            placeholder={translate("admin.agentMemoryDocumentsPanel.filterByUser")}
                             className="w-[220px]"
                             value={userId}
                             onSearch={userOptions.onSearch}
@@ -144,10 +145,10 @@ export default function AgentMemoryDocumentsPanel() {
                             options={userOptions.options}
                         />
                         <Button icon={<RefreshCw className="size-4" />} onClick={() => void load()}>
-                            刷新
+                            {translate("common.refresh")}
                         </Button>
                         <span className="text-xs opacity-60">
-                            共 {items.length} 份{userId ? "" : "（按最近更新，最多 200 份）"}
+                            {translate("admin.agentMemoryDocumentsPanel.total")} {items.length} {translate("admin.agentMemoryDocumentsPanel.files")}{userId ? "" : translate("admin.agentMemoryDocumentsPanel.mostRecentlyUpdatedUpTo200Files")}
                         </span>
                     </div>
                 }
@@ -160,7 +161,7 @@ export default function AgentMemoryDocumentsPanel() {
                     expandable: { expandedRowRender: (record) => <DocumentEntries record={record} />, rowExpandable: () => true },
                     pagination: { defaultPageSize: 20, showSizeChanger: true },
                 }}
-                empty={<AdminTableEmpty title="还没有记忆文件" description="用户第一次打开记忆设置或 Agent 第一次运行后才会创建。" />}
+                empty={<AdminTableEmpty title={translate("admin.agentMemoryDocumentsPanel.noMemoryFilesYet")} description={translate("admin.agentMemoryDocumentsPanel.createdWhenAUserFirstOpensMemorySettingsOrTheir")} />}
             />
         </div>
     );

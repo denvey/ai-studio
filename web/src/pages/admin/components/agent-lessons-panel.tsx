@@ -9,10 +9,11 @@ import { agentLessonCategoryLabel, deleteAdminAgentLesson, listAdminAgentLessons
 import { AdminDataTable, AdminStatusBadge, AdminTableEmpty } from "./admin-ui";
 import { useAdminUserOptions } from "./use-admin-user-options";
 import { Select } from "@/components/ui/base/select";
+import { translate } from "@/i18n";
 
 function authorLabel(record: AdminAgentLesson) {
     if (record.authorDisplayName && record.authorUsername) return `${record.authorDisplayName}（${record.authorUsername}）`;
-    return record.authorDisplayName || record.authorUsername || record.authorUserId || "未知用户";
+    return record.authorDisplayName || record.authorUsername || record.authorUserId || translate("admin.agentLessonsPanel.unknownUser");
 }
 
 export default function AgentLessonsPanel() {
@@ -39,7 +40,7 @@ export default function AgentLessonsPanel() {
             if (seq !== seqRef.current) return;
             setItems(data.lessons || []);
         } catch (error) {
-            if (seq === seqRef.current) message.error(error instanceof Error ? error.message : "读取记忆失败");
+            if (seq === seqRef.current) message.error(error instanceof Error ? error.message : translate("admin.agentLessonsPanel.failedToLoadMemories"));
         } finally {
             if (seq === seqRef.current) setLoading(false);
         }
@@ -51,13 +52,13 @@ export default function AgentLessonsPanel() {
 
     const remove = (record: AdminAgentLesson) => {
         modal.confirm({
-            title: `删除「${record.topic}」`,
-            content: `这是 ${authorLabel(record)} 的旧版经验记录。删除只清理历史记录，不会改动该用户的记忆文件。确认删除？`,
-            okText: "删除",
+            title: translate("admin.agentLessonsPanel.delete", { v0: String(record.topic) }),
+            content: translate("admin.agentLessonsPanel.thisIsALegacyLessonRecordForDeletionRemovesOnly", { v0: String(authorLabel(record)) }),
+            okText: translate("common.delete"),
             okButtonProps: { danger: true },
             onOk: async () => {
                 await deleteAdminAgentLesson(record.id);
-                message.success("已删除");
+                message.success(translate("canvasB.historyDrawer.deleted"));
                 await load();
             },
         });
@@ -65,7 +66,7 @@ export default function AgentLessonsPanel() {
 
     const columns: ColumnsType<AdminAgentLesson> = [
         {
-            title: "用户",
+            title: translate("admin.agentLessonsPanel.users"),
             key: "author",
             width: 168,
             render: (_, record) => (
@@ -76,24 +77,24 @@ export default function AgentLessonsPanel() {
             ),
         },
         {
-            title: "分类",
+            title: translate("library.picker.category"),
             dataIndex: "category",
             width: 92,
             render: (value: string) => <Tag>{agentLessonCategoryLabel(value)}</Tag>,
         },
         {
-            title: "主题",
+            title: translate("admin.agentLessonsPanel.topic"),
             dataIndex: "topic",
             width: 180,
             render: (value: string, record) => (
                 <div className="flex flex-col gap-0.5">
                     <span className="font-medium">{value}</span>
-                    {record.source ? <span className="text-[var(--fs-label)] opacity-60">来源：{record.source}</span> : null}
+                    {record.source ? <span className="text-[var(--fs-label)] opacity-60">{translate("admin.agentLessonsPanel.source")}{record.source}</span> : null}
                 </div>
             ),
         },
         {
-            title: "适用场景 / 做法",
+            title: translate("admin.agentLessonsPanel.whenToUseApproach"),
             dataIndex: "situation",
             render: (_: string, record) => {
                 const steps = record.steps || [];
@@ -118,15 +119,15 @@ export default function AgentLessonsPanel() {
             },
         },
         {
-            title: "状态",
+            title: translate("library.tasks.detail.status"),
             dataIndex: "status",
             width: 96,
-            render: (value: string) => <AdminStatusBadge label={value === "approved" ? "已批准" : value === "rejected" ? "已拒绝" : "待审"} tone={value === "approved" ? "success" : value === "rejected" ? "error" : "warning"} />,
+            render: (value: string) => <AdminStatusBadge label={value === "approved" ? translate("admin.agentLessonsPanel.approved") : value === "rejected" ? translate("account.settings.memory.statusRejected") : translate("admin.agentLessonsPanel.pendingReview")} tone={value === "approved" ? "success" : value === "rejected" ? "error" : "warning"} />,
         },
         {
             title: (
-                <Tooltip title="被附进该用户 Agent 上下文的次数">
-                    <span>注入</span>
+                <Tooltip title={translate("admin.agentLessonsPanel.numberOfTimesIncludedInThisUserSAgentContext")}>
+                    <span>{translate("admin.agentLessonsPanel.contextInsertions")}</span>
                 </Tooltip>
             ),
             dataIndex: "injected",
@@ -135,8 +136,8 @@ export default function AgentLessonsPanel() {
         },
         {
             title: (
-                <Tooltip title="旧版 Agent 用 recall_lessons 取全文的次数（该工具已下线）">
-                    <span>查阅</span>
+                <Tooltip title={translate("admin.agentLessonsPanel.numberOfFullTextLookupsThroughTheFormerRecallLessons")}>
+                    <span>{translate("admin.agentLessonsPanel.lookups")}</span>
                 </Tooltip>
             ),
             dataIndex: "hits",
@@ -144,7 +145,7 @@ export default function AgentLessonsPanel() {
             render: (value: number) => <span className="tabular-nums opacity-80">{value ?? 0}</span>,
         },
         {
-            title: "操作",
+            title: translate("account.settings.runninghub.actions"),
             key: "actions",
             width: 72,
             render: (_, record) => (
@@ -157,7 +158,7 @@ export default function AgentLessonsPanel() {
 
     return (
         <div className="flex flex-col gap-3">
-            <p className="text-xs text-foreground/60">旧版经验条目已不再注入 Agent，也不会新增；首次打开记忆文件时，已批准的条目会导入为可撤销的一次修改。这里保留历史记录供巡查，必要时删除违规内容。</p>
+            <p className="text-xs text-foreground/60">{translate("admin.agentLessonsPanel.legacyLessonsAreNoLongerAddedToAgentContextOr")}</p>
             <AdminDataTable
                 toolbar={
                     <div className="flex flex-wrap items-center gap-2">
@@ -166,10 +167,10 @@ export default function AgentLessonsPanel() {
                             onChange={setStatus}
                             className="w-[120px]"
                             options={[
-                                { label: "全部", value: "all" },
-                                { label: "待审", value: "pending" },
-                                { label: "已批准", value: "approved" },
-                                { label: "已拒绝", value: "rejected" },
+                                { label: translate("canvasA.toolPicker.all"), value: "all" },
+                                { label: translate("admin.agentLessonsPanel.pendingReview"), value: "pending" },
+                                { label: translate("admin.agentLessonsPanel.approved"), value: "approved" },
+                                { label: translate("account.settings.memory.statusRejected"), value: "rejected" },
                             ]}
                         />
                         <Select
@@ -177,18 +178,18 @@ export default function AgentLessonsPanel() {
                             showSearch
                             filterOption={false}
                             loading={userOptions.searching}
-                            placeholder="筛选用户"
+                            placeholder={translate("admin.agentLessonsPanel.filterByUser")}
                             className="w-[220px]"
                             value={userId}
                             onSearch={userOptions.onSearch}
                             onChange={(value) => setUserId(value)}
                             options={userOptions.options}
                         />
-                        <Input.Search allowClear placeholder="主题、内容或用户名" className="w-[220px]" value={keyword} onChange={(event) => setKeyword(event.target.value)} />
+                        <Input.Search allowClear placeholder={translate("admin.agentLessonsPanel.topicContentOrUsername")} className="w-[220px]" value={keyword} onChange={(event) => setKeyword(event.target.value)} />
                         <Button icon={<RefreshCw className="size-4" />} onClick={() => void load()}>
-                            刷新
+                            {translate("common.refresh")}
                         </Button>
-                        <span className="text-xs opacity-60">共 {items.length} 条</span>
+                        <span className="text-xs opacity-60">{translate("admin.agentLessonsPanel.total")} {items.length} {translate("account.layout.pagination.item")}</span>
                     </div>
                 }
                 table={{
@@ -199,7 +200,7 @@ export default function AgentLessonsPanel() {
                     dataSource: items,
                     pagination: { defaultPageSize: 20, showSizeChanger: true },
                 }}
-                empty={<AdminTableEmpty title="没有匹配的旧版经验" description="换一个用户或关键词再查。新的记忆内容在「记忆文件」里查看。" />}
+                empty={<AdminTableEmpty title={translate("admin.agentLessonsPanel.noMatchingLegacyLessons")} description={translate("admin.agentLessonsPanel.tryAnotherUserOrKeywordViewNewMemoryContentUnder")} />}
             />
         </div>
     );

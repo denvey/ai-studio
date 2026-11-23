@@ -1,4 +1,6 @@
 import type { PrevisRenderMode } from "@/types/previs";
+import { translate } from "@/i18n";
+
 
 /**
  * 预演台一级模式：只有「摆场」和「动画」两种。
@@ -33,8 +35,8 @@ const CAPABILITIES: Record<PrevisMode, PrevisModeCapabilities> = {
 };
 
 export const PREVIS_MODES: Array<{ mode: PrevisMode; label: string; hint: string }> = [
-    { mode: "layout", label: "摆场", hint: "摆放演员、道具、灯光和机位，调整姿势与取景" },
-    { mode: "animate", label: "动画", hint: "打开时间轴，让演员走位、做动作，让摄影机运镜" },
+    { mode: "layout", label: translate("shared.canvas.previs.previsModes.staging"), hint: translate("shared.canvas.previs.previsModes.placeActorsPropsLightsAndCamerasThenAdjustPosesAnd") },
+    { mode: "animate", label: translate("shared.canvas.previs.previsModes.animation"), hint: translate("shared.canvas.previs.previsModes.openTheTimelineToAnimateActorMovementActionsAndCamera") },
 ];
 
 export const PREVIS_DEFAULT_MODE: PrevisMode = "layout";

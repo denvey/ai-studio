@@ -9,6 +9,7 @@ import { initializeImageRatioDefaults, resolveImageParameters } from "@/lib/imag
 import { findProtocolWorkflow, resolveWorkflowVideoScreenSpec } from "@/lib/video-screen-specs";
 import { defaultPriceTier, legacyPriceTierToForm, normalizeUpstreamModelKey, priceTierToForm, tokenRuleClockMinutes, type PriceTierFormValues, type TokenPriceRuleFormValues } from "./channel-model-price-tier-form";
 import type { PriceCurrency } from "@/services/api/user-groups";
+import { translate } from "@/i18n";
 
 export type ChannelModelFormValues = {
     modelKey: string;
@@ -171,15 +172,15 @@ export function updateChannelModelUpstreamCapabilities(values: ChannelModelFormV
 
 export function validateChannelModelProtocol(capability: string, protocol: string | undefined, protocols: ModelProtocolDefinition[]) {
     if (!protocols.some((p) => p.value === protocol && p.capability === capability && p.enabled !== false)) {
-        throw new Error("请选择当前能力下已启用的请求协议");
+        throw new Error(translate("admin.channelModelEditorForm.chooseAnEnabledRequestProtocolForThisCapability"));
     }
 }
 
 export function validateChannelModelPrices(values: Pick<ChannelModelFormValues, "capability" | "protocol" | "priceTiers" | "capabilityConfig"> & { referenceVideoBilling?: boolean }) {
     const { capability, protocol, priceTiers } = values;
     const referenceVideoBilling = capability === "video" && values.referenceVideoBilling === true;
-    if (!priceTiers?.length) throw new Error("请至少配置一个价格档");
-    if (priceTiers.filter((tier) => tier.matchMode === "default").length > 1) throw new Error("只能配置一个所有规格统一价格");
+    if (!priceTiers?.length) throw new Error(translate("admin.channelModelEditorForm.configureAtLeastOnePriceTier"));
+    if (priceTiers.filter((tier) => tier.matchMode === "default").length > 1) throw new Error(translate("admin.channelModelEditorForm.onlyOnePriceSharedByAllSpecificationsCanBeConfigured"));
     const operations: Record<string, string[]> = {
         text: ["text_generation"],
         image: ["text_to_image", "image_to_image"],
@@ -188,13 +189,13 @@ export function validateChannelModelPrices(values: Pick<ChannelModelFormValues, 
     };
     priceTiers.forEach((tier, index) => {
         const fail = (text: string) => {
-            throw new Error(`价格档 ${index + 1}：${text}`);
+            throw new Error(translate("admin.channelModelEditorForm.priceTier", { v0: String(index + 1), v1: String(text) }));
         };
-        if (!["fixed_request", "per_second", "token"].includes(tier.billingMode)) fail("请选择计费方式");
-        if (tier.billingMode === "per_second" && capability !== "video" && capability !== "audio") fail("按秒计费仅支持视频或音频，请重新选择计费方式并核对价格");
-        if (tier.billingMode === "token" && !modelProtocolSupportsTokenBilling(capability, protocol)) fail("当前模型能力不支持 Token 计费，请重新选择计费方式并核对价格");
+        if (!["fixed_request", "per_second", "token"].includes(tier.billingMode)) fail(translate("admin.channelModelEditorForm.selectABillingMethod"));
+        if (tier.billingMode === "per_second" && capability !== "video" && capability !== "audio") fail(translate("admin.channelModelEditorForm.perSecondBillingSupportsVideoOrAudioOnlyChooseAnother"));
+        if (tier.billingMode === "token" && !modelProtocolSupportsTokenBilling(capability, protocol)) fail(translate("admin.channelModelEditorForm.thisModelCapabilityDoesNotSupportTokenBillingChooseAnother"));
         if (tier.matchMode === "advanced") {
-            if (tier.operation && tier.operation !== "*" && !operations[capability]?.includes(tier.operation)) fail("生成方式与模型能力不匹配");
+            if (tier.operation && tier.operation !== "*" && !operations[capability]?.includes(tier.operation)) fail(translate("admin.channelModelEditorForm.theGenerationModeDoesNotMatchTheModelCapability"));
             const specific = (value: string | undefined) => Boolean(value && value !== "*");
             const image = values.capabilityConfig?.image;
             const imageCondition =
@@ -203,31 +204,31 @@ export function validateChannelModelPrices(values: Pick<ChannelModelFormValues, 
                 (image?.quality.supported !== false && specific(tier.quality)) ||
                 specific(tier.resolution) ||
                 specific(tier.size);
-            if (!(specific(tier.operation) || (capability === "image" && imageCondition) || (capability === "video" && specific(tier.resolution)))) fail("规格价格至少需要一个匹配条件；统一价格请选择默认价格");
+            if (!(specific(tier.operation) || (capability === "image" && imageCondition) || (capability === "video" && specific(tier.resolution)))) fail(translate("admin.channelModelEditorForm.specificationPricesRequireAtLeastOneMatchConditionChooseThe"));
         }
         const prices = tier.billingMode !== "token" ? [tier.unitPrice] : capability === "video" ? [tier.outputTokenPrice] : [tier.inputTokenPrice, tier.outputTokenPrice, tier.cachedTokenPrice, tier.cacheWriteTokenPrice ?? 0];
-        if (prices.some((price) => typeof price !== "number" || !Number.isFinite(price) || price < 0 || price > 1_000_000)) fail("积分价格必须是 0 到 1000000 之间的有效数值");
+        if (prices.some((price) => typeof price !== "number" || !Number.isFinite(price) || price < 0 || price > 1_000_000)) fail(translate("admin.channelModelEditorForm.theCreditPriceMustBeAValidNumberFrom0"));
         if (referenceVideoBilling && tier.priceConfigured !== false && tier.enabled !== false && (tier.billingMode === "per_second" || tier.billingMode === "token")) {
             const [base, reference] = tier.billingMode === "per_second" ? [tier.unitPrice, tier.referenceVideoUnitPrice] : [tier.outputTokenPrice, tier.referenceVideoOutputTokenPrice];
-            if (typeof reference !== "number" || !Number.isFinite(reference) || reference < 0 || reference > 1_000_000) fail("带参考视频的价格必须是 0 到 1000000 之间的有效数值");
+            if (typeof reference !== "number" || !Number.isFinite(reference) || reference < 0 || reference > 1_000_000) fail(translate("admin.channelModelEditorForm.theReferenceVideoPriceMustBeAValidNumberFrom"));
             // 与后端一致：基础价收费时带参考视频价不能为 0，避免挂参考视频反而免费。
-            if (base > 0 && reference === 0) fail("已开启参考视频计费，请填写带参考视频的价格");
+            if (base > 0 && reference === 0) fail(translate("admin.channelModelEditorForm.referenceVideoBillingIsEnabledEnterThePriceWithReference"));
         }
         if (tier.costConfigured) {
             const costs = tier.billingMode !== "token" ? [tier.costUnitPrice] : capability === "video" ? [tier.costOutputTokenPrice] : [tier.costInputTokenPrice, tier.costOutputTokenPrice, tier.costCachedTokenPrice, tier.costCacheWriteTokenPrice ?? 0];
-            if (costs.some((price) => typeof price !== "number" || !Number.isFinite(price) || price < 0 || price > 1_000_000)) fail("积分成本价必须是 0 到 1000000 之间的有效数值");
+            if (costs.some((price) => typeof price !== "number" || !Number.isFinite(price) || price < 0 || price > 1_000_000)) fail(translate("admin.channelModelEditorForm.theCreditCostPriceMustBeAValidNumberFrom"));
             if (referenceVideoBilling && tier.priceConfigured !== false && tier.enabled !== false && (tier.billingMode === "per_second" || tier.billingMode === "token")) {
                 const [baseCost, referenceCost] = tier.billingMode === "per_second" ? [tier.costUnitPrice, tier.costReferenceVideoUnitPrice] : [tier.costOutputTokenPrice, tier.costReferenceVideoOutputTokenPrice];
-                if (typeof referenceCost !== "number" || !Number.isFinite(referenceCost) || referenceCost < 0 || referenceCost > 1_000_000) fail("带参考视频的成本价必须是 0 到 1000000 之间的有效数值");
+                if (typeof referenceCost !== "number" || !Number.isFinite(referenceCost) || referenceCost < 0 || referenceCost > 1_000_000) fail(translate("admin.channelModelEditorForm.theReferenceVideoCostPriceMustBeAValidNumber"));
                 // 与后端一致：基础成本价不为 0 时必须填写带参考视频成本价，避免挂参考视频的订单记成 0 成本。
-                if (baseCost > 0 && referenceCost === 0) fail("已开启参考视频计费，请填写带参考视频的成本价");
+                if (baseCost > 0 && referenceCost === 0) fail(translate("admin.channelModelEditorForm.referenceVideoBillingIsEnabledEnterTheCostPriceWith"));
             }
         }
         if (capability === "text" && tier.billingMode === "token") {
             try {
                 validateTokenPriceRules(tier, tier.tokenRules);
             } catch (error) {
-                fail(error instanceof Error ? error.message : "分时与上下文价格无效");
+                fail(error instanceof Error ? error.message : translate("admin.channelModelEditorForm.invalidTimeAndContextPricing"));
             }
         }
     });
@@ -236,22 +237,22 @@ export function validateChannelModelPrices(values: Pick<ChannelModelFormValues, 
 /** 与后端 normalizeTokenPriceRules 同口径；只校验会被提交的文本 Token 档规则。 */
 export function validateTokenPriceRules(tier: Pick<PriceTierFormValues, "tokenRulesEnabled"> | undefined, rules: TokenPriceRuleFormValues[] | undefined) {
     const list = rules || [];
-    if (tier?.tokenRulesEnabled && !list.length) throw new Error("已启用分时与上下文价格，请至少添加一条规则");
-    if (list.length > 48) throw new Error("每个价格档最多 48 条分时与上下文规则");
+    if (tier?.tokenRulesEnabled && !list.length) throw new Error(translate("admin.channelModelEditorForm.timeAndContextPricingIsEnabledAddAtLeastOne"));
+    if (list.length > 48) throw new Error(translate("admin.channelModelEditorForm.eachPriceTierSupportsUpTo48TimeAndContext"));
     list.forEach((rule, index) => {
         const fail = (text: string) => {
-            throw new Error(`分时规则 ${index + 1}：${text}`);
+            throw new Error(translate("admin.channelModelEditorForm.timeRule", { v0: String(index + 1), v1: String(text) }));
         };
-        if (!rule?.weekdays?.length) fail("请至少选择一天");
+        if (!rule?.weekdays?.length) fail(translate("admin.channelModelEditorForm.selectAtLeastOneDay"));
         const start = tokenRuleClockMinutes(rule.start);
         const end = tokenRuleClockMinutes(rule.end, true);
-        if (start === null) fail("开始时间格式为 HH:MM（00:00–23:59）");
-        if (end === null) fail("结束时间格式为 HH:MM，最晚 24:00");
-        if (start! >= end!) fail("结束时间必须晚于开始时间；跨零点请拆成两条规则");
+        if (start === null) fail(translate("admin.channelModelEditorForm.startTimeMustUseHHMMFormat000023"));
+        if (end === null) fail(translate("admin.channelModelEditorForm.endTimeMustUseHHMMFormatNoLaterThan"));
+        if (start! >= end!) fail(translate("admin.channelModelEditorForm.endTimeMustBeLaterThanStartTimeSplitTime"));
         const min = rule.minInputTokens ?? 0;
-        if (!Number.isInteger(min) || min < 0) fail("输入上下文下限必须是不小于 0 的整数");
-        if (rule.maxInputTokens !== null && rule.maxInputTokens !== undefined && (!Number.isInteger(rule.maxInputTokens) || rule.maxInputTokens <= min)) fail("输入上下文上限必须大于下限，或留空表示不限");
+        if (!Number.isInteger(min) || min < 0) fail(translate("admin.channelModelEditorForm.theMinimumInputContextMustBeAnIntegerOf0"));
+        if (rule.maxInputTokens !== null && rule.maxInputTokens !== undefined && (!Number.isInteger(rule.maxInputTokens) || rule.maxInputTokens <= min)) fail(translate("admin.channelModelEditorForm.theMaximumInputContextMustExceedTheMinimumOrBe"));
         const prices = [rule.inputTokenPrice, rule.outputTokenPrice, rule.cachedTokenPrice, rule.cacheWriteTokenPrice ?? 0];
-        if (prices.some((price) => typeof price !== "number" || !Number.isFinite(price) || price < 0 || price > 1_000_000)) fail("Token 价格必须是 0 到 1000000 之间的有效数值");
+        if (prices.some((price) => typeof price !== "number" || !Number.isFinite(price) || price < 0 || price > 1_000_000)) fail(translate("admin.channelModelEditorForm.theTokenPriceMustBeAValidNumberFrom0"));
     });
 }

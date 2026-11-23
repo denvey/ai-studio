@@ -5,6 +5,7 @@ import { useUpstreamNodes } from "@/components/canvas/canvas-node-graph-context"
 import { getNodeResourceKind } from "@/lib/canvas/node-registry";
 import type { CanvasTheme } from "@/lib/canvas-theme";
 import type { CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 type ChartNodeContentProps = {
     node: CanvasNodeData;
@@ -85,7 +86,7 @@ export function ChartNodeContent({ node, theme }: ChartNodeContentProps) {
         return (
             <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-4 text-center" style={{ color: theme.node.muted }}>
                 <ChartColumn className="size-5 opacity-60" />
-                <span style={{ fontSize: "var(--fs-label)" }}>{source.trim() ? "无法解析为图表数据（需要 JSON 数组或 CSV）" : "连接输出 JSON 数组或 CSV 的文本节点"}</span>
+                <span style={{ fontSize: "var(--fs-label)" }}>{source.trim() ? translate("canvasTools.nodes.chartNode.cannotParseChartDataJSONArrayOrCSVRequired") : translate("canvasTools.nodes.chartNode.connectATextNodeThatOutputsAJSONArrayOr")}</span>
             </div>
         );
     }

@@ -1,6 +1,8 @@
 import { resourceFileUrl } from "@/services/api/resources";
 import type { ProjectAsset } from "@/services/api/projects";
 import type { CanvasNodeData } from "@/types/canvas";
+import { translate } from "@/i18n";
+
 
 export type CharacterBreakdown = {
     name: string;
@@ -159,14 +161,14 @@ export function extractCharacterBreakdownJson(raw: string, allowEmptyCharacters 
             // Ignore unrelated braces in model prose and continue to the next complete JSON value.
         }
     }
-    throw new Error("角色拆解没有返回符合契约的 JSON");
+    throw new Error(translate("shared.canvas.canvasCharacterReference.characterExtractionReturnedJSONThatDoesNotMatchTheContract"));
 }
 
 export function parseCharacterBreakdown(raw: string): CharacterBreakdown[] {
     const unfenced = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
     const parsed = extractCharacterBreakdownJson(unfenced);
     const candidates = Array.isArray(parsed) ? flattenCharacterCandidates(parsed) : flattenCharacterCandidates((parsed as { characters?: unknown }).characters);
-    if (!Array.isArray(candidates)) throw new Error("角色拆解结果缺少 characters 数组");
+    if (!Array.isArray(candidates)) throw new Error(translate("shared.canvas.canvasCharacterReference.theCharacterExtractionResultHasNoCharactersArray"));
 
     const seen = new Set<string>();
     const characters: CharacterBreakdown[] = [];
@@ -186,7 +188,7 @@ export function parseCharacterBreakdown(raw: string): CharacterBreakdown[] {
         const voiceAge = String(value.voiceAge || "").trim();
         const voiceTimbre = String(value.voiceTimbre || "").trim();
         // AI 提取属于角色写入路径：只有名称不足以建立角色卡，避免空设定进入项目后再由用户猜测补全。
-        if (!role || descriptiveFields.length < 3 || !voiceLanguage || !voiceAge || !voiceTimbre) throw new Error(`角色“${name}”缺少剧情定位、稳定设定或声音画像，请重新提取`);
+        if (!role || descriptiveFields.length < 3 || !voiceLanguage || !voiceAge || !voiceTimbre) throw new Error(translate("shared.canvas.canvasCharacterReference.characterIsMissingAStoryRoleConsistentTraitsOrVoice", { v0: String(name) }));
         identityKeys.forEach((identityKey) => seen.add(identityKey));
         characters.push({
             name,
@@ -204,6 +206,6 @@ export function parseCharacterBreakdown(raw: string): CharacterBreakdown[] {
             voiceTimbre,
         });
     });
-    if (!characters.length) throw new Error("没有从章节正文中识别到可用角色");
+    if (!characters.length) throw new Error(translate("shared.canvas.canvasCharacterReference.noUsableCharactersWereIdentifiedInTheChapterText"));
     return characters;
 }

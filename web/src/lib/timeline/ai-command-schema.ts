@@ -4,6 +4,8 @@
 
 import { getEditorCommandRegistry, type EditCommand } from "@/lib/timeline/editor-commands";
 import type { TimelineProject } from "@/types/timeline";
+import { translate } from "@/i18n";
+
 
 /** LLM 输出 JSON 结构：reasoning 可选，commands 至少一条。 */
 export type AiCommandPlan = {
@@ -27,7 +29,7 @@ function extractFirstJsonObject(text: string): string {
     const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
     const candidate = fenced ? fenced[1] : text;
     const start = candidate.indexOf("{");
-    if (start < 0) throw new AiCommandPlanError("输出中未找到 JSON 对象（需要 { commands: [...] }）");
+    if (start < 0) throw new AiCommandPlanError(translate("shared.timeline.aiCommandSchema.noJSONObjectFoundInTheOutputExpectedCommands"));
     // 从首个 { 起逐字符数括号，找配对的收尾 }（字符串内括号不计）。
     let depth = 0;
     let inString = false;
@@ -53,26 +55,26 @@ function extractFirstJsonObject(text: string): string {
             if (depth === 0) return candidate.slice(start, i + 1);
         }
     }
-    throw new AiCommandPlanError("JSON 对象未闭合（缺少收尾 }）");
+    throw new AiCommandPlanError(translate("shared.timeline.aiCommandSchema.unclosedJSONObjectMissingTheClosing"));
 }
 
 function assertPlanShape(raw: unknown): asserts raw is AiCommandPlan {
-    if (typeof raw !== "object" || raw === null) throw new AiCommandPlanError("输出必须是 JSON 对象");
+    if (typeof raw !== "object" || raw === null) throw new AiCommandPlanError(translate("shared.timeline.aiCommandSchema.outputMustBeAJSONObject"));
     const plan = raw as Record<string, unknown>;
     if (plan.reasoning !== undefined && typeof plan.reasoning !== "string") {
-        throw new AiCommandPlanError("reasoning 必须是字符串");
+        throw new AiCommandPlanError(translate("shared.timeline.aiCommandSchema.reasoningMustBeAString"));
     }
-    if (!Array.isArray(plan.commands)) throw new AiCommandPlanError("缺少 commands 数组");
+    if (!Array.isArray(plan.commands)) throw new AiCommandPlanError(translate("shared.timeline.aiCommandSchema.missingCommandsArray"));
     if (plan.commands.length > AI_EDITING_MAX_COMMANDS) {
-        throw new AiCommandPlanError(`commands 超过 ${AI_EDITING_MAX_COMMANDS} 条上限`);
+        throw new AiCommandPlanError(translate("shared.timeline.aiCommandSchema.commandsExceedsTheLimitOfEntries", { v0: String(AI_EDITING_MAX_COMMANDS) }));
     }
     // commands 为空数组 = 只读问答 / 无可用命令，合法终态
     plan.commands.forEach((cmd, i) => {
-        if (typeof cmd !== "object" || cmd === null) throw new AiCommandPlanError(`commands[${i}] 必须是对象`);
+        if (typeof cmd !== "object" || cmd === null) throw new AiCommandPlanError(translate("shared.timeline.aiCommandSchema.commandsMustBeAnObject", { v0: String(i) }));
         const c = cmd as Record<string, unknown>;
-        if (typeof c.op !== "string" || c.op.length === 0) throw new AiCommandPlanError(`commands[${i}].op 必须是非空字符串`);
+        if (typeof c.op !== "string" || c.op.length === 0) throw new AiCommandPlanError(translate("shared.timeline.aiCommandSchema.commandsOpMustBeANonEmptyString", { v0: String(i) }));
         if (typeof c.payload !== "object" || c.payload === null || Array.isArray(c.payload)) {
-            throw new AiCommandPlanError(`commands[${i}].op=${c.op} 缺少对象 payload`);
+            throw new AiCommandPlanError(translate("shared.timeline.aiCommandSchema.commandsOpIsMissingAnObjectPayload", { v0: String(i), v1: String(c.op) }));
         }
     });
 }
@@ -87,7 +89,7 @@ export function parseAiCommandPlan(text: string): AiCommandPlan {
         raw = JSON.parse(extractFirstJsonObject(text));
     } catch (error) {
         if (error instanceof AiCommandPlanError) throw error;
-        throw new AiCommandPlanError(`JSON 解析失败：${(error as Error).message}`);
+        throw new AiCommandPlanError(translate("shared.timeline.aiCommandSchema.jSONParsingFailed", { v0: String((error as Error).message) }));
     }
     assertPlanShape(raw);
     return raw;

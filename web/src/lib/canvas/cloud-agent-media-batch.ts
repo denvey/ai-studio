@@ -1,3 +1,5 @@
+
+import { translate } from "@/i18n";
 /**
  * 批量生成进度：后端每次条目状态变化发一条 `media_batch_progress`。阶段切换时带全部条目，
  * 条目变化时只带变化的那几条（`delta`），这里把它们合并成一份完整进度供进度条渲染。
@@ -84,5 +86,5 @@ export function agentMediaBatchCounts(batch: CloudAgentMediaBatchProgress) {
 }
 
 export function agentMediaBatchPhaseLabel(phase: CloudAgentMediaBatchPhase) {
-    return ({ approval: "等待批准", canary: "试跑中", canary_done: "试跑完成，等待放行", running: "执行中", done: "已结束" } as const)[phase];
+    return ({ approval: translate("shared.canvas.cloudAgentMediaBatch.awaitingApproval"), canary: translate("shared.canvas.cloudAgentMediaBatch.dryRunInProgress"), canary_done: translate("shared.canvas.cloudAgentMediaBatch.dryRunCompleteAwaitingRelease"), running: translate("shared.canvas.cloudAgentMediaBatch.running"), done: translate("account.wallet.topup.ended") } as const)[phase];
 }

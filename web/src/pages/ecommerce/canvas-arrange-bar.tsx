@@ -3,34 +3,35 @@ import { ChevronDown, Crop, Download, Images, Maximize2, Scissors, X } from "luc
 import { useLayoutEffect, useRef, useState } from "react";
 import { commerceArrangeMinimum, type CommerceArrangeKind } from "./canvas-arrange";
 
+import { translate } from "@/i18n";
 export type CommerceArrangeAction = CommerceArrangeKind | "reset";
 
 const arrangeGroups: Array<{ label: string; items: Array<{ action: CommerceArrangeKind; label: string }> }> = [
     {
-        label: "对齐",
+        label: translate("ecommerce.canvasArrangeBar.align"),
         items: [
-            { action: "align-left", label: "左对齐" },
-            { action: "align-center", label: "水平居中" },
-            { action: "align-right", label: "右对齐" },
-            { action: "align-top", label: "顶部对齐" },
-            { action: "align-middle", label: "垂直居中" },
-            { action: "align-bottom", label: "底部对齐" },
+            { action: "align-left", label: translate("ecommerce.canvasArrangeBar.alignLeft") },
+            { action: "align-center", label: translate("ecommerce.canvasArrangeBar.alignHorizontalCenters") },
+            { action: "align-right", label: translate("ecommerce.canvasArrangeBar.alignRight") },
+            { action: "align-top", label: translate("ecommerce.canvasArrangeBar.alignTop") },
+            { action: "align-middle", label: translate("ecommerce.canvasArrangeBar.alignVerticalCenters") },
+            { action: "align-bottom", label: translate("ecommerce.canvasArrangeBar.alignBottom") },
         ],
     },
     {
-        label: "分布",
+        label: translate("ecommerce.canvasArrangeBar.distribute"),
         items: [
-            { action: "distribute-horizontal", label: "水平等距" },
-            { action: "distribute-vertical", label: "垂直等距" },
+            { action: "distribute-horizontal", label: translate("ecommerce.canvasArrangeBar.distributeHorizontally") },
+            { action: "distribute-vertical", label: translate("ecommerce.canvasArrangeBar.distributeVertically") },
         ],
     },
     {
-        label: "排列",
+        label: translate("ecommerce.canvasArrangeBar.arrange"),
         items: [
-            { action: "grid", label: "网格排列" },
-            { action: "masonry", label: "瀑布流排列" },
-            { action: "row", label: "横向排成一行" },
-            { action: "column", label: "纵向排成一列" },
+            { action: "grid", label: translate("ecommerce.canvasArrangeBar.arrangeInGrid") },
+            { action: "masonry", label: translate("ecommerce.canvasArrangeBar.masonryLayout") },
+            { action: "row", label: translate("ecommerce.canvasArrangeBar.arrangeInOneRow") },
+            { action: "column", label: translate("ecommerce.canvasArrangeBar.arrangeInOneColumn") },
         ],
     },
 ];
@@ -83,41 +84,41 @@ export function CommerceArrangeMenu({
             label: group.label,
             children: group.items.map(({ action, label }) => {
                 const minimum = commerceArrangeMinimum(action);
-                return { key: action, label: count < minimum ? `${label}（至少 ${minimum} 张）` : label, disabled: count < minimum };
+                return { key: action, label: count < minimum ? translate("ecommerce.canvasArrangeBar.atLeastImages", { v0: String(label), v1: String(minimum) }) : label, disabled: count < minimum };
             }),
         })),
         { type: "divider" as const },
-        { key: "reset", label: "恢复默认位置" },
+        { key: "reset", label: translate("ecommerce.canvasArrangeBar.restoreDefaultPositions") },
     ];
     const available = frame.width - leftInset - rightInset - EDGE * 2;
     return (
-        <div ref={bar} className="commerce-arrange-bar" role="group" aria-label="多图操作" data-compact={available < 620 || undefined} data-canvas-no-zoom style={{ left: center, top, maxWidth: Math.max(180, available) }}>
-            <span className="commerce-selection-count">已选 {count} 张</span>
+        <div ref={bar} className="commerce-arrange-bar" role="group" aria-label={translate("ecommerce.canvasArrangeBar.multipleImageActions")} data-compact={available < 620 || undefined} data-canvas-no-zoom style={{ left: center, top, maxWidth: Math.max(180, available) }}>
+            <span className="commerce-selection-count">{translate("ecommerce.canvasArrangeBar.selected")} {count} {translate("canvasA.characterLibrary.pageItem")}</span>
             <Dropdown trigger={["click"]} placement="bottom" menu={{ items, onClick: ({ key }) => onArrange(key as CommerceArrangeAction) }}>
-                <button type="button" aria-haspopup="menu" aria-label={`对齐排布已选的 ${count} 张图片`}>
-                    对齐排布
+                <button type="button" aria-haspopup="menu" aria-label={translate("ecommerce.canvasArrangeBar.alignAndArrangeSelectedImages", { v0: String(count) })}>
+                    {translate("ecommerce.canvasArrangeBar.alignAndArrange")}
                     <ChevronDown size={13} aria-hidden="true" />
                 </button>
             </Dropdown>
             <button type="button" onClick={onDownload} disabled={!onDownload}>
                 <Download size={14} />
-                导出 ZIP
+                {translate("ecommerce.canvasArrangeBar.exportZIP")}
             </button>
             {[
-                ["裁剪", Crop],
-                ["多图融合", Images],
-                ["AI 抠图", Scissors],
-                ["智能延展", Maximize2],
+                [translate("canvasB.imageTools.cropLabel"), Crop],
+                [translate("ecommerce.canvasArrangeBar.blendImages"), Images],
+                [translate("ecommerce.canvasArrangeBar.aIBackgroundRemoval"), Scissors],
+                [translate("ecommerce.canvasArrangeBar.expandImage"), Maximize2],
             ].map(([label, Icon]) => {
                 const ToolIcon = Icon as typeof Crop;
                 return (
-                    <button key={label as string} type="button" disabled title={`${label}功能即将开放`}>
+                    <button key={label as string} type="button" disabled title={translate("ecommerce.canvasArrangeBar.isComingSoon", { v0: String(label) })}>
                         <ToolIcon size={14} />
                         <span>{label as string}</span>
                     </button>
                 );
             })}
-            <button type="button" onClick={onClear} aria-label="取消选择" title="取消选择">
+            <button type="button" onClick={onClear} aria-label={translate("ecommerce.canvasArrangeBar.clearSelection")} title={translate("ecommerce.canvasArrangeBar.clearSelection")}>
                 <X size={14} />
             </button>
         </div>

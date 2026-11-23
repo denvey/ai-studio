@@ -13,6 +13,22 @@ import { exportAdminAnalytics, getAdminAnalytics, listAdminUsers, type AdminRefe
 import { analyticsFinanceColumns, formatCredits, formatFinanceCost, formatFinanceMargin } from "./analytics-finance";
 import { formatCountDelta, formatNumber, formatRateDelta } from "./analytics-trend-delta";
 import { Select } from "@/components/ui/base/select";
+import { translate } from "@/i18n";
+
+function failureTypeLabel(value: string) {
+    const keys: Record<string, string> = {
+        "内容审核": "moderation",
+        "超时": "timeout",
+        "鉴权失败": "authentication",
+        "限流": "rateLimit",
+        "请求参数": "parameters",
+        "上游服务": "upstream",
+        "网络或客户端": "network",
+        "未知错误": "unknown",
+    };
+    const key = keys[value];
+    return key ? translate(`admin.analyticsFailureTypes.${key}`) : value;
+}
 
 type Props = {
     users: AdminReferenceData["users"];
@@ -24,10 +40,10 @@ type AnalysisTab = "models" | "users" | "failures";
 type RangePreset = "7d" | "30d" | "60d";
 
 const capabilityOptions = [
-    { label: "文本", value: "text" },
-    { label: "图片", value: "image" },
-    { label: "视频", value: "video" },
-    { label: "音频", value: "audio" },
+    { label: translate("account.settings.modelConfig.capabilities.text"), value: "text" },
+    { label: translate("account.feedback.image"), value: "image" },
+    { label: translate("account.feedback.video"), value: "video" },
+    { label: translate("account.settings.modelConfig.capabilities.audio"), value: "audio" },
 ];
 
 export default function AnalyticsPanel({ users, channels }: Props) {
@@ -75,7 +91,7 @@ export default function AnalyticsPanel({ users, channels }: Props) {
             setData(analytics);
         } catch (error) {
             if (sequence !== requestSequence.current) return;
-            const text = error instanceof Error ? error.message : "读取统计数据失败";
+            const text = error instanceof Error ? error.message : translate("admin.analyticsPanel.failedToLoadStatistics");
             setLoadError(text);
             message.error(text);
         } finally {
@@ -114,7 +130,7 @@ export default function AnalyticsPanel({ users, channels }: Props) {
             const result = await listAdminUsers({ keyword: keyword.trim() || undefined, page: 1, pageSize: 50 });
             setUserOptions(result.users);
         } catch (error) {
-            message.error(error instanceof Error ? error.message : "搜索用户失败");
+            message.error(error instanceof Error ? error.message : translate("admin.analyticsPanel.userSearchFailed"));
         } finally {
             setSearchingUsers(false);
         }
@@ -129,32 +145,32 @@ export default function AnalyticsPanel({ users, channels }: Props) {
 
     const modelColumns: ColumnsType<AdminAnalytics["models"][number]> = [
         {
-            title: "模型",
+            title: translate("canvasA.assetView.model"),
             dataIndex: "model",
             fixed: "left",
             width: 210,
             render: (value, row) => (
                 <div>
-                    <div className="font-medium">{value}</div>
+                    <div className="font-medium">{value === "未识别" ? translate("admin.apiLogDetailDrawer.unrecognizedModel") : value}</div>
                     <div className="mt-1">
                         <Tag className="admin-analytics-capability-tag">{capabilityLabel(row.capability)}</Tag>
                     </div>
                 </div>
             ),
         },
-        { title: "任务 / 请求", width: 120, render: (_, row) => `${row.tasks} / ${row.requests}` },
-        { title: "用户", dataIndex: "uniqueUsers", width: 80 },
-        { title: "任务成功率", dataIndex: "taskSuccessRate", width: 110, render: percent },
-        { title: "请求成功率", dataIndex: "requestSuccessRate", width: 110, render: percent },
+        { title: translate("admin.analyticsPanel.tasksRequests"), width: 120, render: (_, row) => `${row.tasks} / ${row.requests}` },
+        { title: translate("admin.analyticsPanel.users"), dataIndex: "uniqueUsers", width: 80 },
+        { title: translate("admin.analyticsPanel.taskSuccessRate"), dataIndex: "taskSuccessRate", width: 110, render: percent },
+        { title: translate("admin.analyticsPanel.requestSuccessRate"), dataIndex: "requestSuccessRate", width: 110, render: percent },
         { title: "P50 / P95", width: 145, render: (_, row) => `${formatDuration(row.p50DurationMs)} / ${formatDuration(row.p95DurationMs)}` },
-        { title: "Token（入 / 出 / 缓存）", width: 190, render: (_, row) => (row.usageAvailable ? `${formatNumber(row.inputTokens)} / ${formatNumber(row.outputTokens)} / ${formatNumber(row.cachedTokens)}` : "--") },
-        { title: "媒体 / 视频秒", width: 125, render: (_, row) => `${row.mediaCount} / ${row.videoSeconds}` },
+        { title: translate("admin.analyticsPanel.tokensInOutCached"), width: 190, render: (_, row) => (row.usageAvailable ? `${formatNumber(row.inputTokens)} / ${formatNumber(row.outputTokens)} / ${formatNumber(row.cachedTokens)}` : "--") },
+        { title: translate("admin.analyticsPanel.mediaVideoSeconds"), width: 125, render: (_, row) => `${row.mediaCount} / ${row.videoSeconds}` },
         ...analyticsFinanceColumns,
     ];
 
     const userColumns: ColumnsType<AdminAnalytics["users"][number]> = [
         {
-            title: "用户",
+            title: translate("admin.analyticsPanel.users"),
             dataIndex: "name",
             width: 180,
             render: (name, row) => (
@@ -164,20 +180,20 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                 </div>
             ),
         },
-        { title: "活跃天数", dataIndex: "activeDays", width: 95 },
-        { title: "任务", dataIndex: "tasks", width: 80 },
-        { title: "Agent 消息", dataIndex: "agentMessages", width: 105 },
-        { title: "画布活跃天数", dataIndex: "canvasDays", width: 120 },
-        { title: "素材 / 资源", width: 110, render: (_, row) => `${row.assets} / ${row.resources}` },
-        { title: "常用模型", dataIndex: "commonModel", ellipsis: true, render: (value) => value || "--" },
+        { title: translate("admin.analyticsPanel.activeDays"), dataIndex: "activeDays", width: 95 },
+        { title: translate("nav.tools.tasks"), dataIndex: "tasks", width: 80 },
+        { title: translate("admin.analyticsPanel.agentMessages"), dataIndex: "agentMessages", width: 105 },
+        { title: translate("admin.analyticsPanel.canvasActiveDays"), dataIndex: "canvasDays", width: 120 },
+        { title: translate("admin.analyticsPanel.assetsResources"), width: 110, render: (_, row) => `${row.assets} / ${row.resources}` },
+        { title: translate("admin.analyticsPanel.commonModels"), dataIndex: "commonModel", ellipsis: true, render: (value) => value || "--" },
     ];
 
     const failureColumns: ColumnsType<AdminAnalytics["failures"][number]> = [
-        { title: "错误类型", dataIndex: "type", width: 120, render: (value) => <AdminStatusBadge label={value} tone={value === "超时" ? "warning" : "error"} /> },
-        { title: "模型", dataIndex: "model", width: 220 },
-        { title: "次数", dataIndex: "count", width: 90 },
-        { title: "最近错误", dataIndex: "lastError", ellipsis: true, render: (value) => <Tooltip title={value}>{value || "--"}</Tooltip> },
-        { title: "最近发生", dataIndex: "lastSeenAt", width: 170, render: (value) => dayjs(value).format("YYYY-MM-DD HH:mm") },
+        { title: translate("admin.analyticsPanel.errorType"), dataIndex: "type", width: 120, render: (value) => <AdminStatusBadge label={failureTypeLabel(value)} tone={value === "超时" ? "warning" : "error"} /> },
+        { title: translate("canvasA.assetView.model"), dataIndex: "model", width: 220, render: (value) => value === "未识别" ? translate("admin.apiLogDetailDrawer.unrecognizedModel") : value },
+        { title: translate("admin.analyticsPanel.count"), dataIndex: "count", width: 90 },
+        { title: translate("admin.analyticsPanel.recentErrors"), dataIndex: "lastError", ellipsis: true, render: (value) => <Tooltip title={value}>{value || "--"}</Tooltip> },
+        { title: translate("admin.analyticsPanel.mostRecent"), dataIndex: "lastSeenAt", width: 170, render: (value) => dayjs(value).format("YYYY-MM-DD HH:mm") },
     ];
 
     const trend = data?.trend || [];
@@ -191,7 +207,7 @@ export default function AnalyticsPanel({ users, channels }: Props) {
     const finance = data?.kpi.finance;
     const financeUnavailable = data !== null && (!finance || modelRows.some((row) => !row.finance));
     const trendHasData = trendMetric === "volume" ? trend.some((item) => item.tasks > 0 || item.requests > 0) : trendMetric === "quality" ? trend.some((item) => item.requests > 0) : trend.some((item) => item.activeUsers > 0);
-    const trendTitle = trendMetric === "volume" ? "任务与请求趋势" : trendMetric === "quality" ? "请求质量趋势" : "用户活跃趋势";
+    const trendTitle = trendMetric === "volume" ? translate("admin.analyticsPanel.taskAndRequestTrends") : trendMetric === "quality" ? translate("admin.analyticsPanel.requestQualityTrends") : translate("admin.analyticsPanel.userActivityTrends");
     const pageRows = <T,>(rows: T[], page: number) => rows.slice((page - 1) * analyticsPageSize, page * analyticsPageSize);
 
     const applyRangePreset = (preset: RangePreset) => {
@@ -213,10 +229,10 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                 active={Boolean(userId || model || channelId || capability)}
                 activeFilters={
                     <>
-                        {userId ? <AdminFilterChip label={`用户：${userOptions.find((user) => user.id === userId)?.displayName || userId}`} onRemove={() => setUserId(undefined)} /> : null}
-                        {model ? <AdminFilterChip label={`模型：${model}`} onRemove={() => setModel(undefined)} /> : null}
-                        {channelId ? <AdminFilterChip label={`渠道：${channels.find((channel) => channel.id === channelId)?.name || channelId}`} onRemove={() => setChannelId(undefined)} /> : null}
-                        {capability ? <AdminFilterChip label={`能力：${capabilityLabel(capability)}`} onRemove={() => setCapability(undefined)} /> : null}
+                        {userId ? <AdminFilterChip label={translate("admin.analyticsPanel.user", { v0: String(userOptions.find((user) => user.id === userId)?.displayName || userId) })} onRemove={() => setUserId(undefined)} /> : null}
+                        {model ? <AdminFilterChip label={translate("admin.analyticsPanel.model", { v0: String(model) })} onRemove={() => setModel(undefined)} /> : null}
+                        {channelId ? <AdminFilterChip label={translate("admin.analyticsPanel.channel", { v0: String(channels.find((channel) => channel.id === channelId)?.name || channelId) })} onRemove={() => setChannelId(undefined)} /> : null}
+                        {capability ? <AdminFilterChip label={translate("admin.analyticsPanel.capability", { v0: String(capabilityLabel(capability)) })} onRemove={() => setCapability(undefined)} /> : null}
                     </>
                 }
                 onReset={() => {
@@ -227,8 +243,8 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                 }}
                 trailing={
                     <>
-                        <div className="admin-analytics-range-picker" role="group" aria-label="时间范围">
-                            <span className="sr-only">时间范围</span>
+                        <div className="admin-analytics-range-picker" role="group" aria-label={translate("account.settings.diagnostics.range")}>
+                            <span className="sr-only">{translate("account.settings.diagnostics.range")}</span>
                             <DatePicker.RangePicker
                                 allowClear={false}
                                 value={range}
@@ -241,15 +257,15 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                             />
                         </div>
                         <Button icon={<RefreshCw className="size-4" />} loading={loading} onClick={() => void reload()}>
-                            刷新
+                            {translate("common.refresh")}
                         </Button>
-                        <AdminExportButton exportFile={() => exportAdminAnalytics(filters)} fileName={() => `usage-${filters.from}-${filters.to}.csv`} label="导出 CSV" />
+                        <AdminExportButton exportFile={() => exportAdminAnalytics(filters)} fileName={() => `usage-${filters.from}-${filters.to}.csv`} label={translate("admin.analyticsPanel.exportCSV")} />
                     </>
                 }
                 filters={
                     <>
                         <FilterSelect
-                            label="用户"
+                            label={translate("admin.analyticsPanel.users")}
                             value={userId}
                             onChange={setUserId}
                             options={userOptions.map((user) => ({ label: user.displayName || user.username, value: user.id }))}
@@ -257,18 +273,18 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                             loading={searchingUsers}
                             onSearch={(value) => void searchUsers(value)}
                         />
-                        <FilterSelect label="模型" value={model} onChange={setModel} options={modelOptions} width={210} />
-                        <FilterSelect label="渠道" value={channelId} onChange={setChannelId} options={channels.map((channel) => ({ label: channel.name, value: channel.id }))} />
-                        <FilterSelect label="能力" value={capability} onChange={setCapability} options={capabilityOptions} />
+                        <FilterSelect label={translate("canvasA.assetView.model")} value={model} onChange={setModel} options={modelOptions} width={210} />
+                        <FilterSelect label={translate("admin.analyticsPanel.channel2")} value={channelId} onChange={setChannelId} options={channels.map((channel) => ({ label: channel.name, value: channel.id }))} />
+                        <FilterSelect label={translate("admin.analyticsPanel.capability2")} value={capability} onChange={setCapability} options={capabilityOptions} />
                     </>
                 }
             >
-                <div className="admin-analytics-range-presets" role="group" aria-label="快捷时间范围">
+                <div className="admin-analytics-range-presets" role="group" aria-label={translate("admin.analyticsPanel.quickDateRanges")}>
                     {(
                         [
-                            ["7d", "7 天"],
-                            ["30d", "30 天"],
-                            ["60d", "60 天"],
+                            ["7d", translate("admin.analyticsPanel.item7Days")],
+                            ["30d", translate("admin.analyticsPanel.item30Days")],
+                            ["60d", translate("admin.analyticsPanel.item60Days")],
                         ] as const
                     ).map(([value, label]) => (
                         <button key={value} type="button" className={rangePreset === value ? "is-active" : undefined} aria-pressed={rangePreset === value} onClick={() => applyRangePreset(value)}>
@@ -278,69 +294,69 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                 </div>
             </ListToolbar>
 
-            {financeUnavailable && <Alert type="warning" showIcon title="后端未返回完整财务统计，缺失金额显示为 --。请确认后端已更新并重启后刷新。" />}
+            {financeUnavailable && <Alert type="warning" showIcon title={translate("admin.analyticsPanel.theBackendDidNotReturnCompleteFinancialStatisticsMissingAmounts")} />}
             {loadError && (
                 <Alert
                     type="error"
                     showIcon
-                    title="统计数据读取失败"
+                    title={translate("admin.analyticsPanel.failedToLoadStatistics2")}
                     description={loadError}
                     action={
                         <Button size="small" onClick={() => void reload()}>
-                            重试
+                            {translate("common.retry")}
                         </Button>
                     }
                 />
             )}
 
-            <section className="admin-analytics-health-grid" aria-label="运营健康指标">
+            <section className="admin-analytics-health-grid" aria-label={translate("admin.analyticsPanel.operationalHealth")}>
                 <AnalyticsHealthCard
                     icon={<UsersRound className="size-4" />}
-                    label="活跃用户"
+                    label={translate("admin.analyticsPanel.activeUsers")}
                     value={data ? formatNumber(data.kpi.activeUsers) : "--"}
                     trend={formatCountDelta(currentTrend?.activeUsers, previousTrend?.activeUsers)}
-                    detail={data ? `日 ${formatNumber(data.kpi.dau)} · 周 ${formatNumber(data.kpi.wau)} · 月 ${formatNumber(data.kpi.mau)}` : undefined}
+                    detail={data ? translate("admin.analyticsPanel.dailyWeeklyMonthly", { v0: String(formatNumber(data.kpi.dau)), v1: String(formatNumber(data.kpi.wau)), v2: String(formatNumber(data.kpi.mau)) }) : undefined}
                 />
-                <AnalyticsHealthCard icon={<CircleDollarSign className="size-4" />} label="用户总余额" value={data ? formatCredits(data.kpi.totalBalanceMicrocredits ?? 0) : "--"} detail="当前所有用户可用积分余额" />
+                <AnalyticsHealthCard icon={<CircleDollarSign className="size-4" />} label={translate("admin.analyticsPanel.totalUserBalance")} value={data ? formatCredits(data.kpi.totalBalanceMicrocredits ?? 0) : "--"} detail={translate("admin.analyticsPanel.currentAvailableCreditBalanceAcrossAllUsers")} />
                 <AnalyticsHealthCard
                     icon={<CircleDollarSign className="size-4" />}
-                    label="范围消耗"
+                    label={translate("admin.analyticsPanel.usageInSelectedPeriod")}
                     value={finance ? formatCredits(finance.revenueMicrocredits) : "--"}
-                    detail={finance ? `已结算 ${formatNumber(finance.settledOrders)} 笔订单实收` : undefined}
+                    detail={finance ? translate("admin.analyticsPanel.revenueFromSettledOrders", { v0: String(formatNumber(finance.settledOrders)) }) : undefined}
                 />
                 <AnalyticsHealthCard
                     icon={<Workflow className="size-4" />}
-                    label="生成任务"
+                    label={translate("canvasA.activeTasks.title")}
                     value={data ? formatNumber(data.kpi.generationTasks) : "--"}
                     trend={formatCountDelta(currentTrend?.tasks, previousTrend?.tasks)}
-                    detail={data ? `模型生成请求 ${formatNumber(data.kpi.upstreamRequests)}` : undefined}
+                    detail={data ? translate("admin.analyticsPanel.modelGenerationRequests", { v0: String(formatNumber(data.kpi.upstreamRequests)) }) : undefined}
                 />
                 <AnalyticsHealthCard
                     icon={<Gauge className="size-4" />}
-                    label="服务质量"
+                    label={translate("admin.analyticsPanel.serviceQuality")}
                     value={data && data.kpi.upstreamRequests > 0 ? percent(data.kpi.successRate) : "--"}
                     trend={formatRateDelta(currentTrend?.requestSuccessRate, previousTrend?.requestSuccessRate)}
-                    detail={data ? (data.kpi.upstreamRequests ? "模型生成请求成功率" : "当前范围暂无请求") : undefined}
+                    detail={data ? (data.kpi.upstreamRequests ? translate("admin.analyticsPanel.modelGenerationRequestSuccessRate") : translate("admin.analyticsPanel.noRequestsInTheSelectedRange")) : undefined}
                     tone={!data || !data.kpi.upstreamRequests ? "neutral" : data.kpi.successRate < 90 ? "warning" : "success"}
                 />
-                <AnalyticsHealthCard icon={<Clock3 className="size-4" />} label="P95 请求耗时" value={data && data.kpi.upstreamRequests > 0 ? formatDuration(data.kpi.p95DurationMs) : "--"} detail="模型生成请求，不含状态查询与下载" />
-                <AnalyticsHealthCard icon={<Workflow className="size-4" />} label="当前排队" value={data ? formatNumber(data.kpi.currentQueuedTasks) : "--"} detail="实时快照 · 非历史累计" tone={data?.kpi.currentQueuedTasks ? "warning" : "neutral"} />
+                <AnalyticsHealthCard icon={<Clock3 className="size-4" />} label={translate("admin.analyticsPanel.p95RequestDuration")} value={data && data.kpi.upstreamRequests > 0 ? formatDuration(data.kpi.p95DurationMs) : "--"} detail={translate("admin.analyticsPanel.modelGenerationRequestsExcludingStatusQueriesAndDownloads")} />
+                <AnalyticsHealthCard icon={<Workflow className="size-4" />} label={translate("admin.analyticsPanel.currentlyQueued")} value={data ? formatNumber(data.kpi.currentQueuedTasks) : "--"} detail={translate("admin.analyticsPanel.liveSnapshotNotAHistoricalTotal")} tone={data?.kpi.currentQueuedTasks ? "warning" : "neutral"} />
                 <AnalyticsHealthCard
                     icon={<CircleDollarSign className="size-4" />}
-                    label="成本与利润（积分）"
+                    label={translate("admin.analyticsPanel.costAndProfitCredits")}
                     value={
                         finance ? (
                             <dl className="admin-analytics-finance-values">
                                 <div>
-                                    <dt>成本</dt>
+                                    <dt>{translate("admin.analyticsPanel.cost")}</dt>
                                     <dd>{formatFinanceCost(finance)}</dd>
                                 </div>
                                 <div>
-                                    <dt>利润</dt>
+                                    <dt>{translate("admin.analyticsPanel.profit")}</dt>
                                     <dd>{formatCredits(finance.profitMicrocredits)}</dd>
                                 </div>
                                 <div>
-                                    <dt>利润率</dt>
+                                    <dt>{translate("admin.analyticsPanel.profitMargin")}</dt>
                                     <dd>{formatFinanceMargin(finance.profitMargin)}</dd>
                                 </div>
                             </dl>
@@ -348,7 +364,7 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                             "--"
                         )
                     }
-                    detail={finance ? `成本覆盖 ${finance.costedOrders}/${finance.settledOrders} 笔已结算订单` : undefined}
+                    detail={finance ? translate("admin.analyticsPanel.costRecordedForSettledOrders", { v0: String(finance.costedOrders), v1: String(finance.settledOrders) }) : undefined}
                     tone={finance && (finance.costedOrders < finance.settledOrders || (finance.profitMicrocredits ?? 0) < 0) ? "warning" : "neutral"}
                 />
             </section>
@@ -358,14 +374,14 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                     <div className="admin-analytics-section-heading">
                         <div>
                             <h2 id="admin-analytics-trend-title">{trendTitle}</h2>
-                            <p>{trendMetric === "volume" ? "生成任务与模型生成请求分开统计，不含状态查询、下载与保存。" : trendMetric === "quality" ? "成功率按模型生成请求计算；没有请求的日期留空。" : "活跃用户按自然日去重统计。"}</p>
+                            <p>{trendMetric === "volume" ? translate("admin.analyticsPanel.generationTasksAndModelGenerationRequestsAreCountedSeparatelyStatus") : trendMetric === "quality" ? translate("admin.analyticsPanel.successRateIsCalculatedFromModelGenerationRequestsDatesWithout") : translate("admin.analyticsPanel.activeUsersAreCountedOncePerCalendarDay")}</p>
                         </div>
-                        <div className="admin-analytics-trend-switch" role="group" aria-label="趋势指标">
+                        <div className="admin-analytics-trend-switch" role="group" aria-label={translate("admin.analyticsPanel.trendMetric")}>
                             {(
                                 [
-                                    ["volume", "用量"],
-                                    ["quality", "质量"],
-                                    ["activity", "活跃"],
+                                    ["volume", translate("account.settings.memory.usage")],
+                                    ["quality", translate("admin.analyticsPanel.quality")],
+                                    ["activity", translate("admin.analyticsPanel.active")],
                                 ] as const
                             ).map(([value, label]) => (
                                 <button key={value} type="button" className={trendMetric === value ? "is-active" : undefined} aria-pressed={trendMetric === value} onClick={() => setTrendMetric(value)}>
@@ -375,22 +391,22 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                         </div>
                     </div>
                     {trendHasData ? (
-                        <div className="admin-analytics-chart" role="img" aria-label={`${trendTitle}图`}>
+                        <div className="admin-analytics-chart" role="img" aria-label={translate("admin.analyticsPanel.chart", { v0: String(trendTitle) })}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <ComposedChart data={data?.trend || []} margin={{ top: 8, right: 12, bottom: 0, left: -16 }}>
                                     <CartesianGrid stroke="currentColor" className="text-foreground/10" vertical={false} />
                                     <XAxis dataKey="day" tickFormatter={(value) => value.slice(5)} tick={{ fontSize: 11 }} />
                                     {trendMetric === "quality" ? <YAxis yAxisId="primary" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{ fontSize: 11 }} /> : <YAxis yAxisId="primary" allowDecimals={false} tick={{ fontSize: 11 }} />}
-                                    <ChartTooltip labelFormatter={(value) => `日期 ${value}`} />
+                                    <ChartTooltip labelFormatter={(value) => translate("admin.analyticsPanel.date", { v0: String(value) })} />
                                     {trendMetric === "volume" ? <Legend wrapperStyle={{ fontSize: 12 }} /> : null}
                                     {trendMetric === "volume" ? (
                                         <>
-                                            <Area yAxisId="primary" type="monotone" dataKey="tasks" name="生成任务" stroke="var(--admin-chart-primary)" fill="var(--admin-chart-primary)" fillOpacity={0.1} />
-                                            <Area yAxisId="primary" type="monotone" dataKey="requests" name="生成请求" stroke="var(--admin-chart-secondary)" fill="var(--admin-chart-secondary)" fillOpacity={0.08} />
+                                            <Area yAxisId="primary" type="monotone" dataKey="tasks" name={translate("canvasA.activeTasks.title")} stroke="var(--admin-chart-primary)" fill="var(--admin-chart-primary)" fillOpacity={0.1} />
+                                            <Area yAxisId="primary" type="monotone" dataKey="requests" name={translate("admin.analyticsPanel.generationRequests")} stroke="var(--admin-chart-secondary)" fill="var(--admin-chart-secondary)" fillOpacity={0.08} />
                                         </>
                                     ) : null}
-                                    {trendMetric === "quality" ? <Line yAxisId="primary" type="monotone" dataKey="requestSuccessRate" name="成功率" stroke="var(--admin-chart-warning)" dot={false} strokeWidth={2} /> : null}
-                                    {trendMetric === "activity" ? <Area yAxisId="primary" type="monotone" dataKey="activeUsers" name="活跃用户" stroke="var(--admin-chart-primary)" fill="var(--admin-chart-primary)" fillOpacity={0.1} /> : null}
+                                    {trendMetric === "quality" ? <Line yAxisId="primary" type="monotone" dataKey="requestSuccessRate" name={translate("admin.analyticsPanel.successRate")} stroke="var(--admin-chart-warning)" dot={false} strokeWidth={2} /> : null}
+                                    {trendMetric === "activity" ? <Area yAxisId="primary" type="monotone" dataKey="activeUsers" name={translate("admin.analyticsPanel.activeUsers")} stroke="var(--admin-chart-primary)" fill="var(--admin-chart-primary)" fillOpacity={0.1} /> : null}
                                 </ComposedChart>
                             </ResponsiveContainer>
                         </div>
@@ -399,8 +415,8 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                             <span>
                                 <BarChart3 className="size-5" />
                             </span>
-                            <div className="font-medium">{!data ? (loading ? "正在读取趋势…" : "趋势数据不可用") : `当前范围暂无${trendMetric === "quality" ? "质量" : trendMetric === "activity" ? "活跃" : "使用"}数据`}</div>
-                            <p>{loadError ? "请重试，无法依据缺失数据判断运行状态。" : "按自然日统计，可调整时间范围或筛选条件。"}</p>
+                            <div className="font-medium">{!data ? (loading ? translate("admin.analyticsPanel.loadingTrends") : translate("admin.analyticsPanel.trendDataUnavailable")) : translate("admin.analyticsPanel.noDataForThisPeriod", { v0: String(trendMetric === "quality" ? translate("admin.analyticsPanel.quality") : trendMetric === "activity" ? translate("admin.analyticsPanel.active") : translate("admin.analyticsPanel.usage")) })}</div>
+                            <p>{loadError ? translate("admin.analyticsPanel.tryAgainMissingDataCannotBeUsedToAssessOperational") : translate("admin.analyticsPanel.groupedByCalendarDayAdjustTheDateRangeOrFilters")}</p>
                         </div>
                     )}
                 </section>
@@ -408,39 +424,39 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                 <aside className="admin-analytics-attention" aria-labelledby="admin-analytics-attention-title">
                     <div className="admin-analytics-attention-heading">
                         <div>
-                            <h2 id="admin-analytics-attention-title">需要关注</h2>
-                            <p>优先展示可能需要处理的运行状态。</p>
+                            <h2 id="admin-analytics-attention-title">{translate("admin.analyticsPanel.needsAttention")}</h2>
+                            <p>{translate("admin.analyticsPanel.operationalConditionsThatMayNeedActionAreShownFirst")}</p>
                         </div>
-                        <AdminStatusBadge label={!data ? "状态未知" : failureTotal > 0 ? `${formatNumber(failureTotal)} 次异常` : "未记录异常"} tone={!data ? "neutral" : failureTotal > 0 ? "warning" : "success"} />
+                        <AdminStatusBadge label={!data ? translate("admin.analyticsPanel.statusUnknown") : failureTotal > 0 ? translate("admin.analyticsPanel.errors", { v0: String(formatNumber(failureTotal)) }) : translate("admin.analyticsPanel.noErrorsRecorded")} tone={!data ? "neutral" : failureTotal > 0 ? "warning" : "success"} />
                     </div>
                     <div className="admin-analytics-attention-list">
                         <AnalyticsAttentionItem
                             icon={<AlertTriangle className="size-4" />}
-                            label="异常请求"
+                            label={translate("admin.analyticsPanel.failedRequests")}
                             value={data ? formatNumber(failureTotal) : "--"}
-                            description={!data ? "数据尚未就绪" : topFailure ? `${topFailure.type} · ${topFailure.model}` : "当前范围未记录异常"}
+                            description={!data ? translate("admin.analyticsPanel.dataNotReady") : topFailure ? `${topFailure.type} · ${topFailure.model}` : translate("admin.analyticsPanel.noErrorsRecordedInThisPeriod")}
                             tone={!data ? "neutral" : failureTotal > 0 ? "warning" : "success"}
                             onClick={failureTotal > 0 ? () => openAnalysis("failures") : undefined}
                         />
                         <AnalyticsAttentionItem
                             icon={<Clock3 className="size-4" />}
-                            label="当前队列"
+                            label={translate("admin.analyticsPanel.currentQueue")}
                             value={data ? formatNumber(data.kpi.currentQueuedTasks) : "--"}
-                            description={!data ? "数据尚未就绪" : data.kpi.currentQueuedTasks ? "存在等待执行的生成任务" : "没有排队中的生成任务"}
+                            description={!data ? translate("admin.analyticsPanel.dataNotReady") : data.kpi.currentQueuedTasks ? translate("admin.analyticsPanel.generationTasksAreWaitingToRun") : translate("admin.analyticsPanel.noQueuedGenerationTasks")}
                             tone={!data ? "neutral" : data.kpi.currentQueuedTasks ? "warning" : "success"}
                         />
                         <AnalyticsAttentionItem
                             icon={<CircleDollarSign className="size-4" />}
-                            label="成本覆盖订单"
+                            label={translate("admin.analyticsPanel.ordersWithCostData")}
                             value={finance ? `${finance.costedOrders}/${finance.settledOrders}` : "--"}
                             description={
                                 !finance
-                                    ? "财务统计尚未返回"
+                                    ? translate("admin.analyticsPanel.financialStatisticsNotYetAvailable")
                                     : finance.settledOrders
                                       ? finance.costedOrders === finance.settledOrders
-                                          ? "已结算订单成本完整"
-                                          : `${finance.settledOrders - finance.costedOrders} 笔缺少成本快照或有效用量`
-                                      : "当前范围暂无已结算订单"
+                                          ? translate("admin.analyticsPanel.costDataIsCompleteForSettledOrders")
+                                          : translate("admin.analyticsPanel.ordersLackACostSnapshotOrValidUsage", { v0: String(finance.settledOrders - finance.costedOrders) })
+                                      : translate("admin.analyticsPanel.noSettledOrdersInThisPeriod")
                             }
                             tone={finance && finance.costedOrders < finance.settledOrders ? "warning" : "neutral"}
                             onClick={() => openAnalysis("models")}
@@ -452,8 +468,8 @@ export default function AnalyticsPanel({ users, channels }: Props) {
             <section id="admin-analytics-analysis" className="admin-analytics-analysis-section">
                 <div className="admin-analytics-analysis-heading">
                     <div>
-                        <h2>深度分析</h2>
-                        <p>按模型、用户或异常类型继续核对当前统计范围。</p>
+                        <h2>{translate("admin.analyticsPanel.detailedAnalysis")}</h2>
+                        <p>{translate("admin.analyticsPanel.reviewThisPeriodByModelUserOrErrorType")}</p>
                     </div>
                 </div>
                 <Tabs
@@ -463,7 +479,7 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                     items={[
                         {
                             key: "models",
-                            label: "模型分析",
+                            label: translate("admin.analyticsPanel.modelAnalytics"),
                             children: (
                                 <AdminDataTable
                                     table={{ rowKey: (row) => `${row.model}:${row.capability}`, size: "small", loading, columns: modelColumns, dataSource: pageRows(modelRows, modelPage), pagination: false, scroll: { x: 1600 } }}
@@ -475,7 +491,7 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                         },
                         {
                             key: "users",
-                            label: "用户活动",
+                            label: translate("admin.analyticsPanel.userActivity"),
                             children: (
                                 <AdminDataTable
                                     table={{ rowKey: "userId", size: "small", loading, columns: userColumns, dataSource: pageRows(userRows, userPage), pagination: false, scroll: { x: 900 } }}
@@ -487,7 +503,7 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                         },
                         {
                             key: "failures",
-                            label: `异常定位${data?.failures.length ? ` (${data.failures.reduce((sum, item) => sum + item.count, 0)})` : ""}`,
+                            label: translate("admin.analyticsPanel.anomalyLocation", { v0: String(data?.failures.length ? ` (${data.failures.reduce((sum, item) => sum + item.count, 0)})` : "") }),
                             children: (
                                 <AdminDataTable
                                     table={{ rowKey: (row) => `${row.type}:${row.model}`, size: "small", loading, columns: failureColumns, dataSource: pageRows(failureRows, failurePage), pagination: false, scroll: { x: 900 } }}
@@ -567,13 +583,13 @@ function FilterSelect({
     return (
         <div>
             <div className="mb-1 text-xs text-foreground/55">{label}</div>
-            <Select aria-label={`${label}筛选`} allowClear showSearch optionFilterProp="label" filterOption={filterOption} loading={loading} placeholder="全部" value={value} onChange={onChange} onSearch={onSearch} options={options} style={{ width }} />
+            <Select aria-label={translate("admin.analyticsPanel.filters", { v0: String(label) })} allowClear showSearch optionFilterProp="label" filterOption={filterOption} loading={loading} placeholder={translate("canvasA.toolPicker.all")} value={value} onChange={onChange} onSearch={onSearch} options={options} style={{ width }} />
         </div>
     );
 }
 
 function capabilityLabel(value: string) {
-    return capabilityOptions.find((item) => item.value === value)?.label || "未分类";
+    return capabilityOptions.find((item) => item.value === value)?.label || translate("account.settings.models.uncategorized");
 }
 
 function percent(value: number | null) {

@@ -31,6 +31,7 @@ import { MediaConversionNodeContent } from "./nodes/media-conversion-node";
 import { MEDIA_CONVERSION_NODE_TYPE } from "@/lib/media-conversion/contracts";
 import { AudioNodeContent, EmptyImageContent, ImageNodeContent, VideoNodeContent } from "./canvas-node-media-content";
 import { ErrorContent, LoadingContent, UnknownNodeContent } from "./canvas-node-status-content";
+import { translate } from "@/i18n";
 
 export type CanvasNodeContentProps = {
     node: CanvasNodeData;
@@ -115,7 +116,7 @@ function CanvasNodeShellContent({ node, theme }: { node: CanvasNodeData; theme: 
     return (
         <div className="flex size-full flex-col items-center justify-center gap-2 rounded-[var(--node-radius)] px-3 text-center" style={{ background: theme.node.fill, color: theme.node.muted }}>
             <Icon className="size-6 opacity-40" />
-            <span className="max-w-full truncate text-xs font-medium" title={node.title}>{node.title || "画布节点"}</span>
+            <span className="max-w-full truncate text-xs font-medium" title={node.title}>{node.title || translate("canvasB.mention.canvasNodes")}</span>
         </div>
     );
 }
@@ -134,7 +135,7 @@ function PluginCanvasNodeContent({ node, theme, renderer, schema }: CanvasNodeCo
     if (renderer === "sandbox") {
         return (
             <div className="flex h-full w-full items-center justify-center p-4 text-center text-xs" style={{ color: theme.node.placeholder }}>
-                插件节点等待隔离运行时
+                {translate("canvasTools.canvasNodeContent.pluginNodeIsWaitingForAnIsolatedRuntime")}
             </div>
         );
     }
@@ -150,14 +151,14 @@ function PluginCanvasNodeContent({ node, theme, renderer, schema }: CanvasNodeCo
                     </div>
                 ))
             ) : (
-                <span className="whitespace-pre-wrap break-words">{node.metadata?.content || "插件节点"}</span>
+                <span className="whitespace-pre-wrap break-words">{node.metadata?.content || translate("canvasTools.canvasNodeContent.pluginNode")}</span>
             )}
         </div>
     );
 }
 
 function formatPluginValue(value: unknown) {
-    if (value === undefined || value === null || value === "") return "未设置";
+    if (value === undefined || value === null || value === "") return translate("canvasTools.canvasNodeContent.notSet");
     return typeof value === "string" ? value : JSON.stringify(value);
 }
 
@@ -212,24 +213,24 @@ function DrawingContent({ node, theme, drawingProjectId }: CanvasNodeContentProp
     return (
         <div className="relative h-full w-full overflow-hidden" style={{ background: theme.node.panel, color: theme.node.text }}>
             {previewUrl ? (
-                <img src={previewUrl} alt="绘图预览" className="absolute inset-0 h-full w-full object-cover" draggable={false} />
+                <img src={previewUrl} alt={translate("canvasTools.canvasNodeContent.drawingPreview")} className="absolute inset-0 h-full w-full object-cover" draggable={false} />
             ) : (
                 <div className="absolute inset-0 grid place-items-center" style={{ background: theme.node.panel, backgroundImage: `radial-gradient(circle, ${theme.node.stroke} 1px, transparent 1px)`, backgroundSize: "18px 18px" }}>
                     <div className="flex flex-col items-center gap-2 rounded-[var(--r-lg)] px-4 py-3" style={{ border: `1px solid ${theme.node.edge}`, background: theme.node.fill, color: theme.node.muted }}>
                         <span className="grid size-10 place-items-center rounded-[var(--r-md)]" style={{ background: theme.toolbar.panel, border: `1px solid ${theme.node.edge}`, color: theme.node.text }}>
                             <Pencil className="size-5" />
                         </span>
-                        <span className="text-[var(--fs-tiny)] font-medium">打开绘图</span>
+                        <span className="text-[var(--fs-tiny)] font-medium">{translate("canvasTools.canvasNodeContent.openDrawing")}</span>
                     </div>
                 </div>
             )}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 px-4 pb-3 pt-12" style={{ background: `linear-gradient(to top, ${theme.node.fill}, ${theme.node.fill}e6 55%, transparent)` }}>
                 <div className="min-w-0">
-                    <div className="truncate text-xs font-semibold" title={node.title || "绘图"}>
-                        {node.title || "绘图"}
+                    <div className="truncate text-xs font-semibold" title={node.title || translate("canvasA.drawingModal.defaultTitle")}>
+                        {node.title || translate("canvasA.drawingModal.defaultTitle")}
                     </div>
                     <div className="mt-0.5 text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>
-                        {shapeCount} 个图形 · {pageCount} 个页面
+                        {translate("canvasTools.inline.canvasNodeContent.shapesPages", { v0: String(shapeCount), v1: String(pageCount) })}
                     </div>
                 </div>
                 <Pencil className="size-3.5 shrink-0" style={{ color: theme.accent.primary }} />
@@ -277,7 +278,7 @@ function TextContent({ node, theme, isEditingContent, contentReadOnly, textareaR
                 />
             ) : (
                 <div className="thin-scrollbar block h-full w-full select-text overflow-y-auto whitespace-pre-wrap break-words bg-transparent px-4 pb-4 pt-0 font-mono" style={textStyle} onWheel={(event) => event.stopPropagation()}>
-                    {textContent || <span style={{ color: theme.node.placeholder }}>双击编辑文字</span>}
+                    {textContent || <span style={{ color: theme.node.placeholder }}>{translate("canvasTools.canvasNodeContent.doubleClickToEditText")}</span>}
                 </div>
             )}
         </div>
@@ -298,8 +299,8 @@ function SkillContent({ node, theme }: CanvasNodeContentProps) {
                             <BookOpenCheck className="size-4" />
                         </span>
                         <div className="min-w-0">
-                            <div className="truncate text-sm font-semibold" title={skill?.name || node.title || "技能"}>
-                                {skill?.name || node.title || "技能"}
+                            <div className="truncate text-sm font-semibold" title={skill?.name || node.title || translate("nav.sidebar.skills")}>
+                                {skill?.name || node.title || translate("nav.sidebar.skills")}
                             </div>
                             <div className="mt-0.5 flex items-center gap-2 text-[var(--fs-label)]" style={{ color: theme.node.muted }}>
                                 <span>{skillCategoryLabel(skill?.category)}</span>
@@ -322,8 +323,8 @@ function SkillContent({ node, theme }: CanvasNodeContentProps) {
                 </div>
             ) : null}
             <div className="thin-scrollbar mt-3 min-h-0 flex-1 overflow-hidden rounded-[var(--r-md)] px-3 py-2 text-xs leading-5" style={{ background: theme.node.panel, color: theme.node.text }}>
-                <div className="mb-1 font-semibold opacity-55">模板</div>
-                <div className="line-clamp-4 whitespace-pre-wrap break-words">{template || "未配置技能模板"}</div>
+                <div className="mb-1 font-semibold opacity-55">{translate("canvasTools.canvasNodeContent.template")}</div>
+                <div className="line-clamp-4 whitespace-pre-wrap break-words">{template || translate("canvasTools.canvasNodeContent.noSkillTemplateConfigured")}</div>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
                 {tags.length ? (
@@ -334,7 +335,7 @@ function SkillContent({ node, theme }: CanvasNodeContentProps) {
                     ))
                 ) : (
                     <span className="text-[var(--fs-label)]" style={{ color: theme.node.muted }}>
-                        连接到图片、视频、音频或文本节点后生效
+                        {translate("canvasTools.canvasNodeContent.takesEffectOnceConnectedToAnImageVideoAudioOr")}
                     </span>
                 )}
             </div>
@@ -343,18 +344,18 @@ function SkillContent({ node, theme }: CanvasNodeContentProps) {
 }
 
 function skillCategoryLabel(category?: string) {
-    if (category === "writing") return "剧情";
-    if (category === "storyboard") return "分镜";
-    if (category === "image") return "生图";
-    if (category === "video") return "视频";
-    return "通用";
+    if (category === "writing") return translate("canvasTools.canvasNodeContent.story");
+    if (category === "storyboard") return translate("account.welcome.chapters.shots.label");
+    if (category === "image") return translate("canvasTools.canvasNodeContent.generateImage");
+    if (category === "video") return translate("account.feedback.video");
+    return translate("canvasTools.canvasNodeContent.general");
 }
 
 function skillOutputModeLabel(mode?: string) {
     if (mode === "json") return "JSON";
-    if (mode === "image_prompt") return "生图提示词";
-    if (mode === "workflow") return "工作流";
-    return "文本";
+    if (mode === "image_prompt") return translate("canvasTools.canvasNodeContent.imagePrompt");
+    if (mode === "workflow") return translate("library.tasks.model.workflow");
+    return translate("account.settings.modelConfig.capabilities.text");
 }
 
 export function CanvasNodeImageInfo({ node }: { node: CanvasNodeData }) {

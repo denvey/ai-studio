@@ -4,15 +4,17 @@ import { useLocation, useNavigate } from "react-router";
 import { AdminPageFrame } from "./components/admin-shell";
 import { AdminSegmented } from "./ui/controls";
 import "./ecommerce-management.css";
+import { translate } from "@/i18n";
+
 
 const EcommerceKnowledgePage = lazy(() => import("./ecommerce-knowledge-page"));
 const EcommerceSkillsPage = lazy(() => import("./ecommerce-skills-page"));
 const EcommerceCategoriesPage = lazy(() => import("./ecommerce-categories-page"));
 
 const tabs = [
-    { value: "knowledge", label: "视觉知识库", path: "/admin/ecommerce/library" },
-    { value: "skills", label: "创作 Skills", path: "/admin/ecommerce/library/skills" },
-    { value: "categories", label: "行业品类", path: "/admin/ecommerce/library/categories" },
+    { value: "knowledge", label: translate("adminPages.ecommerceManagementPage.visualKnowledgeBase"), path: "/admin/ecommerce/library" },
+    { value: "skills", label: translate("adminPages.ecommerceManagementPage.creativeSkills"), path: "/admin/ecommerce/library/skills" },
+    { value: "categories", label: translate("adminPages.ecommerceManagementPage.industryCategories"), path: "/admin/ecommerce/library/categories" },
 ] as const;
 
 type Tab = (typeof tabs)[number]["value"];
@@ -25,11 +27,11 @@ export default function EcommerceManagementPage() {
 
     return (
         <AdminPageFrame
-            title="知识与技能"
-            description="电商 Agent 策划时检索的视觉知识、调用的创作 Skills，以及按商品定位方法的行业品类。"
+            title={translate("adminPages.ecommerceManagementPage.knowledgeAndSkills")}
+            description={translate("adminPages.ecommerceManagementPage.visualKnowledgeRetrievedDuringECommerceAgentPlanningCreativeSkills")}
             actions={
                 <AdminSegmented<Tab>
-                    ariaLabel="知识与技能视图"
+                    ariaLabel={translate("adminPages.ecommerceManagementPage.knowledgeAndSkillsView")}
                     value={active}
                     onChange={(value) => {
                         const target = tabs.find((tab) => tab.value === value);

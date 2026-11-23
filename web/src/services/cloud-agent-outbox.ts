@@ -4,6 +4,8 @@
 import { localForageStorageForScope } from "@/lib/localforage-storage";
 import { getActiveUserScope } from "@/lib/user-scope";
 import { EMPTY_AGENT_OUTBOX, parseAgentOutbox, type AgentOutbox } from "@/lib/canvas/agent-outbox";
+import { translate } from "@/i18n";
+
 
 const OUTBOX_KEY_PREFIX = "cloud-agent-conversations-v2:outbox:";
 
@@ -20,10 +22,10 @@ export async function loadCloudAgentOutbox(conversationId: string, scope = getAc
     try {
         parsed = JSON.parse(value);
     } catch {
-        throw new Error("本机排队记录已损坏");
+        throw new Error(translate("shared.cloudAgentOutbox.localQueueRecordsAreCorrupted"));
     }
     const outbox = parseAgentOutbox(parsed);
-    if (!outbox) throw new Error("本机排队记录格式无效");
+    if (!outbox) throw new Error(translate("shared.cloudAgentOutbox.invalidLocalQueueRecordFormat"));
     return outbox;
 }
 
@@ -31,7 +33,7 @@ const outboxWrites = new Map<string, Promise<unknown>>();
 
 /** 保存排队消息；空队列直接删除记录。同一对话的写入串行：后发的快照不会被先发的覆盖。 */
 export async function saveCloudAgentOutbox(conversationId: string, outbox: AgentOutbox, scope = getActiveUserScope()) {
-    if (!conversationId) throw new Error("缺少 Agent 对话范围，无法保存排队消息");
+    if (!conversationId) throw new Error(translate("shared.cloudAgentOutbox.agentConversationScopeIsMissingQueuedMessagesCannotBeSaved"));
     const key = `${scope}\u0000${conversationId}`;
     const storage = localForageStorageForScope(scope);
     const write = (outboxWrites.get(key) || Promise.resolve()).catch(() => undefined).then(() => (outbox.items.length ? storage.setItem(outboxStorageKey(conversationId), JSON.stringify(outbox)) : storage.removeItem(outboxStorageKey(conversationId))));

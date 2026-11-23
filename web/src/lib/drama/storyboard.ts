@@ -1,5 +1,7 @@
 // 分镜规则与单集时长的纯函数：与后端 production/storyboard.go 同一套默认值与夹取规则。
 import type { DramaDialogue, DramaPacing, DramaSegmentMode, DramaStoryboardSettings, DramaTransition } from "@/services/api/drama";
+import { translate } from "@/i18n";
+
 
 export const MIN_SEGMENT_SECONDS = 4;
 export const MAX_SEGMENT_SECONDS = 60;
@@ -22,7 +24,7 @@ export const DEFAULT_STORYBOARD: DramaStoryboardSettings = {
 /** 镜头节奏从快到慢五档的平均镜头长度（秒），与后端 production.pacingRules 一致。 */
 const PACING_AVERAGE_SECONDS: Record<DramaPacing, number> = { rapid: 2, fast: 2.5, standard: 3.5, relaxed: 4.5, slow: 5.5 };
 export const PACING_ORDER = Object.keys(PACING_AVERAGE_SECONDS) as DramaPacing[];
-export const PACING_LABEL: Record<DramaPacing, string> = { rapid: "极快节奏", fast: "快节奏", standard: "标准节奏", relaxed: "舒缓节奏", slow: "慢节奏" };
+export const PACING_LABEL: Record<DramaPacing, string> = { rapid: translate("shared.drama.storyboard.rapidPacing"), fast: translate("shared.drama.storyboard.fastPacing"), standard: translate("shared.drama.storyboard.standardPacing"), relaxed: translate("shared.drama.storyboard.relaxedPacing"), slow: translate("shared.drama.storyboard.slowPacing") };
 /** 转场时长下限，也是默认值；与后端 DefaultTransitionMs 一致。 */
 export const MIN_TRANSITION_MS = 150;
 
@@ -53,7 +55,7 @@ export const DIALOGUE_LIMITS: Record<keyof DialogueRule, { min: number; max: num
     linePauseMs: { min: 100, max: 2000 },
 };
 
-export const TRANSITION_LABEL: Record<DramaTransition, string> = { cut: "硬切", fadeblack: "黑场过渡", fadewhite: "闪白" };
+export const TRANSITION_LABEL: Record<DramaTransition, string> = { cut: translate("shared.drama.storyboard.hardCut"), fadeblack: translate("shared.drama.storyboard.dipToBlack"), fadewhite: translate("shared.drama.storyboard.whiteFlash") };
 
 const clamp = (value: number, low: number, high: number) => Math.max(low, Math.min(high, value));
 
@@ -137,10 +139,10 @@ export function lineTarget(settings: DramaStoryboardSettings, episodeSeconds: nu
 }
 
 export function formatEpisodeSeconds(seconds: number) {
-    if (seconds < 60) return `${seconds} 秒`;
+    if (seconds < 60) return translate("shared.create.creationWorkspaceMessages.s", { v0: String(seconds) });
     const minutes = Math.floor(seconds / 60);
     const rest = seconds % 60;
-    return rest ? `${minutes} 分 ${rest} 秒` : `${minutes} 分钟`;
+    return rest ? translate("shared.drama.storyboard.mS", { v0: String(minutes), v1: String(rest) }) : translate("shared.drama.storyboard.min", { v0: String(minutes) });
 }
 
 /** 解析“90”“5分钟”“5min”“2:30”“1分30秒”等写法为秒；无法识别返回 null。 */

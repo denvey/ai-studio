@@ -10,6 +10,7 @@ import { bindingForConnectedNode, isStoryboardPreviewAsset } from "@/lib/canvas/
 import { normalizeStoryboardAssetBindings } from "@/lib/canvas/canvas-storyboard-assets";
 import type { ProjectDetail } from "@/services/api/projects";
 import type { CanvasNodeData, StoryboardAssetBinding } from "@/types/canvas";
+import { translate } from "@/i18n";
 
 export function StoryboardAssetPickerModal({
     nodes,
@@ -51,23 +52,23 @@ export function StoryboardAssetPickerModal({
         });
     return (
         <>
-            <Modal open title={`镜头 ${shotNumber} · 关联资产`} width={760} centered onCancel={onClose} footer={null}>
+            <Modal open title={translate("canvasTools.storyboardAssetPickerModal.shotRelatedAssets", { v0: String(shotNumber) })} width={760} centered onCancel={onClose} footer={null}>
                 <div data-canvas-no-zoom data-canvas-wheel-scroll onPointerDown={(event) => event.stopPropagation()} onWheel={(event) => event.stopPropagation()}>
-                    <p className="mb-4 text-sm text-foreground/55">选择当前镜头使用的角色、场景、道具或参考媒体。尚未引入的资产可从项目资产中选择。</p>
+                    <p className="mb-4 text-sm text-foreground/55">{translate("canvasTools.storyboardAssetPickerModal.selectCharactersLocationsPropsOrReferenceMediaForThisShot")}</p>
                     <div className="mb-4 flex flex-wrap gap-2">
-                        <Input className="min-w-40 flex-1" prefix={<Search className="size-4 text-foreground/40" />} allowClear placeholder="搜索资产名称或标签" value={query} onChange={(event) => setQuery(event.target.value)} />
-                        <Select className="w-32" aria-label="筛选资产类型" value={role} onChange={setRole} options={[{ value: "all", label: "全部类型" }, ...Object.entries(STORYBOARD_ASSET_ROLE_LABELS).map(([value, label]) => ({ value, label }))]} />
+                        <Input className="min-w-40 flex-1" prefix={<Search className="size-4 text-foreground/40" />} allowClear placeholder={translate("canvasTools.storyboardAssetPickerModal.searchAssetNamesOrTags")} value={query} onChange={(event) => setQuery(event.target.value)} />
+                        <Select className="w-32" aria-label={translate("canvasTools.storyboardAssetPickerModal.filterAssetType")} value={role} onChange={setRole} options={[{ value: "all", label: translate("library.tasks.page.allKinds") }, ...Object.entries(STORYBOARD_ASSET_ROLE_LABELS).map(([value, label]) => ({ value, label }))]} />
                         <Button icon={<Library className="size-4" />} onClick={() => setLibraryOpen(true)}>
-                            引用项目资产
+                            {translate("canvasTools.storyboardAssetPickerModal.referenceProjectAssets")}
                         </Button>
                     </div>
-                    <div className="grid max-h-[38vh] min-h-40 auto-rows-max grid-cols-2 content-start gap-2 overflow-y-auto p-1 sm:grid-cols-3" aria-label="可选资产">
+                    <div className="grid max-h-[38vh] min-h-40 auto-rows-max grid-cols-2 content-start gap-2 overflow-y-auto p-1 sm:grid-cols-3" aria-label={translate("canvasTools.storyboardAssetPickerModal.availableAssets")}>
                         {filtered.map((node) => (
                             <button
                                 key={node.id}
                                 type="button"
                                 aria-pressed={selectedIds.has(node.id)}
-                                aria-label={`选择资产：${node.title}`}
+                                aria-label={translate("canvasTools.storyboardAssetPickerModal.selectAsset", { v0: String(node.title) })}
                                 onClick={() => toggle(node)}
                                 className={`relative flex items-center gap-2 rounded-lg border p-2 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ${selectedIds.has(node.id) ? "border-foreground/50 bg-foreground/[0.08]" : "border-foreground/10 hover:bg-foreground/[0.04]"}`}
                             >
@@ -84,31 +85,31 @@ export function StoryboardAssetPickerModal({
                             </button>
                         ))}
                         {!filtered.length ? (
-                            <div className="col-span-full grid place-items-center px-4 py-8 text-center text-sm text-foreground/45">{keyword || role !== "all" ? "没有匹配的资产，试试其他搜索条件" : "当前画布还没有可选资产，点击“引用项目资产”添加"}</div>
+                            <div className="col-span-full grid place-items-center px-4 py-8 text-center text-sm text-foreground/45">{keyword || role !== "all" ? translate("canvasTools.storyboardAssetPickerModal.noMatchingAssetsTryDifferentSearchCriteria") : translate("canvasTools.storyboardAssetPickerModal.noAssetsAvailableOnThisCanvasYetClickReferenceProject")}</div>
                         ) : null}
                     </div>
                     <div className="mt-4 border-t border-foreground/10 pt-3">
                         <div className="mb-2 flex items-center justify-between text-xs text-foreground/55">
-                            <span>已选 {draft.length} 项</span>
+                            <span>{translate("canvasTools.inline.storyboardAssetPickerModal.itemsSelected", { v0: String(draft.length) })}</span>
                             <Button type="text" size="small" disabled={!draft.length} onClick={() => setDraft([])}>
-                                清空选择
+                                {translate("canvasTools.storyboardAssetPickerModal.clearSelection")}
                             </Button>
                         </div>
-                        <div className="flex max-h-28 flex-wrap gap-2 overflow-y-auto" aria-label="已选资产">
+                        <div className="flex max-h-28 flex-wrap gap-2 overflow-y-auto" aria-label={translate("canvasTools.storyboardAssetPickerModal.selectedAssets")}>
                             {draft.map((binding) => (
                                 <span key={binding.nodeId} className="inline-flex max-w-full items-center gap-1 rounded-md bg-foreground/[0.06] px-2 py-1 text-xs">
-                                    <span className="max-w-40 truncate">{nodeById.get(binding.nodeId)?.title || "资产已失效"}</span>
+                                    <span className="max-w-40 truncate">{nodeById.get(binding.nodeId)?.title || translate("canvasTools.storyboardAssetPickerModal.assetUnavailable")}</span>
                                     <Select
                                         size="small"
                                         className="w-20"
-                                        aria-label={`${nodeById.get(binding.nodeId)?.title || "失效资产"}的用途`}
+                                        aria-label={translate("canvasTools.storyboardAssetPickerModal.purposeOf", { v0: String(nodeById.get(binding.nodeId)?.title || translate("canvasTools.storyboardAssetPickerModal.unavailableAsset")) })}
                                         value={binding.role}
                                         options={Object.entries(STORYBOARD_ASSET_ROLE_LABELS).map(([value, label]) => ({ value, label }))}
                                         onChange={(value) => setDraft((current) => current.map((item) => (item.nodeId === binding.nodeId ? { ...item, role: value as StoryboardAssetBinding["role"] } : item)))}
                                     />
                                     <button
                                         type="button"
-                                        aria-label={`移除资产：${nodeById.get(binding.nodeId)?.title || "失效资产"}`}
+                                        aria-label={translate("canvasTools.storyboardAssetPickerModal.removeAsset", { v0: String(nodeById.get(binding.nodeId)?.title || translate("canvasTools.storyboardAssetPickerModal.unavailableAsset")) })}
                                         className="rounded p-1 outline-none hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
                                         onClick={() => setDraft((current) => current.filter((item) => item.nodeId !== binding.nodeId))}
                                     >
@@ -124,18 +125,18 @@ export function StoryboardAssetPickerModal({
                         </p>
                     ) : null}
                     <div className="mt-4 flex justify-end gap-2">
-                        <Button onClick={onClose}>取消</Button>
+                        <Button onClick={onClose}>{translate("common.cancel")}</Button>
                         <Button
                             type="primary"
                             onClick={() => {
                                 try {
                                     onSave(draft);
                                 } catch (cause) {
-                                    setError(cause instanceof Error ? cause.message : "关联资产保存失败");
+                                    setError(cause instanceof Error ? cause.message : translate("canvasTools.storyboardAssetPickerModal.failedToSaveRelatedAssets"));
                                 }
                             }}
                         >
-                            保存关联
+                            {translate("canvasTools.storyboardAssetPickerModal.saveLink")}
                         </Button>
                     </div>
                 </div>
@@ -146,7 +147,7 @@ export function StoryboardAssetPickerModal({
                     detail={detail}
                     onClose={() => setLibraryOpen(false)}
                     onInsert={async (payloads) => {
-                        if (payloads.some((payload) => payload.kind === "text")) throw new Error("镜头关联请选择角色、图片、视频或音频；文本请连接到分镜设定入口");
+                        if (payloads.some((payload) => payload.kind === "text")) throw new Error(translate("canvasTools.storyboardAssetPickerModal.linkCharactersImagesVideosOrAudioToShotsConnectText"));
                         const imported = await onImport(payloads);
                         const additions = imported.flatMap((node) => {
                             const binding = bindingForConnectedNode(node);

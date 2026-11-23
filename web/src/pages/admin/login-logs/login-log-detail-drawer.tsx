@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { AdminDrawer } from "@/pages/admin/ui/overlays";
 import { getAdminLoginLog, type LoginLog } from "@/services/api/login-logs";
 import { loginEventLabels, loginLogDevice, loginMethodLabels, loginSourceLabels } from "./login-log-display";
+import { translate } from "@/i18n";
+
 
 export function LoginLogDetailDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
     const [detail, setDetail] = useState<LoginLog | null>(null);
@@ -19,42 +21,42 @@ export function LoginLogDetailDrawer({ id, onClose }: { id: string | null; onClo
                 if (!controller.signal.aborted) setDetail(log);
             })
             .catch((cause) => {
-                if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : "读取日志详情失败");
+                if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : translate("adminPages.loginLogs.loginLogDetailDrawer.failedToLoadLogDetails"));
             });
         return () => controller.abort();
     }, [id, retry]);
     const device = detail ? loginLogDevice(detail.userAgent) : null;
     const entries = detail
         ? [
-              ["时间", dayjs(detail.createdAt).format("YYYY-MM-DD HH:mm:ss.SSS Z")],
-              ["用户昵称", detail.displayName || "未关联用户"],
-              ["账号", detail.username || detail.account || "未识别"],
-              ["用户 ID", detail.userId || "未关联用户"],
-              ["事件", loginEventLabels[detail.event]],
-              ["来源", loginSourceLabels[detail.source]],
-              ["登录方式", loginMethodLabels[detail.method]],
-              ["结果", detail.result === "success" ? "成功" : "失败"],
-              ["IP", detail.ip || "未记录"],
-              ["浏览器", device?.browser || "未记录"],
-              ["操作系统", device?.os || "未记录"],
-              ["客户端自报信息", detail.userAgent || "未记录"],
-              ["失败原因", detail.message || "无"],
-              ["原因码", detail.reason || "无"],
-              ["关联会话标识", detail.sessionRef || "未关联会话"],
-              ["日志 ID", detail.id],
+              [translate("adminPages.loginLogs.loginLogDetailDrawer.time"), dayjs(detail.createdAt).format("YYYY-MM-DD HH:mm:ss.SSS Z")],
+              [translate("adminPages.loginLogs.loginLogDetailDrawer.userDisplayName"), detail.displayName || translate("adminPages.loginLogs.loginLogDetailDrawer.noLinkedUser")],
+              [translate("adminPages.loginLogs.loginLogDetailDrawer.account"), detail.username || detail.account || translate("adminPages.loginLogs.loginLogDetailDrawer.unidentified")],
+              [translate("adminPages.loginLogs.loginLogDetailDrawer.userID"), detail.userId || translate("adminPages.loginLogs.loginLogDetailDrawer.noLinkedUser")],
+              [translate("adminPages.loginLogs.loginLogDetailDrawer.event"), loginEventLabels[detail.event]],
+              [translate("canvasA.assetView.origin"), loginSourceLabels[detail.source]],
+              [translate("auth.login.method"), loginMethodLabels[detail.method]],
+              [translate("adminPages.loginLogs.loginLogDetailDrawer.result"), detail.result === "success" ? translate("adminPages.loginLogs.loginLogDetailDrawer.success") : translate("library.assets.batch.failed")],
+              ["IP", detail.ip || translate("adminPages.loginLogs.loginLogDetailDrawer.notRecorded")],
+              [translate("adminPages.loginLogs.loginLogDetailDrawer.browser"), device?.browser || translate("adminPages.loginLogs.loginLogDetailDrawer.notRecorded")],
+              [translate("adminPages.loginLogs.loginLogDetailDrawer.operatingSystem"), device?.os || translate("adminPages.loginLogs.loginLogDetailDrawer.notRecorded")],
+              [translate("adminPages.loginLogs.loginLogDetailDrawer.clientReportedInformation"), detail.userAgent || translate("adminPages.loginLogs.loginLogDetailDrawer.notRecorded")],
+              [translate("adminPages.loginLogs.loginLogDetailDrawer.failureReason"), detail.message || translate("canvasB.common.none")],
+              [translate("adminPages.loginLogs.loginLogDetailDrawer.reasonCode"), detail.reason || translate("canvasB.common.none")],
+              [translate("adminPages.loginLogs.loginLogDetailDrawer.linkedSessionID"), detail.sessionRef || translate("adminPages.loginLogs.loginLogDetailDrawer.noLinkedSession")],
+              [translate("adminPages.loginLogs.loginLogDetailDrawer.logID"), detail.id],
           ]
         : [];
     return (
-        <AdminDrawer title="登录日志详情" open={Boolean(id)} onClose={onClose} size={560}>
+        <AdminDrawer title={translate("adminPages.loginLogs.loginLogDetailDrawer.loginLogDetails")} open={Boolean(id)} onClose={onClose} size={560}>
             {error ? (
                 <Alert
                     type="error"
                     showIcon
-                    title="详情读取失败"
+                    title={translate("adminPages.loginLogs.loginLogDetailDrawer.failedToLoadDetails")}
                     description={error}
                     action={
                         <Button size="small" onClick={() => setRetry((value) => value + 1)}>
-                            重试
+                            {translate("common.retry")}
                         </Button>
                     }
                 />

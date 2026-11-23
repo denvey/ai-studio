@@ -3,6 +3,8 @@ import { Alert, Breadcrumb, Button, Input, Space, Table, Tag, Typography } from 
 import { FolderTree, RefreshCw } from "lucide-react";
 import { EcommerceLibraryPanel } from "./ecommerce-library-panel";
 import { getIndustryCategories, type IndustryCategoryPage, type IndustryCategoryMatch } from "@/services/api/ecommerce-categories";
+import { currentLocale, translate } from "@/i18n";
+
 
 export default function EcommerceCategoriesPage() {
     const [data, setData] = useState<IndustryCategoryPage>();
@@ -43,26 +45,26 @@ export default function EcommerceCategoriesPage() {
     const lineage = (data?.lineage ?? []).slice().reverse();
     return (
         <EcommerceLibraryPanel
-            description="按完整中英文分类路径定位商品，再选择最近的适用方法与行业 Skills。"
+            description={translate("adminPages.ecommerceCategoriesPage.locateProductsByTheirFullChineseAndEnglishCategoryPaths")}
             actions={
                 <Button icon={<RefreshCw size={14} />} loading={loading} onClick={() => setRefresh((value) => value + 1)}>
-                    刷新
+                    {translate("common.refresh")}
                 </Button>
             }
         >
             {error ? <Alert type="error" showIcon message={error} /> : null}
             <Space wrap size={16}>
                 <Typography.Text>
-                    <strong>{source?.roots ?? "—"}</strong> 个顶级行业
+                    <strong>{source?.roots ?? "—"}</strong> {translate("adminPages.ecommerceCategoriesPage.topLevelIndustries")}
                 </Typography.Text>
                 <Typography.Text>
-                    <strong>{source?.nodes.toLocaleString() ?? "—"}</strong> 个分类节点
+                    <strong>{source?.nodes.toLocaleString(currentLocale()) ?? "—"}</strong> {translate("adminPages.ecommerceCategoriesPage.categoryNodes")}
                 </Typography.Text>
                 <Typography.Text>
-                    <strong>{source?.leaves.toLocaleString() ?? "—"}</strong> 个叶级子品类
+                    <strong>{source?.leaves.toLocaleString(currentLocale()) ?? "—"}</strong> {translate("adminPages.ecommerceCategoriesPage.leafSubcategories")}
                 </Typography.Text>
                 <Typography.Text>
-                    知识索引 <strong>{data?.coverage.indexedNodes.toLocaleString() ?? "—"}</strong> 条
+                    {translate("adminPages.ecommerceCategoriesPage.knowledgeIndex")} <strong>{data?.coverage.indexedNodes.toLocaleString(currentLocale()) ?? "—"}</strong> {translate("account.layout.pagination.item")}
                 </Typography.Text>
                 {source ? (
                     <a href={source.url} target="_blank" rel="noreferrer">
@@ -73,12 +75,12 @@ export default function EcommerceCategoriesPage() {
             <Alert
                 type="info"
                 showIcon
-                message="分类目录与专属创作方法分别统计。子品类优先使用最近上级的方法；继承覆盖不代表每个叶级品类都已单独生成验收。"
-                description={data ? `${data.coverage.industryMethods} 套行业方法、${data.coverage.specializedAncestors} 个细分方法祖先；开关在“电商 Skills”中管理。` : undefined}
+                message={translate("adminPages.ecommerceCategoriesPage.categoryDirectoriesAndDedicatedCreativeMethodsAreCountedSeparatelySubcategories")}
+                description={data ? translate("adminPages.ecommerceCategoriesPage.industryMethodsAndAncestorsWithSpecializedMethodsManageTheirSwitches", { v0: String(data.coverage.industryMethods), v1: String(data.coverage.specializedAncestors) }) : undefined}
             />
             <Space wrap>
                 <Input.Search
-                    placeholder="搜索中文、英文品类或分类 ID"
+                    placeholder={translate("adminPages.ecommerceCategoriesPage.searchChineseOrEnglishCategoriesOrCategoryIDs")}
                     allowClear
                     value={searchText}
                     onChange={(event) => setSearchText(event.target.value)}
@@ -90,7 +92,7 @@ export default function EcommerceCategoriesPage() {
                     style={{ width: 360 }}
                 />
                 <Button icon={<FolderTree size={14} />} onClick={() => open("")}>
-                    全部行业
+                    {translate("adminPages.ecommerceCategoriesPage.allIndustries")}
                 </Button>
             </Space>
             <Breadcrumb
@@ -98,7 +100,7 @@ export default function EcommerceCategoriesPage() {
                     {
                         title: (
                             <Button type="link" size="small" onClick={() => open("")}>
-                                全部行业
+                                {translate("adminPages.ecommerceCategoriesPage.allIndustries")}
                             </Button>
                         ),
                     },
@@ -120,18 +122,18 @@ export default function EcommerceCategoriesPage() {
                 expandable={{
                     expandedRowRender: ({ node, playbook }) => (
                         <Space direction="vertical">
-                            <Typography.Text>分类 ID：{node.id}</Typography.Text>
-                            <Typography.Text>场景：{playbook.scene}</Typography.Text>
-                            <Typography.Text>观察重点：{playbook.focus}</Typography.Text>
-                            <Typography.Text>字体：{playbook.typography}</Typography.Text>
-                            <Typography.Text>排版：{playbook.layout}</Typography.Text>
-                            <Typography.Text>叙事：{playbook.story}</Typography.Text>
+                            <Typography.Text>{translate("adminPages.ecommerceCategoriesPage.categoryID")}{node.id}</Typography.Text>
+                            <Typography.Text>{translate("adminPages.ecommerceCategoriesPage.scene")}{playbook.scene}</Typography.Text>
+                            <Typography.Text>{translate("adminPages.ecommerceCategoriesPage.focus")}{playbook.focus}</Typography.Text>
+                            <Typography.Text>{translate("adminPages.ecommerceCategoriesPage.typography")}{playbook.typography}</Typography.Text>
+                            <Typography.Text>{translate("adminPages.ecommerceCategoriesPage.layout")}{playbook.layout}</Typography.Text>
+                            <Typography.Text>{translate("adminPages.ecommerceCategoriesPage.narrative")}{playbook.story}</Typography.Text>
                         </Space>
                     ),
                 }}
                 columns={[
                     {
-                        title: "行业 / 品类 / 子品类",
+                        title: translate("adminPages.ecommerceCategoriesPage.industryCategorySubcategory"),
                         key: "node",
                         render: (_, { node }) => (
                             <div>
@@ -150,26 +152,26 @@ export default function EcommerceCategoriesPage() {
                         ),
                     },
                     {
-                        title: "下级分类",
+                        title: translate("adminPages.ecommerceCategoriesPage.subcategories"),
                         width: 140,
                         key: "children",
                         render: (_, { node }) => (
                             <span>
-                                {node.children} 个直接下级
+                                {node.children} {translate("adminPages.ecommerceCategoriesPage.directChildren")}
                                 <br />
-                                <Typography.Text type="secondary">共 {node.descendants} 个后代</Typography.Text>
+                                <Typography.Text type="secondary">{translate("adminPages.ecommerceCategoriesPage.total")} {node.descendants} {translate("adminPages.ecommerceCategoriesPage.descendants")}</Typography.Text>
                             </span>
                         ),
                     },
                     {
-                        title: "创作方法",
+                        title: translate("adminPages.ecommerceCategoriesPage.creativeMethods"),
                         width: 210,
                         key: "scope",
                         render: (_, entry) => (
                             <div>
-                                <Tag color={entry.methodScope === "specific" ? "blue" : "default"}>{entry.methodScope === "specific" ? "本级方法" : "继承上级方法"}</Tag>
+                                <Tag color={entry.methodScope === "specific" ? "blue" : "default"}>{entry.methodScope === "specific" ? translate("adminPages.ecommerceCategoriesPage.methodForThisCategory") : translate("adminPages.ecommerceCategoriesPage.inheritedAncestorMethod")}</Tag>
                                 <br />
-                                <Typography.Text type="secondary">方法祖先：{entry.methodAncestorId}</Typography.Text>
+                                <Typography.Text type="secondary">{translate("adminPages.ecommerceCategoriesPage.methodAncestor")}{entry.methodAncestorId}</Typography.Text>
                             </div>
                         ),
                     },

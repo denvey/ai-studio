@@ -9,6 +9,7 @@ import type { CanvasNodeData } from "@/types/canvas";
 import type { PrevisScene } from "@/types/previs";
 import { PrevisMiniViewport } from "./previs-mini-viewport";
 import "./canvas-previs-node-card.css";
+import { translate } from "@/i18n";
 
 export function CanvasPrevisNodePanel({ node, scene, readNodeContent, onOpen, professional = true }: { node: CanvasNodeData; scene: PrevisScene | null; readNodeContent: PrevisNodeContentReader; onOpen: () => void; professional?: boolean }) {
     const theme = canvasThemes[useActiveTheme()];
@@ -27,12 +28,12 @@ export function CanvasPrevisNodePanel({ node, scene, readNodeContent, onOpen, pr
         <div className="previs-node-card" style={{ color: theme.node.text }}>
             <header className="previs-node-card-header">
                 <div className="previs-node-card-kicker"><span className="previs-node-card-mark"><Clapperboard className="size-3.5" /></span><span>PREVIS / 3D</span></div>
-                <span className="previs-node-card-status"><span className="size-1.5 rounded-full bg-emerald-400" />可编辑</span>
+                <span className="previs-node-card-status"><span className="size-1.5 rounded-full bg-emerald-400" />{translate("canvasTools.previs.canvasPrevisNodePanel.editable")}</span>
             </header>
             <div className="previs-node-card-title-row">
                 <div className="min-w-0">
                     <h3 className="previs-node-card-title" title={title}>{title}</h3>
-                    <p className="previs-node-card-shot" title={shot?.name || "未设置镜头"}>{shot?.name || "未设置镜头"}</p>
+                    <p className="previs-node-card-shot" title={shot?.name || translate("canvasC.previsMini.noShot")}>{shot?.name || translate("canvasC.previsMini.noShot")}</p>
                 </div>
                 <span className="previs-node-card-duration"><Timer className="size-3" />{shot?.duration ?? 0}s</span>
             </div>
@@ -42,27 +43,27 @@ export function CanvasPrevisNodePanel({ node, scene, readNodeContent, onOpen, pr
                 data-canvas-no-zoom
                 className="previs-node-preview group"
                 style={{ background: theme.node.fill, borderColor: theme.node.stroke }}
-                title={professional ? "打开 3D 预演台" : "切换到专业模式后编辑预演台"}
+                title={professional ? translate("canvasTools.previs.canvasPrevisNodePanel.open3DPrevisWorkbench") : translate("canvasTools.previs.canvasPrevisNodePanel.switchToProfessionalModeToEditThePrevisWorkbench")}
                 disabled={!professional}
                 onMouseDown={(event) => event.stopPropagation()}
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={(event) => { event.stopPropagation(); onOpen(); }}
             >
                 {preview.kind === "image"
-                    ? <CachedResourceImage src={preview.url} storageKey={preview.storageKey} alt={`${title} 已回写的预演台构图`} className="previs-node-preview-image" draggable={false} eager fallback={<PrevisPreviewState kind="empty" theme={theme} />} onError={() => setFailedUrl(preview.url || preview.storageKey || "" )} />
+                    ? <CachedResourceImage src={preview.url} storageKey={preview.storageKey} alt={translate("canvasTools.previs.canvasPrevisNodePanel.previsCompositionWrittenBack", { v0: String(title) })} className="previs-node-preview-image" draggable={false} eager fallback={<PrevisPreviewState kind="empty" theme={theme} />} onError={() => setFailedUrl(preview.url || preview.storageKey || "" )} />
                     : scene && scene.objects.length > 0
                         ? <PrevisMiniViewport scene={scene} />
                         : <PrevisPreviewState kind={preview.kind} theme={theme} />}
                 <span className={`previs-node-preview-cta ${professional ? "group-hover:opacity-100 group-focus-visible:opacity-100" : "opacity-100"}`} style={{ background: `${theme.toolbar.panel}e8`, color: theme.node.text }}>
-                    {professional ? <><Move3d className="size-3.5" />进入预演台</> : <><LockKeyhole className="size-3.5" />专业模式可编辑</>}
+                    {professional ? <><Move3d className="size-3.5" />{translate("canvasTools.previs.canvasPrevisNodePanel.openPrevisWorkbench")}</> : <><LockKeyhole className="size-3.5" />{translate("canvasTools.previs.canvasPrevisNodePanel.editableInProMode")}</>}
                 </span>
             </button>
 
             <footer className="previs-node-card-footer" style={{ borderColor: theme.node.stroke, color: theme.node.muted }}>
-                <Stat icon={<Box className="size-3" />} value={objectCount} label="对象" />
-                <Stat icon={<Camera className="size-3" />} value={cameraCount} label="机位" />
-                <Stat icon={<Lightbulb className="size-3" />} value={lightCount} label="灯光" />
-                <span className="previs-node-card-footer-action"><MousePointerClick className="size-3" />双击打开</span>
+                <Stat icon={<Box className="size-3" />} value={objectCount} label={translate("canvasC.previsMini.objects")} />
+                <Stat icon={<Camera className="size-3" />} value={cameraCount} label={translate("canvasTools.previs.canvasPrevisNodePanel.cameraPosition")} />
+                <Stat icon={<Lightbulb className="size-3" />} value={lightCount} label={translate("canvasTools.previs.canvasPrevisNodePanel.light")} />
+                <span className="previs-node-card-footer-action"><MousePointerClick className="size-3" />{translate("canvasTools.previs.canvasPrevisNodePanel.doubleClickToOpen")}</span>
             </footer>
         </div>
     );
@@ -75,12 +76,12 @@ function PrevisPreviewState({ kind, theme }: { kind: "loading" | "empty"; theme:
             <span className="grid size-11 shrink-0 place-items-center rounded-2xl" style={{ background: theme.toolbar.activeBg }}>
                 <Clapperboard className="size-4" style={{ color: theme.node.muted }} aria-hidden />
             </span>
-            <span className="max-w-full truncate text-xs font-semibold" style={{ color: theme.node.text }}>{loading ? "正在准备场景" : "尚未生成预览"}</span>
-            <span className="max-w-full text-[var(--fs-label)] leading-4" style={{ color: theme.node.muted }}>{loading ? "场景数据加载完成后显示" : "进入预演台并回写构图后显示"}</span>
+            <span className="max-w-full truncate text-xs font-semibold" style={{ color: theme.node.text }}>{loading ? translate("canvasTools.previs.canvasPrevisNodePanel.preparingTheScene") : translate("canvasTools.previs.canvasPrevisNodePanel.noPreviewGeneratedYet")}</span>
+            <span className="max-w-full text-[var(--fs-label)] leading-4" style={{ color: theme.node.muted }}>{loading ? translate("canvasTools.previs.canvasPrevisNodePanel.shownAfterSceneDataLoads") : translate("canvasTools.previs.canvasPrevisNodePanel.shownAfterACompositionIsWrittenBackFromThePrevis")}</span>
         </div>
     );
 }
 
 function Stat({ icon, value, label }: { icon: ReactNode; value: number; label: string }) {
-    return <span className="inline-flex min-w-0 items-center gap-1" title={`${value} 个${label}`}>{icon}<b>{value}</b><span>{label}</span></span>;
+    return <span className="inline-flex min-w-0 items-center gap-1" title={translate("canvasTools.previs.objectCount", { v0: String(value), v1: String(label) })}>{icon}<b>{value}</b><span>{label}</span></span>;
 }

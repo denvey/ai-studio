@@ -13,6 +13,7 @@ import type { AgentPermissionMode, AgentProfileLayer, AgentProfileScope, AgentPr
 import type { Skill, SkillAgentMode } from "@/services/api/skills";
 import type { AiConfig } from "@/stores/use-config-store";
 import { AgentConnectorsBar } from "./canvas-cloud-agent-connectors";
+import { translate } from "@/i18n";
 
 /** 对话固定的技能上限；与技能商店弹窗一致，后端另有含点名在内的 16 个硬上限。 */
 export const AGENT_PINNED_SKILL_LIMIT = 8;
@@ -67,34 +68,34 @@ type AgentSettingsProps = {
 
 // 颜色走状态语义 token，明暗主题和皮肤自动适配；short 是输入框权限胶囊上的两字名。
 const permissionOptions: Array<{ value: AgentPermissionMode; label: string; short: string; description: string; icon: typeof ShieldCheck; color: string }> = [
-    { value: "read_only", label: "只读", short: "只读", description: "只分析和建议", icon: LockKeyhole, color: "var(--status-loading)" },
-    { value: "request_approval", label: "请求审批", short: "审批", description: "写入和生成前确认", icon: ShieldCheck, color: "var(--status-warning)" },
-    { value: "auto", label: "自动执行", short: "自动", description: "预算内执行已授权工具", icon: CirclePlay, color: "var(--status-success)" },
+    { value: "read_only", label: translate("canvasTools.canvasCloudAgentSettings.readOnly"), short: translate("canvasTools.canvasCloudAgentSettings.readOnly"), description: translate("canvasTools.canvasCloudAgentSettings.analyzeAndSuggestOnly"), icon: LockKeyhole, color: "var(--status-loading)" },
+    { value: "request_approval", label: translate("canvasTools.canvasCloudAgentSettings.requestApproval"), short: translate("canvasTools.canvasCloudAgentSettings.approval"), description: translate("canvasTools.canvasCloudAgentSettings.confirmBeforeWritingOrGenerating"), icon: ShieldCheck, color: "var(--status-warning)" },
+    { value: "auto", label: translate("canvasTools.canvasCloudAgentSettings.executeAutomatically"), short: translate("account.layout.oss.auto"), description: translate("canvasTools.canvasCloudAgentSettings.useAuthorizedToolsWithinBudget"), icon: CirclePlay, color: "var(--status-success)" },
 ];
 
-const contextOptions: Array<{ value: AgentContextKey; label: string; description: string }> = [{ value: "canvas", label: "画布节点目录", description: "每次请求只带节点 id、类型和标题；正文按页读取，不含媒体或未同步修改" }];
+const contextOptions: Array<{ value: AgentContextKey; label: string; description: string }> = [{ value: "canvas", label: translate("canvasTools.canvasCloudAgentSettings.canvasNodeIndex"), description: translate("canvasTools.canvasCloudAgentSettings.eachRequestIncludesOnlyNodeIDsTypesAndTitlesContent") }];
 
 export function CanvasCloudAgentSettings(props: AgentSettingsProps) {
     const [section, setSection] = useState<SettingsSection>("home");
     const [skillTab, setSkillTab] = useState<"installed" | "market">("installed");
     const { theme } = props;
-    const title = section === "home" ? "Agent 设置" : sectionTitle(section);
+    const title = section === "home" ? translate("canvasTools.canvasCloudAgentSettings.agentSettings") : sectionTitle(section);
     const goHome = () => setSection("home");
 
     return (
         <div className="canvas-agent-settings flex min-h-0 min-w-0 flex-1 flex-col" style={{ background: theme.node.panel }}>
             <header data-agent-drag-handle className="agent-panel-header flex shrink-0 items-center gap-2">
-                <Button type="text" shape="circle" icon={<ArrowLeft className="size-4" />} onClick={section === "home" ? props.onBack : goHome} aria-label={section === "home" ? "返回对话" : "返回设置"} />
+                <Button type="text" shape="circle" icon={<ArrowLeft className="size-4" />} onClick={section === "home" ? props.onBack : goHome} aria-label={section === "home" ? translate("canvasTools.canvasCloudAgentSettings.backToConversation") : translate("canvasTools.canvasCloudAgentSettings.backToSettings")} />
                 <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold">{title}</div>
-                    <div className="mt-0.5 text-[var(--fs-label)] opacity-40">{section === "home" ? "只影响下一次新运行" : sectionSubtitle(section)}</div>
+                    <div className="mt-0.5 text-[var(--fs-label)] opacity-40">{section === "home" ? translate("canvasTools.canvasCloudAgentSettings.appliesOnlyToTheNextNewRun") : sectionSubtitle(section)}</div>
                 </div>
                 {section !== "home" ? (
                     <span className="rounded-full px-2 py-1 text-[var(--fs-label)] opacity-50" style={{ background: theme.node.fill }}>
-                        {section === "skills" ? `${props.selectedSkillIds.length} 已固定` : "当前 Agent"}
+                        {section === "skills" ? translate("canvasTools.canvasCloudAgentSettings.pinned", { v0: String(props.selectedSkillIds.length) }) : translate("canvasTools.canvasCloudAgentSettings.currentAgent")}
                     </span>
                 ) : null}
-                {props.onCollapse ? <Button type="text" shape="circle" icon={<X className="size-4" />} onClick={props.onCollapse} aria-label="收起 Agent" title="收起" /> : null}
+                {props.onCollapse ? <Button type="text" shape="circle" icon={<X className="size-4" />} onClick={props.onCollapse} aria-label={translate("canvasTools.canvasCloudAgentSettings.collapseTheAgent")} title={translate("account.feedback.collapse")} /> : null}
             </header>
 
             {section === "home" ? <SettingsHome props={props} theme={theme} onOpen={setSection} /> : null}
@@ -116,7 +117,7 @@ function SettingsHome({ props, theme, onOpen }: { props: AgentSettingsProps; the
                 <ThinkingLevelSlider levels={thinkingLevelsFor(thinking)} value={props.reasoningMode} resolvedLevel={resolveThinkingLevel(thinking, props.reasoningMode)} onChange={props.onReasoningModeChange} />
             </section>
             <section>
-                <SettingLabel label="对话模型" hint="新运行生效" />
+                <SettingLabel label={translate("canvasTools.canvasCloudAgentSettings.conversationModel")} hint={translate("canvasTools.canvasCloudAgentSettings.appliesToNewRuns")} />
                 <div className="min-w-0 rounded-xl px-2 py-2" style={{ background: theme.node.fill }}>
                     <ModelPicker
                         config={props.config}
@@ -127,14 +128,14 @@ function SettingsHome({ props, theme, onOpen }: { props: AgentSettingsProps; the
                         fullWidth
                         showSelectedPrice
                         showOptionPrices
-                        placeholder="选择文本模型"
+                        placeholder={translate("canvasTools.canvasCloudAgentSettings.chooseATextModel")}
                         className="!border-0 !bg-transparent !shadow-none"
                         popoverClassName="agent-model-picker-popover"
                     />
                 </div>
             </section>
             <section>
-                <SettingLabel label="执行权限" hint="新运行生效" />
+                <SettingLabel label={translate("canvasTools.canvasCloudAgentSettings.executionPermissions")} hint={translate("canvasTools.canvasCloudAgentSettings.appliesToNewRuns")} />
                 <div className="canvas-agent-permissions">
                     {permissionOptions.map((option) => {
                         const Icon = option.icon;
@@ -161,18 +162,18 @@ function SettingsHome({ props, theme, onOpen }: { props: AgentSettingsProps; the
                     })}
                 </div>
                 <p className="mt-2 text-xs leading-5" style={{ color: theme.node.muted }}>
-                    默认逐项审批。自动模式可修改已授权的画布内容；图片、视频始终先创建草稿，再经独立审批才提交生成任务。
+                    {translate("canvasTools.canvasCloudAgentSettings.actionsRequireIndividualApprovalByDefaultAutomaticModeCanEdit")}
                 </p>
             </section>
             <section>
-                <SettingLabel label="能力与范围" />
+                <SettingLabel label={translate("canvasTools.canvasCloudAgentSettings.capabilitiesAndScope")} />
                 <div className="space-y-1">
-                    <SettingRow theme={theme} icon={<Cpu className="size-4" />} title="上下文" summary={props.nodeCount === null ? "未绑定画布" : `${props.nodeCount} 个节点 · ${props.contextScope.length} 个范围`} onClick={() => onOpen("context")} />
-                    <SettingRow theme={theme} icon={<BookMarked className="size-4" />} title="长期偏好" summary={profileSummary(props.profileView)} onClick={() => onOpen("profile")} />
-                    <SettingRow theme={theme} icon={<BookMarked className="size-4" />} title="个人记忆" summary="Agent 在对话中自己记住和改写，可随时撤销；只属于你" onClick={() => onOpen("memories")} />
-                    <SettingRow theme={theme} icon={<Blocks className="size-4" />} title="Skills · 用户技能库" summary={skillsSummary(props.installedSkills, props.selectedSkillIds)} onClick={() => onOpen("skills")} />
-                    <SettingRow theme={theme} icon={<Wrench className="size-4" />} title="工具与连接" summary="画布、技能参考文件、生成任务；第三方连接即将支持" onClick={() => onOpen("mcp")} />
-                    <SettingRow theme={theme} icon={<Gauge className="size-4" />} title="预算" summary={`每轮最多 ${props.maxCredits || "未设置"} 积分 · 固定计价模型`} onClick={() => onOpen("budget")} />
+                    <SettingRow theme={theme} icon={<Cpu className="size-4" />} title={translate("canvasTools.canvasCloudAgentSettings.context")} summary={props.nodeCount === null ? translate("library.tasks.shared.unboundCanvas") : translate("canvasTools.canvasCloudAgentSettings.nodesScopes", { v0: String(props.nodeCount), v1: String(props.contextScope.length) })} onClick={() => onOpen("context")} />
+                    <SettingRow theme={theme} icon={<BookMarked className="size-4" />} title={translate("canvasTools.canvasCloudAgentSettings.longTermPreferences")} summary={profileSummary(props.profileView)} onClick={() => onOpen("profile")} />
+                    <SettingRow theme={theme} icon={<BookMarked className="size-4" />} title={translate("canvasTools.canvasCloudAgentSettings.personalMemory")} summary={translate("canvasTools.canvasCloudAgentSettings.agentRemembersAndEditsThisDuringConversationsChangesCanBe")} onClick={() => onOpen("memories")} />
+                    <SettingRow theme={theme} icon={<Blocks className="size-4" />} title={translate("canvasTools.canvasCloudAgentSettings.skillsYourLibrary")} summary={skillsSummary(props.installedSkills, props.selectedSkillIds)} onClick={() => onOpen("skills")} />
+                    <SettingRow theme={theme} icon={<Wrench className="size-4" />} title={translate("canvasTools.canvasCloudAgentSettings.toolsAndConnections")} summary={translate("canvasTools.canvasCloudAgentSettings.canvasSkillReferenceFilesAndGenerationTasksThirdPartyConnections")} onClick={() => onOpen("mcp")} />
+                    <SettingRow theme={theme} icon={<Gauge className="size-4" />} title={translate("canvasTools.canvasCloudAgentSettings.budget")} summary={translate("canvasTools.canvasCloudAgentSettings.upToCreditsPerTurnFixedPriceModels", { v0: String(props.maxCredits || translate("canvasTools.canvasCloudAgentSettings.notSet")) })} onClick={() => onOpen("budget")} />
                 </div>
             </section>
         </div>
@@ -205,8 +206,8 @@ function SkillsWorkspace({ props, theme, tab, onTabChange }: { props: AgentSetti
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <div className="shrink-0 px-4 pt-4">
                 <div className="flex gap-1 rounded-xl p-1" style={{ background: theme.node.fill }}>
-                    <TabButton theme={theme} active={tab === "installed"} label={`已安装 ${props.installedSkills.length}`} onClick={() => onTabChange("installed")} />
-                    <TabButton theme={theme} active={tab === "market"} label="Skill 市场" onClick={() => onTabChange("market")} />
+                    <TabButton theme={theme} active={tab === "installed"} label={translate("canvasTools.canvasCloudAgentSettings.installed", { v0: String(props.installedSkills.length) })} onClick={() => onTabChange("installed")} />
+                    <TabButton theme={theme} active={tab === "market"} label={translate("canvasTools.canvasCloudAgentSettings.skillMarketplace")} onClick={() => onTabChange("market")} />
                 </div>
                 <button
                     type="button"
@@ -216,9 +217,9 @@ function SkillsWorkspace({ props, theme, tab, onTabChange }: { props: AgentSetti
                 >
                     <Sparkles className="size-4 shrink-0" style={{ color: theme.accent.primary }} aria-hidden="true" />
                     <span className="min-w-0 flex-1">
-                        <span className="block text-xs font-medium">按行业安装推荐技能</span>
+                        <span className="block text-xs font-medium">{translate("canvasA.welcome.recommendTitle")}</span>
                         <span className="mt-0.5 block text-[var(--fs-label)] leading-4" style={{ color: theme.node.muted }}>
-                            短剧影视、电商营销、创意设计等行业的常用技能
+                            {translate("canvasTools.canvasCloudAgentSettings.commonSkillsForFilmAndShortDramaEcommerceMarketingCreative")}
                         </span>
                     </span>
                     <ChevronRight className="size-4 shrink-0" style={{ color: theme.node.muted }} aria-hidden="true" />
@@ -227,18 +228,18 @@ function SkillsWorkspace({ props, theme, tab, onTabChange }: { props: AgentSetti
                     prefix={<Search className="size-4" style={{ color: theme.node.muted }} />}
                     value={props.skillSearch}
                     onChange={(event) => props.onSkillSearch(event.target.value)}
-                    placeholder={tab === "market" ? "搜索 Skill 市场" : "筛选已安装 Skill"}
-                    aria-label="搜索 Skills"
+                    placeholder={tab === "market" ? translate("canvasTools.canvasCloudAgentSettings.searchTheSkillMarketplace") : translate("canvasTools.canvasCloudAgentSettings.filterInstalledSkills")}
+                    aria-label={translate("canvasTools.canvasCloudAgentSettings.searchSkills")}
                     className="mt-3 !h-10 !rounded-xl"
                 />
                 <p className="mt-3 text-xs leading-5" style={{ color: theme.node.muted }}>
-                    {tab === "market" ? "装好后 Agent 会在任务需要时自己查找并使用。" : `开启「自动」的技能，Agent 会按任务自己查找；勾选「固定」会在本对话优先使用，最多 ${AGENT_PINNED_SKILL_LIMIT} 个。`}
+                    {tab === "market" ? translate("canvasTools.canvasCloudAgentSettings.onceInstalledTheAgentFindsAndUsesSkillsWhenA") : translate("canvasTools.canvasCloudAgentSettings.theAgentFindsSkillsSetToAutomaticAsNeededPin", { v0: String(AGENT_PINNED_SKILL_LIMIT) })}
                 </p>
             </div>
             <div className="canvas-agent-settings-scroll thin-scrollbar min-h-0 min-w-0 flex-1 space-y-1 overflow-y-auto p-4 pt-2">
                 {props.skillsLoading && !source.length ? (
                     <div className="py-8 text-center text-xs" style={{ color: theme.node.muted }}>
-                        正在读取技能…
+                        {translate("canvasTools.canvasCloudAgentSettings.loadingSkills")}
                     </div>
                 ) : null}
                 {source.map((skill) => {
@@ -262,12 +263,12 @@ function SkillsWorkspace({ props, theme, tab, onTabChange }: { props: AgentSetti
                 })}
                 {!props.skillsLoading && !source.length ? (
                     <div className="py-10 text-center text-xs" style={{ color: theme.node.muted }}>
-                        {tab === "installed" && !query ? "还没有安装技能，可以先按行业安装推荐技能" : "没有匹配结果，试试其他关键词"}
+                        {tab === "installed" && !query ? translate("canvasTools.canvasCloudAgentSettings.noSkillsInstalledYetStartWithIndustryRecommendations") : translate("canvasTools.canvasCloudAgentSettings.noMatchesTryAnotherKeyword")}
                     </div>
                 ) : null}
                 {tab === "market" && props.skillHasMore ? (
                     <button type="button" className="my-3 w-full rounded-xl py-2 text-xs" style={{ background: theme.node.fill, color: theme.node.text }} onClick={() => void props.onLoadMoreSkills()} disabled={props.skillsLoading}>
-                        {props.skillsLoading ? "加载中…" : "加载更多"}
+                        {props.skillsLoading ? translate("canvasB.common.loading") : translate("canvasA.toolPicker.loadMore")}
                     </button>
                 ) : null}
             </div>
@@ -276,9 +277,9 @@ function SkillsWorkspace({ props, theme, tab, onTabChange }: { props: AgentSetti
 }
 
 function skillsSummary(installed: Skill[], pinnedIds: string[]) {
-    if (!installed.length) return "还没有安装技能 · 可按行业安装推荐";
+    if (!installed.length) return translate("canvasTools.canvasCloudAgentSettings.noSkillsInstalledYetInstallRecommendationsByIndustry");
     const auto = installed.filter((skill) => skill.agentMode !== "manual").length;
-    return `${installed.length} 个已安装 · ${auto} 个可自动使用${pinnedIds.length ? ` · 固定 ${pinnedIds.length} 个` : ""}`;
+    return translate("canvasTools.canvasCloudAgentSettings.installedAvailableForAutomaticUse", { v0: String(installed.length), v1: String(auto), v2: String(pinnedIds.length ? translate("canvasTools.canvasCloudAgentSettings.pinned2", { v0: String(pinnedIds.length) }) : "") });
 }
 
 type ProfileDraft = Pick<AgentProfileLayer, "content" | "revision" | "hash"> & { dirty: boolean };
@@ -334,24 +335,24 @@ function ProfileWorkspace({ props, theme }: { props: AgentSettingsProps; theme: 
     return (
         <div className="canvas-agent-settings-scroll thin-scrollbar min-h-0 flex-1 overflow-y-auto p-4">
             <div className="rounded-xl p-4" style={{ background: theme.node.fill }}>
-                <div className="text-sm font-semibold">长期偏好文档</div>
+                <div className="text-sm font-semibold">{translate("canvasTools.canvasCloudAgentSettings.longTermPreferencesDocument")}</div>
                 <p className="mt-2 text-xs leading-5" style={{ color: theme.node.muted }}>
-                    这里定义 Agent 的长期工作习惯、语气和输出结构。它不会增加工具、节点、预算或审批权限；安全契约始终由服务端代码控制。
+                    {translate("canvasTools.canvasCloudAgentSettings.setTheAgentSLongTermWorkingHabitsToneAnd")}
                 </p>
             </div>
             <div className="mt-4 flex gap-1 rounded-xl p-1" style={{ background: theme.node.fill }}>
-                <TabButton theme={theme} active={scope === "user"} label="用户" onClick={() => setScope("user")} />
-                <TabButton theme={theme} active={scope === "project"} label="项目" onClick={() => setScope("project")} />
-                {props.canvasId ? <TabButton theme={theme} active={scope === "canvas"} label="画布" onClick={() => setScope("canvas")} /> : null}
+                <TabButton theme={theme} active={scope === "user"} label={translate("canvasTools.canvasCloudAgentSettings.users")} onClick={() => setScope("user")} />
+                <TabButton theme={theme} active={scope === "project"} label={translate("canvasTools.canvasCloudAgentSettings.projects")} onClick={() => setScope("project")} />
+                {props.canvasId ? <TabButton theme={theme} active={scope === "canvas"} label={translate("nav.tools.canvas")} onClick={() => setScope("canvas")} /> : null}
             </div>
             {scope === "project" && !props.projectId ? (
                 <p className="mt-3 text-xs leading-5" style={{ color: theme.node.muted }}>
-                    当前未进入关联项目的画布，项目偏好暂不可用。
+                    {translate("canvasTools.canvasCloudAgentSettings.projectPreferencesAreUnavailableOutsideACanvasLinkedToA")}
                 </p>
             ) : null}
             {props.profileLoading ? (
                 <p className="mt-4 text-xs" style={{ color: theme.node.muted }}>
-                    正在读取偏好快照…
+                    {translate("canvasTools.canvasCloudAgentSettings.loadingPreferencesSnapshot")}
                 </p>
             ) : null}
             {props.profileError ? <ProfileError message={props.profileError} onRetry={props.onReloadProfile} theme={theme} /> : null}
@@ -359,8 +360,7 @@ function ProfileWorkspace({ props, theme }: { props: AgentSettingsProps; theme: 
                 <span className="flex items-center justify-between text-xs font-semibold">
                     <span>{scopeLabel(scope)}</span>
                     <span className="text-[var(--fs-label)] font-normal opacity-40">
-                        修订 {draft.revision}
-                        {draft.dirty ? " · 未保存" : ""}
+                        {translate("canvasTools.inline.canvasCloudAgentSettings.revision", { v0: String(draft.revision), v1: String(draft.dirty ? (" " + translate("canvasTools.canvasCloudAgentSettings.unsaved")) : "") })}
                     </span>
                 </span>
                 <Input.TextArea
@@ -370,15 +370,15 @@ function ProfileWorkspace({ props, theme }: { props: AgentSettingsProps; theme: 
                     maxLength={12000}
                     showCount
                     autoSize={{ minRows: 10, maxRows: 20 }}
-                    placeholder="例如：每次先给结论，再列出将改动的镜头；提示词同时给中文和英文。"
+                    placeholder={translate("canvasTools.canvasCloudAgentSettings.forExampleStartWithTheConclusionThenListTheShots")}
                     className="mt-2 !rounded-xl"
                     style={{ background: theme.node.fill }}
                 />
             </label>
             <div className="mt-3 flex items-center justify-between gap-3">
-                <span className="text-[var(--fs-label)] leading-4 opacity-45">保存后只影响下一次新运行。正在运行的 Agent 会固定原快照。</span>
+                <span className="text-[var(--fs-label)] leading-4 opacity-45">{translate("canvasTools.canvasCloudAgentSettings.savingAffectsOnlyTheNextNewRunAnActiveAgent")}</span>
                 <Button type="primary" onClick={() => void save()} loading={props.profileSaving} disabled={disabled || !draft.dirty}>
-                    保存
+                    {translate("common.save")}
                 </Button>
             </div>
             {error ? (
@@ -402,11 +402,11 @@ function profileLayer(view: AgentProfileView | null, scope: AgentProfileScope, p
 
 function profileSummary(view: AgentProfileView | null) {
     const count = view?.layers.filter((layer) => layer.content.trim()).length || 0;
-    return count ? `${count} 层已配置 · 仅影响行为偏好` : "未配置 · 仅影响行为偏好";
+    return count ? translate("canvasTools.canvasCloudAgentSettings.layersConfiguredAffectsBehavioralPreferencesOnly", { v0: String(count) }) : translate("canvasTools.canvasCloudAgentSettings.notConfiguredAffectsBehavioralPreferencesOnly");
 }
 
 function scopeLabel(scope: AgentProfileScope) {
-    return scope === "user" ? "用户偏好" : scope === "project" ? "项目偏好" : "当前画布偏好";
+    return scope === "user" ? translate("canvasTools.canvasCloudAgentSettings.userPreferences") : scope === "project" ? translate("canvasTools.canvasCloudAgentSettings.projectPreferences") : translate("canvasTools.canvasCloudAgentSettings.currentCanvasPreferences");
 }
 
 function ProfileError({ message, onRetry, theme }: { message: string; onRetry: () => Promise<void>; theme: CanvasTheme }) {
@@ -414,7 +414,7 @@ function ProfileError({ message, onRetry, theme }: { message: string; onRetry: (
         <div className="mt-3 rounded-lg px-3 py-2 text-xs" style={{ background: "#d6a24a1f", color: theme.node.text }}>
             <div>{message}</div>
             <button type="button" className="mt-2 underline" onClick={() => void onRetry()}>
-                重新读取
+                {translate("auth.register.reload")}
             </button>
         </div>
     );
@@ -454,17 +454,17 @@ function SkillRow({ skill, theme, pinned, pinDisabled, installed, installedView,
                     ) : null}
                 </div>
                 <p className="mt-1 line-clamp-2 text-xs leading-5 [overflow-wrap:anywhere]" style={{ color: theme.node.muted }} title={skill.description || undefined}>
-                    {skill.description || "暂无技能说明"}
+                    {skill.description || translate("canvasA.skillLibrary.noDescription")}
                 </p>
                 {installedView ? (
                     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs" style={{ color: theme.node.muted }}>
                         <span className="inline-flex items-center gap-2">
-                            <Switch size="sm" checked={auto} loading={modeSaving} disabled={modeDisabled} onChange={onModeChange} aria-label={`允许 Agent 自动使用 ${skill.skillName}`} />
-                            <span aria-hidden="true">{auto ? "自动" : "仅手动"}</span>
+                            <Switch size="sm" checked={auto} loading={modeSaving} disabled={modeDisabled} onChange={onModeChange} aria-label={translate("canvasTools.canvasCloudAgentSettings.allowTheAgentToUseAutomatically", { v0: String(skill.skillName) })} />
+                            <span aria-hidden="true">{auto ? translate("account.layout.oss.auto") : translate("canvasTools.canvasCloudAgentSettings.manualOnly")}</span>
                         </span>
-                        <Checkbox checked={pinned} disabled={pinDisabled} onChange={onTogglePin} aria-label={`在本对话固定 ${skill.skillName}`}>
-                            <span className="text-xs" style={{ color: theme.node.muted }} title={pinDisabled ? `最多固定 ${AGENT_PINNED_SKILL_LIMIT} 个技能` : undefined}>
-                                固定
+                        <Checkbox checked={pinned} disabled={pinDisabled} onChange={onTogglePin} aria-label={translate("canvasTools.canvasCloudAgentSettings.pinInThisConversation", { v0: String(skill.skillName) })}>
+                            <span className="text-xs" style={{ color: theme.node.muted }} title={pinDisabled ? translate("canvasTools.canvasCloudAgentSettings.pinUpToSkills", { v0: String(AGENT_PINNED_SKILL_LIMIT) }) : undefined}>
+                                {translate("canvasA.skillLibrary.pin")}
                             </span>
                         </Checkbox>
                     </div>
@@ -472,7 +472,7 @@ function SkillRow({ skill, theme, pinned, pinDisabled, installed, installedView,
             </div>
             {!installedView ? (
                 <Button size="small" type="text" className="!shrink-0 !px-2" disabled={installed} onClick={onInstall}>
-                    {installed ? "已安装" : "添加"}
+                    {installed ? translate("canvasA.skillSuggestion.installedBadge") : translate("canvasB.common.add")}
                 </Button>
             ) : null}
         </div>
@@ -485,28 +485,28 @@ function McpWorkspace({ theme }: { theme: CanvasTheme }) {
             <div className="rounded-xl p-4" style={{ background: theme.node.fill }}>
                 <div className="flex items-center gap-2 text-sm font-medium">
                     <PlugZap className="size-4 shrink-0" />
-                    服务端内置工具
+                    {translate("canvasTools.canvasCloudAgentSettings.builtInServerTools")}
                 </div>
                 <p className="mt-2 text-xs leading-5" style={{ color: theme.node.muted }}>
-                    按本轮权限开放，实际能力在发送前向后端确认。Skills 提供操作知识，不会提升工具权限。
+                    {translate("canvasTools.canvasCloudAgentSettings.toolsFollowThisRunSPermissionsAndTheirAvailabilityIs")}
                 </p>
             </div>
             <section>
-                <SettingLabel label="工具范围" />
-                {["已保存画布读取", "技能参考文件（固定版本）", "文本 / Markdown 节点写入", "系统模型媒体生成与任务查询"].map((tool) => (
+                <SettingLabel label={translate("canvasTools.canvasCloudAgentSettings.toolScope")} />
+                {[translate("canvasTools.canvasCloudAgentSettings.readSavedCanvases"), translate("canvasTools.canvasCloudAgentSettings.skillReferenceFilesPinnedVersions"), translate("canvasTools.canvasCloudAgentSettings.writeTextMarkdownNodes"), translate("canvasTools.canvasCloudAgentSettings.systemModelMediaGenerationAndTaskLookup")].map((tool) => (
                     <div key={tool} className="flex items-center gap-3 py-3 text-xs">
                         <Wrench className="size-4 shrink-0" style={{ color: theme.node.muted }} />
                         <span className="flex-1">{tool}</span>
-                        <span style={{ color: theme.node.muted }}>受权限约束</span>
+                        <span style={{ color: theme.node.muted }}>{translate("canvasTools.canvasCloudAgentSettings.subjectToPermissions")}</span>
                     </div>
                 ))}
             </section>
             <section>
-                <SettingLabel label="第三方连接" hint="即将支持" />
+                <SettingLabel label={translate("canvasTools.canvasCloudAgentSettings.thirdPartyConnections")} hint={translate("canvasTools.canvasCloudAgentSettings.comingSoon")} />
                 <AgentConnectorsBar />
             </section>
             <p className="text-xs leading-5" style={{ color: theme.node.muted }}>
-                自定义 MCP 暂未开放。实际工具权限、密钥和调用配额需由 Agent 后端校验，不能在浏览器中假设已启用。
+                {translate("canvasTools.canvasCloudAgentSettings.customMCPIsNotAvailableYetTheAgentBackendMust")}
             </p>
         </div>
     );
@@ -516,8 +516,8 @@ function ContextWorkspace({ props, theme }: { props: AgentSettingsProps; theme: 
     return (
         <div className="thin-scrollbar min-h-0 flex-1 overflow-y-auto px-5 py-5">
             <div className="rounded-xl p-4" style={{ background: theme.node.fill }}>
-                <div className="text-sm font-semibold">Agent 可以读取什么</div>
-                <div className="mt-1 text-[var(--fs-label)] opacity-45">只影响本次新运行的上下文范围</div>
+                <div className="text-sm font-semibold">{translate("canvasTools.canvasCloudAgentSettings.whatTheAgentCanRead")}</div>
+                <div className="mt-1 text-[var(--fs-label)] opacity-45">{translate("canvasTools.canvasCloudAgentSettings.changesContextScopeOnlyForThisNewRun")}</div>
             </div>
             <div className="mt-4 space-y-1">
                 {contextOptions.map((option) => {
@@ -550,12 +550,12 @@ function BudgetWorkspace({ props, theme }: { props: AgentSettingsProps; theme: C
     return (
         <div className="thin-scrollbar min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
             <div className="rounded-xl p-4" style={{ background: theme.node.fill }}>
-                <div className="text-sm font-semibold">本轮累计预算</div>
-                <p className="mt-2 text-xs opacity-60">积分预算用于费用保护；生成任务和视频秒数填 0 表示不设该项上限。模型循环由预算和运行状态控制，不再用固定次数截断。</p>
+                <div className="text-sm font-semibold">{translate("canvasTools.canvasCloudAgentSettings.totalBudgetForThisRun")}</div>
+                <p className="mt-2 text-xs opacity-60">{translate("canvasTools.canvasCloudAgentSettings.theCreditBudgetLimitsSpendingSetGenerationTasksOrVideo")}</p>
             </div>
-            <BudgetInput label="积分上限" hint="必填且大于 0；所有步骤累计" value={props.maxCredits} onChange={props.onMaxCreditsChange} theme={theme} />
-            <BudgetInput label="生成任务上限" hint="0 表示不限；只读模式不执行生成" value={props.maxGenerationTasks} onChange={props.onMaxGenerationTasksChange} theme={theme} />
-            <BudgetInput label="视频秒数上限" hint="0 表示不限；按请求时长累计" value={props.maxVideoSeconds} onChange={props.onMaxVideoSecondsChange} theme={theme} />
+            <BudgetInput label={translate("canvasTools.canvasCloudAgentSettings.creditLimit")} hint={translate("canvasTools.canvasCloudAgentSettings.requiredAndGreaterThan0CumulativeAcrossAllSteps")} value={props.maxCredits} onChange={props.onMaxCreditsChange} theme={theme} />
+            <BudgetInput label={translate("canvasTools.canvasCloudAgentSettings.generationTaskLimit")} hint={translate("canvasTools.canvasCloudAgentSettings.item0MeansUnlimitedReadOnlyModeDoesNotGenerate")} value={props.maxGenerationTasks} onChange={props.onMaxGenerationTasksChange} theme={theme} />
+            <BudgetInput label={translate("canvasTools.canvasCloudAgentSettings.videoSecondsLimit")} hint={translate("canvasTools.canvasCloudAgentSettings.item0MeansUnlimitedCumulativeRequestDuration")} value={props.maxVideoSeconds} onChange={props.onMaxVideoSecondsChange} theme={theme} />
         </div>
     );
 }
@@ -609,27 +609,27 @@ function BudgetInput({ label, hint, value, onChange, theme }: { label: string; h
     );
 }
 function sectionTitle(section: SettingsSection) {
-    return section === "profile" ? "长期偏好" : section === "memories" ? "个人记忆" : section === "skills" ? "Skills" : section === "mcp" ? "MCP 与工具" : section === "context" ? "上下文" : "预算";
+    return section === "profile" ? translate("canvasTools.canvasCloudAgentSettings.longTermPreferences") : section === "memories" ? translate("canvasTools.canvasCloudAgentSettings.personalMemory") : section === "skills" ? "Skills" : section === "mcp" ? translate("canvasTools.canvasCloudAgentSettings.mCPAndTools") : section === "context" ? translate("canvasTools.canvasCloudAgentSettings.context") : translate("canvasTools.canvasCloudAgentSettings.budget");
 }
 function sectionSubtitle(section: SettingsSection) {
     return section === "profile"
-        ? "用户、项目和画布的长期行为偏好"
+        ? translate("canvasTools.canvasCloudAgentSettings.longTermBehavioralPreferencesForUsersProjectsAndCanvases")
         : section === "memories"
-          ? "只属于你；Agent 自动整理，可撤销"
+          ? translate("canvasTools.canvasCloudAgentSettings.onlyYoursAgentOrganizesItAutomaticallyWithUndoAvailable")
           : section === "skills"
-            ? "已安装的技能 Agent 会按任务自动选用"
+            ? translate("canvasTools.canvasCloudAgentSettings.agentAutomaticallySelectsInstalledSkillsForTheTask")
             : section === "mcp"
-              ? "云端工具与连接状态"
+              ? translate("canvasTools.canvasCloudAgentSettings.cloudToolsAndConnectionStatus")
               : section === "context"
-                ? "控制 Agent 能读取的范围"
-                : "控制本轮积分与生成消耗";
+                ? translate("canvasTools.canvasCloudAgentSettings.controlWhatAgentCanRead")
+                : translate("canvasTools.canvasCloudAgentSettings.controlCreditsAndGenerationUsageForThisTurn");
 }
 
 export function agentPermissionLabel(mode: AgentPermissionMode) {
-    return permissionOptions.find((option) => option.value === mode)?.label || "请求审批";
+    return permissionOptions.find((option) => option.value === mode)?.label || translate("canvasTools.canvasCloudAgentSettings.requestApproval");
 }
 export function agentPermissionShortLabel(mode: AgentPermissionMode) {
-    return permissionOptions.find((option) => option.value === mode)?.short || "审批";
+    return permissionOptions.find((option) => option.value === mode)?.short || translate("canvasTools.canvasCloudAgentSettings.approval");
 }
 export function agentPermissionVisual(mode: AgentPermissionMode) {
     const option = permissionOptions.find((item) => item.value === mode) || permissionOptions[0];

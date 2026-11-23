@@ -4,12 +4,13 @@ import { getActiveUserScope } from "@/lib/user-scope";
 import { commerceLayoutReferences, commerceReferenceViewRanges, normalizeReferenceDraft, validateCommerceReferencePlan } from "./reference-plan";
 import { activeCommerceReferences } from "./model-context";
 
+import { translate } from "@/i18n";
 function ownerGuard(assertCurrent?: () => void) {
     const scope = getActiveUserScope();
     return {
         scope,
         check: () => {
-            if (getActiveUserScope() !== scope || scope === "guest") throw new Error("登录账号已切换，已停止处理参考图");
+            if (getActiveUserScope() !== scope || scope === "guest") throw new Error(translate("ecommerce.longReferenceMedia.signedInAccountChangedReferenceProcessingStopped"));
             assertCurrent?.();
         },
     };
@@ -19,16 +20,16 @@ async function readReference(resourceId: string, check: () => void) {
     check();
     const resource = await refreshResource(resourceId);
     check();
-    if (resource.kind !== "image" || resource.status !== "ready") throw new Error("参考图尚未准备好，请重新上传或稍后重试");
-    if (resource.width && resource.height && resource.width * resource.height > 100_000_000) throw new Error("参考图尺寸过大，请缩小图片后重试");
+    if (resource.kind !== "image" || resource.status !== "ready") throw new Error(translate("ecommerce.longReferenceMedia.theReferenceIsNotReadyUploadItAgainOrRetry"));
+    if (resource.width && resource.height && resource.width * resource.height > 100_000_000) throw new Error(translate("ecommerce.longReferenceMedia.theReferenceImageIsTooLargeResizeItAndRetry"));
     // Pixel reads require the authenticated same-origin stream, not a CDN display URL.
     const blob = await getResourceBlob(resourceStorageKey(resourceId), "ecommerce-export");
     check();
-    if (!blob) throw new Error("参考图读取失败，请重新上传");
+    if (!blob) throw new Error(translate("ecommerce.longReferenceMedia.failedToReadTheReferenceImageUploadItAgain"));
     const bitmap = await createImageBitmap(blob);
     try {
         check();
-        if (bitmap.width <= 0 || bitmap.height <= 0 || bitmap.width * bitmap.height > 100_000_000) throw new Error("参考图尺寸过大，请缩小图片后重试");
+        if (bitmap.width <= 0 || bitmap.height <= 0 || bitmap.width * bitmap.height > 100_000_000) throw new Error(translate("ecommerce.longReferenceMedia.theReferenceImageIsTooLargeResizeItAndRetry"));
     } catch (cause) {
         bitmap.close();
         throw cause;
@@ -37,7 +38,7 @@ async function readReference(resourceId: string, check: () => void) {
 }
 
 export function commerceReferenceCropBounds(width: number, height: number, top: number, bottom: number) {
-    if (![width, height, top, bottom].every(Number.isFinite) || width <= 0 || height <= 0 || top < 0 || bottom > 1 || top >= bottom) throw new Error("参考屏裁切范围无效");
+    if (![width, height, top, bottom].every(Number.isFinite) || width <= 0 || height <= 0 || top < 0 || bottom > 1 || top >= bottom) throw new Error(translate("ecommerce.longReferenceMedia.invalidReferenceScreenCropRange"));
     const y = Math.floor(top * height);
     const cropHeight = Math.min(height, Math.ceil(bottom * height)) - y;
     const scale = Math.min(1, 1600 / width, 4096 / cropHeight);
@@ -51,13 +52,13 @@ async function uploadCrop(bitmap: ImageBitmap, sourceId: string, top: number, bo
     canvas.height = bounds.height;
     try {
         const context = canvas.getContext("2d");
-        if (!context) throw new Error("浏览器无法处理长图参考，请换用支持画布的浏览器");
+        if (!context) throw new Error(translate("ecommerce.longReferenceMedia.theBrowserCannotProcessLongImageReferencesUseABrowser"));
         context.drawImage(bitmap, 0, bounds.y, bitmap.width, bounds.cropHeight, 0, 0, bounds.width, bounds.height);
-        const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => (value ? resolve(value) : reject(new Error("参考图裁切失败"))), "image/png"));
+        const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => (value ? resolve(value) : reject(new Error(translate("ecommerce.longReferenceMedia.referenceImageCroppingFailed")))), "image/png"));
         check();
         const resource = await uploadResourceFile(blob, "image", { width: bounds.width, height: bounds.height, fileName: `${label}.png`, idempotencyKey: `commerce-ref-v1:${scope}:${sourceId}:${bounds.y}:${bounds.cropHeight}` });
         check();
-        if (!resource.id || resource.kind !== "image" || resource.status !== "ready") throw new Error("参考裁片上传未完成，请重试");
+        if (!resource.id || resource.kind !== "image" || resource.status !== "ready") throw new Error(translate("ecommerce.longReferenceMedia.referenceCropUploadIncompleteRetry"));
         return { resourceId: resource.id, role: "style" as const, name: label, width: bounds.width, height: bounds.height };
     } finally {
         canvas.width = 0;
@@ -84,7 +85,7 @@ export async function prepareCommerceReferenceViews(input: EcommerceDraft, maxIm
         }
     }
     const extra = prepared.reduce((sum, item) => sum + item.ranges.length, 0);
-    if (originalCount + extra > maxImages) throw new Error(`这些借鉴图需要原图及${extra}张局部阅读图，共${originalCount + extra}张输入；请选择支持更多参考图的 Agent 模型`);
+    if (originalCount + extra > maxImages) throw new Error(translate("ecommerce.longReferenceMedia.theseReferencesRequireTheOriginalsAndDetailCropsTotalingInputs", { v0: String(extra), v1: String(originalCount + extra) }));
     for (const [sourceIndex, item] of prepared.entries()) {
         if (!item.ranges.length) continue;
         const bitmap = await readReference(item.source.resourceId, check);
@@ -115,10 +116,10 @@ export async function prepareCommerceReferencePlan(draft: EcommerceDraft, plan: 
             if (screen.resourceId) {
                 const existing = await refreshResource(screen.resourceId);
                 check();
-                if (existing.kind !== "image" || existing.status !== "ready") throw new Error(`第${index + 1}屏参考图不可用，请重新策划`);
+                if (existing.kind !== "image" || existing.status !== "ready") throw new Error(translate("ecommerce.longReferenceMedia.referenceForScreenIsUnavailableReplan", { v0: String(index + 1) }));
                 continue;
             }
-            if (image.taskId) throw new Error(`第${index + 1}屏已有任务但缺少参考裁片，请核对项目`);
+            if (image.taskId) throw new Error(translate("ecommerce.longReferenceMedia.screenHasAnExistingTaskButNoReferenceCropCheck", { v0: String(index + 1) }));
             options.onProgress?.(index + 1, next.images.length);
             if (!bitmap || bitmapSource !== screen.sourceResourceId) {
                 bitmap?.close();

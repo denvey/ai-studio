@@ -1,15 +1,17 @@
 import { loadCanvasDrawingRender, saveCanvasDrawingRenderPublication } from "@/lib/canvas/canvas-drawing-storage";
 import { resourceFileUrl, resourceIdFromStorageKey, resourceStorageKey, uploadResourceFile } from "@/services/api/resources";
 import type { ReferenceImage } from "@/types/image";
+import { translate } from "@/i18n";
+
 
 export async function resolveCanvasDrawingReference(projectId: string, image: ReferenceImage): Promise<ReferenceImage> {
     const source = image.source;
     if (!source || source.kind !== "drawing") return image;
-    if (!source.shapeCount) throw new Error(`绘图“${image.name}”为空，请先完成绘图再生成`);
+    if (!source.shapeCount) throw new Error(translate("shared.canvas.canvasDrawingReference.drawingIsEmptyFinishTheDrawingBeforeGenerating", { v0: String(image.name) }));
 
     const render = await loadCanvasDrawingRender(projectId, source.drawingId);
     if (!render || render.revision !== source.revision) {
-        throw new Error(`绘图“${image.name}”缺少当前版本的生成图，请打开绘图并保存后重试`);
+        throw new Error(translate("shared.canvas.canvasDrawingReference.drawingHasNoRenderedImageForTheCurrentVersionOpen", { v0: String(image.name) }));
     }
 
     if (resourceIdFromStorageKey(render.storageKey)) {
@@ -22,6 +24,7 @@ export async function resolveCanvasDrawingReference(projectId: string, image: Re
         };
     }
 
+    const drawingChangedError = new Error(translate("shared.canvas.canvasDrawingReference.theDrawingChangedWhileUploadingGenerateAgain"));
     try {
         const resource = await uploadResourceFile(render.blob, "image", {
             width: render.width,
@@ -31,10 +34,10 @@ export async function resolveCanvasDrawingReference(projectId: string, image: Re
         const storageKey = resourceStorageKey(resource.id);
         const url = resource.publicUrl || resourceFileUrl(resource.id);
         const saved = await saveCanvasDrawingRenderPublication(projectId, source.drawingId, source.revision, { storageKey, url });
-        if (!saved) throw new Error("绘图在上传期间发生了修改，请重新生成");
+        if (!saved) throw drawingChangedError;
         return { ...image, dataUrl: "", url, storageKey, type: resource.mimeType || render.mimeType };
     } catch (error) {
-        if (error instanceof Error && error.message === "绘图在上传期间发生了修改，请重新生成") throw error;
-        throw new Error(error instanceof Error ? `绘图参考图上传失败：${error.message}` : "绘图参考图上传失败");
+        if (error === drawingChangedError) throw error;
+        throw new Error(error instanceof Error ? translate("shared.canvas.canvasDrawingReference.failedToUploadTheDrawingReferenceImage", { v0: String(error.message) }) : translate("shared.canvas.canvasDrawingReference.failedToUploadTheDrawingReferenceImage2"));
     }
 }

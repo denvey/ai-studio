@@ -7,6 +7,7 @@ import { Fragment } from "react";
 import { generationErrorMessage, isContentModerationError } from "@/lib/generation-error";
 import { Tooltip } from "@/components/ui/base/tooltip";
 import { RefreshCw } from "lucide-react";
+import { translate } from "@/i18n";
 
 export function storyboardStepState(stage: StoryboardPipelineStage): "done" | "current" | "error" | "idle" {
     if (stage.failed > 0 && stage.success === 0) return "error";
@@ -17,12 +18,12 @@ export function storyboardStepState(stage: StoryboardPipelineStage): "done" | "c
 
 export function StoryboardMiniPipeline({ pipeline, theme, rows }: { pipeline: CanvasStoryboardPipelineProgress; theme: (typeof canvasThemes)[keyof typeof canvasThemes]; rows: StoryboardRow[] }) {
     const steps: Array<{ key: string; label: string; state: "done" | "current" | "error" | "idle"; hint: string }> = [
-        { key: "script", label: "分镜", state: rows.length > 0 ? "done" : "idle", hint: rows.length > 0 ? `${rows.length} 个镜头` : "待添加镜头" },
-        { key: "images", label: "分镜图（可选）", state: storyboardStepState(pipeline.images), hint: pipelineStatusLabel(pipeline.images) },
-        { key: "videos", label: "视频", state: storyboardStepState(pipeline.videos), hint: pipelineStatusLabel(pipeline.videos) },
+        { key: "script", label: translate("account.welcome.chapters.shots.label"), state: rows.length > 0 ? "done" : "idle", hint: rows.length > 0 ? translate("canvasTools.canvasScriptNodeParts.shots", { v0: String(rows.length) }) : translate("canvasTools.canvasScriptNodeParts.shotsToAdd") },
+        { key: "images", label: translate("canvasTools.canvasScriptNodeParts.storyboardFrameOptional"), state: storyboardStepState(pipeline.images), hint: pipelineStatusLabel(pipeline.images) },
+        { key: "videos", label: translate("account.feedback.video"), state: storyboardStepState(pipeline.videos), hint: pipelineStatusLabel(pipeline.videos) },
         {
             key: "final",
-            label: "合并成片",
+            label: translate("canvasTools.canvasScriptNodeParts.mergeIntoACut"),
             state: pipeline.final.success > 0 ? "done" : pipeline.final.failed > 0 ? "error" : pipeline.final.loading > 0 || pipeline.successfulVideoNodeIds.length >= 2 ? "current" : "idle",
             hint: pipelineStatusLabel(pipeline.final),
         },
@@ -65,26 +66,26 @@ export function GenerationBatchDetails({ batch, rows, onRetryItem }: { batch: Ca
     return (
         <div className="w-80" onMouseDown={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
             <div className="mb-2 flex items-center justify-between gap-3">
-                <span className="text-sm font-semibold">{generationBatchModeLabel(batch)}详情</span>
-                <span className="text-xs text-foreground/50">{batch.items.length} 项</span>
+                <span className="text-sm font-semibold">{translate("canvasTools.inline.canvasScriptNodeParts.details", { v0: String(generationBatchModeLabel(batch)) })}</span>
+                <span className="text-xs text-foreground/50">{translate("canvasTools.inline.canvasScriptNodeParts.items", { v0: String(batch.items.length) })}</span>
             </div>
             <div className="thin-scrollbar max-h-72 overflow-y-auto">
                 {batch.items.map((item) => {
                     const requiresPromptChange = isContentModerationError(item.errorDetails);
                     return (
                         <div key={item.id} className="flex min-h-9 items-center gap-2 border-t border-foreground/10 py-2 first:border-t-0">
-                            <span className="w-14 shrink-0 text-xs font-medium">镜头 {shotByRowId.get(item.rowId) || "--"}</span>
+                            <span className="w-14 shrink-0 text-xs font-medium">{translate("canvasTools.inline.canvasScriptNodeParts.shot", { v0: String(shotByRowId.get(item.rowId) || "--") })}</span>
                             <span className="min-w-0 flex-1 truncate text-xs text-foreground/60" title={item.errorDetails ? generationErrorMessage(item.errorDetails) : undefined}>
                                 {generationBatchItemLabel(item)}
-                                {item.retryCount ? ` · 重试 ${item.retryCount}` : ""}
+                                {item.retryCount ? translate("canvasTools.canvasScriptNodeParts.retry", { v0: String(item.retryCount) }) : ""}
                             </span>
                             {item.status === "failed" ? (
-                                <Tooltip title={requiresPromptChange ? "请先修改提示词，再重试这个镜头" : "只重试这个镜头"}>
+                                <Tooltip title={requiresPromptChange ? translate("canvasTools.canvasScriptNodeParts.editThePromptBeforeRetryingThisShot") : translate("canvasTools.canvasScriptNodeParts.retryThisShotOnly")}>
                                     <button
                                         type="button"
                                         className="grid size-7 shrink-0 place-items-center rounded outline-none transition hover:bg-black/5 focus-visible:ring-2 dark:hover:bg-white/10"
                                         onClick={() => onRetryItem(item.id)}
-                                        aria-label={`重试镜头 ${shotByRowId.get(item.rowId) || ""}`}
+                                        aria-label={translate("canvasTools.canvasScriptNodeParts.retryShot", { v0: String(shotByRowId.get(item.rowId) || "") })}
                                     >
                                         <RefreshCw className="size-3.5" />
                                     </button>
@@ -99,20 +100,20 @@ export function GenerationBatchDetails({ batch, rows, onRetryItem }: { batch: Ca
 }
 
 export function generationBatchModeLabel(batch: CanvasGenerationBatch) {
-    return batch.mode === "storyboard_video" ? "视频生成" : batch.mode === "storyboard_image" ? "分镜图生成" : "动作板生成";
+    return batch.mode === "storyboard_video" ? translate("nav.sidebar.toolboxVideo") : batch.mode === "storyboard_image" ? translate("canvasTools.canvasScriptNodeParts.storyboardFrameGeneration") : translate("canvasTools.canvasScriptNodeParts.actionBoardGeneration");
 }
 
 export function generationBatchSummary(batch: CanvasGenerationBatch) {
     const count = (status: CanvasGenerationBatchItemStatus) => batch.items.filter((item) => item.status === status).length;
     const generating = count("submitting") + count("queued") + count("running");
     const stopped = count("cancelled");
-    return `${generationBatchModeLabel(batch)}${batch.status === "completed" ? "完成" : batch.status === "cancelled" ? "已停止" : "中"} · 完成 ${count("succeeded")}/${batch.items.length} / 失败 ${count("failed")} / 生成中 ${generating} / 等待 ${count("waiting")}${stopped ? ` / 已停止 ${stopped}` : ""}`;
+    return translate("canvasTools.canvasScriptNodeParts.completedFailedGeneratingWaiting", { v0: String(generationBatchModeLabel(batch)), v1: String(batch.status === "completed" ? translate("account.payment.done") : batch.status === "cancelled" ? translate("create.status.stopped") : translate("canvasTools.canvasScriptNodeParts.inProgress")), v2: String(count("succeeded")), v3: String(batch.items.length), v4: String(count("failed")), v5: String(generating), v6: String(count("waiting")), v7: String(stopped ? translate("canvasTools.canvasScriptNodeParts.stopped", { v0: String(stopped) }) : "") });
 }
 
 export function generationBatchItemLabel(item: CanvasGenerationBatchItem) {
-    if (item.costUncertain) return "费用待确认";
-    if (isContentModerationError(item.errorDetails)) return "审核未通过，需修改提示词";
-    const labels: Record<CanvasGenerationBatchItemStatus, string> = { waiting: "等待", submitting: "提交中", queued: "排队", running: "生成中", succeeded: "成功", failed: "失败", cancelled: "已停止" };
+    if (item.costUncertain) return translate("canvasTools.canvasScriptNodeParts.chargePendingConfirmation");
+    if (isContentModerationError(item.errorDetails)) return translate("canvasTools.canvasScriptNodeParts.reviewFailedReviseThePrompt");
+    const labels: Record<CanvasGenerationBatchItemStatus, string> = { waiting: translate("canvasTools.canvasScriptNodeParts.waiting"), submitting: translate("canvasTools.canvasScriptNodeParts.submitting"), queued: translate("canvasTools.canvasScriptNodeParts.queued"), running: translate("canvasB.mediaVersion.generating"), succeeded: translate("canvasTools.canvasScriptNodeParts.success"), failed: translate("library.assets.batch.failed"), cancelled: translate("create.status.stopped") };
     return labels[item.status];
 }
 

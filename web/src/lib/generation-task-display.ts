@@ -1,11 +1,13 @@
 import type { GenerationTask, TaskStatus } from "@/services/api/task-center";
+import { translate } from "@/i18n";
+
 
 export const statusLabel: Record<TaskStatus, string> = {
-    queued: "排队中",
-    running: "生成中",
-    succeeded: "已完成",
-    failed: "失败",
-    cancelled: "已取消",
+    queued: translate("canvasPage.taskStatus.queued"),
+    running: translate("canvasB.mediaVersion.generating"),
+    succeeded: translate("library.tasks.filter.succeeded"),
+    failed: translate("library.assets.batch.failed"),
+    cancelled: translate("shared.generationTaskDisplay.cancelled"),
 };
 
 type GenerationTaskDisplayTarget = Pick<GenerationTask, "status" | "stage" | "mediaStage" | "progress" | "providerRequestId" | "providerCancelStatus">;
@@ -32,10 +34,10 @@ export function canCancelGenerationTask(task: GenerationTaskDisplayTarget) {
 
 export function mediaDeliverySummary(status: TaskStatus | undefined, stage: GenerationTask["mediaStage"]) {
     if (!stage) return "";
-    if (stage === "completed") return "生成成功 · 文件保存成功 · 素材登记成功";
-    const prefix = stage === "download" || stage === "checkpoint" ? "生成成功" : stage === "register" ? "生成成功 · 文件保存成功" : "生成成功 · 下载成功";
-    const action = { download: "下载", upload: "上传 OSS", local_save: "保存文件", register: "登记素材", checkpoint: "记录恢复信息" }[stage];
-    return `${prefix} · ${action}${status === "failed" ? "失败" : status === "cancelled" ? "已停止" : "待完成"}`;
+    if (stage === "completed") return translate("shared.generationTaskDisplay.generationSucceededFileSavedAssetRegistered");
+    const prefix = stage === "download" || stage === "checkpoint" ? translate("shared.generationTaskDisplay.generationSucceeded") : stage === "register" ? translate("shared.generationTaskDisplay.generationSucceededFileSaved") : translate("shared.generationTaskDisplay.generationSucceededDownloadComplete");
+    const action = { download: translate("canvasA.assetView.download"), upload: translate("shared.generationTaskDisplay.uploadToOSS"), local_save: translate("shared.generationTaskDisplay.saveFile"), register: translate("shared.generationTaskDisplay.registerAsset"), checkpoint: translate("shared.generationTaskDisplay.recordRecoveryInformation") }[stage];
+    return `${prefix} · ${action}${status === "failed" ? translate("shared.generationTaskDisplay.failed") : status === "cancelled" ? translate("shared.generationTaskDisplay.stopped") : translate("shared.generationTaskDisplay.pending")}`;
 }
 
 export function isGenerationTaskSubmissionUncertain(task: GenerationTaskDisplayTarget) {
@@ -59,27 +61,27 @@ export function generationTaskSavingState(stage?: string): GenerationSavingState
 }
 
 const savingStageLabels: Record<GenerationSavingState, string> = {
-    saving: "已生成，正在存入素材库",
-    retrying: "保存遇到问题，正在自动重试",
-    waiting: "作品已生成，等待保存",
+    saving: translate("shared.generationTaskDisplay.generatedSavingToTheAssetLibrary"),
+    retrying: translate("shared.generationTaskDisplay.savingEncounteredAProblemRetryingAutomatically"),
+    waiting: translate("shared.generationTaskDisplay.generatedWaitingToSave"),
 };
 
 export function generationTaskStatusLabel(task: GenerationTaskDisplayTarget) {
-    if (generationTaskSaving(task) && task.status === "failed") return "保存未完成";
-    if (generationTaskSaving(task) && (task.status === "queued" || task.status === "running")) return "保存中";
-    if (isGenerationTaskSubmissionUncertain(task)) return "提交结果待确认";
+    if (generationTaskSaving(task) && task.status === "failed") return translate("shared.create.creationWorkspaceMessages.saveIncomplete");
+    if (generationTaskSaving(task) && (task.status === "queued" || task.status === "running")) return translate("canvasA.drawingModal.saving");
+    if (isGenerationTaskSubmissionUncertain(task)) return translate("shared.generationTaskDisplay.submissionResultNeedsConfirmation");
     return statusLabel[task.status];
 }
 
 export function generationTaskStageLabel(task: GenerationTaskDisplayTarget) {
-    if (isGenerationTaskSubmissionUncertain(task)) return "为避免重复扣费，未自动重试";
+    if (isGenerationTaskSubmissionUncertain(task)) return translate("shared.generationTaskDisplay.noAutomaticRetryWasMadeToAvoidDuplicateCharges");
     // 状态标签已表达“保存中”，这里补充保存的真实进展（正常保存 / 失败后自动重试 / 等待保存）。
     if (generationTaskSaving(task) && (task.status === "queued" || task.status === "running")) return savingStageLabels[generationTaskSavingState(task.stage)];
     switch (task.stage) {
         case "queued":
         case "等待队列调度":
         case "后端接管任务":
-            return "正在准备创作";
+            return translate("shared.generationTaskDisplay.preparingToCreate");
         case "generating":
         case "submitted":
         case "调用生成模型":
@@ -89,16 +91,16 @@ export function generationTaskStageLabel(task: GenerationTaskDisplayTarget) {
         case "上游生成中":
         case "后台仍在生成":
         case "后台仍在生成图片":
-            return "作品创作中";
+            return translate("shared.generationTaskDisplay.creating");
         case "submitting":
-            return "正在提交创作";
+            return translate("shared.generationTaskDisplay.submittingGenerationRequest");
         case "等待上游任务同步":
-            return "正在同步创作进度";
+            return translate("shared.generationTaskDisplay.syncingGenerationProgress");
         case "作品已生成，正在保存":
-            return task.status === "failed" ? "作品已生成，保存未完成" : "已生成，正在存入素材库";
+            return task.status === "failed" ? translate("shared.generationTaskDisplay.generatedSaveIncomplete") : translate("shared.generationTaskDisplay.generatedSavingToTheAssetLibrary");
         default:
             // 供应商自定义的英文阶段（如 provider_processing）对用户没有意义，按任务状态兜底。
-            if (task.stage && /^[a-z0-9_.:-]+$/i.test(task.stage)) return task.status === "running" ? "作品创作中" : generationTaskStatusLabel(task);
+            if (task.stage && /^[a-z0-9_.:-]+$/i.test(task.stage)) return task.status === "running" ? translate("shared.generationTaskDisplay.creating") : generationTaskStatusLabel(task);
             return task.stage || generationTaskStatusLabel(task);
     }
 }
@@ -113,7 +115,7 @@ export type GenerationMediaKind = "image" | "video" | "audio" | "text";
 type GenerationPhaseTarget = { status?: string; stage?: string; mediaStage?: GenerationTask["mediaStage"] };
 
 /** 三段进度依次对应：提交与排队、模型生成、保存到素材库。 */
-export const GENERATION_PHASE_STEPS = ["排队", "生成", "保存"] as const;
+export const GENERATION_PHASE_STEPS = [translate("shared.generationTaskDisplay.queued"), translate("account.welcome.chapters.motion.label"), translate("common.save")] as const;
 
 const queuedPhaseStages = new Set(["queued", "等待队列调度"]);
 
@@ -155,7 +157,7 @@ function upstreamQueueStage(stage?: string) {
     return Boolean(value) && upstreamQueuePattern.test(value);
 }
 const preparingPhaseStages = new Set(["后端接管任务", "正在准备创作", "正在准备参考素材", "正在连接上游", "submitting"]);
-const generationKindNoun: Record<GenerationMediaKind, string> = { image: "图片", video: "视频", audio: "音频", text: "文本" };
+const generationKindNoun: Record<GenerationMediaKind, string> = { image: translate("canvasA.mediaNoun.image"), video: translate("canvasA.mediaNoun.video"), audio: translate("canvasA.mediaNoun.audio"), text: translate("canvasA.mediaNoun.text") };
 
 export function generationTaskPhase(task: GenerationPhaseTarget | null | undefined): GenerationPhase {
     if (!task?.status) return "submitting";
@@ -187,24 +189,24 @@ export function generationPhaseStep(phase: GenerationPhase) {
 
 /** stage 用于细分保存阶段（正常保存 / 自动重试 / 等待保存）；排队与生成中有上游阶段文案时直接展示它。 */
 export function generationPhaseLabel(phase: GenerationPhase, kind?: GenerationMediaKind, stage?: string) {
-    const noun = kind ? generationKindNoun[kind] : "作品";
+    const noun = kind ? generationKindNoun[kind] : translate("shared.generationTaskDisplay.content");
     switch (phase) {
         case "submitting":
-            return "正在提交";
+            return translate("shared.generationTaskDisplay.submitting");
         case "queued":
-            return upstreamGenerationStage(stage) || "排队中";
+            return upstreamGenerationStage(stage) || translate("canvasPage.taskStatus.queued");
         case "preparing":
-            return "准备生成";
+            return translate("shared.generationTaskDisplay.preparingToGenerate");
         case "generating":
-            return upstreamGenerationStage(stage) || `正在生成${noun}`;
+            return upstreamGenerationStage(stage) || translate("shared.generationTaskDisplay.generating", { v0: String(noun) });
         case "saving": {
             const saving = generationTaskSavingState(stage);
-            return saving === "retrying" ? "保存遇到问题，正在重试" : saving === "waiting" ? "等待保存" : `正在保存${noun}`;
+            return saving === "retrying" ? translate("shared.generationTaskDisplay.savingEncounteredAProblemRetrying") : saving === "waiting" ? translate("shared.generationTaskDisplay.waitingToSave") : translate("shared.generationTaskDisplay.saving", { v0: String(noun) });
         }
         case "finalizing":
-            return `正在载入${noun}`;
+            return translate("shared.generationTaskDisplay.loading", { v0: String(noun) });
         case "uncertain":
-            return "提交结果待确认";
+            return translate("shared.generationTaskDisplay.submissionResultNeedsConfirmation");
     }
 }
 
@@ -212,15 +214,15 @@ export function generationPhaseLabel(phase: GenerationPhase, kind?: GenerationMe
 export function generationPhaseHint(phase: GenerationPhase, kind?: GenerationMediaKind, stage?: string) {
     switch (phase) {
         case "queued":
-            return "轮到后自动开始";
+            return translate("shared.generationTaskDisplay.startsAutomaticallyWhenItIsYourTurn");
         case "generating":
-            return kind === "video" ? "离开页面也会继续生成" : "";
+            return kind === "video" ? translate("shared.generationTaskDisplay.generationContinuesIfYouLeaveThisPage") : "";
         case "saving": {
             const saving = generationTaskSavingState(stage);
-            return saving === "retrying" ? "作品已生成，正在自动重试保存，不会重新生成" : saving === "waiting" ? "作品已生成，轮到后自动保存" : "作品已生成，正在存入素材库";
+            return saving === "retrying" ? translate("shared.generationTaskDisplay.generatedSavingIsBeingRetriedAutomaticallyWithoutRegenerating") : saving === "waiting" ? translate("shared.generationTaskDisplay.generatedWillSaveAutomaticallyWhenItIsYourTurn") : translate("shared.generationTaskDisplay.generatedSavingToTheAssetLibrary2");
         }
         case "uncertain":
-            return "为避免重复扣费，未自动重试";
+            return translate("shared.generationTaskDisplay.noAutomaticRetryWasMadeToAvoidDuplicateCharges");
         default:
             return "";
     }
@@ -238,34 +240,34 @@ export function generationTaskShowsProgress(task: GenerationTaskDisplayTarget) {
 }
 
 export const operationOptions = [
-    { label: "文生视频", value: "text_to_video" },
-    { label: "图生视频", value: "image_to_video" },
-    { label: "全模态参考", value: "reference_to_video" },
-    { label: "视频续写", value: "extend" },
-    { label: "视频局部修改", value: "inpaint" },
-    { label: "元素替换", value: "replace_element" },
-    { label: "镜头/运镜调整", value: "camera_motion" },
-    { label: "风格迁移", value: "style_transfer" },
-    { label: "参考音频生成视频", value: "audio_to_video" },
-    { label: "结果版本对比", value: "compare_versions" },
+    { label: translate("shared.modelPicker.textToVideo"), value: "text_to_video" },
+    { label: translate("shared.modelPicker.imageToVideo"), value: "image_to_video" },
+    { label: translate("shared.generationTaskDisplay.multimodalReference"), value: "reference_to_video" },
+    { label: translate("shared.modelPicker.videoContinuation"), value: "extend" },
+    { label: translate("shared.generationTaskDisplay.localVideoEdit"), value: "inpaint" },
+    { label: translate("shared.modelPicker.elementReplacement"), value: "replace_element" },
+    { label: translate("shared.generationTaskDisplay.shotAndCameraMoveAdjustment"), value: "camera_motion" },
+    { label: translate("shared.modelPicker.styleTransfer"), value: "style_transfer" },
+    { label: translate("shared.generationTaskDisplay.audioToVideo"), value: "audio_to_video" },
+    { label: translate("shared.generationTaskDisplay.compareResultVersions"), value: "compare_versions" },
 ];
 
 export const operationLabelByValue = new Map(operationOptions.map((item) => [item.value, item.label]));
 
 export const taskTypeLabel: Record<string, string> = {
-    canvas_image: "画布生图",
-    canvas_video: "画布视频",
-    canvas_audio: "画布音频",
-    canvas_text: "画布文本",
+    canvas_image: translate("shared.generationTaskDisplay.canvasImageGeneration"),
+    canvas_video: translate("shared.generationTaskDisplay.canvasVideo"),
+    canvas_audio: translate("shared.generationTaskDisplay.canvasAudio"),
+    canvas_text: translate("shared.generationTaskDisplay.canvasText"),
 };
 
 export function formatTaskKind(task: GenerationTask) {
     const typeLabel = taskTypeLabel[task.type];
     const operationLabel = task.operation ? operationLabelByValue.get(task.operation) : "";
 
-    if (task.type === "canvas_video" && operationLabel) return `${typeLabel || "画布视频"} · ${operationLabel}`;
+    if (task.type === "canvas_video" && operationLabel) return `${typeLabel || translate("shared.generationTaskDisplay.canvasVideo")} · ${operationLabel}`;
     if (typeLabel) return typeLabel;
     if (operationLabel) return operationLabel;
-    if (task.type.startsWith("video_")) return "视频任务";
-    return "生成任务";
+    if (task.type.startsWith("video_")) return translate("shared.generationTaskDisplay.videoTask");
+    return translate("shared.generationTaskDisplay.generationTask");
 }

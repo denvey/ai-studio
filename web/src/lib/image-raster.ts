@@ -1,11 +1,13 @@
+
+import { translate } from "@/i18n";
 export async function prepareRasterSource(source: string, readBlob?: () => Promise<Blob | null>): Promise<{ url: string; release: () => void }> {
-    if (!source.trim()) throw new Error("图片地址为空");
+    if (!source.trim()) throw new Error(translate("shared.imageRaster.theImageURLIsEmpty"));
     if (source.startsWith("data:") || source.startsWith("blob:")) return { url: source, release: () => {} };
     let blob = await readBlob?.();
     if (!blob) {
         // fetch validates CORS across redirects; a display-only image URL must never be drawn as a fallback.
         const response = await fetch(source, { mode: "cors", credentials: "same-origin" });
-        if (!response.ok) throw new Error(`原图读取失败（${response.status}）`);
+        if (!response.ok) throw new Error(translate("shared.imageRaster.failedToReadSourceImage", { v0: String(response.status) }));
         blob = await response.blob();
     }
     const url = URL.createObjectURL(blob);
@@ -29,12 +31,12 @@ export function loadRasterImage(source: string, signal?: AbortSignal): Promise<H
             } else resolve(picture);
         };
         const cancel = () => settle(new DOMException("图片读取已取消", "AbortError"));
-        const deadline = setTimeout(() => settle(new Error("图片读取超时")), 15000);
-        picture.onload = () => settle(picture.naturalWidth > 0 && picture.naturalHeight > 0 ? undefined : new Error("图片尺寸无效"));
-        picture.onerror = () => settle(new Error("图片加载失败，无法处理该图片"));
+        const deadline = setTimeout(() => settle(new Error(translate("shared.imageRaster.timedOutReadingImage"))), 15000);
+        picture.onload = () => settle(picture.naturalWidth > 0 && picture.naturalHeight > 0 ? undefined : new Error(translate("shared.imageRaster.invalidImageDimensions")));
+        picture.onerror = () => settle(new Error(translate("shared.imageRaster.theImageCouldNotBeLoadedAndCannotBeProcessed")));
         signal?.addEventListener("abort", cancel, { once: true });
         if (signal?.aborted) return cancel();
-        if (!source.trim()) return settle(new Error("图片地址为空"));
+        if (!source.trim()) return settle(new Error(translate("shared.imageRaster.theImageURLIsEmpty")));
         try {
             const location = globalThis.location;
             if (location) {
@@ -44,7 +46,7 @@ export function loadRasterImage(source: string, signal?: AbortSignal): Promise<H
             }
             picture.src = source;
         } catch (error) {
-            settle(error instanceof Error ? error : new Error("图片地址无效"));
+            settle(error instanceof Error ? error : new Error(translate("shared.imageRaster.invalidImageURL")));
         }
     });
 }
