@@ -3,7 +3,6 @@ import { getImageBlob } from "@/services/image-storage";
 import type { CanvasNodeData, CanvasNodeMetadata } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 export type LayerInput = { dataUrl: string; storageKey?: string; width?: number; height?: number; bytes?: number; mimeType?: string };
 type DecodedLayer = { bitmap: ImageBitmap; blob: Blob; info: LayerRasterInfo };
 
@@ -51,7 +50,8 @@ export async function normalizeImageLayerCanvas(input: LayerInput, target?: { wi
     try {
         const { info } = decoded;
         if (!target) return { image: { ...input, width: info.width, height: info.height }, info };
-        if (!Number.isSafeInteger(target.width) || !Number.isSafeInteger(target.height) || target.width <= 0 || target.height <= 0 || target.width * target.height > MAX_LAYER_PIXELS) throw new Error(translate("shared.canvasImageLayerCompositor.sourceImageCanvasDimensionsAreInvalidOrExceedTheProcessing"));
+        if (!Number.isSafeInteger(target.width) || !Number.isSafeInteger(target.height) || target.width <= 0 || target.height <= 0 || target.width * target.height > MAX_LAYER_PIXELS)
+            throw new Error(translate("shared.canvasImageLayerCompositor.sourceImageCanvasDimensionsAreInvalidOrExceedTheProcessing"));
         if (Math.abs(info.width / info.height / (target.width / target.height) - 1) > 0.01)
             throw new Error(translate("shared.canvasImageLayerCompositor.theModelResultSAspectRatioDiffersFromTheSource", { v0: String(target.width), v1: String(target.height), v2: String(info.width), v3: String(info.height) }));
         if (info.width === target.width && info.height === target.height) return { image: { ...input, width: info.width, height: info.height }, info };
@@ -117,7 +117,8 @@ export async function decodeAndComposeImageLayers(inputs: LayerInput[], roles?: 
 
 /** 编辑、删除、调整顺序后用同一组坐标重建合成图，画布展开位置不参与。 */
 export async function composeCanvasImageLayerGroup(group: NonNullable<CanvasNodeMetadata["imageLayerGroup"]>, nodes: CanvasNodeData[]) {
-    if (!Number.isSafeInteger(group.width) || !Number.isSafeInteger(group.height) || group.width <= 0 || group.height <= 0 || group.width * group.height > MAX_LAYER_PIXELS) throw new Error(translate("shared.canvasImageLayerCompositor.invalidLayerGroupCompositeDimensions"));
+    if (!Number.isSafeInteger(group.width) || !Number.isSafeInteger(group.height) || group.width <= 0 || group.height <= 0 || group.width * group.height > MAX_LAYER_PIXELS)
+        throw new Error(translate("shared.canvasImageLayerCompositor.invalidLayerGroupCompositeDimensions"));
     if (group.layers.length > MAX_IMAGE_LAYERS || group.width * group.height * group.layers.length > MAX_GROUP_PIXELS || group.layers.some((layer) => !Number.isFinite(layer.x) || !Number.isFinite(layer.y)))
         throw new Error(translate("shared.canvasImageLayerCompositor.layerGroupCompositingParametersAreInvalidOrExceedTheProcessing"));
     const canvas = document.createElement("canvas");

@@ -2,7 +2,6 @@ import { ApiError } from "@/services/api/request";
 import { AgentStreamError } from "@/services/api/agent";
 import { translate } from "@/i18n";
 
-
 export function agentErrorPresentation(cause: unknown, fallback = translate("shared.canvas.agentErrorPresentation.agentExecutionFailed")) {
     const text = typeof cause === "string" ? cause.trim() : cause instanceof Error ? cause.message : fallback;
     if ((cause instanceof ApiError || cause instanceof AgentStreamError) && cause.status === 404) {

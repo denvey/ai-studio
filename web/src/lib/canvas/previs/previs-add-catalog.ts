@@ -3,7 +3,6 @@ import { previsPrimitiveHalfHeight, previsPropScale, type PrevisPropItem } from 
 import type { PrevisActorArchetype, PrevisActorProfile, PrevisCamera, PrevisLight, PrevisObject, PrevisVec3 } from "@/types/previs";
 import { translate } from "@/i18n";
 
-
 /**
  * 「添加」弹窗的统一目录：角色模板、灯光预设、机位预设。
  * 弹窗预览与真正加入场景都调用这里的 build 函数，保证「预览看到的 = 加进去的」。

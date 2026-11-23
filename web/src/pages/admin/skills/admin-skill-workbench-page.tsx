@@ -4,7 +4,6 @@ import { SkillWorkbench, type SkillWorkbenchApi } from "@/pages/skills/workbench
 import { adminSkillFileRawURL, getAdminSkill, getAdminSkillFile, listAdminSkillFiles, saveAdminSkillFiles, updateAdminSkillInfo } from "@/services/api/admin-skills";
 import { translate } from "@/i18n";
 
-
 const adminWorkbenchApi: SkillWorkbenchApi = {
     getSkill: getAdminSkill,
     listFiles: listAdminSkillFiles,

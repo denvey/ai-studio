@@ -43,7 +43,11 @@ export function DramaTakeList({ projectId, ownerId, kind, limit = 6 }: { project
                     </li>
                 ))}
             </ol>
-            {takes.length > limit ? <p className="drama-takes-more">{translate("drama.studio.takeList.also")} {takes.length - limit} {translate("drama.studio.takeList.earlierVersions")}</p> : null}
+            {takes.length > limit ? (
+                <p className="drama-takes-more">
+                    {translate("drama.studio.takeList.also")} {takes.length - limit} {translate("drama.studio.takeList.earlierVersions")}
+                </p>
+            ) : null}
         </section>
     );
 }

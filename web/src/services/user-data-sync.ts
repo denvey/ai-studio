@@ -28,7 +28,6 @@ import { canvasEditLeases } from "./canvas-edit-leases";
 import { CanvasSyncPendingError, createSyncSingleFlight, waitForCanvasSync, rememberSyncRecovery } from "@/lib/canvas/sync-recovery";
 import { translate } from "@/i18n";
 
-
 const syncSingleFlight = createSyncSingleFlight();
 
 export { numberValue } from "./user-data-sync-media";
@@ -408,7 +407,14 @@ export async function loadCanvasProjectForEditing(id: string, options: { onLoad?
         await flushCanvasStorePersistence();
         await persistConfirmedCanvasBaselines();
         const pending = pendingCanvasMutations.has(id) || !sameCanvasContent(remote, project);
-        useSyncProgressStore.getState().setProjectProgress(id, { phase: pending ? "pending" : "done", cloudRevision: project.revision, pendingChanges: pending ? 1 : 0, message: pending ? translate("shared.userDataSync.cloudUpdatesHaveBeenMergedUnconfirmedLocalOperationsHaveBeen") : translate("shared.userDataSync.theCloudCanvasBaselineHasBeenConfirmed") });
+        useSyncProgressStore
+            .getState()
+            .setProjectProgress(id, {
+                phase: pending ? "pending" : "done",
+                cloudRevision: project.revision,
+                pendingChanges: pending ? 1 : 0,
+                message: pending ? translate("shared.userDataSync.cloudUpdatesHaveBeenMergedUnconfirmedLocalOperationsHaveBeen") : translate("shared.userDataSync.theCloudCanvasBaselineHasBeenConfirmed"),
+            });
         if (pending) scheduleRemoteUserDataSync();
         return project;
     });
@@ -486,7 +492,9 @@ export async function refreshCanvasAfterAgent(id: string, source: "sync" | "agen
         await flushCanvasStorePersistence();
         await persistConfirmedCanvasBaselines();
         const pending = !sameCanvasContent(project, projected);
-        useSyncProgressStore.getState().setProjectProgress(id, { phase: pending ? "pending" : "done", message: pending ? translate("shared.userDataSync.agentResultsHaveBeenMergedLocalChangesAreWaitingTo") : translate("shared.userDataSync.agentCanvasResultsHaveBeenSynced") });
+        useSyncProgressStore
+            .getState()
+            .setProjectProgress(id, { phase: pending ? "pending" : "done", message: pending ? translate("shared.userDataSync.agentResultsHaveBeenMergedLocalChangesAreWaitingTo") : translate("shared.userDataSync.agentCanvasResultsHaveBeenSynced") });
         if (pending) scheduleRemoteUserDataSync();
         return projected;
     });
@@ -738,7 +746,12 @@ export async function syncRemoteUserData(userId?: string | null) {
                     if (!unbasedProjects.has(project.id))
                         useSyncProgressStore
                             .getState()
-                            .setProjectProgress(project.id, { phase: pending ? "pending" : "done", cloudRevision: project.revision, pendingChanges: pending ? 1 : 0, message: pending ? translate("shared.userDataSync.unconfirmedCanvasOperationsHaveBeenPreservedAndAreWaitingTo") : translate("shared.userDataSync.savedToTheCloud") });
+                            .setProjectProgress(project.id, {
+                                phase: pending ? "pending" : "done",
+                                cloudRevision: project.revision,
+                                pendingChanges: pending ? 1 : 0,
+                                message: pending ? translate("shared.userDataSync.unconfirmedCanvasOperationsHaveBeenPreservedAndAreWaitingTo") : translate("shared.userDataSync.savedToTheCloud"),
+                            });
                     return { ...project, viewport: local?.viewport || project.viewport || { x: 0, y: 0, k: 1 }, remoteContentHash };
                 }),
             );
@@ -1438,7 +1451,15 @@ async function reconcileCanvasLocalEdits(id: string, rejected?: PendingCanvasMut
     unbasedProjects.delete(id);
     const latest = useCanvasStore.getState().openProject(id);
     const pending = pendingCanvasMutations.has(id) || Boolean(latest && !sameCanvasContent(remote, latest));
-    useSyncProgressStore.getState().setProjectProgress(id, { phase: pending ? "pending" : "done", pendingChanges: pending ? 1 : 0, errorKind: undefined, cloudRevision: remote.revision, message: pending ? translate("shared.userDataSync.savingCanvasChanges") : translate("shared.userDataSync.savedToTheCloud") });
+    useSyncProgressStore
+        .getState()
+        .setProjectProgress(id, {
+            phase: pending ? "pending" : "done",
+            pendingChanges: pending ? 1 : 0,
+            errorKind: undefined,
+            cloudRevision: remote.revision,
+            message: pending ? translate("shared.userDataSync.savingCanvasChanges") : translate("shared.userDataSync.savedToTheCloud"),
+        });
     if (pending) syncQueued = true;
     return project;
 }

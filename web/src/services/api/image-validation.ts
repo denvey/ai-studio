@@ -2,7 +2,6 @@ import { imageSizeRequest, type ImageCapabilityConfig } from "@/lib/model-capabi
 import type { ReferenceImage } from "@/types/image";
 import { translate } from "@/i18n";
 
-
 const QUALITY_BASE: Record<string, number> = {
     low: 1024,
     medium: 2048,

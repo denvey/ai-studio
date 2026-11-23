@@ -5,7 +5,6 @@ import { EcommerceLibraryPanel } from "./ecommerce-library-panel";
 import { getIndustryCategories, type IndustryCategoryPage, type IndustryCategoryMatch } from "@/services/api/ecommerce-categories";
 import { currentLocale, translate } from "@/i18n";
 
-
 export default function EcommerceCategoriesPage() {
     const [data, setData] = useState<IndustryCategoryPage>();
     const [parent, setParent] = useState("");
@@ -76,7 +75,9 @@ export default function EcommerceCategoriesPage() {
                 type="info"
                 showIcon
                 message={translate("adminPages.ecommerceCategoriesPage.categoryDirectoriesAndDedicatedCreativeMethodsAreCountedSeparatelySubcategories")}
-                description={data ? translate("adminPages.ecommerceCategoriesPage.industryMethodsAndAncestorsWithSpecializedMethodsManageTheirSwitches", { v0: String(data.coverage.industryMethods), v1: String(data.coverage.specializedAncestors) }) : undefined}
+                description={
+                    data ? translate("adminPages.ecommerceCategoriesPage.industryMethodsAndAncestorsWithSpecializedMethodsManageTheirSwitches", { v0: String(data.coverage.industryMethods), v1: String(data.coverage.specializedAncestors) }) : undefined
+                }
             />
             <Space wrap>
                 <Input.Search
@@ -122,12 +123,30 @@ export default function EcommerceCategoriesPage() {
                 expandable={{
                     expandedRowRender: ({ node, playbook }) => (
                         <Space direction="vertical">
-                            <Typography.Text>{translate("adminPages.ecommerceCategoriesPage.categoryID")}{node.id}</Typography.Text>
-                            <Typography.Text>{translate("adminPages.ecommerceCategoriesPage.scene")}{playbook.scene}</Typography.Text>
-                            <Typography.Text>{translate("adminPages.ecommerceCategoriesPage.focus")}{playbook.focus}</Typography.Text>
-                            <Typography.Text>{translate("adminPages.ecommerceCategoriesPage.typography")}{playbook.typography}</Typography.Text>
-                            <Typography.Text>{translate("adminPages.ecommerceCategoriesPage.layout")}{playbook.layout}</Typography.Text>
-                            <Typography.Text>{translate("adminPages.ecommerceCategoriesPage.narrative")}{playbook.story}</Typography.Text>
+                            <Typography.Text>
+                                {translate("adminPages.ecommerceCategoriesPage.categoryID")}
+                                {node.id}
+                            </Typography.Text>
+                            <Typography.Text>
+                                {translate("adminPages.ecommerceCategoriesPage.scene")}
+                                {playbook.scene}
+                            </Typography.Text>
+                            <Typography.Text>
+                                {translate("adminPages.ecommerceCategoriesPage.focus")}
+                                {playbook.focus}
+                            </Typography.Text>
+                            <Typography.Text>
+                                {translate("adminPages.ecommerceCategoriesPage.typography")}
+                                {playbook.typography}
+                            </Typography.Text>
+                            <Typography.Text>
+                                {translate("adminPages.ecommerceCategoriesPage.layout")}
+                                {playbook.layout}
+                            </Typography.Text>
+                            <Typography.Text>
+                                {translate("adminPages.ecommerceCategoriesPage.narrative")}
+                                {playbook.story}
+                            </Typography.Text>
                         </Space>
                     ),
                 }}
@@ -159,7 +178,9 @@ export default function EcommerceCategoriesPage() {
                             <span>
                                 {node.children} {translate("adminPages.ecommerceCategoriesPage.directChildren")}
                                 <br />
-                                <Typography.Text type="secondary">{translate("adminPages.ecommerceCategoriesPage.total")} {node.descendants} {translate("adminPages.ecommerceCategoriesPage.descendants")}</Typography.Text>
+                                <Typography.Text type="secondary">
+                                    {translate("adminPages.ecommerceCategoriesPage.total")} {node.descendants} {translate("adminPages.ecommerceCategoriesPage.descendants")}
+                                </Typography.Text>
                             </span>
                         ),
                     },
@@ -169,9 +190,14 @@ export default function EcommerceCategoriesPage() {
                         key: "scope",
                         render: (_, entry) => (
                             <div>
-                                <Tag color={entry.methodScope === "specific" ? "blue" : "default"}>{entry.methodScope === "specific" ? translate("adminPages.ecommerceCategoriesPage.methodForThisCategory") : translate("adminPages.ecommerceCategoriesPage.inheritedAncestorMethod")}</Tag>
+                                <Tag color={entry.methodScope === "specific" ? "blue" : "default"}>
+                                    {entry.methodScope === "specific" ? translate("adminPages.ecommerceCategoriesPage.methodForThisCategory") : translate("adminPages.ecommerceCategoriesPage.inheritedAncestorMethod")}
+                                </Tag>
                                 <br />
-                                <Typography.Text type="secondary">{translate("adminPages.ecommerceCategoriesPage.methodAncestor")}{entry.methodAncestorId}</Typography.Text>
+                                <Typography.Text type="secondary">
+                                    {translate("adminPages.ecommerceCategoriesPage.methodAncestor")}
+                                    {entry.methodAncestorId}
+                                </Typography.Text>
                             </div>
                         ),
                     },

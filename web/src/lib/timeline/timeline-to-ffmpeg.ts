@@ -8,7 +8,6 @@ import { nanoid } from "nanoid";
 import type { TimelineClip, TimelineProject } from "@/types/timeline";
 import { translate } from "@/i18n";
 
-
 export type TimelineRenderSource = {
     nodeId: string;
     /** 已写入 ffmpeg 工作区的文件名（如 input-0.mp4） */

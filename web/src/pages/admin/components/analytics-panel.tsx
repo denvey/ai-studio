@@ -17,14 +17,14 @@ import { translate } from "@/i18n";
 
 function failureTypeLabel(value: string) {
     const keys: Record<string, string> = {
-        "内容审核": "moderation",
-        "超时": "timeout",
-        "鉴权失败": "authentication",
-        "限流": "rateLimit",
-        "请求参数": "parameters",
-        "上游服务": "upstream",
-        "网络或客户端": "network",
-        "未知错误": "unknown",
+        内容审核: "moderation",
+        超时: "timeout",
+        鉴权失败: "authentication",
+        限流: "rateLimit",
+        请求参数: "parameters",
+        上游服务: "upstream",
+        网络或客户端: "network",
+        未知错误: "unknown",
     };
     const key = keys[value];
     return key ? translate(`admin.analyticsFailureTypes.${key}`) : value;
@@ -190,7 +190,7 @@ export default function AnalyticsPanel({ users, channels }: Props) {
 
     const failureColumns: ColumnsType<AdminAnalytics["failures"][number]> = [
         { title: translate("admin.analyticsPanel.errorType"), dataIndex: "type", width: 120, render: (value) => <AdminStatusBadge label={failureTypeLabel(value)} tone={value === "超时" ? "warning" : "error"} /> },
-        { title: translate("canvasA.assetView.model"), dataIndex: "model", width: 220, render: (value) => value === "未识别" ? translate("admin.apiLogDetailDrawer.unrecognizedModel") : value },
+        { title: translate("canvasA.assetView.model"), dataIndex: "model", width: 220, render: (value) => (value === "未识别" ? translate("admin.apiLogDetailDrawer.unrecognizedModel") : value) },
         { title: translate("admin.analyticsPanel.count"), dataIndex: "count", width: 90 },
         { title: translate("admin.analyticsPanel.recentErrors"), dataIndex: "lastError", ellipsis: true, render: (value) => <Tooltip title={value}>{value || "--"}</Tooltip> },
         { title: translate("admin.analyticsPanel.mostRecent"), dataIndex: "lastSeenAt", width: 170, render: (value) => dayjs(value).format("YYYY-MM-DD HH:mm") },
@@ -317,7 +317,12 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                     trend={formatCountDelta(currentTrend?.activeUsers, previousTrend?.activeUsers)}
                     detail={data ? translate("admin.analyticsPanel.dailyWeeklyMonthly", { v0: String(formatNumber(data.kpi.dau)), v1: String(formatNumber(data.kpi.wau)), v2: String(formatNumber(data.kpi.mau)) }) : undefined}
                 />
-                <AnalyticsHealthCard icon={<CircleDollarSign className="size-4" />} label={translate("admin.analyticsPanel.totalUserBalance")} value={data ? formatCredits(data.kpi.totalBalanceMicrocredits ?? 0) : "--"} detail={translate("admin.analyticsPanel.currentAvailableCreditBalanceAcrossAllUsers")} />
+                <AnalyticsHealthCard
+                    icon={<CircleDollarSign className="size-4" />}
+                    label={translate("admin.analyticsPanel.totalUserBalance")}
+                    value={data ? formatCredits(data.kpi.totalBalanceMicrocredits ?? 0) : "--"}
+                    detail={translate("admin.analyticsPanel.currentAvailableCreditBalanceAcrossAllUsers")}
+                />
                 <AnalyticsHealthCard
                     icon={<CircleDollarSign className="size-4" />}
                     label={translate("admin.analyticsPanel.usageInSelectedPeriod")}
@@ -339,8 +344,19 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                     detail={data ? (data.kpi.upstreamRequests ? translate("admin.analyticsPanel.modelGenerationRequestSuccessRate") : translate("admin.analyticsPanel.noRequestsInTheSelectedRange")) : undefined}
                     tone={!data || !data.kpi.upstreamRequests ? "neutral" : data.kpi.successRate < 90 ? "warning" : "success"}
                 />
-                <AnalyticsHealthCard icon={<Clock3 className="size-4" />} label={translate("admin.analyticsPanel.p95RequestDuration")} value={data && data.kpi.upstreamRequests > 0 ? formatDuration(data.kpi.p95DurationMs) : "--"} detail={translate("admin.analyticsPanel.modelGenerationRequestsExcludingStatusQueriesAndDownloads")} />
-                <AnalyticsHealthCard icon={<Workflow className="size-4" />} label={translate("admin.analyticsPanel.currentlyQueued")} value={data ? formatNumber(data.kpi.currentQueuedTasks) : "--"} detail={translate("admin.analyticsPanel.liveSnapshotNotAHistoricalTotal")} tone={data?.kpi.currentQueuedTasks ? "warning" : "neutral"} />
+                <AnalyticsHealthCard
+                    icon={<Clock3 className="size-4" />}
+                    label={translate("admin.analyticsPanel.p95RequestDuration")}
+                    value={data && data.kpi.upstreamRequests > 0 ? formatDuration(data.kpi.p95DurationMs) : "--"}
+                    detail={translate("admin.analyticsPanel.modelGenerationRequestsExcludingStatusQueriesAndDownloads")}
+                />
+                <AnalyticsHealthCard
+                    icon={<Workflow className="size-4" />}
+                    label={translate("admin.analyticsPanel.currentlyQueued")}
+                    value={data ? formatNumber(data.kpi.currentQueuedTasks) : "--"}
+                    detail={translate("admin.analyticsPanel.liveSnapshotNotAHistoricalTotal")}
+                    tone={data?.kpi.currentQueuedTasks ? "warning" : "neutral"}
+                />
                 <AnalyticsHealthCard
                     icon={<CircleDollarSign className="size-4" />}
                     label={translate("admin.analyticsPanel.costAndProfitCredits")}
@@ -374,7 +390,13 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                     <div className="admin-analytics-section-heading">
                         <div>
                             <h2 id="admin-analytics-trend-title">{trendTitle}</h2>
-                            <p>{trendMetric === "volume" ? translate("admin.analyticsPanel.generationTasksAndModelGenerationRequestsAreCountedSeparatelyStatus") : trendMetric === "quality" ? translate("admin.analyticsPanel.successRateIsCalculatedFromModelGenerationRequestsDatesWithout") : translate("admin.analyticsPanel.activeUsersAreCountedOncePerCalendarDay")}</p>
+                            <p>
+                                {trendMetric === "volume"
+                                    ? translate("admin.analyticsPanel.generationTasksAndModelGenerationRequestsAreCountedSeparatelyStatus")
+                                    : trendMetric === "quality"
+                                      ? translate("admin.analyticsPanel.successRateIsCalculatedFromModelGenerationRequestsDatesWithout")
+                                      : translate("admin.analyticsPanel.activeUsersAreCountedOncePerCalendarDay")}
+                            </p>
                         </div>
                         <div className="admin-analytics-trend-switch" role="group" aria-label={translate("admin.analyticsPanel.trendMetric")}>
                             {(
@@ -402,11 +424,23 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                                     {trendMetric === "volume" ? (
                                         <>
                                             <Area yAxisId="primary" type="monotone" dataKey="tasks" name={translate("canvasA.activeTasks.title")} stroke="var(--admin-chart-primary)" fill="var(--admin-chart-primary)" fillOpacity={0.1} />
-                                            <Area yAxisId="primary" type="monotone" dataKey="requests" name={translate("admin.analyticsPanel.generationRequests")} stroke="var(--admin-chart-secondary)" fill="var(--admin-chart-secondary)" fillOpacity={0.08} />
+                                            <Area
+                                                yAxisId="primary"
+                                                type="monotone"
+                                                dataKey="requests"
+                                                name={translate("admin.analyticsPanel.generationRequests")}
+                                                stroke="var(--admin-chart-secondary)"
+                                                fill="var(--admin-chart-secondary)"
+                                                fillOpacity={0.08}
+                                            />
                                         </>
                                     ) : null}
-                                    {trendMetric === "quality" ? <Line yAxisId="primary" type="monotone" dataKey="requestSuccessRate" name={translate("admin.analyticsPanel.successRate")} stroke="var(--admin-chart-warning)" dot={false} strokeWidth={2} /> : null}
-                                    {trendMetric === "activity" ? <Area yAxisId="primary" type="monotone" dataKey="activeUsers" name={translate("admin.analyticsPanel.activeUsers")} stroke="var(--admin-chart-primary)" fill="var(--admin-chart-primary)" fillOpacity={0.1} /> : null}
+                                    {trendMetric === "quality" ? (
+                                        <Line yAxisId="primary" type="monotone" dataKey="requestSuccessRate" name={translate("admin.analyticsPanel.successRate")} stroke="var(--admin-chart-warning)" dot={false} strokeWidth={2} />
+                                    ) : null}
+                                    {trendMetric === "activity" ? (
+                                        <Area yAxisId="primary" type="monotone" dataKey="activeUsers" name={translate("admin.analyticsPanel.activeUsers")} stroke="var(--admin-chart-primary)" fill="var(--admin-chart-primary)" fillOpacity={0.1} />
+                                    ) : null}
                                 </ComposedChart>
                             </ResponsiveContainer>
                         </div>
@@ -415,7 +449,15 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                             <span>
                                 <BarChart3 className="size-5" />
                             </span>
-                            <div className="font-medium">{!data ? (loading ? translate("admin.analyticsPanel.loadingTrends") : translate("admin.analyticsPanel.trendDataUnavailable")) : translate("admin.analyticsPanel.noDataForThisPeriod", { v0: String(trendMetric === "quality" ? translate("admin.analyticsPanel.quality") : trendMetric === "activity" ? translate("admin.analyticsPanel.active") : translate("admin.analyticsPanel.usage")) })}</div>
+                            <div className="font-medium">
+                                {!data
+                                    ? loading
+                                        ? translate("admin.analyticsPanel.loadingTrends")
+                                        : translate("admin.analyticsPanel.trendDataUnavailable")
+                                    : translate("admin.analyticsPanel.noDataForThisPeriod", {
+                                          v0: String(trendMetric === "quality" ? translate("admin.analyticsPanel.quality") : trendMetric === "activity" ? translate("admin.analyticsPanel.active") : translate("admin.analyticsPanel.usage")),
+                                      })}
+                            </div>
                             <p>{loadError ? translate("admin.analyticsPanel.tryAgainMissingDataCannotBeUsedToAssessOperational") : translate("admin.analyticsPanel.groupedByCalendarDayAdjustTheDateRangeOrFilters")}</p>
                         </div>
                     )}
@@ -427,7 +469,10 @@ export default function AnalyticsPanel({ users, channels }: Props) {
                             <h2 id="admin-analytics-attention-title">{translate("admin.analyticsPanel.needsAttention")}</h2>
                             <p>{translate("admin.analyticsPanel.operationalConditionsThatMayNeedActionAreShownFirst")}</p>
                         </div>
-                        <AdminStatusBadge label={!data ? translate("admin.analyticsPanel.statusUnknown") : failureTotal > 0 ? translate("admin.analyticsPanel.errors", { v0: String(formatNumber(failureTotal)) }) : translate("admin.analyticsPanel.noErrorsRecorded")} tone={!data ? "neutral" : failureTotal > 0 ? "warning" : "success"} />
+                        <AdminStatusBadge
+                            label={!data ? translate("admin.analyticsPanel.statusUnknown") : failureTotal > 0 ? translate("admin.analyticsPanel.errors", { v0: String(formatNumber(failureTotal)) }) : translate("admin.analyticsPanel.noErrorsRecorded")}
+                            tone={!data ? "neutral" : failureTotal > 0 ? "warning" : "success"}
+                        />
                     </div>
                     <div className="admin-analytics-attention-list">
                         <AnalyticsAttentionItem
@@ -583,7 +628,20 @@ function FilterSelect({
     return (
         <div>
             <div className="mb-1 text-xs text-foreground/55">{label}</div>
-            <Select aria-label={translate("admin.analyticsPanel.filters", { v0: String(label) })} allowClear showSearch optionFilterProp="label" filterOption={filterOption} loading={loading} placeholder={translate("canvasA.toolPicker.all")} value={value} onChange={onChange} onSearch={onSearch} options={options} style={{ width }} />
+            <Select
+                aria-label={translate("admin.analyticsPanel.filters", { v0: String(label) })}
+                allowClear
+                showSearch
+                optionFilterProp="label"
+                filterOption={filterOption}
+                loading={loading}
+                placeholder={translate("canvasA.toolPicker.all")}
+                value={value}
+                onChange={onChange}
+                onSearch={onSearch}
+                options={options}
+                style={{ width }}
+            />
         </div>
     );
 }

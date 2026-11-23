@@ -12,7 +12,6 @@ import type { VideoProviderDeps } from "./video-provider-deps";
 import { resolveVideoImageReferences } from "./video-reference-roles";
 import { translate } from "@/i18n";
 
-
 export async function createMiniMaxVideoTask(
     deps: VideoProviderDeps,
     config: ResolvedAiConfig,

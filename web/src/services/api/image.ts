@@ -261,34 +261,32 @@ export async function requestImageQuestion(config: AiConfig, messages: AiTextMes
             return answer;
         }
         if (route === "chat") {
-            const content =
-                (
-                    await requestStreamingChatCompletion(
-                        requestConfig,
-                        {
-                            model: requestConfig.model,
-                            messages: toChatCompletionMessages(withSystemMessage(requestConfig, messages)),
-                        },
-                        onDelta,
-                        options,
-                    )
-                ).content;
-            const answer = content || translate("shared.api.image.noContentReturned");
-            if (!content) onDelta(answer);
-            return answer;
-        }
-        const content =
-            (
-                await requestStreamingResponse(
+            const content = (
+                await requestStreamingChatCompletion(
                     requestConfig,
                     {
                         model: requestConfig.model,
-                        input: toResponseInput(withSystemMessage(requestConfig, messages)),
+                        messages: toChatCompletionMessages(withSystemMessage(requestConfig, messages)),
                     },
                     onDelta,
                     options,
                 )
             ).content;
+            const answer = content || translate("shared.api.image.noContentReturned");
+            if (!content) onDelta(answer);
+            return answer;
+        }
+        const content = (
+            await requestStreamingResponse(
+                requestConfig,
+                {
+                    model: requestConfig.model,
+                    input: toResponseInput(withSystemMessage(requestConfig, messages)),
+                },
+                onDelta,
+                options,
+            )
+        ).content;
         const answer = content || translate("shared.api.image.noContentReturned");
         if (!content) onDelta(answer);
         return answer;

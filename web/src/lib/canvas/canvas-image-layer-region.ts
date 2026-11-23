@@ -1,7 +1,6 @@
 import { validateImageLayerRegion, type ImageLayerRegion } from "./canvas-image-layer-strategy";
 import { translate } from "@/i18n";
 
-
 /** 仅在均匀外侧与对比明显的内侧一致时，建议附近的面板边界。 */
 export function suggestImageLayerRegion(width: number, height: number, pixels: Uint8ClampedArray, region: ImageLayerRegion): ImageLayerRegion | undefined {
     validateImageLayerRegion(region);

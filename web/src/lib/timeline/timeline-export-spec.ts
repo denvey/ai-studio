@@ -3,7 +3,6 @@
 import { evenDimension, timelineClipFitMode, type TimelineFitMode } from "./timeline-to-ffmpeg";
 import { translate } from "@/i18n";
 
-
 export type TimelineExportSize = { width: number; height: number };
 export type TimelineExportPreset = "first" | "drama" | "9:16" | "16:9" | "1:1";
 
@@ -54,7 +53,13 @@ export function timelineExportPresetOptions(options: { firstClipSize?: { width?:
     const first = resolveTimelineExportSize("first", options);
     const known = Boolean(normalizeTimelineSourceSize(options.firstClipSize?.width, options.firstClipSize?.height));
     const sizeLabel = (size: TimelineExportSize) => `${size.width}×${size.height}`;
-    const items: TimelineExportPresetOption[] = [{ value: "first", label: known ? translate("shared.timeline.timelineExportSpec.matchFirstClip", { v0: String(sizeLabel(first)) }) : translate("shared.timeline.timelineExportSpec.matchFirstClipSizeUnknown", { v0: String(sizeLabel(first)) }), size: first }];
+    const items: TimelineExportPresetOption[] = [
+        {
+            value: "first",
+            label: known ? translate("shared.timeline.timelineExportSpec.matchFirstClip", { v0: String(sizeLabel(first)) }) : translate("shared.timeline.timelineExportSpec.matchFirstClipSizeUnknown", { v0: String(sizeLabel(first)) }),
+            size: first,
+        },
+    ];
     if (options.dramaAspectRatio) {
         const drama = dramaRenderSize(options.dramaAspectRatio);
         items.push({ value: "drama", label: translate("shared.timeline.timelineExportSpec.dramaAspectRatio", { v0: String(options.dramaAspectRatio), v1: String(sizeLabel(drama)) }), size: drama });

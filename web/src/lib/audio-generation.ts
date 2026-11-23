@@ -3,7 +3,6 @@ import { resolveModelRequestConfig } from "@/stores/use-config-store";
 import type { AiConfig } from "@/stores/use-config-store";
 import { translate } from "@/i18n";
 
-
 export { doubaoAudioVoiceOptions, doubaoDefaultAudioVoice };
 
 export const openAIAudioVoiceOptions = [

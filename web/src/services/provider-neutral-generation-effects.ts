@@ -4,7 +4,6 @@ import { getActiveUserScope } from "@/lib/user-scope";
 import type { GenerationTaskEffectClaim, GenerationTaskEffectResult, GenerationTaskEffectStore } from "@/services/generation-task-materializer";
 import { translate } from "@/i18n";
 
-
 type EffectRecord = {
     version: 1;
     taskId: string;

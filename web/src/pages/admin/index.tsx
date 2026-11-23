@@ -5,7 +5,6 @@ import "./theme/admin-tokens.css";
 import "./theme/admin-chrome.css";
 import { translate } from "@/i18n";
 
-
 export default function AdminPage() {
     const actor = useUserStore((state) => state.user);
     const hydrated = useUserStore((state) => state.hydrated);

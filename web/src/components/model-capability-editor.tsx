@@ -38,7 +38,6 @@ import { VIDEO_RESOLUTION_CAPABILITY_OPTIONS } from "@/lib/video-generation-opti
 import { Select } from "@/components/ui/base/select";
 import { translate } from "@/i18n";
 
-
 const ratioOptions = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"];
 const operationOptions = [
     { label: translate("shared.modelCapabilityEditor.textToVideo"), value: "text_to_video" },
@@ -106,7 +105,12 @@ export function ModelCapabilityEditor({ value, onChange, protocol, capability = 
             </Field>
             {processing.fpsPolicy === "user_select" ? (
                 <Field label={translate("shared.modelCapabilityEditor.availableFrameRates15120CommaSeparated")}>
-                    <Input disabled={disabled} value={(processing.fpsOptions || []).join(",")} placeholder={translate("shared.modelCapabilityEditor.forExample3060")} onChange={(event) => update({ processing: { ...processing, fpsOptions: parseIntegerList(event.target.value) } })} />
+                    <Input
+                        disabled={disabled}
+                        value={(processing.fpsOptions || []).join(",")}
+                        placeholder={translate("shared.modelCapabilityEditor.forExample3060")}
+                        onChange={(event) => update({ processing: { ...processing, fpsOptions: parseIntegerList(event.target.value) } })}
+                    />
                 </Field>
             ) : null}
             <NumberField
@@ -125,7 +129,14 @@ export function ModelCapabilityEditor({ value, onChange, protocol, capability = 
             <div className="admin-capability-reference-editor">
                 <div className="admin-capability-reference-grid">
                     <ReferenceCard title={translate("shared.modelCapabilityEditor.imageReferences")} description={translate("shared.modelCapabilityEditor.firstFrameReferenceImageAndMultiImageInputLimits")}>
-                        <NumberField label={translate("shared.modelCapabilityEditor.minimumImageReferences")} value={profile.references.minImages} min={0} max={profile.references.maxImages} disabled={disabled} onChange={(value) => updateReferences({ minImages: value || 0 })} />
+                        <NumberField
+                            label={translate("shared.modelCapabilityEditor.minimumImageReferences")}
+                            value={profile.references.minImages}
+                            min={0}
+                            max={profile.references.maxImages}
+                            disabled={disabled}
+                            onChange={(value) => updateReferences({ minImages: value || 0 })}
+                        />
                         <NumberField
                             label={translate("shared.modelCapabilityEditor.maxImageReferences")}
                             value={profile.references.maxImages}
@@ -136,18 +147,48 @@ export function ModelCapabilityEditor({ value, onChange, protocol, capability = 
                                 updateReferences({ maxImages, minImages: Math.min(profile.references.minImages, maxImages) });
                             }}
                         />
-                        <NumberField label={translate("shared.modelCapabilityEditor.maximumImageSizeMB")} value={bytesToMB(profile.references.maxImageBytes)} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxImageBytes: mbToBytes(value) })} />
+                        <NumberField
+                            label={translate("shared.modelCapabilityEditor.maximumImageSizeMB")}
+                            value={bytesToMB(profile.references.maxImageBytes)}
+                            min={0}
+                            disabled={disabled}
+                            onChange={(value) => updateReferences({ maxImageBytes: mbToBytes(value) })}
+                        />
                     </ReferenceCard>
                     <ReferenceCard title={translate("shared.modelCapabilityEditor.audioReferences")} description={translate("shared.modelCapabilityEditor.audioInputAndSynchronizedOutputLimits")}>
                         <NumberField label={translate("shared.modelCapabilityEditor.maxAudioReferences")} value={profile.references.maxAudios} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxAudios: value || 0 })} />
-                        <NumberField label={translate("shared.modelCapabilityEditor.maximumAudioFileSizeMB")} value={bytesToMB(profile.references.maxAudioBytes)} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxAudioBytes: mbToBytes(value) })} />
-                        <NumberField label={translate("shared.modelCapabilityEditor.maximumAudioDurationInSeconds")} value={profile.references.maxAudioDurationSeconds} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxAudioDurationSeconds: value || 0 })} />
+                        <NumberField
+                            label={translate("shared.modelCapabilityEditor.maximumAudioFileSizeMB")}
+                            value={bytesToMB(profile.references.maxAudioBytes)}
+                            min={0}
+                            disabled={disabled}
+                            onChange={(value) => updateReferences({ maxAudioBytes: mbToBytes(value) })}
+                        />
+                        <NumberField
+                            label={translate("shared.modelCapabilityEditor.maximumAudioDurationInSeconds")}
+                            value={profile.references.maxAudioDurationSeconds}
+                            min={0}
+                            disabled={disabled}
+                            onChange={(value) => updateReferences({ maxAudioDurationSeconds: value || 0 })}
+                        />
                         <BooleanField label={translate("shared.modelCapabilityEditor.syncAudio")} value={profile.generateAudio} disabled={disabled} onChange={(generateAudio) => update({ generateAudio })} />
                     </ReferenceCard>
                     <ReferenceCard title={translate("shared.modelCapabilityEditor.videoReferences")} description={translate("shared.modelCapabilityEditor.videoCountSizeAndDurationLimits")}>
                         <NumberField label={translate("shared.modelCapabilityEditor.maxVideoReferences")} value={profile.references.maxVideos} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxVideos: value || 0 })} />
-                        <NumberField label={translate("shared.modelCapabilityEditor.maximumVideoFileSizeMB")} value={bytesToMB(profile.references.maxVideoBytes)} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxVideoBytes: mbToBytes(value) })} />
-                        <NumberField label={translate("shared.modelCapabilityEditor.maximumVideoDurationInSeconds")} value={profile.references.maxVideoDurationSeconds} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxVideoDurationSeconds: value || 0 })} />
+                        <NumberField
+                            label={translate("shared.modelCapabilityEditor.maximumVideoFileSizeMB")}
+                            value={bytesToMB(profile.references.maxVideoBytes)}
+                            min={0}
+                            disabled={disabled}
+                            onChange={(value) => updateReferences({ maxVideoBytes: mbToBytes(value) })}
+                        />
+                        <NumberField
+                            label={translate("shared.modelCapabilityEditor.maximumVideoDurationInSeconds")}
+                            value={profile.references.maxVideoDurationSeconds}
+                            min={0}
+                            disabled={disabled}
+                            onChange={(value) => updateReferences({ maxVideoDurationSeconds: value || 0 })}
+                        />
                     </ReferenceCard>
                     <ReferenceCard title={translate("shared.modelCapabilityEditor.generalLimits")} description={translate("shared.modelCapabilityEditor.basicConstraintsSharedByAllVideoRequests")}>
                         <NumberField label={translate("shared.modelCapabilityEditor.maximumPromptCharacters")} value={profile.references.promptMaxChars} min={1} disabled={disabled} onChange={(value) => updateReferences({ promptMaxChars: value || 1 })} />
@@ -386,8 +427,20 @@ export function ModelCapabilityEditor({ value, onChange, protocol, capability = 
                     <CapabilityBlock title={translate("shared.modelCapabilityEditor.videoReferences")}>
                         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                             <NumberField label={translate("shared.modelCapabilityEditor.maxVideoReferences")} value={profile.references.maxVideos} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxVideos: value || 0 })} />
-                            <NumberField label={translate("shared.modelCapabilityEditor.maximumVideoFileSizeMB")} value={bytesToMB(profile.references.maxVideoBytes)} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxVideoBytes: mbToBytes(value) })} />
-                            <NumberField label={translate("shared.modelCapabilityEditor.maximumVideoDurationInSeconds")} value={profile.references.maxVideoDurationSeconds} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxVideoDurationSeconds: value || 0 })} />
+                            <NumberField
+                                label={translate("shared.modelCapabilityEditor.maximumVideoFileSizeMB")}
+                                value={bytesToMB(profile.references.maxVideoBytes)}
+                                min={0}
+                                disabled={disabled}
+                                onChange={(value) => updateReferences({ maxVideoBytes: mbToBytes(value) })}
+                            />
+                            <NumberField
+                                label={translate("shared.modelCapabilityEditor.maximumVideoDurationInSeconds")}
+                                value={profile.references.maxVideoDurationSeconds}
+                                min={0}
+                                disabled={disabled}
+                                onChange={(value) => updateReferences({ maxVideoDurationSeconds: value || 0 })}
+                            />
                         </div>
                     </CapabilityBlock>
                 ) : null}
@@ -397,7 +450,14 @@ export function ModelCapabilityEditor({ value, onChange, protocol, capability = 
                 <>
                     <CapabilityGroup title={translate("account.feedback.image")} description={translate("shared.modelCapabilityEditor.firstFrameReferenceImageAndMultiImageInputConstraints")}>
                         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                            <NumberField label={translate("shared.modelCapabilityEditor.minimumImageReferences")} value={profile.references.minImages} min={0} max={profile.references.maxImages} disabled={disabled} onChange={(value) => updateReferences({ minImages: value || 0 })} />
+                            <NumberField
+                                label={translate("shared.modelCapabilityEditor.minimumImageReferences")}
+                                value={profile.references.minImages}
+                                min={0}
+                                max={profile.references.maxImages}
+                                disabled={disabled}
+                                onChange={(value) => updateReferences({ minImages: value || 0 })}
+                            />
                             <NumberField
                                 label={translate("shared.modelCapabilityEditor.maxImageReferences")}
                                 value={profile.references.maxImages}
@@ -408,22 +468,46 @@ export function ModelCapabilityEditor({ value, onChange, protocol, capability = 
                                     updateReferences({ maxImages, minImages: Math.min(profile.references.minImages, maxImages) });
                                 }}
                             />
-                            <NumberField label={translate("shared.modelCapabilityEditor.maximumImageSizeMB")} value={bytesToMB(profile.references.maxImageBytes)} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxImageBytes: mbToBytes(value) })} />
+                            <NumberField
+                                label={translate("shared.modelCapabilityEditor.maximumImageSizeMB")}
+                                value={bytesToMB(profile.references.maxImageBytes)}
+                                min={0}
+                                disabled={disabled}
+                                onChange={(value) => updateReferences({ maxImageBytes: mbToBytes(value) })}
+                            />
                         </div>
                     </CapabilityGroup>
 
                     <CapabilityGroup title={translate("account.settings.modelConfig.capabilities.audio")} description={translate("shared.modelCapabilityEditor.audioReferencesAndSynchronizedAudioInVideoOutput")}>
                         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                             <NumberField label={translate("shared.modelCapabilityEditor.maxAudioReferences")} value={profile.references.maxAudios} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxAudios: value || 0 })} />
-                            <NumberField label={translate("shared.modelCapabilityEditor.maximumAudioFileSizeMB")} value={bytesToMB(profile.references.maxAudioBytes)} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxAudioBytes: mbToBytes(value) })} />
-                            <NumberField label={translate("shared.modelCapabilityEditor.maximumAudioDurationInSeconds")} value={profile.references.maxAudioDurationSeconds} min={0} disabled={disabled} onChange={(value) => updateReferences({ maxAudioDurationSeconds: value || 0 })} />
+                            <NumberField
+                                label={translate("shared.modelCapabilityEditor.maximumAudioFileSizeMB")}
+                                value={bytesToMB(profile.references.maxAudioBytes)}
+                                min={0}
+                                disabled={disabled}
+                                onChange={(value) => updateReferences({ maxAudioBytes: mbToBytes(value) })}
+                            />
+                            <NumberField
+                                label={translate("shared.modelCapabilityEditor.maximumAudioDurationInSeconds")}
+                                value={profile.references.maxAudioDurationSeconds}
+                                min={0}
+                                disabled={disabled}
+                                onChange={(value) => updateReferences({ maxAudioDurationSeconds: value || 0 })}
+                            />
                         </div>
                         <BooleanField label={translate("shared.modelCapabilityEditor.syncAudio")} value={profile.generateAudio} disabled={disabled} onChange={(generateAudio) => update({ generateAudio })} />
                     </CapabilityGroup>
 
                     <CapabilityGroup title={translate("shared.modelCapabilityEditor.generalLimits")} description={translate("shared.modelCapabilityEditor.requestAndOutputConstraintsSharedAcrossMediaTypes")}>
                         <div className="grid gap-3 sm:grid-cols-2">
-                            <NumberField label={translate("shared.modelCapabilityEditor.maximumPromptCharacters")} value={profile.references.promptMaxChars} min={1} disabled={disabled} onChange={(value) => updateReferences({ promptMaxChars: value || 1 })} />
+                            <NumberField
+                                label={translate("shared.modelCapabilityEditor.maximumPromptCharacters")}
+                                value={profile.references.promptMaxChars}
+                                min={1}
+                                disabled={disabled}
+                                onChange={(value) => updateReferences({ promptMaxChars: value || 1 })}
+                            />
                             <BooleanField label={translate("library.tasks.params.watermark")} value={profile.watermark} disabled={disabled} onChange={(watermark) => update({ watermark })} />
                         </div>
                     </CapabilityGroup>
@@ -458,8 +542,21 @@ function TextCapabilityEditor({ value, onChange, protocol, disabled, section }: 
             </Checkbox>
             {videoUnderstanding ? (
                 <>
-                    <NumberField label={translate("shared.modelCapabilityEditor.maximumVideosToAnalyze")} value={profile.references.maxVideos} min={1} max={100} disabled={Boolean(disabled)} onChange={(next) => updateReferences({ maxVideos: Math.max(1, next || 1) })} />
-                    <NumberField label={translate("shared.modelCapabilityEditor.maximumVideoFileSizeMB")} value={bytesToMB(profile.references.maxVideoBytes)} min={0} disabled={Boolean(disabled)} onChange={(next) => updateReferences({ maxVideoBytes: mbToBytes(next) })} />
+                    <NumberField
+                        label={translate("shared.modelCapabilityEditor.maximumVideosToAnalyze")}
+                        value={profile.references.maxVideos}
+                        min={1}
+                        max={100}
+                        disabled={Boolean(disabled)}
+                        onChange={(next) => updateReferences({ maxVideos: Math.max(1, next || 1) })}
+                    />
+                    <NumberField
+                        label={translate("shared.modelCapabilityEditor.maximumVideoFileSizeMB")}
+                        value={bytesToMB(profile.references.maxVideoBytes)}
+                        min={0}
+                        disabled={Boolean(disabled)}
+                        onChange={(next) => updateReferences({ maxVideoBytes: mbToBytes(next) })}
+                    />
                 </>
             ) : null}
         </>
@@ -486,7 +583,14 @@ function TextCapabilityEditor({ value, onChange, protocol, disabled, section }: 
         const contextWindowFields = (
             <CapabilityGroup title={translate("shared.modelCapabilityEditor.contextCapacity")} description={translate("shared.modelCapabilityEditor.thisDefinesTheUpstreamTextModelSCapacityAndThe")}>
                 <div className="grid gap-3 sm:grid-cols-2">
-                    <NumberField label={translate("shared.modelCapabilityEditor.contextWindowTokens")} value={profile.contextWindowTokens} min={4_096} max={10_000_000} disabled={Boolean(disabled)} onChange={(next) => update({ contextWindowTokens: next || 4_096 })} />
+                    <NumberField
+                        label={translate("shared.modelCapabilityEditor.contextWindowTokens")}
+                        value={profile.contextWindowTokens}
+                        min={4_096}
+                        max={10_000_000}
+                        disabled={Boolean(disabled)}
+                        onChange={(next) => update({ contextWindowTokens: next || 4_096 })}
+                    />
                     <NumberField label={translate("shared.modelCapabilityEditor.maximumOutputTokens")} value={profile.maxOutputTokens} min={256} max={1_000_000} disabled={Boolean(disabled)} onChange={(next) => update({ maxOutputTokens: next || 256 })} />
                 </div>
             </CapabilityGroup>
@@ -496,14 +600,34 @@ function TextCapabilityEditor({ value, onChange, protocol, disabled, section }: 
                 {contextWindowFields}
                 <div className="admin-capability-reference-grid is-three">
                     <ReferenceCard title={translate("shared.modelCapabilityEditor.imageUnderstanding")} description={translate("shared.modelCapabilityEditor.item0MeansImageUnderstandingIsUnsupportedAPositiveValueDisplays")}>
-                        <NumberField label={translate("shared.modelCapabilityEditor.maximumImagesToAnalyze")} value={profile.references.maxImages} min={0} max={100} disabled={Boolean(disabled)} onChange={(next) => updateReferences({ maxImages: next || 0 })} />
-                        <NumberField label={translate("shared.modelCapabilityEditor.maximumImageSizeMB")} value={bytesToMB(profile.references.maxImageBytes)} min={0} disabled={Boolean(disabled)} onChange={(next) => updateReferences({ maxImageBytes: mbToBytes(next) })} />
+                        <NumberField
+                            label={translate("shared.modelCapabilityEditor.maximumImagesToAnalyze")}
+                            value={profile.references.maxImages}
+                            min={0}
+                            max={100}
+                            disabled={Boolean(disabled)}
+                            onChange={(next) => updateReferences({ maxImages: next || 0 })}
+                        />
+                        <NumberField
+                            label={translate("shared.modelCapabilityEditor.maximumImageSizeMB")}
+                            value={bytesToMB(profile.references.maxImageBytes)}
+                            min={0}
+                            disabled={Boolean(disabled)}
+                            onChange={(next) => updateReferences({ maxImageBytes: mbToBytes(next) })}
+                        />
                     </ReferenceCard>
                     <ReferenceCard title={translate("shared.modelCapabilityEditor.videoUnderstanding")} description={translate("shared.modelCapabilityEditor.disabledByDefaultWhenEnabledTheModelListDisplaysVideos")}>
                         {videoFields}
                     </ReferenceCard>
                     <ReferenceCard title={translate("shared.modelCapabilityEditor.generalLimits")} description={translate("shared.modelCapabilityEditor.basicConstraintsSharedByAllTextRequests")}>
-                        <NumberField label={translate("shared.modelCapabilityEditor.maximumPromptCharacters")} value={profile.references.promptMaxChars} min={1} max={1_000_000} disabled={Boolean(disabled)} onChange={(next) => updateReferences({ promptMaxChars: next || 1 })} />
+                        <NumberField
+                            label={translate("shared.modelCapabilityEditor.maximumPromptCharacters")}
+                            value={profile.references.promptMaxChars}
+                            min={1}
+                            max={1_000_000}
+                            disabled={Boolean(disabled)}
+                            onChange={(next) => updateReferences({ promptMaxChars: next || 1 })}
+                        />
                     </ReferenceCard>
                 </div>
             </div>
@@ -518,21 +642,48 @@ function TextCapabilityEditor({ value, onChange, protocol, disabled, section }: 
             </div>
             <CapabilityGroup title={translate("shared.modelCapabilityEditor.contextCapacity")} description={translate("shared.modelCapabilityEditor.thisDefinesTheUpstreamTextModelSCapacityAndThe")}>
                 <div className="grid gap-3 sm:grid-cols-2">
-                    <NumberField label={translate("shared.modelCapabilityEditor.contextWindowTokens")} value={profile.contextWindowTokens} min={4_096} max={10_000_000} disabled={Boolean(disabled)} onChange={(next) => update({ contextWindowTokens: next || 4_096 })} />
+                    <NumberField
+                        label={translate("shared.modelCapabilityEditor.contextWindowTokens")}
+                        value={profile.contextWindowTokens}
+                        min={4_096}
+                        max={10_000_000}
+                        disabled={Boolean(disabled)}
+                        onChange={(next) => update({ contextWindowTokens: next || 4_096 })}
+                    />
                     <NumberField label={translate("shared.modelCapabilityEditor.maximumOutputTokens")} value={profile.maxOutputTokens} min={256} max={1_000_000} disabled={Boolean(disabled)} onChange={(next) => update({ maxOutputTokens: next || 256 })} />
                 </div>
             </CapabilityGroup>
             <CapabilityGroup title={translate("shared.modelCapabilityEditor.imageUnderstanding")} description={translate("shared.modelCapabilityEditor.item0MeansImageUnderstandingIsUnsupportedAPositiveValueDisplays")}>
                 <div className="grid gap-3 sm:grid-cols-2">
-                    <NumberField label={translate("shared.modelCapabilityEditor.maximumImagesToAnalyze")} value={profile.references.maxImages} min={0} max={100} disabled={Boolean(disabled)} onChange={(next) => updateReferences({ maxImages: next || 0 })} />
-                    <NumberField label={translate("shared.modelCapabilityEditor.maximumImageSizeMB")} value={bytesToMB(profile.references.maxImageBytes)} min={0} disabled={Boolean(disabled)} onChange={(next) => updateReferences({ maxImageBytes: mbToBytes(next) })} />
+                    <NumberField
+                        label={translate("shared.modelCapabilityEditor.maximumImagesToAnalyze")}
+                        value={profile.references.maxImages}
+                        min={0}
+                        max={100}
+                        disabled={Boolean(disabled)}
+                        onChange={(next) => updateReferences({ maxImages: next || 0 })}
+                    />
+                    <NumberField
+                        label={translate("shared.modelCapabilityEditor.maximumImageSizeMB")}
+                        value={bytesToMB(profile.references.maxImageBytes)}
+                        min={0}
+                        disabled={Boolean(disabled)}
+                        onChange={(next) => updateReferences({ maxImageBytes: mbToBytes(next) })}
+                    />
                 </div>
             </CapabilityGroup>
             <CapabilityGroup title={translate("shared.modelCapabilityEditor.videoUnderstanding")} description={translate("shared.modelCapabilityEditor.disabledByDefaultWhenEnabledTheModelListDisplaysVideos")}>
                 <div className="grid gap-3 sm:grid-cols-2">{videoFields}</div>
             </CapabilityGroup>
             <CapabilityGroup title={translate("shared.modelCapabilityEditor.generalLimits")} description={translate("shared.modelCapabilityEditor.basicConstraintsSharedByAllTextRequests")}>
-                <NumberField label={translate("shared.modelCapabilityEditor.maximumPromptCharacters")} value={profile.references.promptMaxChars} min={1} max={1_000_000} disabled={Boolean(disabled)} onChange={(next) => updateReferences({ promptMaxChars: next || 1 })} />
+                <NumberField
+                    label={translate("shared.modelCapabilityEditor.maximumPromptCharacters")}
+                    value={profile.references.promptMaxChars}
+                    min={1}
+                    max={1_000_000}
+                    disabled={Boolean(disabled)}
+                    onChange={(next) => updateReferences({ promptMaxChars: next || 1 })}
+                />
             </CapabilityGroup>
         </div>
     );
@@ -592,11 +743,29 @@ function ImageCapabilityEditor({ value, onChange, protocol, model, imageParamete
                 <div className="admin-capability-reference-grid is-two">
                     <ReferenceCard title={translate("shared.modelCapabilityEditor.imageReferences")} description={translate("shared.modelCapabilityEditor.referenceImagesFileSizeLimitsAndMaskSupport")}>
                         <NumberField label={translate("shared.modelCapabilityEditor.maxReferenceImages")} value={profile.references.maxImages} min={0} disabled={disabled} onChange={(maxImages) => updateReferences({ maxImages: maxImages || 0 })} />
-                        <NumberField label={translate("shared.modelCapabilityEditor.maxImageSizeMB")} value={bytesToMB(profile.references.maxImageBytes)} min={0} disabled={disabled} onChange={(maxImageBytes) => updateReferences({ maxImageBytes: mbToBytes(maxImageBytes) })} />
-                        <ParameterField label={translate("shared.modelCapabilityEditor.maskEditing")} description={translate("shared.modelCapabilityEditor.allowMasksInImageEditingRequests")} supported={profile.references.maskSupported} disabled={disabled} onChange={(maskSupported) => updateReferences({ maskSupported })} />
+                        <NumberField
+                            label={translate("shared.modelCapabilityEditor.maxImageSizeMB")}
+                            value={bytesToMB(profile.references.maxImageBytes)}
+                            min={0}
+                            disabled={disabled}
+                            onChange={(maxImageBytes) => updateReferences({ maxImageBytes: mbToBytes(maxImageBytes) })}
+                        />
+                        <ParameterField
+                            label={translate("shared.modelCapabilityEditor.maskEditing")}
+                            description={translate("shared.modelCapabilityEditor.allowMasksInImageEditingRequests")}
+                            supported={profile.references.maskSupported}
+                            disabled={disabled}
+                            onChange={(maskSupported) => updateReferences({ maskSupported })}
+                        />
                     </ReferenceCard>
                     <ReferenceCard title={translate("shared.modelCapabilityEditor.generalLimits")} description={translate("shared.modelCapabilityEditor.basicConstraintsSharedByAllImageRequests")}>
-                        <NumberField label={translate("shared.modelCapabilityEditor.maximumPromptCharacters")} value={profile.references.promptMaxChars} min={1} disabled={disabled} onChange={(promptMaxChars) => updateReferences({ promptMaxChars: promptMaxChars || 1 })} />
+                        <NumberField
+                            label={translate("shared.modelCapabilityEditor.maximumPromptCharacters")}
+                            value={profile.references.promptMaxChars}
+                            min={1}
+                            disabled={disabled}
+                            onChange={(promptMaxChars) => updateReferences({ promptMaxChars: promptMaxChars || 1 })}
+                        />
                     </ReferenceCard>
                 </div>
             </div>
@@ -607,7 +776,12 @@ function ImageCapabilityEditor({ value, onChange, protocol, model, imageParamete
         return (
             <div className="admin-capability-protocol-editor admin-image-protocol-editor">
                 <div className="admin-capability-protocol-grid admin-image-protocol-grid">
-                    <ProtocolParameterCard step="01" title={translate("shared.modelCapabilityEditor.sizeParameters")} description={translate("shared.modelCapabilityEditor.setAvailableAspectRatiosForEachResolutionBySelectingOr")} className="admin-image-size-card">
+                    <ProtocolParameterCard
+                        step="01"
+                        title={translate("shared.modelCapabilityEditor.sizeParameters")}
+                        description={translate("shared.modelCapabilityEditor.setAvailableAspectRatiosForEachResolutionBySelectingOr")}
+                        className="admin-image-size-card"
+                    >
                         <div className="admin-image-size-intro">
                             <SegmentedControl
                                 block
@@ -632,7 +806,13 @@ function ImageCapabilityEditor({ value, onChange, protocol, model, imageParamete
                         {profile.size.parameter !== "none" ? (
                             <>
                                 <ImageSizePresetsEditor profile={profile} disabled={disabled} onChange={updateSize} />
-                                <ParameterField label={translate("shared.modelCapabilityEditor.allowCustomValues")} description={translate("shared.modelCapabilityEditor.allowSizesOutsideTheSupportedValues")} supported={profile.size.allowCustom} disabled={disabled} onChange={(allowCustom) => updateSize({ allowCustom })} />
+                                <ParameterField
+                                    label={translate("shared.modelCapabilityEditor.allowCustomValues")}
+                                    description={translate("shared.modelCapabilityEditor.allowSizesOutsideTheSupportedValues")}
+                                    supported={profile.size.allowCustom}
+                                    disabled={disabled}
+                                    onChange={(allowCustom) => updateSize({ allowCustom })}
+                                />
                             </>
                         ) : null}
                     </ProtocolParameterCard>
@@ -640,7 +820,13 @@ function ImageCapabilityEditor({ value, onChange, protocol, model, imageParamete
                         <NumberField label={translate("shared.modelCapabilityEditor.imagesPerGeneration")} value={profile.maxOutputs} min={1} disabled={disabled} onChange={(maxOutputs) => update({ maxOutputs: maxOutputs || 1 })} />
                     </ProtocolParameterCard>
                     <ProtocolParameterCard step="03" title={translate("shared.modelCapabilityEditor.optionalParameters")} description={translate("shared.modelCapabilityEditor.qualityBackgroundAndResponseFormatSettings")}>
-                        <ParameterField label={translate("shared.modelCapabilityEditor.imageQuality")} description={translate("shared.modelCapabilityEditor.sendTheQualityParameter")} supported={profile.quality.supported} disabled={disabled} onChange={(supported) => updateQuality({ supported })} />
+                        <ParameterField
+                            label={translate("shared.modelCapabilityEditor.imageQuality")}
+                            description={translate("shared.modelCapabilityEditor.sendTheQualityParameter")}
+                            supported={profile.quality.supported}
+                            disabled={disabled}
+                            onChange={(supported) => updateQuality({ supported })}
+                        />
                         {profile.quality.supported ? (
                             <div className="admin-capability-spec-grid">
                                 <Field label={translate("shared.modelCapabilityEditor.supportedQualityValues")}>
@@ -667,7 +853,13 @@ function ImageCapabilityEditor({ value, onChange, protocol, model, imageParamete
                         ) : null}
                         <BooleanField label={translate("shared.modelCapabilityEditor.transparentBackground")} value={profile.transparentBackground} disabled={disabled} onChange={(transparentBackground) => update({ transparentBackground })} />
                         <ImageResponseFormatEditor value={profile.responseFormat} disabled={disabled} onChange={(responseFormat) => update({ responseFormat })} />
-                        <ParameterField label="output_format" description={translate("shared.modelCapabilityEditor.sendPNGOutputFormat")} supported={profile.outputFormat.supported} disabled={disabled} onChange={(supported) => update({ outputFormat: { supported } })} />
+                        <ParameterField
+                            label="output_format"
+                            description={translate("shared.modelCapabilityEditor.sendPNGOutputFormat")}
+                            supported={profile.outputFormat.supported}
+                            disabled={disabled}
+                            onChange={(supported) => update({ outputFormat: { supported } })}
+                        />
                     </ProtocolParameterCard>
                 </div>
             </div>
@@ -687,9 +879,21 @@ function ImageCapabilityEditor({ value, onChange, protocol, model, imageParamete
             <CapabilityGroup title={translate("account.feedback.image")} description={translate("shared.modelCapabilityEditor.referenceImageMaskAndImageInputConstraints")}>
                 <div className="grid gap-3 sm:grid-cols-2">
                     <NumberField label={translate("shared.modelCapabilityEditor.maxReferenceImages")} value={profile.references.maxImages} min={0} disabled={disabled} onChange={(maxImages) => updateReferences({ maxImages: maxImages || 0 })} />
-                    <NumberField label={translate("shared.modelCapabilityEditor.maxImageSizeMB")} value={bytesToMB(profile.references.maxImageBytes)} min={0} disabled={disabled} onChange={(maxImageBytes) => updateReferences({ maxImageBytes: mbToBytes(maxImageBytes) })} />
+                    <NumberField
+                        label={translate("shared.modelCapabilityEditor.maxImageSizeMB")}
+                        value={bytesToMB(profile.references.maxImageBytes)}
+                        min={0}
+                        disabled={disabled}
+                        onChange={(maxImageBytes) => updateReferences({ maxImageBytes: mbToBytes(maxImageBytes) })}
+                    />
                 </div>
-                <ParameterField label={translate("shared.modelCapabilityEditor.maskEditing")} description={translate("shared.modelCapabilityEditor.allowCallingTheImageEditingAPIWithAMask")} supported={profile.references.maskSupported} disabled={disabled} onChange={(maskSupported) => updateReferences({ maskSupported })} />
+                <ParameterField
+                    label={translate("shared.modelCapabilityEditor.maskEditing")}
+                    description={translate("shared.modelCapabilityEditor.allowCallingTheImageEditingAPIWithAMask")}
+                    supported={profile.references.maskSupported}
+                    disabled={disabled}
+                    onChange={(maskSupported) => updateReferences({ maskSupported })}
+                />
             </CapabilityGroup>
 
             <CapabilityGroup title={translate("shared.modelCapabilityEditor.outputSpecifications")} description={translate("shared.modelCapabilityEditor.imageCountPerRequestSizeParametersAndDefaults")}>
@@ -717,14 +921,26 @@ function ImageCapabilityEditor({ value, onChange, protocol, model, imageParamete
                     {profile.size.parameter !== "none" ? (
                         <>
                             <ImageSizePresetsEditor profile={profile} disabled={disabled} onChange={updateSize} />
-                            <ParameterField label={translate("shared.modelCapabilityEditor.allowCustomValues")} description={translate("shared.modelCapabilityEditor.letUsersEnterSizesOutsideTheSupportedValues")} supported={profile.size.allowCustom} disabled={disabled} onChange={(allowCustom) => updateSize({ allowCustom })} />
+                            <ParameterField
+                                label={translate("shared.modelCapabilityEditor.allowCustomValues")}
+                                description={translate("shared.modelCapabilityEditor.letUsersEnterSizesOutsideTheSupportedValues")}
+                                supported={profile.size.allowCustom}
+                                disabled={disabled}
+                                onChange={(allowCustom) => updateSize({ allowCustom })}
+                            />
                         </>
                     ) : null}
                 </CapabilityBlock>
             </CapabilityGroup>
 
             <CapabilityGroup title={translate("shared.modelCapabilityEditor.optionalParameters")} description={translate("shared.modelCapabilityEditor.optionalCapabilitiesSuchAsQualityBackgroundAndResponseFormat")}>
-                <ParameterField label={translate("shared.modelCapabilityEditor.imageQuality")} description={translate("shared.modelCapabilityEditor.sendTheQualityParameter")} supported={profile.quality.supported} disabled={disabled} onChange={(supported) => updateQuality({ supported })} />
+                <ParameterField
+                    label={translate("shared.modelCapabilityEditor.imageQuality")}
+                    description={translate("shared.modelCapabilityEditor.sendTheQualityParameter")}
+                    supported={profile.quality.supported}
+                    disabled={disabled}
+                    onChange={(supported) => updateQuality({ supported })}
+                />
                 {profile.quality.supported ? (
                     <div className="grid gap-3 sm:grid-cols-2">
                         <Field label={translate("shared.modelCapabilityEditor.supportedQualityValues")}>
@@ -752,12 +968,24 @@ function ImageCapabilityEditor({ value, onChange, protocol, model, imageParamete
                 <BooleanField label={translate("shared.modelCapabilityEditor.transparentBackground")} value={profile.transparentBackground} disabled={disabled} onChange={(transparentBackground) => update({ transparentBackground })} />
                 <div className="grid gap-3 sm:grid-cols-2">
                     <ImageResponseFormatEditor value={profile.responseFormat} disabled={disabled} onChange={(responseFormat) => update({ responseFormat })} />
-                    <ParameterField label="output_format" description={translate("shared.modelCapabilityEditor.sendPNGOutputFormat")} supported={profile.outputFormat.supported} disabled={disabled} onChange={(supported) => update({ outputFormat: { supported } })} />
+                    <ParameterField
+                        label="output_format"
+                        description={translate("shared.modelCapabilityEditor.sendPNGOutputFormat")}
+                        supported={profile.outputFormat.supported}
+                        disabled={disabled}
+                        onChange={(supported) => update({ outputFormat: { supported } })}
+                    />
                 </div>
             </CapabilityGroup>
 
             <CapabilityGroup title={translate("shared.modelCapabilityEditor.generalLimits")} description={translate("shared.modelCapabilityEditor.basicConstraintsSharedByAllImageRequests")}>
-                <NumberField label={translate("shared.modelCapabilityEditor.maximumPromptCharacters")} value={profile.references.promptMaxChars} min={1} disabled={disabled} onChange={(promptMaxChars) => updateReferences({ promptMaxChars: promptMaxChars || 1 })} />
+                <NumberField
+                    label={translate("shared.modelCapabilityEditor.maximumPromptCharacters")}
+                    value={profile.references.promptMaxChars}
+                    min={1}
+                    disabled={disabled}
+                    onChange={(promptMaxChars) => updateReferences({ promptMaxChars: promptMaxChars || 1 })}
+                />
             </CapabilityGroup>
         </div>
     );
@@ -887,7 +1115,10 @@ function TextThinkingEditor({ value, disabled, onChange }: { value?: TextThinkin
                                     : levels
                                           .filter((level) => level !== "off")
                                           .map((level) => (
-                                              <Field key={level} label={`${THINKING_LEVEL_LABELS[level]} · ${value.intensity.kind === "budget" ? translate("shared.modelCapabilityEditor.tokenBudget") : value.intensity.kind === "model-suffix" ? translate("shared.modelCapabilityEditor.modelNameSuffix") : translate("shared.modelCapabilityEditor.providerValue")}`}>
+                                              <Field
+                                                  key={level}
+                                                  label={`${THINKING_LEVEL_LABELS[level]} · ${value.intensity.kind === "budget" ? translate("shared.modelCapabilityEditor.tokenBudget") : value.intensity.kind === "model-suffix" ? translate("shared.modelCapabilityEditor.modelNameSuffix") : translate("shared.modelCapabilityEditor.providerValue")}`}
+                                              >
                                                   {value.intensity.kind === "budget" ? (
                                                       <InputNumber
                                                           className="w-full"
@@ -1047,7 +1278,13 @@ function BooleanField({ label, value, disabled, onChange }: { label: string; val
                 </label>
                 <label className="grid justify-items-center gap-1 text-[var(--fs-tiny)] text-foreground/45">
                     <span>{translate("canvasB.common.default")}</span>
-                    <Switch aria-label={translate("shared.modelCapabilityEditor.default", { v0: String(label) })} size="sm" disabled={disabled || !value.supported} checked={value.default} onChange={(defaultValue) => onChange({ ...value, default: defaultValue })} />
+                    <Switch
+                        aria-label={translate("shared.modelCapabilityEditor.default", { v0: String(label) })}
+                        size="sm"
+                        disabled={disabled || !value.supported}
+                        checked={value.default}
+                        onChange={(defaultValue) => onChange({ ...value, default: defaultValue })}
+                    />
                 </label>
             </div>
         </div>
@@ -1073,7 +1310,13 @@ function ImageResponseFormatEditor({ value, disabled, onChange }: { value: Image
     const defaultValue: ImageResponseFormat = value.default || "auto";
     return (
         <div className="admin-image-response-format-editor space-y-2">
-            <ParameterField label="response_format" description={translate("shared.modelCapabilityEditor.sendTheResponseFormatToTheProviderWhenDisabledLet")} supported={value.supported} disabled={disabled} onChange={(supported) => onChange({ supported, default: supported ? defaultValue : "auto" })} />
+            <ParameterField
+                label="response_format"
+                description={translate("shared.modelCapabilityEditor.sendTheResponseFormatToTheProviderWhenDisabledLet")}
+                supported={value.supported}
+                disabled={disabled}
+                onChange={(supported) => onChange({ supported, default: supported ? defaultValue : "auto" })}
+            />
             {value.supported ? (
                 <Field label={translate("shared.modelCapabilityEditor.defaultResponseFormat")}>
                     <SegmentedControl

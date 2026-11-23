@@ -90,7 +90,10 @@ export function CharacterImageLibrary({ currentResourceId, busyKey, canvasTitles
                             disabled={Boolean(busyKey)}
                             className="grid aspect-[3/4] place-items-center rounded-lg border border-dashed border-foreground/15 text-foreground/45 outline-none transition-colors hover:border-foreground/35 hover:text-foreground/75 focus-visible:ring-2 focus-visible:ring-[var(--workspace-accent)] disabled:cursor-wait"
                         >
-                            <span className="flex flex-col items-center gap-2 text-xs">{busyKey === "upload" ? <Loader2 className="size-5 animate-spin" /> : <ImagePlus className="size-5 stroke-[1.5]" />}{translate("canvasTools.characterMediaLibrary.uploadLocalImage")}</span>
+                            <span className="flex flex-col items-center gap-2 text-xs">
+                                {busyKey === "upload" ? <Loader2 className="size-5 animate-spin" /> : <ImagePlus className="size-5 stroke-[1.5]" />}
+                                {translate("canvasTools.characterMediaLibrary.uploadLocalImage")}
+                            </span>
                         </button>
                     )}
                 </FilePicker>
@@ -127,7 +130,11 @@ export function CharacterImageLibrary({ currentResourceId, busyKey, canvasTitles
                     );
                 })}
             </div>
-            <ListState loading={loading} loadingMore={loadingMore} empty={!loading && !items.length ? (query ? translate("canvasTools.characterMediaLibrary.noMatchingImages") : translate("canvasTools.characterMediaLibrary.noImagesInTheAssetLibraryYetUploadALocal")) : ""} />
+            <ListState
+                loading={loading}
+                loadingMore={loadingMore}
+                empty={!loading && !items.length ? (query ? translate("canvasTools.characterMediaLibrary.noMatchingImages") : translate("canvasTools.characterMediaLibrary.noImagesInTheAssetLibraryYetUploadALocal")) : ""}
+            />
             <div ref={sentinelRef} />
         </div>
     );
@@ -235,7 +242,11 @@ export function CharacterVoiceLibrary({
                     );
                 })}
             </ul>
-            <ListState loading={loading} loadingMore={loadingMore} empty={!loading && !items.length ? (query ? translate("canvasTools.characterMediaLibrary.noMatchingAudio") : translate("canvasTools.characterMediaLibrary.noAudioInTheAssetLibraryYetUploadLocalAudio")) : ""} />
+            <ListState
+                loading={loading}
+                loadingMore={loadingMore}
+                empty={!loading && !items.length ? (query ? translate("canvasTools.characterMediaLibrary.noMatchingAudio") : translate("canvasTools.characterMediaLibrary.noAudioInTheAssetLibraryYetUploadLocalAudio")) : ""}
+            />
             <div ref={sentinelRef} />
         </div>
     );

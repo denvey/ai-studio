@@ -5,7 +5,6 @@ import { canvasNodeMentionToken, canvasResourceMentionToken, type CanvasResource
 import type { CanvasNodeData } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 /** 每条消息最多附带的图片数。 */
 export const AGENT_ATTACHMENT_MAX = 9;
 /** 粘贴的文字超过这个字数时，建议转成画布文本节点再引用。 */

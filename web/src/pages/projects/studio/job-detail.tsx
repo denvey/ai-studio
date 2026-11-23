@@ -115,14 +115,20 @@ export function JobDetailModal({ projectId, job, onClose, onLocate }: { projectI
                             <dt>{translate("drama.studio.jobDetail.finished")}</dt>
                             <dd>
                                 {formatJobTime(current.finishedAt)}
-                                {elapsed(current.startedAt, current.finishedAt) ? <small>{translate("drama.studio.jobDetail.elapsed")} {elapsed(current.startedAt, current.finishedAt)}</small> : null}
+                                {elapsed(current.startedAt, current.finishedAt) ? (
+                                    <small>
+                                        {translate("drama.studio.jobDetail.elapsed")} {elapsed(current.startedAt, current.finishedAt)}
+                                    </small>
+                                ) : null}
                             </dd>
                         </div>
                         <div>
                             <dt>{translate("drama.studio.jobDetail.cost")}</dt>
                             <dd>
                                 {current.costMicrocredits ? translate("drama.studio.jobDetail.credits", { v0: String(formatCredits(current.costMicrocredits)) }) : "0"}
-                                <small>{translate("common.retry")} {current.attempt} {translate("account.settings.models.unitCall")}</small>
+                                <small>
+                                    {translate("common.retry")} {current.attempt} {translate("account.settings.models.unitCall")}
+                                </small>
                             </dd>
                         </div>
                     </dl>
@@ -150,7 +156,9 @@ function AttemptCard({ attempt, index, latest }: { attempt: DramaJobAttempt; ind
     return (
         <article className={`drama-jobd-attempt ${latest ? "is-latest" : ""}`}>
             <header>
-                <span className="drama-jobd-attempt-index">{translate("drama.studio.jobDetail.no")} {index} {translate("account.settings.models.unitCall")}</span>
+                <span className="drama-jobd-attempt-index">
+                    {translate("drama.studio.jobDetail.no")} {index} {translate("account.settings.models.unitCall")}
+                </span>
                 <JobStatusIcon status={attempt.status} />
                 <strong>{JOB_STATUS_LABEL[attempt.status] || attempt.status}</strong>
                 {task?.stage && attempt.status !== "succeeded" ? <span className="drama-jobd-muted">{task.stage}</span> : null}
@@ -189,7 +197,10 @@ function AttemptCard({ attempt, index, latest }: { attempt: DramaJobAttempt; ind
             {task?.prompt ? (
                 <details className="drama-disclosure">
                     <summary>
-                        {translate("canvasA.assetView.prompt")}<span className="drama-jobd-muted">{task.prompt.length} {translate("drama.studio.jobDetail.characters")}</span>
+                        {translate("canvasA.assetView.prompt")}
+                        <span className="drama-jobd-muted">
+                            {task.prompt.length} {translate("drama.studio.jobDetail.characters")}
+                        </span>
                         <Button
                             size="small"
                             type="text"
@@ -216,13 +227,22 @@ function AttemptResult({ task }: { task: DramaJobTask }) {
         return (
             <details className="drama-disclosure">
                 <summary>
-                    {translate("drama.studio.jobDetail.response")}<span className="drama-jobd-muted">{task.resultText.length} {translate("drama.studio.jobDetail.characters")}</span>
+                    {translate("drama.studio.jobDetail.response")}
+                    <span className="drama-jobd-muted">
+                        {task.resultText.length} {translate("drama.studio.jobDetail.characters")}
+                    </span>
                 </summary>
                 <pre className="drama-jobd-pre thin-scrollbar">{task.resultText}</pre>
             </details>
         );
     }
-    if (!ids.length) return task.mediaStage ? <p className="drama-jobd-muted">{translate("drama.studio.jobDetail.resultSavingStage")}{task.mediaStage}</p> : null;
+    if (!ids.length)
+        return task.mediaStage ? (
+            <p className="drama-jobd-muted">
+                {translate("drama.studio.jobDetail.resultSavingStage")}
+                {task.mediaStage}
+            </p>
+        ) : null;
     return (
         <div className="drama-jobd-results">
             {ids.map((id) =>

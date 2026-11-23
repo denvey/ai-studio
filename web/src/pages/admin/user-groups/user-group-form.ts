@@ -1,7 +1,6 @@
 import type { UserGroup, UserGroupBadgeStyle, UserGroupInput } from "@/services/api/user-groups";
 import { currentLocale } from "@/i18n";
 
-
 const MICRO = 1_000_000;
 const BPS = 10_000;
 

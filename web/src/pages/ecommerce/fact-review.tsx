@@ -14,10 +14,14 @@ export function CommerceFactReview({ facts, onApply, onExclude, excludeLabel }: 
                     <li key={index}>{fact}</li>
                 ))}
             </ul>
-            <label>{translate("ecommerce.factReview.addVerifiedFacts")}<Input.TextArea rows={3} value={verified} placeholder={translate("ecommerce.factReview.forExampleTheStrapMaterialIsConfirmedAsPUEnter")} onChange={(event) => setVerified(event.target.value)} />
+            <label>
+                {translate("ecommerce.factReview.addVerifiedFacts")}
+                <Input.TextArea rows={3} value={verified} placeholder={translate("ecommerce.factReview.forExampleTheStrapMaterialIsConfirmedAsPUEnter")} onChange={(event) => setVerified(event.target.value)} />
             </label>
             <p>{translate("ecommerce.factReview.replanAfterAddingVerifiedFactsYouCanAlsoReviewThe")}</p>
-            <Button size="small" disabled={!verified.trim()} onClick={() => onApply(verified.trim())}>{translate("ecommerce.factReview.saveVerifiedDetails")}</Button>{" "}
+            <Button size="small" disabled={!verified.trim()} onClick={() => onApply(verified.trim())}>
+                {translate("ecommerce.factReview.saveVerifiedDetails")}
+            </Button>{" "}
             <Button size="small" onClick={onExclude}>
                 {excludeLabel || translate("ecommerce.factReview.reviewedExcludeTheseClaims")}
             </Button>

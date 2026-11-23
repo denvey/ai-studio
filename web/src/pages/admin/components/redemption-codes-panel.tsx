@@ -170,7 +170,12 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
                 setKeyword("");
                 setValidity("all");
                 const refreshed = await reload(1, pageSize, { keyword: "", validity: "all" });
-                setUncertainCreateNotice(translate("admin.redemptionCodesPanel.theLastGenerationRequestResultCannotBeConfirmedGenerationIs", { v0: String(detail), v1: String(refreshed ? translate("admin.redemptionCodesPanel.theFullUnfilteredListIsDisplayedReviewTheLatestBatches") : translate("admin.redemptionCodesPanel.failedToRefreshTheFullListRefreshAgainAfterThe")) }));
+                setUncertainCreateNotice(
+                    translate("admin.redemptionCodesPanel.theLastGenerationRequestResultCannotBeConfirmedGenerationIs", {
+                        v0: String(detail),
+                        v1: String(refreshed ? translate("admin.redemptionCodesPanel.theFullUnfilteredListIsDisplayedReviewTheLatestBatches") : translate("admin.redemptionCodesPanel.failedToRefreshTheFullListRefreshAgainAfterThe")),
+                    }),
+                );
                 message.warning({ content: translate("admin.redemptionCodesPanel.theGenerationResultNeedsReviewNoAutomaticRetryWasMade"), duration: 7 });
             } else {
                 setPendingCreate(null);
@@ -218,7 +223,13 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
         { title: translate("admin.redemptionCodesPanel.creditsPerCode"), dataIndex: "amountMicrocredits", width: 120, align: "center", render: (value) => <span className="font-medium tabular-nums">{formatCredits(value)}</span> },
         { title: translate("admin.redemptionCodesPanel.total"), dataIndex: "count", width: 80, align: "center", render: (value) => <span className="tabular-nums">{value}</span> },
         { title: translate("admin.redemptionCodesPanel.statusBreakdown"), width: 300, align: "center", render: (_, batch) => <BatchStatusDistribution batch={batch} /> },
-        { title: translate("admin.redemptionCodesPanel.expiresAt"), dataIndex: "expiresAt", width: 180, align: "center", render: (value) => (value ? formatTime(value) : <AdminStatusBadge label={translate("admin.redemptionCodesPanel.neverExpires")} tone="info" />) },
+        {
+            title: translate("admin.redemptionCodesPanel.expiresAt"),
+            dataIndex: "expiresAt",
+            width: 180,
+            align: "center",
+            render: (value) => (value ? formatTime(value) : <AdminStatusBadge label={translate("admin.redemptionCodesPanel.neverExpires")} tone="info" />),
+        },
         {
             title: translate("account.settings.runninghub.actions"),
             width: 220,
@@ -236,7 +247,10 @@ export default function RedemptionCodesPanel({ createOpen, onCreateOpenChange, o
                                 disabled: (batch.availableCount ?? 0) <= 0 || disablingBatchIds.has(batch.id),
                                 confirm: {
                                     title: translate("admin.redemptionCodesPanel.disableTheUnusedRedemptionCodesInThisBatch"),
-                                    description: translate("admin.redemptionCodesPanel.redeemedAndExpiredRecordsAreUnchangedThisActionCannotBe", { v0: String(batch.note || translate("admin.redemptionCodesPanel.batch2", { v0: String(batch.id.slice(0, 8)) })), v1: String(formatBatchDisableImpact(batch)) }),
+                                    description: translate("admin.redemptionCodesPanel.redeemedAndExpiredRecordsAreUnchangedThisActionCannotBe", {
+                                        v0: String(batch.note || translate("admin.redemptionCodesPanel.batch2", { v0: String(batch.id.slice(0, 8)) })),
+                                        v1: String(formatBatchDisableImpact(batch)),
+                                    }),
                                     okText: translate("admin.redemptionCodesPanel.confirmDisable"),
                                 },
                                 onClick: () => disableBatch(batch),

@@ -69,7 +69,8 @@ export function ListToolbar({
                     <>
                         {!filtersAlwaysVisible ? (
                             <Button type="default" className="admin-filter-toggle" aria-expanded={filtersOpen} icon={<ListFilter className="size-3.5" />} onClick={() => setFiltersOpen((open) => !open)}>
-                                {translate("admin.adminUi.filters")}{active ? <span className="admin-filter-active-dot" aria-label={translate("account.layout.list.filterActive")} /> : null}
+                                {translate("admin.adminUi.filters")}
+                                {active ? <span className="admin-filter-active-dot" aria-label={translate("account.layout.list.filterActive")} /> : null}
                             </Button>
                         ) : null}
                         <div className={cn("admin-list-toolbar-filters", (filtersAlwaysVisible || filtersOpen) && "is-open")}>{filters}</div>
@@ -121,7 +122,14 @@ export function PaginationBar({
     return (
         <div className="admin-pagination-bar">
             <span className="admin-pagination-total">{total === 0 ? translate("admin.adminUi.item0Total", { v0: String(itemLabel) }) : translate("admin.adminUi.of", { v0: String(start), v1: String(end), v2: String(total), v3: String(itemLabel) })}</span>
-            <Select size="small" value={pageSize} className="admin-pagination-size" options={pageSizeOptions.map((size) => ({ value: size, label: translate("admin.adminUi.perPage", { v0: String(size), v1: String(itemLabel) }) }))} onChange={(value) => onChange(1, Number(value))} aria-label={translate("admin.adminUi.itemsPerPage")} />
+            <Select
+                size="small"
+                value={pageSize}
+                className="admin-pagination-size"
+                options={pageSizeOptions.map((size) => ({ value: size, label: translate("admin.adminUi.perPage", { v0: String(size), v1: String(itemLabel) }) }))}
+                onChange={(value) => onChange(1, Number(value))}
+                aria-label={translate("admin.adminUi.itemsPerPage")}
+            />
             <div className="admin-pagination-pages" role="navigation" aria-label={translate("account.layout.pagination.label")}>
                 <button type="button" className="admin-pagination-btn" disabled={current <= 1} aria-label={translate("account.layout.pagination.prev")} onClick={() => onChange(current - 1, pageSize)}>
                     <ChevronLeft className="size-4" />

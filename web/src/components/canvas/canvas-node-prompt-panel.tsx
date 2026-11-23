@@ -470,7 +470,14 @@ export function CanvasNodePromptPanel({
     const renderSubmitButton = (expanded: boolean) => {
         const showCost = creditsEnabled && credits !== null;
         const formattedCredits = credits?.toLocaleString("zh-CN", { maximumFractionDigits: 6 });
-        const actionLabel = isRunning ? translate("canvasB.mediaVersion.generating") : showCost ? translate("canvasTools.canvasNodePromptPanel.creditsGenerate", { v0: String(routeQuote?.estimated ? translate("canvasTools.canvasNodePromptPanel.estimated2") : translate("canvasTools.canvasNodePromptPanel.cost")), v1: String(formattedCredits) }) : translate("account.welcome.chapters.motion.label");
+        const actionLabel = isRunning
+            ? translate("canvasB.mediaVersion.generating")
+            : showCost
+              ? translate("canvasTools.canvasNodePromptPanel.creditsGenerate", {
+                    v0: String(routeQuote?.estimated ? translate("canvasTools.canvasNodePromptPanel.estimated2") : translate("canvasTools.canvasNodePromptPanel.cost")),
+                    v1: String(formattedCredits),
+                })
+              : translate("account.welcome.chapters.motion.label");
         return (
             <Button
                 type="text"

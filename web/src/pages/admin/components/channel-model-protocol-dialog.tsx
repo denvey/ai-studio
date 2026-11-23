@@ -76,11 +76,7 @@ export function ChannelModelProtocolDialog({
             {capability ? (
                 <div className="flex flex-col gap-3">
                     <ModelProtocolBrowser capability={capability} protocols={protocols} loading={protocolLoading} error={protocolError} disabled={saving} value={protocol} onChange={setProtocol} />
-                    <Alert
-                        type="info"
-                        showIcon
-                        title={translate("admin.channelModelProtocolDialog.capabilityParametersAndPriceTiersKeepTheirCurrentValuesRather")}
-                    />
+                    <Alert type="info" showIcon title={translate("admin.channelModelProtocolDialog.capabilityParametersAndPriceTiersKeepTheirCurrentValuesRather")} />
                 </div>
             ) : (
                 <Alert type="warning" showIcon title={translate("admin.channelModelProtocolDialog.theSelectedModelsHaveDifferentOrUnconfiguredCapabilitiesProtocolsCan")} />

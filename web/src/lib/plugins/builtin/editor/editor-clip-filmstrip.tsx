@@ -7,7 +7,6 @@ import type { TimelineClip } from "@/types/timeline";
 import { readTimelineFrames } from "./editor-filmstrip-media";
 import { translate } from "@/i18n";
 
-
 export const EditorClipFilmstrip = memo(function EditorClipFilmstrip({ clip, pxPerMs, visibleStartPx, visibleEndPx }: { clip: TimelineClip; pxPerMs: number; visibleStartPx: number; visibleEndPx: number }) {
     const [frames, setFrames] = useState<Record<number, string>>({});
     const [failed, setFailed] = useState(false);
@@ -48,7 +47,11 @@ export const EditorClipFilmstrip = memo(function EditorClipFilmstrip({ clip, pxP
     }, [source, scope, clip.kind, times]);
 
     return (
-        <div className="editor-filmstrip" aria-label={clip.kind === "image" ? translate("shared.plugins.builtin.editor.editorClipFilmstrip.imageThumbnail") : translate("shared.plugins.builtin.editor.editorClipFilmstrip.videoFrameThumbnail")} title={failed ? translate("shared.plugins.builtin.editor.editorClipFilmstrip.frameThumbnailsAreUnavailableYouCanStillSelectAndPreview") : undefined}>
+        <div
+            className="editor-filmstrip"
+            aria-label={clip.kind === "image" ? translate("shared.plugins.builtin.editor.editorClipFilmstrip.imageThumbnail") : translate("shared.plugins.builtin.editor.editorClipFilmstrip.videoFrameThumbnail")}
+            title={failed ? translate("shared.plugins.builtin.editor.editorClipFilmstrip.frameThumbnailsAreUnavailableYouCanStillSelectAndPreview") : undefined}
+        >
             {tiles.map((tile) => (
                 <div key={tile.left} className="editor-filmstrip-tile" data-source-time-ms={tile.timeMs} style={{ left: tile.left, width: tile.width }}>
                     {frames[tile.timeMs] ? (

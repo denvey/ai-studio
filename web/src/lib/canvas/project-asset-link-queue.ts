@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export type PendingCanvasProjectAssetLink = {
     assetId: string;

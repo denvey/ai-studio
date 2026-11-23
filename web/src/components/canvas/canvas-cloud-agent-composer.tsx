@@ -141,12 +141,22 @@ export function AgentSceneCapsules({
                                 >
                                     <Layers3 aria-hidden="true" />
                                     <span className="agent-scene-capsule-label">{preset.name}</span>
-                                    <span className="agent-scene-capsule-meta">{missing > 0 ? translate("canvasTools.canvasCloudAgentComposer.skillsToInstall", { v0: String(preset.skillIds.length), v1: String(missing) }) : translate("canvasTools.canvasCloudAgentComposer.skills", { v0: String(preset.skillIds.length) })}</span>
+                                    <span className="agent-scene-capsule-meta">
+                                        {missing > 0
+                                            ? translate("canvasTools.canvasCloudAgentComposer.skillsToInstall", { v0: String(preset.skillIds.length), v1: String(missing) })
+                                            : translate("canvasTools.canvasCloudAgentComposer.skills", { v0: String(preset.skillIds.length) })}
+                                    </span>
                                 </button>
                             );
                         })}
                         {active.skills.map((skill) => {
-                            const owned = skill.isOwner ? translate("canvasTools.canvasCloudAgentComposer.custom") : skill.isLike ? translate("canvasTools.canvasCloudAgentComposer.favorited") : installedIds.has(skill.skillId) ? translate("canvasTools.canvasCloudAgentComposer.installed") : translate("canvasTools.canvasCloudAgentComposer.notInstalled");
+                            const owned = skill.isOwner
+                                ? translate("canvasTools.canvasCloudAgentComposer.custom")
+                                : skill.isLike
+                                  ? translate("canvasTools.canvasCloudAgentComposer.favorited")
+                                  : installedIds.has(skill.skillId)
+                                    ? translate("canvasTools.canvasCloudAgentComposer.installed")
+                                    : translate("canvasTools.canvasCloudAgentComposer.notInstalled");
                             return (
                                 <button
                                     key={skill.skillId}
@@ -318,7 +328,9 @@ export function AgentChatComposer({
     const textLength = agentTextLength(prompt);
     const overLimit = Boolean(charLimit && textLength > charLimit);
     const showCount = Boolean(charLimit && textLength > charLimit * 0.8);
-    const blockedReason = overLimit ? translate("canvasTools.canvasCloudAgentComposer.exceedsCharactersRemove", { v0: String(charLimit!.toLocaleString()), v1: String(onLongTextPaste ? translate("canvasTools.canvasCloudAgentComposer.orConvertLongTextIntoACanvasTextNode") : "") }) : blockReason || null;
+    const blockedReason = overLimit
+        ? translate("canvasTools.canvasCloudAgentComposer.exceedsCharactersRemove", { v0: String(charLimit!.toLocaleString()), v1: String(onLongTextPaste ? translate("canvasTools.canvasCloudAgentComposer.orConvertLongTextIntoACanvasTextNode") : "") })
+        : blockReason || null;
     // 请求在路上只拦「发送」：排队与保存不发请求，运行中照样可用。
     const canSubmit = !disabled && !submitDisabled && !blockedReason && !(sending && submitMode === "send") && Boolean(prompt.trim() || attachments.length);
     const canPrimary = canSubmit && !primaryDisabled;
@@ -326,7 +338,14 @@ export function AgentChatComposer({
     const wrapped = Boolean(footer || tray);
     const reducedMotion = useReducedMotion();
     const submitState = submitMode === "send" && sending ? "sending" : submitMode;
-    const submitLabel = submitMode === "save" ? translate("common.save") : submitMode === "queue" ? translate("canvasTools.canvasCloudAgentComposer.queued") : sending ? translate("canvasTools.canvasCloudAgentComposer.sending") : translate("canvasTools.canvasCloudAgentComposer.send");
+    const submitLabel =
+        submitMode === "save"
+            ? translate("common.save")
+            : submitMode === "queue"
+              ? translate("canvasTools.canvasCloudAgentComposer.queued")
+              : sending
+                ? translate("canvasTools.canvasCloudAgentComposer.sending")
+                : translate("canvasTools.canvasCloudAgentComposer.send");
     const submitTitle =
         blockedReason ||
         (submitMode === "save"
@@ -455,7 +474,16 @@ export function AgentChatComposer({
         : [
               { key: "upload", icon: <ImagePlus className="size-3.5" />, label: translate("account.settings.profile.upload"), onClick: () => fileInputRef.current?.click() },
               ...(addMenu?.onPickAssets ? [{ key: "assets", icon: <FolderOpen className="size-3.5" />, label: translate("library.ark.group.fromLibrary"), onClick: addMenu.onPickAssets }] : []),
-              ...(addMenu?.onReferenceSelection && addMenu.selectionCount ? [{ key: "selection", icon: <SquareDashedMousePointer className="size-3.5" />, label: translate("canvasTools.canvasCloudAgentComposer.referenceSelectedNodes", { v0: String(addMenu.selectionCount) }), onClick: addMenu.onReferenceSelection }] : []),
+              ...(addMenu?.onReferenceSelection && addMenu.selectionCount
+                  ? [
+                        {
+                            key: "selection",
+                            icon: <SquareDashedMousePointer className="size-3.5" />,
+                            label: translate("canvasTools.canvasCloudAgentComposer.referenceSelectedNodes", { v0: String(addMenu.selectionCount) }),
+                            onClick: addMenu.onReferenceSelection,
+                        },
+                    ]
+                  : []),
           ];
 
     return (
@@ -508,7 +536,9 @@ export function AgentChatComposer({
                                 const status = item.status ?? "ready";
                                 const busy = status === "uploading" || status === "pending";
                                 const failed = status === "error" || status === "local_only" || status === "missing";
-                                const name = item.nodeId ? item.name || (item.kind === "text" ? translate("account.settings.modelConfig.capabilities.text") : translate("canvasTools.canvasCloudAgentComposer.image", { v0: String(index + 1) })) : translate("canvasTools.canvasCloudAgentComposer.image", { v0: String(index + 1) });
+                                const name = item.nodeId
+                                    ? item.name || (item.kind === "text" ? translate("account.settings.modelConfig.capabilities.text") : translate("canvasTools.canvasCloudAgentComposer.image", { v0: String(index + 1) }))
+                                    : translate("canvasTools.canvasCloudAgentComposer.image", { v0: String(index + 1) });
                                 // 卡片上只放名字主体；扩展名和完整名字在悬停提示里。
                                 const label = name.replace(/\.(png|jpe?g|webp|gif|heic|heif)$/iu, "") || name;
                                 const statusText =
@@ -527,7 +557,13 @@ export function AgentChatComposer({
                                                 : "";
                                 return (
                                     <div key={item.id} role="listitem" className={`agent-attachment${failed ? " is-failed" : ""}`} aria-label={failed || busy ? `${name}：${statusText}` : name}>
-                                        <button type="button" className="agent-attachment-thumb" title={item.url ? translate("canvasTools.canvasCloudAgentComposer.clickForALargerPreview", { v0: String(name) }) : name} aria-label={translate("canvasTools.canvasCloudAgentComposer.preview", { v0: String(name) })} onClick={() => (item.url ? setPreviewAttachment(item) : undefined)}>
+                                        <button
+                                            type="button"
+                                            className="agent-attachment-thumb"
+                                            title={item.url ? translate("canvasTools.canvasCloudAgentComposer.clickForALargerPreview", { v0: String(name) }) : name}
+                                            aria-label={translate("canvasTools.canvasCloudAgentComposer.preview", { v0: String(name) })}
+                                            onClick={() => (item.url ? setPreviewAttachment(item) : undefined)}
+                                        >
                                             {item.url ? (
                                                 <img src={item.url} alt="" className="size-full object-cover" />
                                             ) : (
@@ -639,7 +675,13 @@ export function AgentChatComposer({
                                     />
                                     {/* 「+」固定在最左：上传图片、从素材库选择、引用选中节点。 */}
                                     <Dropdown trigger={["click"]} placement="topLeft" menu={{ items: addItems }}>
-                                        <button type="button" className="agent-composer-add" disabled={disabled} aria-label={translate("canvasTools.canvasCloudAgentComposer.addImagesAssetsOrReferences")} title={addMenu?.disabledReason || translate("canvasTools.canvasCloudAgentComposer.addUploadAnImageSelectFromTheLibraryOrReference")}>
+                                        <button
+                                            type="button"
+                                            className="agent-composer-add"
+                                            disabled={disabled}
+                                            aria-label={translate("canvasTools.canvasCloudAgentComposer.addImagesAssetsOrReferences")}
+                                            title={addMenu?.disabledReason || translate("canvasTools.canvasCloudAgentComposer.addUploadAnImageSelectFromTheLibraryOrReference")}
+                                        >
                                             <Plus className="size-4" aria-hidden="true" />
                                         </button>
                                     </Dropdown>
@@ -649,7 +691,10 @@ export function AgentChatComposer({
                         </div>
                         <div className="agent-composer-submit flex items-center gap-2">
                             {showCount ? (
-                                <span className={`agent-composer-count${overLimit ? " is-over" : ""}`} title={overLimit ? (blockedReason ?? undefined) : translate("canvasTools.canvasCloudAgentComposer.upToCharactersPerMessage", { v0: String(charLimit!.toLocaleString()) })}>
+                                <span
+                                    className={`agent-composer-count${overLimit ? " is-over" : ""}`}
+                                    title={overLimit ? (blockedReason ?? undefined) : translate("canvasTools.canvasCloudAgentComposer.upToCharactersPerMessage", { v0: String(charLimit!.toLocaleString()) })}
+                                >
                                     {textLength.toLocaleString()} / {charLimit!.toLocaleString()}
                                 </span>
                             ) : null}

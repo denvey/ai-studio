@@ -141,7 +141,7 @@ function ratioPreview(value: string) {
     const ratio = parts.length === 2 && parts.every((part) => Number.isFinite(part) && part > 0) ? parts[0] / parts[1] : 1;
     return { width: Math.max(9, Math.round(ratio >= 1 ? 22 : 22 * ratio)), height: Math.max(9, Math.round(ratio >= 1 ? 22 / ratio : 22)) };
 }
-const errorText = (cause: unknown) => (cause instanceof Error ? commerceUiText(cause.message ) : translate("ecommerce.page.actionFailedTryAgainLater"));
+const errorText = (cause: unknown) => (cause instanceof Error ? commerceUiText(cause.message) : translate("ecommerce.page.actionFailedTryAgainLater"));
 const mergeTaskAssets = (incoming: GenerationTask, previous?: GenerationTask): GenerationTask => ({
     ...incoming,
     outputs: incoming.outputs?.map((output) => ({ ...output, materializedAssetId: output.materializedAssetId || previous?.outputs?.find((item) => item.outputIndex === output.outputIndex)?.materializedAssetId })) || previous?.outputs,
@@ -1967,7 +1967,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
     const nextStep = !ecommerceEnabled
         ? translate("ecommerce.page.ecommerceCreationIsNotOpenYetYouCanStillView2")
         : !productReferences.length && !rememberedReferenceCount
-          ? translate("ecommerce.page.addOnTheRightFirstYourWorksWillAppearHere", { v0:scene? commerceUiText(scene.materials.required ) : translate("ecommerce.page.productImages2") })
+          ? translate("ecommerce.page.addOnTheRightFirstYourWorksWillAppearHere", { v0: scene ? commerceUiText(scene.materials.required) : translate("ecommerce.page.productImages2") })
           : commerceFlowNextStep(flowSteps);
     const roundDelivered = Boolean(plan && submitted > 0 && completed === total);
     // 商品视频交给视频生成页：带上一张已完成的作品做首帧。两个开关都开着才出现入口。
@@ -2003,7 +2003,9 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             ) : null}
             {downloadError ? (
                 <p className="ecs-notice is-error" role="alert">
-                    {translate("ecommerce.page.imageExportIncomplete")}{downloadError}{translate("ecommerce.page.youCanClickExportAgain")}
+                    {translate("ecommerce.page.imageExportIncomplete")}
+                    {downloadError}
+                    {translate("ecommerce.page.youCanClickExportAgain")}
                 </p>
             ) : null}
             {planningSaveError && planningTask ? <Button onClick={() => void settlePlanningTask(planningTask, draft)}>{translate("ecommerce.page.retrySavingAnalysis")}</Button> : null}
@@ -2015,7 +2017,8 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             <CommerceSubmittedRequest draft={submittedDraft} />
             {chosenDirection && !creativeDirections.length ? (
                 <p className="ecs-notice commerce-direction-choice">
-                    {translate("ecommerce.page.selectedVisualDirection")}<strong>{chosenDirection.name}</strong>
+                    {translate("ecommerce.page.selectedVisualDirection")}
+                    <strong>{chosenDirection.name}</strong>
                     {directionDescription(chosenDirection) ? ` · ${directionDescription(chosenDirection)}` : ""}
                 </p>
             ) : null}
@@ -2035,7 +2038,7 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                 // 一轮的终点：交付动作集中在这里，不用再去右侧或资产库找下一步。
                 <section className="commerce-delivery" aria-label={translate("ecommerce.page.thisRoundSDeliverables")}>
                     <header>
-                        <strong>{translate("ecommerce.page.completedRound", { count: completed})}</strong>
+                        <strong>{translate("ecommerce.page.completedRound", { count: completed })}</strong>
                         <p>{translate("ecommerce.page.savedToTheAssetLibraryExportForDeliveryTurnThem")}</p>
                     </header>
                     <div className="commerce-delivery-actions">
@@ -2098,7 +2101,8 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                     <summary>
                         <strong>{translate("ecommerce.page.reviewImagePlan")}</strong>
                         <span>
-                            {plan.images.length} {translate("canvasA.characterLibrary.pageItem")}{plan.uncertainFacts.length ? translate("ecommerce.page.detailsAwaitingConfirmation", { v0: String(plan.uncertainFacts.length) }) : ""}
+                            {plan.images.length} {translate("canvasA.characterLibrary.pageItem")}
+                            {plan.uncertainFacts.length ? translate("ecommerce.page.detailsAwaitingConfirmation", { v0: String(plan.uncertainFacts.length) }) : ""}
                         </span>
                     </summary>
                     <div className="ecs-review-body">
@@ -2191,7 +2195,11 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                             disabled={submitted > 0 || draft.imageType === "sku" || plan.images.length >= 30}
                             onClick={() => {
                                 const template = plan.images.at(-1);
-                                if (template) resizePlan([...plan.images, { ...template, id: createClientUUID(), taskId: undefined, goal: translate("ecommerce.page.newImage"), theme: translate("ecommerce.page.toEdit"), prompt: "请描述这张商品图片的视觉目标与保真约束" }]);
+                                if (template)
+                                    resizePlan([
+                                        ...plan.images,
+                                        { ...template, id: createClientUUID(), taskId: undefined, goal: translate("ecommerce.page.newImage"), theme: translate("ecommerce.page.toEdit"), prompt: "请描述这张商品图片的视觉目标与保真约束" },
+                                    ]);
                             }}
                         >
                             {translate("ecommerce.page.addAnImage")}
@@ -2322,15 +2330,25 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                             {scene ? <p className="ecs-note">{commerceUiText(scene.summary)}</p> : null}
                             {draft.imageType === "marketing" ? (
                                 <button type="button" className="ecs-select-row" aria-haspopup="dialog" onClick={() => setFlyPanel("material")}>
-                                    <span className="ecs-select-row-text">{translate("ecommerce.page.materialSettings")}{materialCount ? translate("ecommerce.page.imagesSelected", { v0: String(materialCount) }) : " " + translate("ecommerce.page.noneSelected")}</span>
+                                    <span className="ecs-select-row-text">
+                                        {translate("ecommerce.page.materialSettings")}
+                                        {materialCount ? translate("ecommerce.page.imagesSelected", { v0: String(materialCount) }) : " " + translate("ecommerce.page.noneSelected")}
+                                    </span>
                                     <ChevronDown size={14} />
                                 </button>
                             ) : null}
                         </ComposerBlock>
-                        <ComposerBlock title={translate("ecommerce.page.productAssets")} hint={scene ? translate("ecommerce.page.required", {
+                        <ComposerBlock
+                            title={translate("ecommerce.page.productAssets")}
+                            hint={
+                                scene
+                                    ? translate("ecommerce.page.required", {
                                           v0: commerceUiText(scene.materials.required),
                                           v1: String(scene.materials.suggested ? translate("ecommerce.page.recommended", { v0: commerceUiText(scene.materials.suggested) }) : ""),
-                                      }) : undefined}>
+                                      })
+                                    : undefined
+                            }
+                        >
                             <div className="ecs-product-slot">
                                 <ReferenceUploader
                                     key={session.id}
@@ -2344,10 +2362,16 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                                     onChange={(value) => update("references", [...value, ...draft.references.filter((ref) => ref.role === "model")])}
                                 />
                             </div>
-                            {rememberedReferenceCount ? <p className="ecs-note">{translate("ecommerce.page.reuseProduct", { count: rememberedReferenceCount})}</p> : null}
+                            {rememberedReferenceCount ? <p className="ecs-note">{translate("ecommerce.page.reuseProduct", { count: rememberedReferenceCount })}</p> : null}
                             <label className="ecs-field">
                                 <span>{translate("ecommerce.page.productName")}</span>
-                                <Input variant="filled" value={draft.productName} placeholder={translate("ecommerce.page.eGPortableAromaDiffuser")} disabled={busy || restoring || uploading} onChange={(event) => update("productName", event.target.value)} />
+                                <Input
+                                    variant="filled"
+                                    value={draft.productName}
+                                    placeholder={translate("ecommerce.page.eGPortableAromaDiffuser")}
+                                    disabled={busy || restoring || uploading}
+                                    onChange={(event) => update("productName", event.target.value)}
+                                />
                             </label>
                             <div className="ecs-field">
                                 <span>{translate("ecommerce.page.referenceMode")}</span>
@@ -2471,9 +2495,14 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                                 }}
                             />
                             <div className="ecs-field">
-                                <span>{translate("canvasB.sizePicker.placeholder")}{" "}
+                                <span>
+                                    {translate("canvasB.sizePicker.placeholder")}{" "}
                                     <small>
-                                        {modelDisplayName(config, draft.imageModel)}{translate("ecommerce.page.supports")}{ratioDisplayChoices.length}{translate("ecommerce.page.options")}</small>
+                                        {modelDisplayName(config, draft.imageModel)}
+                                        {translate("ecommerce.page.supports")}
+                                        {ratioDisplayChoices.length}
+                                        {translate("ecommerce.page.options")}
+                                    </small>
                                 </span>
                                 <div className="ecs-ratio-grid" key={draft.imageModel}>
                                     {ratioDisplayChoices.map(({ label, value }) => (
@@ -2509,13 +2538,24 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                             </div>
                             <div className="ecs-field">
                                 <span>
-                                    {translate("ecommerce.page.imageCount")} <small>{countLocked ? (draft.imageType === "marketing" ? translate("ecommerce.page.determinedByMaterialSettings") : draft.imageType === "single" ? translate("ecommerce.page.singleImageFixedAt1") : translate("ecommerce.page.determinedByThePlan")) : translate("ecommerce.page.upTo20Images")}</small>
+                                    {translate("ecommerce.page.imageCount")}{" "}
+                                    <small>
+                                        {countLocked
+                                            ? draft.imageType === "marketing"
+                                                ? translate("ecommerce.page.determinedByMaterialSettings")
+                                                : draft.imageType === "single"
+                                                  ? translate("ecommerce.page.singleImageFixedAt1")
+                                                  : translate("ecommerce.page.determinedByThePlan")
+                                            : translate("ecommerce.page.upTo20Images")}
+                                    </small>
                                 </span>
                                 <div className="ecs-stepper" role="group" aria-label={translate("ecommerce.page.numberOfImages")}>
                                     <button type="button" aria-label={translate("ecommerce.page.removeOneImage")} disabled={countLocked || displayCount <= 1} onClick={() => changeQuickCount(displayCount - 1)}>
                                         <Minus size={14} />
                                     </button>
-                                    <output aria-live="polite">{displayCount} {translate("canvasA.characterLibrary.pageItem")}</output>
+                                    <output aria-live="polite">
+                                        {displayCount} {translate("canvasA.characterLibrary.pageItem")}
+                                    </output>
                                     <button type="button" aria-label={translate("ecommerce.page.addOneImage")} disabled={countLocked || displayCount >= 20} onClick={() => changeQuickCount(displayCount + 1)}>
                                         <Plus size={14} />
                                     </button>
@@ -2544,7 +2584,8 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                                 </strong>
                             )}
                             <span>
-                                {displayCount} {translate("ecommerce.page.images2")} {creationMode === "direct" ? translate("ecommerce.page.generateDirectlyWithTheseSettings") : translate("ecommerce.page.recommendVisualDirectionsFirstThenAutomaticallyGenerateAfterSelection")}
+                                {displayCount} {translate("ecommerce.page.images2")}{" "}
+                                {creationMode === "direct" ? translate("ecommerce.page.generateDirectlyWithTheseSettings") : translate("ecommerce.page.recommendVisualDirectionsFirstThenAutomaticallyGenerateAfterSelection")}
                             </span>
                         </div>
                         {creationMode === "direct" ? null : (
@@ -2606,7 +2647,11 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
             />
             <AppModal title={translate("ecommerce.page.confirmGenerationSettings")} open={confirmOpen} onCancel={() => setConfirmOpen(false)} footer={null} width={560} className="commerce-confirm-modal" centered>
                 <p className="commerce-confirm-caption">
-                    {creationMode === "direct" ? translate("ecommerce.page.confirmToGenerateDirectlyWithTheSettingsBelow") : confirmAction === "plan" ? translate("ecommerce.page.confirmToSkipDirectionSelectionAndWriteTheFullImage") : translate("ecommerce.page.confirmToIdentifyTheProductAndRecommendFourVisualDirections")}
+                    {creationMode === "direct"
+                        ? translate("ecommerce.page.confirmToGenerateDirectlyWithTheSettingsBelow")
+                        : confirmAction === "plan"
+                          ? translate("ecommerce.page.confirmToSkipDirectionSelectionAndWriteTheFullImage")
+                          : translate("ecommerce.page.confirmToIdentifyTheProductAndRecommendFourVisualDirections")}
                 </p>
                 <div className="commerce-confirm-grid">
                     {[
@@ -2632,7 +2677,9 @@ function EcommerceWorkspace({ scope }: { scope: string }) {
                 </label>
                 <div className="commerce-confirm-footer">
                     <span>
-                        {translate("ecommerce.page.estimatedCost")} <strong>{estimate === null ? new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 3 }).format(agentEstimate) : new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 3 }).format(estimate)}</strong> {translate("shell.credits")}
+                        {translate("ecommerce.page.estimatedCost")}{" "}
+                        <strong>{estimate === null ? new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 3 }).format(agentEstimate) : new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 3 }).format(estimate)}</strong>{" "}
+                        {translate("shell.credits")}
                         {estimate === null ? translate("ecommerce.page.andUpImageCostsAreQuotedSeparatelyBasedOnDetected") : ""}
                     </span>
                     <Button onClick={() => setConfirmOpen(false)}>{translate("common.cancel")}</Button>

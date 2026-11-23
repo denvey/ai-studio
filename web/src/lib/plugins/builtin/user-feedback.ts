@@ -3,7 +3,6 @@ import { PLUGIN_API_VERSION, type RegisteredPlugin } from "../plugin-types";
 import { usePluginStore } from "@/stores/use-plugin-store";
 import { translate } from "@/i18n";
 
-
 export const USER_FEEDBACK_PLUGIN_ID = "user-feedback";
 
 export const userFeedbackPlugin: RegisteredPlugin = {

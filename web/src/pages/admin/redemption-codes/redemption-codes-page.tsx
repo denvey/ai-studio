@@ -5,7 +5,6 @@ import { lazy, Suspense, useState } from "react";
 import { AdminPageFrame } from "../components/admin-shell";
 import { translate } from "@/i18n";
 
-
 const RedemptionCodesPanel = lazy(() => import("../components/redemption-codes-panel"));
 
 export default function RedemptionCodesPage() {
@@ -17,7 +16,13 @@ export default function RedemptionCodesPage() {
             title={translate("account.wallet.redeemTitle")}
             description={translate("adminPages.redemptionCodes.redemptionCodesPage.issueBatchesAndTrackRedemptionStatusAndDetails")}
             actions={
-                <Button type="primary" disabled={createBlocked} title={createBlocked ? translate("adminPages.redemptionCodes.redemptionCodesPage.pleaseCheckThePreviousGenerationRequestWithAnUncertainResult") : undefined} icon={<TicketCheck className="size-4" />} onClick={() => setCreateOpen(true)}>
+                <Button
+                    type="primary"
+                    disabled={createBlocked}
+                    title={createBlocked ? translate("adminPages.redemptionCodes.redemptionCodesPage.pleaseCheckThePreviousGenerationRequestWithAnUncertainResult") : undefined}
+                    icon={<TicketCheck className="size-4" />}
+                    onClick={() => setCreateOpen(true)}
+                >
                     {translate("adminPages.redemptionCodes.redemptionCodesPage.generateBatch")}
                 </Button>
             }

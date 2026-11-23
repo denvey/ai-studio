@@ -80,7 +80,11 @@ export function SceneSection({
     onChoose: (tool: WorkbenchTool | null) => void;
     onRetry: () => void;
 }) {
-    const subtitle = tool ? workbenchToolSubtitle(tool) : kind === "image" ? translate("ecommerce.workbench.workbenchComposer.describeYourDesiredProductSceneWithoutApplyingATemplate") : translate("ecommerce.workbench.workbenchComposer.describeWhatHappensInTheShotWithoutApplyingATemplate");
+    const subtitle = tool
+        ? workbenchToolSubtitle(tool)
+        : kind === "image"
+          ? translate("ecommerce.workbench.workbenchComposer.describeYourDesiredProductSceneWithoutApplyingATemplate")
+          : translate("ecommerce.workbench.workbenchComposer.describeWhatHappensInTheShotWithoutApplyingATemplate");
     return (
         <ComposerSection
             title={translate("ecommerce.workbench.workbenchComposer.outputScenario")}
@@ -255,7 +259,14 @@ function ReferenceGroup({
                     </span>
                 </button>
             )}
-            <button type="button" className="wb-ref-library" aria-label={translate("ecommerce.workbench.workbenchComposer.chooseFromAssetLibrary")} title={full ? translate("ecommerce.workbench.workbenchComposer.limitReached") : translate("ecommerce.workbench.workbenchComposer.chooseFromAssetLibrary")} disabled={full} onClick={onOpenLibrary}>
+            <button
+                type="button"
+                className="wb-ref-library"
+                aria-label={translate("ecommerce.workbench.workbenchComposer.chooseFromAssetLibrary")}
+                title={full ? translate("ecommerce.workbench.workbenchComposer.limitReached") : translate("ecommerce.workbench.workbenchComposer.chooseFromAssetLibrary")}
+                disabled={full}
+                onClick={onOpenLibrary}
+            >
                 <FolderOpen />
                 <small>{translate("canvasB.mention.assetLibrary")}</small>
             </button>
@@ -310,14 +321,25 @@ export function ReferenceSection({
     if (!slots.length) {
         if (unslottedLimit <= 0) {
             return (
-                <ComposerSection title={kind === "image" ? translate("ecommerce.workbench.workbenchComposer.productAssets") : translate("ecommerce.workbench.workbenchComposer.referenceAssets")} hint={translate("ecommerce.workbench.workbenchComposer.theCurrentModelDoesNotAcceptReferenceAssets")}>
+                <ComposerSection
+                    title={kind === "image" ? translate("ecommerce.workbench.workbenchComposer.productAssets") : translate("ecommerce.workbench.workbenchComposer.referenceAssets")}
+                    hint={translate("ecommerce.workbench.workbenchComposer.theCurrentModelDoesNotAcceptReferenceAssets")}
+                >
                     <p className="wb-muted-note">{translate("ecommerce.workbench.workbenchComposer.chooseAModelThatSupportsReferenceImagesThenUploadOriginal")}</p>
                 </ComposerSection>
             );
         }
         return (
-            <ComposerSection title={kind === "image" ? translate("ecommerce.workbench.workbenchComposer.productAssets") : translate("ecommerce.workbench.workbenchComposer.referenceAssets")} hint={`${references.length} / ${unslottedLimit} · ${mediaHint}`} aside={clearAction}>
-                {renderGroup(references, { limit: unslottedLimit, label: kind === "image" ? translate("ecommerce.workbench.workbenchComposer.uploadProductImages") : translate("ecommerce.workbench.workbenchComposer.uploadReferenceAssets"), detail: kind === "image" ? translate("ecommerce.workbench.workbenchComposer.whiteBackgroundOrRealPhotosTheClearerTheAppearanceThe") : translate("ecommerce.workbench.workbenchComposer.imagesCanBeOpeningOrEndingFrames") })}
+            <ComposerSection
+                title={kind === "image" ? translate("ecommerce.workbench.workbenchComposer.productAssets") : translate("ecommerce.workbench.workbenchComposer.referenceAssets")}
+                hint={`${references.length} / ${unslottedLimit} · ${mediaHint}`}
+                aside={clearAction}
+            >
+                {renderGroup(references, {
+                    limit: unslottedLimit,
+                    label: kind === "image" ? translate("ecommerce.workbench.workbenchComposer.uploadProductImages") : translate("ecommerce.workbench.workbenchComposer.uploadReferenceAssets"),
+                    detail: kind === "image" ? translate("ecommerce.workbench.workbenchComposer.whiteBackgroundOrRealPhotosTheClearerTheAppearanceThe") : translate("ecommerce.workbench.workbenchComposer.imagesCanBeOpeningOrEndingFrames"),
+                })}
             </ComposerSection>
         );
     }
@@ -337,7 +359,12 @@ export function ReferenceSection({
                                     {items.length} / {slot.maxCount}
                                 </small>
                             </div>
-                            {renderGroup(items, { slotKey: slot.key, limit: slot.maxCount, label: translate("ecommerce.workbench.workbenchComposer.upload", { v0: String(slot.name || translate("ecommerce.workbench.workbenchComposer.asset")) }), detail: slotRequirementText(slot) })}
+                            {renderGroup(items, {
+                                slotKey: slot.key,
+                                limit: slot.maxCount,
+                                label: translate("ecommerce.workbench.workbenchComposer.upload", { v0: String(slot.name || translate("ecommerce.workbench.workbenchComposer.asset")) }),
+                                detail: slotRequirementText(slot),
+                            })}
                         </div>
                     );
                 })}
@@ -592,7 +619,12 @@ export function ComposerFooter({
     onSubmit: () => void;
 }) {
     const unit = kind === "image" ? translate("canvasA.characterLibrary.pageItem") : translate("ecommerce.workbench.workbenchComposer.videos");
-    const label = count > 1 ? translate("ecommerce.workbench.workbenchComposer.generate", { v0: String(count), v1: String(unit) }) : kind === "image" ? translate("ecommerce.workbench.workbenchComposer.generateImage") : translate("ecommerce.workbench.workbenchComposer.generateVideo");
+    const label =
+        count > 1
+            ? translate("ecommerce.workbench.workbenchComposer.generate", { v0: String(count), v1: String(unit) })
+            : kind === "image"
+              ? translate("ecommerce.workbench.workbenchComposer.generateImage")
+              : translate("ecommerce.workbench.workbenchComposer.generateVideo");
     const button = (
         <Button className="wb-submit" type="primary" size="large" loading={busy} disabled={Boolean(disabledReason)} onClick={onSubmit}>
             <ArrowUp />
@@ -606,7 +638,8 @@ export function ComposerFooter({
                 <span>
                     <LayoutGrid />
                     {estimate ? `${count} ${unit} · ` : ""}
-                    {taskCount} {translate("ecommerce.workbench.workbenchComposer.tasks")}{estimateDetail ? ` · ${estimateDetail}` : ""}
+                    {taskCount} {translate("ecommerce.workbench.workbenchComposer.tasks")}
+                    {estimateDetail ? ` · ${estimateDetail}` : ""}
                 </span>
             </div>
             {disabledReason ? (

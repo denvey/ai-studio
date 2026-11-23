@@ -8,7 +8,6 @@ import { buildImageResolutionOptions, type ImageResolutionOption, type ImageReso
 import { resolveImageRequestSize, validateImageSize } from "@/services/api/image-validation";
 import { translate } from "@/i18n";
 
-
 export function ImageSizePicker({
     profile,
     size,
@@ -226,16 +225,32 @@ export function ImageSizePicker({
                     );
                 })}
             </div>
-            {!choices.length ? <p className="image-size-hint">{translate("shared.imageSizePicker.noPresetSizesConfigured")}{profile.size.allowCustom ? translate("shared.imageSizePicker.enterACustomAspectRatioOrSize") : ""}</p> : null}
+            {!choices.length ? (
+                <p className="image-size-hint">
+                    {translate("shared.imageSizePicker.noPresetSizesConfigured")}
+                    {profile.size.allowCustom ? translate("shared.imageSizePicker.enterACustomAspectRatioOrSize") : ""}
+                </p>
+            ) : null}
             <output aria-live="polite" className="image-size-output">
                 {size === "auto" ? translate("shared.imageSizePicker.sizeIsDeterminedByTheModel") : active ? `${active.ratio} · ${active.width} × ${active.height} px` : size.replace("x", " × ")}
             </output>
-            {profile.size.parameter === "aspect_ratio" ? <p className="image-size-hint">{translate("shared.imageSizePicker.theSizeIsAConversionReferenceActualPixelDimensionsAre")}{!imageResolutionUsesQuality(profile) && visibleTiers.length <= 1 ? translate("shared.imageSizePicker.thisProtocolHasNoSeparateResolutionSetting") : ""}。</p> : null}
+            {profile.size.parameter === "aspect_ratio" ? (
+                <p className="image-size-hint">
+                    {translate("shared.imageSizePicker.theSizeIsAConversionReferenceActualPixelDimensionsAre")}
+                    {!imageResolutionUsesQuality(profile) && visibleTiers.length <= 1 ? translate("shared.imageSizePicker.thisProtocolHasNoSeparateResolutionSetting") : ""}。
+                </p>
+            ) : null}
             {profile.size.allowCustom ? (
                 <details className="image-size-custom">
                     <summary>{translate("shared.imageSizePicker.customAspectRatioOrSize")}</summary>
                     <div className="image-size-custom-input">
-                        <Input aria-label={translate("shared.imageSizePicker.customAspectRatioOrSize")} placeholder={translate("shared.imageSizePicker.item169Or1824x1024")} value={custom} onChange={(event) => setCustom(event.target.value)} onPressEnter={applyCustom} />
+                        <Input
+                            aria-label={translate("shared.imageSizePicker.customAspectRatioOrSize")}
+                            placeholder={translate("shared.imageSizePicker.item169Or1824x1024")}
+                            value={custom}
+                            onChange={(event) => setCustom(event.target.value)}
+                            onPressEnter={applyCustom}
+                        />
                         <Button onClick={applyCustom}>{translate("canvasB.common.apply")}</Button>
                     </div>
                 </details>

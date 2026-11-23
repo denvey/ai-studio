@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 /**
  * 文本模型思考等级：与后端 internal/app/text_thinking.go 保持同一套档位、预设与归一规则。
@@ -48,7 +47,12 @@ export const THINKING_PRESETS: ThinkingPreset[] = [
         hint: translate("shared.textThinking.reasoningEffortReasoningEffortOffSendsNoneMaximumSendsXhigh"),
         config: { mode: "levels", levels: ["off", "minimal", "low", "medium", "high", "max"], switch: { kind: "effort-none" }, intensity: { kind: "effort", values: { max: "xhigh" } } },
     },
-    { id: "openai-o", label: translate("shared.textThinking.openAIOSeries"), hint: translate("shared.textThinking.effortCanBeAdjustedReasoningCannotBeTurnedOff"), config: { mode: "always", levels: ["low", "medium", "high"], default: "medium", switch: { kind: "none" }, intensity: { kind: "effort" } } },
+    {
+        id: "openai-o",
+        label: translate("shared.textThinking.openAIOSeries"),
+        hint: translate("shared.textThinking.effortCanBeAdjustedReasoningCannotBeTurnedOff"),
+        config: { mode: "always", levels: ["low", "medium", "high"], default: "medium", switch: { kind: "none" }, intensity: { kind: "effort" } },
+    },
     {
         id: "claude-adaptive",
         label: translate("shared.textThinking.claudeAdaptive"),
@@ -62,16 +66,36 @@ export const THINKING_PRESETS: ThinkingPreset[] = [
         config: { mode: "levels", levels: ["off", "low", "medium", "high"], default: "off", switch: { kind: "omit" }, intensity: { kind: "budget", field: "thinking.budget_tokens" } },
     },
     { id: "gemini-3-pro", label: "Gemini 3 Pro", hint: translate("shared.textThinking.thinkingLevelLowHighReasoningCannotBeTurnedOff"), config: { mode: "always", levels: ["low", "high"], switch: { kind: "none" }, intensity: { kind: "gemini-level" } } },
-    { id: "gemini-3-flash", label: "Gemini 3 Flash", hint: translate("shared.textThinking.thinkingLevelMinimalHighReasoningCannotBeTurnedOff"), config: { mode: "always", levels: ["minimal", "low", "medium", "high"], switch: { kind: "none" }, intensity: { kind: "gemini-level" } } },
-    { id: "gemini-2.5", label: "Gemini 2.5", hint: translate("shared.textThinking.thinkingBudgetOffSends025ProCannotTurnReasoning"), config: { mode: "levels", levels: ["off", "low", "medium", "high"], switch: { kind: "budget-zero" }, intensity: { kind: "budget" } } },
+    {
+        id: "gemini-3-flash",
+        label: "Gemini 3 Flash",
+        hint: translate("shared.textThinking.thinkingLevelMinimalHighReasoningCannotBeTurnedOff"),
+        config: { mode: "always", levels: ["minimal", "low", "medium", "high"], switch: { kind: "none" }, intensity: { kind: "gemini-level" } },
+    },
+    {
+        id: "gemini-2.5",
+        label: "Gemini 2.5",
+        hint: translate("shared.textThinking.thinkingBudgetOffSends025ProCannotTurnReasoning"),
+        config: { mode: "levels", levels: ["off", "low", "medium", "high"], switch: { kind: "budget-zero" }, intensity: { kind: "budget" } },
+    },
     {
         id: "deepseek",
         label: "DeepSeek",
         hint: "thinking.type + reasoning_effort low/high/max",
         config: { mode: "levels", levels: ["off", "low", "high", "max"], switch: { kind: "thinking-type" }, intensity: { kind: "effort", field: "reasoning_effort" } },
     },
-    { id: "qwen-hybrid", label: translate("shared.textThinking.qwenHybridReasoning"), hint: translate("shared.textThinking.enableThinkingToggle"), config: { mode: "toggle", levels: ["off", "medium"], switch: { kind: "enable-flag" }, intensity: { kind: "none" } } },
-    { id: "qwen-budget", label: translate("shared.textThinking.qwenReasoningBudget"), hint: "enable_thinking + thinking_budget", config: { mode: "levels", levels: ["off", "low", "medium", "high"], switch: { kind: "enable-flag" }, intensity: { kind: "budget", field: "thinking_budget" } } },
+    {
+        id: "qwen-hybrid",
+        label: translate("shared.textThinking.qwenHybridReasoning"),
+        hint: translate("shared.textThinking.enableThinkingToggle"),
+        config: { mode: "toggle", levels: ["off", "medium"], switch: { kind: "enable-flag" }, intensity: { kind: "none" } },
+    },
+    {
+        id: "qwen-budget",
+        label: translate("shared.textThinking.qwenReasoningBudget"),
+        hint: "enable_thinking + thinking_budget",
+        config: { mode: "levels", levels: ["off", "low", "medium", "high"], switch: { kind: "enable-flag" }, intensity: { kind: "budget", field: "thinking_budget" } },
+    },
     { id: "thinking-type-toggle", label: translate("shared.textThinking.doubaoKimiGLMToggle"), hint: "thinking.type enabled/disabled", config: { mode: "toggle", levels: ["off", "medium"], switch: { kind: "thinking-type" }, intensity: { kind: "none" } } },
     {
         id: "openrouter",

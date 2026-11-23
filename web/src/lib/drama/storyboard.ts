@@ -2,7 +2,6 @@
 import type { DramaDialogue, DramaPacing, DramaSegmentMode, DramaStoryboardSettings, DramaTransition } from "@/services/api/drama";
 import { translate } from "@/i18n";
 
-
 export const MIN_SEGMENT_SECONDS = 4;
 export const MAX_SEGMENT_SECONDS = 60;
 export const MIN_EPISODE_SECONDS = 30;
@@ -24,7 +23,13 @@ export const DEFAULT_STORYBOARD: DramaStoryboardSettings = {
 /** 镜头节奏从快到慢五档的平均镜头长度（秒），与后端 production.pacingRules 一致。 */
 const PACING_AVERAGE_SECONDS: Record<DramaPacing, number> = { rapid: 2, fast: 2.5, standard: 3.5, relaxed: 4.5, slow: 5.5 };
 export const PACING_ORDER = Object.keys(PACING_AVERAGE_SECONDS) as DramaPacing[];
-export const PACING_LABEL: Record<DramaPacing, string> = { rapid: translate("shared.drama.storyboard.rapidPacing"), fast: translate("shared.drama.storyboard.fastPacing"), standard: translate("shared.drama.storyboard.standardPacing"), relaxed: translate("shared.drama.storyboard.relaxedPacing"), slow: translate("shared.drama.storyboard.slowPacing") };
+export const PACING_LABEL: Record<DramaPacing, string> = {
+    rapid: translate("shared.drama.storyboard.rapidPacing"),
+    fast: translate("shared.drama.storyboard.fastPacing"),
+    standard: translate("shared.drama.storyboard.standardPacing"),
+    relaxed: translate("shared.drama.storyboard.relaxedPacing"),
+    slow: translate("shared.drama.storyboard.slowPacing"),
+};
 /** 转场时长下限，也是默认值；与后端 DefaultTransitionMs 一致。 */
 export const MIN_TRANSITION_MS = 150;
 

@@ -4,7 +4,6 @@ import { readFileAsDataUrl } from "@/lib/image-utils";
 import type { ApiEnvelope, ApiVideoResponse, RequestOptions, SeedanceTask, VideoGenerationResult } from "./video-contracts";
 import { translate } from "@/i18n";
 
-
 export function videoTaskId(payload: { id?: string; request_id?: string; task_id?: string }) {
     return payload.id || payload.request_id || payload.task_id || "";
 }

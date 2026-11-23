@@ -3,7 +3,6 @@ import { modelCapabilityConfigFor } from "@/lib/model-capabilities";
 import type { CanvasNodeData, CanvasNodeMetadata } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 export const LAYER_DECOMPOSITION_PROTOCOL = "image-tools-layer-decomposition";
 export const MAX_IMAGE_LAYERS = 32;
 export const MAX_LAYER_PIXELS = 16_777_216;

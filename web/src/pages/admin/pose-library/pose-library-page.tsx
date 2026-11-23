@@ -33,7 +33,6 @@ import { AdminModal } from "../ui/overlays";
 import { AdminCheckbox, AdminSwitch, Callout } from "../ui/controls";
 import { translate } from "@/i18n";
 
-
 const SYNC_BATCH = 12;
 const statusLabels: Record<AdminPoseLibraryItem["status"], { label: string; tone: "success" | "warning" | "error" }> = {
     ready: { label: translate("canvasPage.syncStatus.synced"), tone: "success" },
@@ -51,7 +50,8 @@ export function PoseLibrarySystems({ systems, sourceName, onBulk }: { systems: A
                 <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
                     <span>{translate("adminPages.poseLibrary.poseLibraryPage.manageByCollection")}</span>
                     <span className="text-xs font-normal text-[var(--text-secondary)]">
-                        {systems.length} {translate("adminPages.poseLibrary.poseLibraryPage.collectionsTotal")} {systems.reduce((sum, item) => sum + item.total, 0)} {translate("adminPages.poseLibrary.poseLibraryPage.itemsEnabled")} {systems.reduce((sum, item) => sum + item.enabled, 0)} {translate("account.layout.pagination.item")}
+                        {systems.length} {translate("adminPages.poseLibrary.poseLibraryPage.collectionsTotal")} {systems.reduce((sum, item) => sum + item.total, 0)} {translate("adminPages.poseLibrary.poseLibraryPage.itemsEnabled")}{" "}
+                        {systems.reduce((sum, item) => sum + item.enabled, 0)} {translate("account.layout.pagination.item")}
                     </span>
                 </summary>
                 <div className="mt-2 max-h-60 overflow-y-auto pr-1">
@@ -68,7 +68,8 @@ export function PoseLibrarySystems({ systems, sourceName, onBulk }: { systems: A
                                         ) : null}
                                     </div>
                                     <div className="text-xs text-[var(--text-secondary)]">
-                                        {sourceName.get(item.sourceKey) || item.sourceKey} {translate("adminPages.poseLibrary.poseLibraryPage.total")} {item.total} {translate("adminPages.poseLibrary.poseLibraryPage.synced")} {item.ready} {translate("adminPages.poseLibrary.poseLibraryPage.enabled")} {item.enabled}
+                                        {sourceName.get(item.sourceKey) || item.sourceKey} {translate("adminPages.poseLibrary.poseLibraryPage.total")} {item.total} {translate("adminPages.poseLibrary.poseLibraryPage.synced")} {item.ready}{" "}
+                                        {translate("adminPages.poseLibrary.poseLibraryPage.enabled")} {item.enabled}
                                     </div>
                                 </div>
                                 <Button size="small" disabled={item.enabled === item.total} onClick={() => onBulk("enable", item)}>
@@ -140,7 +141,9 @@ export default function PoseLibraryAdminPage() {
                 setSync({ ...progress });
                 if (result.processed === 0 || result.stats.pending === 0) break;
             }
-            message.success(translate("adminPages.poseLibrary.poseLibraryPage.syncCompleteSucceeded", { v0: String(progress.succeeded), v1: String(progress.failed ? translate("adminPages.poseLibrary.poseLibraryPage.failed2", { v0: String(progress.failed) }) : "") }));
+            message.success(
+                translate("adminPages.poseLibrary.poseLibraryPage.syncCompleteSucceeded", { v0: String(progress.succeeded), v1: String(progress.failed ? translate("adminPages.poseLibrary.poseLibraryPage.failed2", { v0: String(progress.failed) }) : "") }),
+            );
         } catch (error) {
             if (!controller.signal.aborted) message.error(error instanceof Error ? error.message : translate("adminPages.poseLibrary.poseLibraryPage.imageSyncFailed"));
         } finally {
@@ -151,7 +154,12 @@ export default function PoseLibraryAdminPage() {
     };
 
     const runBulk = (action: PoseLibraryBulkAction, target: AdminPoseLibrarySystem) => {
-        const verb = { enable: translate("adminPages.poseLibrary.poseLibraryPage.enable"), disable: translate("adminPages.poseLibrary.poseLibraryPage.disable"), delete: translate("common.delete"), resync: translate("adminPages.poseLibrary.poseLibraryPage.markAsPendingSync") }[action];
+        const verb = {
+            enable: translate("adminPages.poseLibrary.poseLibraryPage.enable"),
+            disable: translate("adminPages.poseLibrary.poseLibraryPage.disable"),
+            delete: translate("common.delete"),
+            resync: translate("adminPages.poseLibrary.poseLibraryPage.markAsPendingSync"),
+        }[action];
         const execute = async () => {
             try {
                 const result = await bulkPoseLibraryItems({ action, sourceKey: target.sourceKey, system: target.system });
@@ -223,7 +231,12 @@ export default function PoseLibraryAdminPage() {
             align: "center",
             render: (_, item) => <AdminStatusBadge label={statusLabels[item.status]?.label || item.status} tone={statusLabels[item.status]?.tone} title={item.error || undefined} />,
         },
-        { title: translate("adminPages.poseLibrary.poseLibraryPage.enable"), width: 80, align: "center", render: (_, item) => <AdminSwitch size="sm" checked={item.enabled} aria-label={translate("adminPages.poseLibrary.poseLibraryPage.enable2", { v0: String(item.name) })} onChange={(checked) => void toggleEnabled(item, checked)} /> },
+        {
+            title: translate("adminPages.poseLibrary.poseLibraryPage.enable"),
+            width: 80,
+            align: "center",
+            render: (_, item) => <AdminSwitch size="sm" checked={item.enabled} aria-label={translate("adminPages.poseLibrary.poseLibraryPage.enable2", { v0: String(item.name) })} onChange={(checked) => void toggleEnabled(item, checked)} />,
+        },
         {
             title: translate("account.settings.runninghub.actions"),
             width: 170,
@@ -237,7 +250,11 @@ export default function PoseLibraryAdminPage() {
                             label: translate("common.delete"),
                             icon: <Trash2 className="size-3.5" />,
                             danger: true,
-                            confirm: { title: translate("adminPages.poseLibrary.poseLibraryPage.delete", { v0: String(item.name), v1: String(item.angle) }), description: translate("adminPages.poseLibrary.poseLibraryPage.imagesSavedOnThisSiteWillAlsoBeDeletedCopies"), okText: translate("account.ui.delete.confirm") },
+                            confirm: {
+                                title: translate("adminPages.poseLibrary.poseLibraryPage.delete", { v0: String(item.name), v1: String(item.angle) }),
+                                description: translate("adminPages.poseLibrary.poseLibraryPage.imagesSavedOnThisSiteWillAlsoBeDeletedCopies"),
+                                okText: translate("account.ui.delete.confirm"),
+                            },
                             onClick: () => remove(item),
                         },
                     ]}
@@ -266,7 +283,11 @@ export default function PoseLibraryAdminPage() {
             }
         >
             <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <AdminStatTile label={translate("adminPages.poseLibrary.poseLibraryPage.totalPoseImages")} value={stats?.total ?? "—"} detail={stats?.disabled ? translate("adminPages.poseLibrary.poseLibraryPage.imagesDisabled", { v0: String(stats.disabled) }) : undefined} />
+                <AdminStatTile
+                    label={translate("adminPages.poseLibrary.poseLibraryPage.totalPoseImages")}
+                    value={stats?.total ?? "—"}
+                    detail={stats?.disabled ? translate("adminPages.poseLibrary.poseLibraryPage.imagesDisabled", { v0: String(stats.disabled) }) : undefined}
+                />
                 <AdminStatTile label={translate("canvasPage.syncStatus.synced")} value={stats?.ready ?? "—"} detail={stats?.total ? `${readyPercent}%` : undefined} />
                 <AdminStatTile label={translate("adminPages.poseLibrary.poseLibraryPage.pendingSync")} value={stats?.pending ?? "—"} />
                 <AdminStatTile label={translate("adminPages.poseLibrary.poseLibraryPage.syncFailed")} value={stats?.failed ?? "—"} />
@@ -276,7 +297,9 @@ export default function PoseLibraryAdminPage() {
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="min-w-0 flex-1">
                         <div className="text-sm font-medium">{translate("adminPages.poseLibrary.poseLibraryPage.imageSync")}</div>
-                        <p className="mt-1 text-xs text-[var(--text-secondary)]">{translate("adminPages.poseLibrary.poseLibraryPage.theServerDownloadsThumbnailsAndFullSizeImagesFromThe")} {SYNC_BATCH} {translate("adminPages.poseLibrary.poseLibraryPage.itemsStopAtAnyTimeAndResumeLater")}</p>
+                        <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                            {translate("adminPages.poseLibrary.poseLibraryPage.theServerDownloadsThumbnailsAndFullSizeImagesFromThe")} {SYNC_BATCH} {translate("adminPages.poseLibrary.poseLibraryPage.itemsStopAtAnyTimeAndResumeLater")}
+                        </p>
                     </div>
                     {sync?.running ? (
                         <Button icon={<Square className="size-3.5" />} onClick={() => syncAbortRef.current?.abort()}>
@@ -286,11 +309,13 @@ export default function PoseLibraryAdminPage() {
                         <>
                             {stats?.failed ? (
                                 <Button icon={<RotateCcw className="size-4" />} onClick={() => void runSync(true)}>
-                                    {translate("adminPages.poseLibrary.poseLibraryPage.retryFailed")}{stats.failed}）
+                                    {translate("adminPages.poseLibrary.poseLibraryPage.retryFailed")}
+                                    {stats.failed}）
                                 </Button>
                             ) : null}
                             <Button type="primary" icon={<CloudDownload className="size-4" />} disabled={!stats?.pending} onClick={() => void runSync(false)}>
-                                {translate("adminPages.poseLibrary.poseLibraryPage.syncImages")}{stats?.pending ? `（${stats.pending}）` : ""}
+                                {translate("adminPages.poseLibrary.poseLibraryPage.syncImages")}
+                                {stats?.pending ? `（${stats.pending}）` : ""}
                             </Button>
                         </>
                     )}
@@ -302,7 +327,9 @@ export default function PoseLibraryAdminPage() {
                 ) : null}
                 {sync ? (
                     <p className="mt-2 text-xs text-[var(--text-secondary)]">
-                        {sync.running ? translate("adminPages.poseLibrary.poseLibraryPage.syncing") : translate("adminPages.poseLibrary.poseLibraryPage.lastSync")}{translate("adminPages.poseLibrary.poseLibraryPage.succeeded")} {sync.succeeded}{translate("adminPages.poseLibrary.poseLibraryPage.failed")} {sync.failed}
+                        {sync.running ? translate("adminPages.poseLibrary.poseLibraryPage.syncing") : translate("adminPages.poseLibrary.poseLibraryPage.lastSync")}
+                        {translate("adminPages.poseLibrary.poseLibraryPage.succeeded")} {sync.succeeded}
+                        {translate("adminPages.poseLibrary.poseLibraryPage.failed")} {sync.failed}
                         {sync.lastError ? translate("adminPages.poseLibrary.poseLibraryPage.latestError", { v0: String(sync.lastError) }) : ""}
                     </p>
                 ) : null}
@@ -372,7 +399,13 @@ export default function PoseLibraryAdminPage() {
                     setStatus("");
                     setPage(1);
                 }}
-                empty={<AdminTableEmpty filtered={filtered} title={filtered ? translate("adminPages.poseLibrary.poseLibraryPage.noMatchingPoses") : translate("adminPages.poseLibrary.poseLibraryPage.noPosesImportedYet")} description={filtered ? translate("adminPages.poseLibrary.poseLibraryPage.adjustTheFiltersAndTryAgain") : translate("adminPages.poseLibrary.poseLibraryPage.clickImportDataInTheTopRightAndUploadData")} />}
+                empty={
+                    <AdminTableEmpty
+                        filtered={filtered}
+                        title={filtered ? translate("adminPages.poseLibrary.poseLibraryPage.noMatchingPoses") : translate("adminPages.poseLibrary.poseLibraryPage.noPosesImportedYet")}
+                        description={filtered ? translate("adminPages.poseLibrary.poseLibraryPage.adjustTheFiltersAndTryAgain") : translate("adminPages.poseLibrary.poseLibraryPage.clickImportDataInTheTopRightAndUploadData")}
+                    />
+                }
                 footer={
                     <PaginationBar
                         alwaysShow
@@ -458,7 +491,13 @@ function PoseLibraryImportModal({ open, onClose, onImported }: { open: boolean; 
         setImporting(true);
         try {
             const result = await importPoseLibrary({ file, baseUrl, systems: Array.from(selected) });
-            message.success(translate("adminPages.poseLibrary.poseLibraryPage.importCompleteAddedUpdatedNextClickSyncImages", { v0: String(result.created), v1: String(result.updated), v2: String(result.skipped ? translate("adminPages.poseLibrary.poseLibraryPage.skipped", { v0: String(result.skipped) }) : "") }));
+            message.success(
+                translate("adminPages.poseLibrary.poseLibraryPage.importCompleteAddedUpdatedNextClickSyncImages", {
+                    v0: String(result.created),
+                    v1: String(result.updated),
+                    v2: String(result.skipped ? translate("adminPages.poseLibrary.poseLibraryPage.skipped", { v0: String(result.skipped) }) : ""),
+                }),
+            );
             if (result.invalid?.length) message.warning(result.invalid.join("；"));
             reset();
             onImported();
@@ -525,7 +564,9 @@ function PoseLibraryImportModal({ open, onClose, onImported }: { open: boolean; 
                     <>
                         <div>
                             <div className="text-sm font-medium">{preview.sourceName}</div>
-                            <div className="mt-1 text-xs text-[var(--text-secondary)]">{translate("adminPages.poseLibrary.poseLibraryPage.total2")} {preview.total} {translate("adminPages.poseLibrary.poseLibraryPage.itemsSelectByCollection")}</div>
+                            <div className="mt-1 text-xs text-[var(--text-secondary)]">
+                                {translate("adminPages.poseLibrary.poseLibraryPage.total2")} {preview.total} {translate("adminPages.poseLibrary.poseLibraryPage.itemsSelectByCollection")}
+                            </div>
                             <div className="mt-2 space-y-2">
                                 {preview.systems.map((item) => (
                                     <div key={item.name} className="flex items-center gap-2">
@@ -608,7 +649,14 @@ function PoseLibraryItemModal({ open, item, systems, onClose, onSaved }: { open:
                 onClose();
             }}
             afterOpenChange={(visible) => {
-                if (visible) form.setFieldsValue({ name: item?.name || "", system: item?.system || translate("adminPages.poseLibrary.poseLibraryPage.siteCreated"), category: item?.category || "", angle: item?.angle || translate("adminPages.poseLibrary.poseLibraryPage.front"), code: item?.code || "" });
+                if (visible)
+                    form.setFieldsValue({
+                        name: item?.name || "",
+                        system: item?.system || translate("adminPages.poseLibrary.poseLibraryPage.siteCreated"),
+                        category: item?.category || "",
+                        angle: item?.angle || translate("adminPages.poseLibrary.poseLibraryPage.front"),
+                        code: item?.code || "",
+                    });
             }}
         >
             <Form form={form} layout="vertical" requiredMark={false}>

@@ -133,7 +133,13 @@ const SegmentCard = memo(function SegmentCard({ segment, segmentShots, aspectRat
                 ) : null}
             </header>
             <div className="drama-sg-body">
-                <button type="button" className="drama-sg-cover" style={{ aspectRatio: aspectRatioValue(aspectRatio) }} onClick={() => act().onOpen(segment.index)} aria-label={translate("drama.studio.storyboard.openSegment", { v0: String(segment.index + 1) })}>
+                <button
+                    type="button"
+                    className="drama-sg-cover"
+                    style={{ aspectRatio: aspectRatioValue(aspectRatio) }}
+                    onClick={() => act().onOpen(segment.index)}
+                    aria-label={translate("drama.studio.storyboard.openSegment", { v0: String(segment.index + 1) })}
+                >
                     {segment.tailFrameResourceId && segment.videoResourceId ? (
                         <MediaThumb resourceId={segment.tailFrameResourceId} alt="" />
                     ) : segment.videoResourceId && hasVideo(segment) ? (
@@ -154,7 +160,8 @@ const SegmentCard = memo(function SegmentCard({ segment, segmentShots, aspectRat
                     <div className="drama-sg-meta">
                         <SegmentStatus segment={segment} />
                         <span>
-                            {segmentShots.length} {translate("drama.studio.storyboard.shots")}{segment.request.maxVideoSeconds ? translate("drama.studio.storyboard.limitS", { v0: String(segment.request.maxVideoSeconds) }) : ""}
+                            {segmentShots.length} {translate("drama.studio.storyboard.shots")}
+                            {segment.request.maxVideoSeconds ? translate("drama.studio.storyboard.limitS", { v0: String(segment.request.maxVideoSeconds) }) : ""}
                         </span>
                     </div>
                     <SegmentInputs segment={segment} castById={castById} compact />
@@ -187,7 +194,11 @@ const SegmentCard = memo(function SegmentCard({ segment, segmentShots, aspectRat
                                     </button>
                                 </li>
                             ))}
-                            {segmentShots.length > SHOT_PREVIEW ? <li className="drama-sg-more">{translate("drama.studio.storyboard.and")} {segmentShots.length - SHOT_PREVIEW} {translate("drama.studio.storyboard.shots")}</li> : null}
+                            {segmentShots.length > SHOT_PREVIEW ? (
+                                <li className="drama-sg-more">
+                                    {translate("drama.studio.storyboard.and")} {segmentShots.length - SHOT_PREVIEW} {translate("drama.studio.storyboard.shots")}
+                                </li>
+                            ) : null}
                         </ol>
                     )}
                 </div>
@@ -198,7 +209,15 @@ const SegmentCard = memo(function SegmentCard({ segment, segmentShots, aspectRat
                 </span>
                 <span className="drama-sg-actions">
                     {segment.videoReprocessable ? (
-                        <Button size="small" type="primary" icon={<RotateCcw className="size-3" />} disabled={busy} loading={reprocessing} title={translate("drama.studio.storyboard.reprocessesTheExistingVideoWithoutRegeneratingOrChargingCredits")} onClick={() => act().onReprocess(segment.index)}>
+                        <Button
+                            size="small"
+                            type="primary"
+                            icon={<RotateCcw className="size-3" />}
+                            disabled={busy}
+                            loading={reprocessing}
+                            title={translate("drama.studio.storyboard.reprocessesTheExistingVideoWithoutRegeneratingOrChargingCredits")}
+                            onClick={() => act().onReprocess(segment.index)}
+                        >
                             {translate("drama.studio.storyboard.reprocess")}
                         </Button>
                     ) : null}
@@ -207,10 +226,20 @@ const SegmentCard = memo(function SegmentCard({ segment, segmentShots, aspectRat
                         type={generatable(segment) && !hasVideo(segment) ? "primary" : "default"}
                         icon={<Play className="size-3" />}
                         disabled={busy || !generatable(segment)}
-                        title={!promptReady(segment) ? translate("drama.studio.storyboard.writeOrConfirmThisSegmentSVideoPromptFirst") : hasVideo(segment) ? translate("drama.studio.storyboard.callsTheVideoModelAgainToRegenerateThisSegmentAnd") : undefined}
+                        title={
+                            !promptReady(segment) ? translate("drama.studio.storyboard.writeOrConfirmThisSegmentSVideoPromptFirst") : hasVideo(segment) ? translate("drama.studio.storyboard.callsTheVideoModelAgainToRegenerateThisSegmentAnd") : undefined
+                        }
                         onClick={() => act().onGenerate([segment.index])}
                     >
-                        {mediaBusy(segment.videoStatus) ? (segment.videoStatus === "queued" && segment.videoWait ? translate("drama.studio.storyboard.waiting") : segment.request.firstFramePending ? translate("drama.studio.storyboard.waitingForPrevious") : translate("canvasB.mediaVersion.generating")) : hasVideo(segment) ? translate("drama.studio.storyboard.regenerate") : translate("account.welcome.chapters.motion.label")}
+                        {mediaBusy(segment.videoStatus)
+                            ? segment.videoStatus === "queued" && segment.videoWait
+                                ? translate("drama.studio.storyboard.waiting")
+                                : segment.request.firstFramePending
+                                  ? translate("drama.studio.storyboard.waitingForPrevious")
+                                  : translate("canvasB.mediaVersion.generating")
+                            : hasVideo(segment)
+                              ? translate("drama.studio.storyboard.regenerate")
+                              : translate("account.welcome.chapters.motion.label")}
                     </Button>
                 </span>
             </footer>
@@ -361,9 +390,19 @@ export function Storyboard({ shots, segments, aspectRatio, castById, defaultVide
             <div className={`drama-board-toolbar ${selected.size ? "is-selecting" : ""}`}>
                 {selected.size ? (
                     <>
-                        <b className="text-[var(--fs-label)]">{translate("drama.studio.storyboard.selected")} {selected.size} {translate("drama.studio.storyboard.segments")}</b>
+                        <b className="text-[var(--fs-label)]">
+                            {translate("drama.studio.storyboard.selected")} {selected.size} {translate("drama.studio.storyboard.segments")}
+                        </b>
                         <div className="drama-board-model">
-                            <DramaModelPicker capability="video" size="sm" value={batchModel || defaultVideoModel} onChange={setBatchModel} placeholder={translate("drama.studio.storyboard.videoModel")} aspectRatio={aspectRatio} videoResolution={videoResolution} />
+                            <DramaModelPicker
+                                capability="video"
+                                size="sm"
+                                value={batchModel || defaultVideoModel}
+                                onChange={setBatchModel}
+                                placeholder={translate("drama.studio.storyboard.videoModel")}
+                                aspectRatio={aspectRatio}
+                                videoResolution={videoResolution}
+                            />
                         </div>
                         <Tooltip title={toGenerate.length < selected.size ? translate("drama.studio.storyboard.segmentsWillBeSkippedBecauseTheirPromptsAreNotReady", { v0: String(selected.size - toGenerate.length) }) : undefined}>
                             <Button
@@ -400,13 +439,16 @@ export function Storyboard({ shots, segments, aspectRatio, castById, defaultVide
                 ) : (
                     <>
                         <span className="drama-board-stat">
-                            <b>{segments.length}</b>{translate("drama.studio.storyboard.segments")}
+                            <b>{segments.length}</b>
+                            {translate("drama.studio.storyboard.segments")}
                         </span>
                         <span className="drama-board-stat">
-                            <b>{shots.length}</b>{translate("drama.studio.storyboard.shots")}
+                            <b>{shots.length}</b>
+                            {translate("drama.studio.storyboard.shots")}
                         </span>
                         <span className="drama-board-stat">
-                            <b>{formatClock(totals.durationMs)}</b>{translate("canvasA.assetView.duration")}
+                            <b>{formatClock(totals.durationMs)}</b>
+                            {translate("canvasA.assetView.duration")}
                         </span>
                         <span className="drama-board-meter" aria-label={translate("drama.studio.storyboard.prompts", { v0: String(totals.prompts), v1: String(segments.length) })}>
                             {translate("canvasA.assetView.prompt")}
@@ -450,28 +492,35 @@ export function Storyboard({ shots, segments, aspectRatio, castById, defaultVide
             <div className="drama-kbd-hint" aria-label={translate("drama.studio.storyboard.keyboardShortcuts")}>
                 <span>
                     <kbd>⌘</kbd>
-                    <kbd>A</kbd>{translate("drama.studio.storyboard.selectAll")}
+                    <kbd>A</kbd>
+                    {translate("drama.studio.storyboard.selectAll")}
                 </span>
                 <span>
-                    <kbd>⌘</kbd>{translate("drama.studio.storyboard.clickToMultiSelect")}
+                    <kbd>⌘</kbd>
+                    {translate("drama.studio.storyboard.clickToMultiSelect")}
                 </span>
                 <span>
-                    <kbd>⇧</kbd>{translate("drama.studio.storyboard.click")} <kbd>⇧</kbd>
+                    <kbd>⇧</kbd>
+                    {translate("drama.studio.storyboard.click")} <kbd>⇧</kbd>
                     <kbd>←</kbd>
                     <kbd>→</kbd> {translate("drama.studio.storyboard.selectRange")}
                 </span>
                 <span>
-                    <kbd>X</kbd>/<kbd>{translate("drama.studio.storyboard.space")}</kbd>{translate("drama.studio.storyboard.selectCurrent")}
+                    <kbd>X</kbd>/<kbd>{translate("drama.studio.storyboard.space")}</kbd>
+                    {translate("drama.studio.storyboard.selectCurrent")}
                 </span>
                 <span>
                     <kbd>J</kbd>
-                    <kbd>K</kbd>{translate("drama.studio.storyboard.arrowKeysToNavigate")}
+                    <kbd>K</kbd>
+                    {translate("drama.studio.storyboard.arrowKeysToNavigate")}
                 </span>
                 <span>
-                    <kbd>Enter</kbd>{translate("canvasB.common.open")}
+                    <kbd>Enter</kbd>
+                    {translate("canvasB.common.open")}
                 </span>
                 <span>
-                    <kbd>Esc</kbd>{translate("drama.studio.storyboard.clearSelection")}
+                    <kbd>Esc</kbd>
+                    {translate("drama.studio.storyboard.clearSelection")}
                 </span>
             </div>
         </div>

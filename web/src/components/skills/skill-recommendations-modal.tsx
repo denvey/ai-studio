@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { installSkillRecommendations, listSkillRecommendations, type SkillRecommendationIndustry, type SkillRecommendationList } from "@/services/api/skills";
 import { translate } from "@/i18n";
 
-
 const INDUSTRY_ICONS: Record<string, LucideIcon> = { shapes: Shapes, film: Film, "shopping-bag": ShoppingBag, megaphone: Megaphone, landmark: Landmark, palette: Palette, users: Users, wrench: Wrench };
 
 type SkillRecommendationsModalProps = {

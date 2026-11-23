@@ -5,7 +5,6 @@ import { imageLayerAlphaBounds, suggestImageLayerRegion } from "@/lib/canvas/can
 import type { ImageLayerPlan } from "@/lib/canvas/canvas-image-layer-plan";
 import { translate } from "@/i18n";
 
-
 function regionPath(context: CanvasRenderingContext2D, region: ImageLayerRegion, width: number, height: number) {
     const { bbox, shape, radiusRatio } = validateImageLayerRegion(region);
     const [left, top, right, bottom] = bbox.map((n, i) => Math.round((n * (i % 2 ? height : width)) / 1000));

@@ -9,7 +9,6 @@ import { UserGroupBadge } from "@/components/layout/user-group-badge";
 import { userGroupCode, type UserGroup } from "@/services/api/user-groups";
 import { currentLocale, translate } from "@/i18n";
 
-
 export type UserColumnKey = "user" | "email" | "credits" | "recharged" | "consumed" | "role" | "group" | "status" | "lastLoginAt" | "createdAt" | "actions";
 
 export const userColumnOptions: Array<{ key: UserColumnKey; label: string; locked?: boolean }> = [
@@ -72,7 +71,11 @@ export function createUserColumns({
             render: (value, user) => (
                 <div className="tabular-nums">
                     <div>{formatCredits(value)}</div>
-                    {user.reservedMicrocredits ? <div className="text-xs text-foreground/45">{translate("adminPages.users.usersColumns.held")} {formatCredits(user.reservedMicrocredits)}</div> : null}
+                    {user.reservedMicrocredits ? (
+                        <div className="text-xs text-foreground/45">
+                            {translate("adminPages.users.usersColumns.held")} {formatCredits(user.reservedMicrocredits)}
+                        </div>
+                    ) : null}
                 </div>
             ),
         },
@@ -122,7 +125,14 @@ export function createUserColumns({
                 );
             },
         },
-        { key: "status", title: translate("library.tasks.detail.status"), dataIndex: "status", width: 90, align: "center", render: (status) => <AdminStatusBadge label={status === "active" ? translate("account.layout.oss.enabled") : translate("adminPages.users.usersColumns.disabled")} tone={status === "active" ? "success" : "neutral"} /> },
+        {
+            key: "status",
+            title: translate("library.tasks.detail.status"),
+            dataIndex: "status",
+            width: 90,
+            align: "center",
+            render: (status) => <AdminStatusBadge label={status === "active" ? translate("account.layout.oss.enabled") : translate("adminPages.users.usersColumns.disabled")} tone={status === "active" ? "success" : "neutral"} />,
+        },
         {
             key: "lastLoginAt",
             title: translate("adminPages.users.usersColumns.lastLogin"),
@@ -172,7 +182,8 @@ export function createUserColumns({
                             disabled: user.id === actorId,
                             confirm: {
                                 title: user.status === "active" ? translate("adminPages.users.usersColumns.deactivateThisUser") : translate("adminPages.users.usersColumns.reEnableThisUser"),
-                                description: user.status === "active" ? translate("adminPages.users.usersColumns.deactivatingClearsThisUserSSessionButKeepsTheirIdentity") : translate("adminPages.users.usersColumns.onceEnabledThisUserCanSignInAgainAndKeep"),
+                                description:
+                                    user.status === "active" ? translate("adminPages.users.usersColumns.deactivatingClearsThisUserSSessionButKeepsTheirIdentity") : translate("adminPages.users.usersColumns.onceEnabledThisUserCanSignInAgainAndKeep"),
                                 okText: user.status === "active" ? translate("adminPages.users.usersColumns.confirmDeactivation") : translate("adminPages.users.usersColumns.confirmEnable"),
                             },
                             onClick: () => onToggleStatus(user),

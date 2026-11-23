@@ -12,7 +12,6 @@ import { ARK_KIND_LABEL, arkUserLabel, formatArkAdminDate } from "./ark-admin-sh
 import { adminArkGroupsQueryKey } from "./ark-admin-groups-tab";
 import { translate } from "@/i18n";
 
-
 type ReviewStatus = "pending_review" | "rejected";
 
 /** 用户上传审核：通过后才提交方舟（CreateAsset）；提交失败的保留待审核并逐条提示原因。 */
@@ -94,7 +93,13 @@ export function ArkAdminReviewsTab() {
             key: "asset",
             render: (_, asset) => (
                 <div className="flex min-w-0 items-center gap-3">
-                    <a href={arkPortraitAssetFileUrl(asset.id)} target="_blank" rel="noopener noreferrer" className="admin-ark-review-thumb" aria-label={translate("adminPages.settings.arkAssets.arkAdminReviewsTab.viewOriginal", { v0: String(asset.name) })}>
+                    <a
+                        href={arkPortraitAssetFileUrl(asset.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="admin-ark-review-thumb"
+                        aria-label={translate("adminPages.settings.arkAssets.arkAdminReviewsTab.viewOriginal", { v0: String(asset.name) })}
+                    >
                         <img src={arkPortraitAssetFileUrl(asset.id)} alt="" loading="lazy" decoding="async" />
                     </a>
                     <div className="min-w-0">
@@ -171,7 +176,12 @@ export function ArkAdminReviewsTab() {
                     size: "middle",
                     rowSelection: status === "pending_review" ? { selectedRowKeys: selected, onChange: (keys) => setSelected(keys.map(String)) } : undefined,
                 }}
-                empty={<AdminTableEmpty title={status === "pending_review" ? translate("adminPages.settings.arkAssets.arkAdminReviewsTab.noUploadsAwaitingReview") : translate("adminPages.settings.arkAssets.arkAdminReviewsTab.noRejectedUploads")} description={status === "pending_review" ? translate("adminPages.settings.arkAssets.arkAdminReviewsTab.imagesUploadedToUserCreatedAssetGroupsAppearHereWhen") : undefined} />}
+                empty={
+                    <AdminTableEmpty
+                        title={status === "pending_review" ? translate("adminPages.settings.arkAssets.arkAdminReviewsTab.noUploadsAwaitingReview") : translate("adminPages.settings.arkAssets.arkAdminReviewsTab.noRejectedUploads")}
+                        description={status === "pending_review" ? translate("adminPages.settings.arkAssets.arkAdminReviewsTab.imagesUploadedToUserCreatedAssetGroupsAppearHereWhen") : undefined}
+                    />
+                }
                 footer={
                     data && (data.total > pageSize || page > 1) ? (
                         <PaginationBar
@@ -199,7 +209,14 @@ export function ArkAdminReviewsTab() {
                 }}
                 onOk={() => void reject()}
             >
-                <Input.TextArea autoFocus value={reason} maxLength={200} autoSize={{ minRows: 3, maxRows: 6 }} placeholder={translate("adminPages.settings.arkAssets.arkAdminReviewsTab.forExampleNotAClearFrontFacingPhotoContainsOther")} onChange={(event) => setReason(event.target.value)} />
+                <Input.TextArea
+                    autoFocus
+                    value={reason}
+                    maxLength={200}
+                    autoSize={{ minRows: 3, maxRows: 6 }}
+                    placeholder={translate("adminPages.settings.arkAssets.arkAdminReviewsTab.forExampleNotAClearFrontFacingPhotoContainsOther")}
+                    onChange={(event) => setReason(event.target.value)}
+                />
             </AdminModal>
         </div>
     );

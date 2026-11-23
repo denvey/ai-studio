@@ -21,7 +21,6 @@ import { generationSpecMetadata, readNodeGenerationSpec, resolveGenerationSelect
 import { withReferenceImageSize, type ImageDimensions } from "@/lib/canvas/canvas-reference-image-size";
 import { translate } from "@/i18n";
 
-
 export async function runBackendCanvasGenerationTask(
     {
         projectId,

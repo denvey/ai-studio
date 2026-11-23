@@ -64,7 +64,9 @@ export function EpisodeDurationInput({ value, onChange }: { value: number; onCha
                         label: (
                             <span className="drama-duration-option">
                                 <span>{formatEpisodeSeconds(seconds)}</span>
-                                <small>{seconds} {translate("account.settings.models.unitSecond")}</small>
+                                <small>
+                                    {seconds} {translate("account.settings.models.unitSecond")}
+                                </small>
                             </span>
                         ),
                     })),
@@ -92,7 +94,13 @@ export function EpisodeDurationInput({ value, onChange }: { value: number; onCha
                     suffix={<ChevronDown className={`size-3.5 opacity-50 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />}
                 />
             </Dropdown>
-            {error ? <small className="drama-field-error">{error}</small> : <small className="drama-field-hint">{translate("drama.storyboardRules.about")} {Math.round((value / 60) * 10) / 10} {translate("drama.storyboardRules.minutesOrTypeADuration")}</small>}
+            {error ? (
+                <small className="drama-field-error">{error}</small>
+            ) : (
+                <small className="drama-field-hint">
+                    {translate("drama.storyboardRules.about")} {Math.round((value / 60) * 10) / 10} {translate("drama.storyboardRules.minutesOrTypeADuration")}
+                </small>
+            )}
         </div>
     );
 }
@@ -348,7 +356,8 @@ export function StoryboardRules({
             {rules.dialogue === "custom" && longest > dialogue.lineSeconds ? (
                 <p className="drama-sbrules-warn">
                     <TriangleAlert className="size-3.5 shrink-0" />
-                    {translate("drama.storyboardRules.perLine")} {dialogue.lineMaxRunes} {translate("drama.storyboardRules.charactersAt")} {dialogue.speechRate} {translate("drama.storyboardRules.charactersSTakesAbout")} {longest} {translate("drama.storyboardRules.secondsLongerThanThe")} {dialogue.lineSeconds} {translate("drama.storyboardRules.secondsBetweenLinesSoActualDialogueWillBeLessFrequent")}
+                    {translate("drama.storyboardRules.perLine")} {dialogue.lineMaxRunes} {translate("drama.storyboardRules.charactersAt")} {dialogue.speechRate} {translate("drama.storyboardRules.charactersSTakesAbout")} {longest}{" "}
+                    {translate("drama.storyboardRules.secondsLongerThanThe")} {dialogue.lineSeconds} {translate("drama.storyboardRules.secondsBetweenLinesSoActualDialogueWillBeLessFrequent")}
                 </p>
             ) : null}
             <div className="drama-sbrules-row">
@@ -366,18 +375,29 @@ export function StoryboardRules({
             {rules.transition !== "cut" ? (
                 <div className="drama-sbrules-row">
                     <span className="drama-sbrules-label">{translate("drama.storyboardRules.transitionDuration")}</span>
-                    <InputNumber className="drama-sbrules-number" min={MIN_TRANSITION_MS} max={1500} step={50} value={rules.transitionMs} onChange={(next) => set({ transitionMs: next || MIN_TRANSITION_MS })} suffix={translate("drama.storyboardRules.ms")} aria-label={translate("drama.storyboardRules.transitionDuration")} />
+                    <InputNumber
+                        className="drama-sbrules-number"
+                        min={MIN_TRANSITION_MS}
+                        max={1500}
+                        step={50}
+                        value={rules.transitionMs}
+                        onChange={(next) => set({ transitionMs: next || MIN_TRANSITION_MS })}
+                        suffix={translate("drama.storyboardRules.ms")}
+                        aria-label={translate("drama.storyboardRules.transitionDuration")}
+                    />
                     <span className="drama-sbrules-hint">{TRANSITIONS.find((item) => item.value === rules.transition)?.detail}</span>
                 </div>
             ) : null}
             <div className="drama-sbrules-summary">
                 <Film className="size-3.5" />
                 <span>
-                    {translate("drama.storyboardRules.perEpisodeAbout")} <b>{shotTarget(rules, episodeSeconds)}</b> {translate("drama.storyboardRules.shotsAndAtLeast")} <b>{lineTarget(rules, episodeSeconds)}</b> {translate("drama.storyboardRules.linesOfDialogue")}
+                    {translate("drama.storyboardRules.perEpisodeAbout")} <b>{shotTarget(rules, episodeSeconds)}</b> {translate("drama.storyboardRules.shotsAndAtLeast")} <b>{lineTarget(rules, episodeSeconds)}</b>{" "}
+                    {translate("drama.storyboardRules.linesOfDialogue")}
                     {target ? (
                         <>
                             {" "}
-                            · {segmentRuleLabel(limits)}，{limits.mode === "auto" ? translate("drama.storyboardRules.atLeast") : translate("drama.storyboardRules.about")} <b>{Math.max(1, Math.ceil(episodeSeconds / target))}</b> {translate("drama.storyboardRules.segmentsAbout")} <b>{Math.max(1, Math.round(target / averageShotSeconds(rules)))}</b> {translate("drama.storyboardRules.shots")}
+                            · {segmentRuleLabel(limits)}，{limits.mode === "auto" ? translate("drama.storyboardRules.atLeast") : translate("drama.storyboardRules.about")} <b>{Math.max(1, Math.ceil(episodeSeconds / target))}</b>{" "}
+                            {translate("drama.storyboardRules.segmentsAbout")} <b>{Math.max(1, Math.round(target / averageShotSeconds(rules)))}</b> {translate("drama.storyboardRules.shots")}
                         </>
                     ) : null}
                 </span>
@@ -385,7 +405,9 @@ export function StoryboardRules({
             {capped ? (
                 <p className="drama-sbrules-warn">
                     <TriangleAlert className="size-3.5 shrink-0" />
-                    {modelName}{translate("drama.storyboardRules.maximumPerGeneration")} {maxVideoSeconds} {translate("drama.storyboardRules.seconds")}{rules.segmentMode === "fixed" ? translate("drama.storyboardRules.storySegmentsAreSplitAtSeconds", { v0: String(maxVideoSeconds) }) : translate("drama.storyboardRules.theStorySegmentLimitIsSeconds", { v0: String(maxVideoSeconds) })}。
+                    {modelName}
+                    {translate("drama.storyboardRules.maximumPerGeneration")} {maxVideoSeconds} {translate("drama.storyboardRules.seconds")}
+                    {rules.segmentMode === "fixed" ? translate("drama.storyboardRules.storySegmentsAreSplitAtSeconds", { v0: String(maxVideoSeconds) }) : translate("drama.storyboardRules.theStorySegmentLimitIsSeconds", { v0: String(maxVideoSeconds) })}。
                 </p>
             ) : null}
         </div>

@@ -4,7 +4,6 @@ import { formatDuration } from "@/lib/image-utils";
 import { cn } from "@/lib/utils";
 import { translate } from "@/i18n";
 
-
 type PendingImageProps = { className?: string; label?: string; compact?: boolean };
 
 export function ImageGenerationPending({ className, label = translate("shared.imageGenerationPending.generatingImage"), compact = false }: PendingImageProps) {

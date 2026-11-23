@@ -2,7 +2,6 @@ import { GENERATION_PHASE_STEPS } from "@/lib/generation-task-display";
 import { progressFillStyle } from "@/lib/progress-fill";
 import { translate } from "@/i18n";
 
-
 /**
  * 排队 → 生成 → 保存 三段进度。画布节点与首页创作卡片共用；颜色由外层容器通过
  * --gen-steps-* 变量提供。当前段没有真实百分比时显示流动光带，有真实百分比时按比例填充。

@@ -5,7 +5,6 @@
 import { type ImageCapabilityConfig, type VideoCapabilityConfig, defaultModelCapabilityConfig } from "./model-capabilities";
 import { translate } from "@/i18n";
 
-
 // 工作流字段是供应商参数的唯一事实来源；不能用普通视频模型的固定清晰度列表覆盖它。
 export type WorkflowVideoFieldLike = {
     nodeId?: string;

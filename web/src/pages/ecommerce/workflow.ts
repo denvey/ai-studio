@@ -364,7 +364,8 @@ export async function submitCommerceImages(config: Config, draft: EcommerceDraft
         if (!profile) throw new Error(translate("ecommerce.workflow.theModelForImageIsUnavailable", { v0: String(index + 1) }));
         const refs = commerceImageReferences(draft, planned, index, clone);
         assertCommerceImageReferenceCapacity(refs.length, profile.references.maxImages);
-        if (!profile.size.values.includes(planned.ratio) || (profile.resolution.supported && !profile.resolution.values.includes(planned.resolution))) throw new Error(translate("ecommerce.workflow.theAspectRatioOrResolutionForImageIsUnsupported", { v0: String(index + 1) }));
+        if (!profile.size.values.includes(planned.ratio) || (profile.resolution.supported && !profile.resolution.values.includes(planned.resolution)))
+            throw new Error(translate("ecommerce.workflow.theAspectRatioOrResolutionForImageIsUnsupported", { v0: String(index + 1) }));
         const image = { ...planned, ratio: commerceGenerationRatio(config, draft, planned) };
         const parameters = commerceImageParameters(profile, image.ratio, image.resolution);
         return [{ image, index, refs, parameters, receiptKey: `ecommerce-task:${project.id}:${image.id}` }];

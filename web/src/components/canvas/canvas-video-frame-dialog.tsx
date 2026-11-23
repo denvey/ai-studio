@@ -118,7 +118,9 @@ export function CanvasVideoFrameDialog({ node, open, onClose, onConfirm }: Canva
                             onError={() => setVideoError(true)}
                         />
                     ) : (
-                        <div className="grid h-44 w-full place-items-center text-xs opacity-60">{videoError ? translate("canvasTools.canvasVideoFrameDialog.couldNotLoadTheVideoPreviewCheckThatTheAsset") : translate("canvasTools.canvasVideoFrameDialog.loadingVideo")}</div>
+                        <div className="grid h-44 w-full place-items-center text-xs opacity-60">
+                            {videoError ? translate("canvasTools.canvasVideoFrameDialog.couldNotLoadTheVideoPreviewCheckThatTheAsset") : translate("canvasTools.canvasVideoFrameDialog.loadingVideo")}
+                        </div>
                     )}
                 </div>
 

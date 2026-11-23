@@ -12,7 +12,6 @@ import { ARK_KIND_LABEL, formatArkAdminDate } from "./ark-admin-shared";
 import { ArkGrantUsersField } from "./ark-grant-users-field";
 import { translate } from "@/i18n";
 
-
 type CreateMode = "create" | "register" | "liveness";
 type CreateForm = { name: string; description?: string; groupId?: string };
 
@@ -147,7 +146,11 @@ export function ArkAdminCreateModal({ open, resume, onClose, onCreated }: { open
                             {translate("common.cancel")}
                         </Button>
                         <Button type="primary" loading={working === "create" || working === "start"} onClick={() => void submit()}>
-                            {mode === "liveness" ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.startIdentityVerification") : mode === "register" ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.registerAssetGroup") : translate("adminPages.settings.arkAssets.arkAdminCreateModal.createAssetGroup")}
+                            {mode === "liveness"
+                                ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.startIdentityVerification")
+                                : mode === "register"
+                                  ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.registerAssetGroup")
+                                  : translate("adminPages.settings.arkAssets.arkAdminCreateModal.createAssetGroup")}
                         </Button>
                     </div>
                 )
@@ -158,7 +161,10 @@ export function ArkAdminCreateModal({ open, resume, onClose, onCreated }: { open
                     {session.h5Link ? <PaymentCheckoutCode value={session.h5Link} /> : null}
                     <div className="admin-ark-session-copy">
                         <strong>{translate("adminPages.settings.arkAssets.arkAdminCreateModal.personMustVerify", { name: session.name })}</strong>
-                        <p>{translate("adminPages.settings.arkAssets.arkAdminCreateModal.scanTheCodeWithAPhoneOrOpenTheVerification")} {formatArkAdminDate(session.expiresAt, true)} {translate("adminPages.settings.arkAssets.arkAdminCreateModal.doNotShareItWithUnrelatedPeople")}</p>
+                        <p>
+                            {translate("adminPages.settings.arkAssets.arkAdminCreateModal.scanTheCodeWithAPhoneOrOpenTheVerification")} {formatArkAdminDate(session.expiresAt, true)}{" "}
+                            {translate("adminPages.settings.arkAssets.arkAdminCreateModal.doNotShareItWithUnrelatedPeople")}
+                        </p>
                         {session.h5Link ? (
                             <div className="flex flex-wrap gap-2">
                                 <Button icon={<ExternalLink className="size-4" />} href={session.h5Link} target="_blank" rel="noopener noreferrer">
@@ -190,8 +196,16 @@ export function ArkAdminCreateModal({ open, resume, onClose, onCreated }: { open
                         <AdminSegmented<CreateMode> ariaLabel={translate("adminPages.settings.arkAssets.arkAdminCreateModal.creationMethod")} value={mode} onChange={setMode} options={modeOptions} />
                     </Form.Item>
                     {mode === "liveness" ? <Callout tone="info">{translate("adminPages.settings.arkAssets.arkAdminCreateModal.platformHumanAssetGroupsAreFreeAfterVerificationConfigureAuthorized")}</Callout> : null}
-                    <Form.Item name="name" label={mode === "liveness" ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.personSName") : translate("adminPages.settings.arkAssets.arkAdminCreateModal.assetGroupName")} rules={[{ required: true, whitespace: true, message: mode === "liveness" ? translate("library.ark.realFlow.nameRequired") : translate("adminPages.settings.arkAssets.arkAdminCreateModal.pleaseEnterAnAssetGroupName") }]} className="mt-4">
-                        <Input maxLength={40} placeholder={mode === "liveness" ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.forExampleContractActorZhangSan") : translate("adminPages.settings.arkAssets.arkAdminCreateModal.forExampleBrandMascot")} />
+                    <Form.Item
+                        name="name"
+                        label={mode === "liveness" ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.personSName") : translate("adminPages.settings.arkAssets.arkAdminCreateModal.assetGroupName")}
+                        rules={[{ required: true, whitespace: true, message: mode === "liveness" ? translate("library.ark.realFlow.nameRequired") : translate("adminPages.settings.arkAssets.arkAdminCreateModal.pleaseEnterAnAssetGroupName") }]}
+                        className="mt-4"
+                    >
+                        <Input
+                            maxLength={40}
+                            placeholder={mode === "liveness" ? translate("adminPages.settings.arkAssets.arkAdminCreateModal.forExampleContractActorZhangSan") : translate("adminPages.settings.arkAssets.arkAdminCreateModal.forExampleBrandMascot")}
+                        />
                     </Form.Item>
                     <Form.Item name="description" label={translate("library.ark.virtualFlow.descriptionLabel")}>
                         <Input.TextArea maxLength={200} autoSize={{ minRows: 2, maxRows: 4 }} placeholder={translate("adminPages.settings.arkAssets.arkAdminCreateModal.optionalHelpsDistinguishAssetGroups")} />

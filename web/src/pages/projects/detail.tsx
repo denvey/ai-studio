@@ -261,7 +261,13 @@ export default function DramaStudioPage() {
         mutationFn: ({ target, episodeIds }: { target: "assets" | "episodes" | "all"; episodeIds?: string[] }) => releaseDramaMedia(projectId, target, episodeIds),
         onSuccess: (_, { target }) => {
             invalidate(episodeId);
-            message.success(target === "assets" ? translate("drama.detail.startedGeneratingCharacterPropAndSceneReferences") : target === "all" ? translate("drama.detail.startedGeneratingReferencesAndSegmentVideosForAllEpisodes") : translate("drama.detail.startedGeneratingReferencesAndSegmentVideosForThisEpisode"));
+            message.success(
+                target === "assets"
+                    ? translate("drama.detail.startedGeneratingCharacterPropAndSceneReferences")
+                    : target === "all"
+                      ? translate("drama.detail.startedGeneratingReferencesAndSegmentVideosForAllEpisodes")
+                      : translate("drama.detail.startedGeneratingReferencesAndSegmentVideosForThisEpisode"),
+            );
         },
         onError: (error) => errorMessage(error, translate("library.tasks.page.actionFailed")),
     });
@@ -310,7 +316,12 @@ export default function DramaStudioPage() {
     if (summaryQuery.isError || !summary)
         return (
             <WorkspacePage>
-                <WorkspaceErrorState title={translate("drama.detail.productionUnavailable")} description={translate("drama.detail.theProductionDoesNotExistHasBeenDeletedOrIs")} actionLabel={translate("drama.detail.backToProductions")} onRetry={() => navigate("/projects")} />
+                <WorkspaceErrorState
+                    title={translate("drama.detail.productionUnavailable")}
+                    description={translate("drama.detail.theProductionDoesNotExistHasBeenDeletedOrIs")}
+                    actionLabel={translate("drama.detail.backToProductions")}
+                    onRetry={() => navigate("/projects")}
+                />
             </WorkspacePage>
         );
 
@@ -383,9 +394,12 @@ export default function DramaStudioPage() {
                                 <span style={progressFillStyle(Math.max(progress * 100, 2))} />
                             </span>
                             <span>
-                                {doneEpisodes}/{episodes.length} {translate("drama.detail.completedEpisodes")}{production.planDone ? "" : (" " + translate("drama.detail.planningEpisodes"))}
+                                {doneEpisodes}/{episodes.length} {translate("drama.detail.completedEpisodes")}
+                                {production.planDone ? "" : " " + translate("drama.detail.planningEpisodes")}
                             </span>
-                            <span>· {formatCount(production.chapterCount)} {translate("drama.detail.sourceChapters")}</span>
+                            <span>
+                                · {formatCount(production.chapterCount)} {translate("drama.detail.sourceChapters")}
+                            </span>
                         </div>
                     ) : null}
                     <nav className="drama-nav" aria-label={translate("drama.detail.studioView")}>
@@ -395,11 +409,13 @@ export default function DramaStudioPage() {
                         </button>
                         <button type="button" className="drama-nav-item" aria-current={view === "cast" ? "page" : undefined} onClick={() => openView("cast")}>
                             <UsersRound className="size-4" />
-                            {translate("drama.detail.designs")}{summary.castCount ? <span className="drama-nav-count">{summary.castCount}</span> : null}
+                            {translate("drama.detail.designs")}
+                            {summary.castCount ? <span className="drama-nav-count">{summary.castCount}</span> : null}
                         </button>
                         <button type="button" className="drama-nav-item" aria-current={view === "inbox" ? "page" : undefined} onClick={() => openView("inbox")}>
                             <Inbox className="size-4" />
-                            {translate("account.feedback.status.pending")}{summary.inbox.length ? <span className="drama-nav-count is-alert">{summary.inbox.length > 99 ? "99+" : summary.inbox.length}</span> : null}
+                            {translate("account.feedback.status.pending")}
+                            {summary.inbox.length ? <span className="drama-nav-count is-alert">{summary.inbox.length > 99 ? "99+" : summary.inbox.length}</span> : null}
                         </button>
                         <button type="button" className="drama-nav-item" aria-current={view === "settings" ? "page" : undefined} onClick={() => openView("settings")}>
                             <Settings2 className="size-4" />
@@ -422,7 +438,13 @@ export default function DramaStudioPage() {
                                 <span className="drama-topbar-action-label">{translate("drama.detail.assetPackage")}</span>
                             </Button>
                         </Dropdown>
-                        <Button icon={<Brush className="size-4" />} loading={canvas.opening === "canvas"} onClick={() => void canvas.open()} aria-label={translate("drama.detail.refinementCanvas")} title={translate("drama.detail.openThisDramaSRefinementCanvasSendDesignsSegmentsOr")}>
+                        <Button
+                            icon={<Brush className="size-4" />}
+                            loading={canvas.opening === "canvas"}
+                            onClick={() => void canvas.open()}
+                            aria-label={translate("drama.detail.refinementCanvas")}
+                            title={translate("drama.detail.openThisDramaSRefinementCanvasSendDesignsSegmentsOr")}
+                        >
                             <span className="drama-topbar-action-label">{translate("drama.detail.refinementCanvas")}</span>
                         </Button>
                         {awaitingCount ? (
@@ -517,9 +539,7 @@ export default function DramaStudioPage() {
                             {episodeRow ? (
                                 <div className="drama-ep-header">
                                     <div className="drama-ep-heading">
-                                        <div className="drama-eyebrow">
-                                            {translate("drama.sentences.episodeStage", { number: episodeRow.number, stage: STAGE_LABEL[episodeRow.stage] })}
-                                        </div>
+                                        <div className="drama-eyebrow">{translate("drama.sentences.episodeStage", { number: episodeRow.number, stage: STAGE_LABEL[episodeRow.stage] })}</div>
                                         {renaming ? (
                                             <div className="drama-title-editor">
                                                 <input
@@ -551,7 +571,9 @@ export default function DramaStudioPage() {
                                             </h2>
                                         )}
                                         <p>
-                                            <span>{episodeRow.shotCount} {translate("drama.detail.shots")}</span>
+                                            <span>
+                                                {episodeRow.shotCount} {translate("drama.detail.shots")}
+                                            </span>
                                             {episodeRow.durationMs ? <span>{formatDuration(episodeRow.durationMs)}</span> : null}
                                             <StagePips episode={episodeRow} size="md" />
                                         </p>

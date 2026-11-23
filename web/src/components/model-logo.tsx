@@ -10,7 +10,6 @@ import { createModelLogoOption, MODEL_LOGO_CATEGORIES, MODEL_LOGO_FEATURED, type
 import { AppModal } from "@/components/ui/product/app-modal";
 import { translate } from "@/i18n";
 
-
 type LobeIconComponent = ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }>;
 
 // 优先使用品牌原色，缺少彩色版本时使用 Mono。不能使用 eager glob：目录有数百个模块，
@@ -128,7 +127,12 @@ export function ModelIconPicker({ value, onChange }: { value?: string; onChange?
                     {!value ? <span className="text-xs text-muted-foreground">{translate("canvasB.mediaVersion.browse")}</span> : null}
                 </button>
                 {value ? (
-                    <button type="button" className={cn("mr-1 grid size-6 shrink-0 place-items-center rounded-sm text-muted-foreground hover:bg-surface-hover pointer-coarse:size-11", pickerFocusClassName)} onClick={clear} aria-label={translate("shared.modelLogo.clearLogo")}>
+                    <button
+                        type="button"
+                        className={cn("mr-1 grid size-6 shrink-0 place-items-center rounded-sm text-muted-foreground hover:bg-surface-hover pointer-coarse:size-11", pickerFocusClassName)}
+                        onClick={clear}
+                        aria-label={translate("shared.modelLogo.clearLogo")}
+                    >
                         <X size={12} aria-hidden />
                     </button>
                 ) : null}
@@ -192,7 +196,7 @@ export function ModelIconPicker({ value, onChange }: { value?: string; onChange?
                             <div className="mb-2 flex items-center justify-between gap-2 text-[length:var(--typ-caption)] font-medium">
                                 <span>{query ? translate("shared.modelLogo.searchResults") : categoryLabel}</span>
                                 <span className="text-xs font-normal text-muted-foreground" role="status">
-                                    {query ? (translate("shared.modelLogo.allCategories") + " ") : ""}
+                                    {query ? translate("shared.modelLogo.allCategories") + " " : ""}
                                     {filteredIcons.length} {translate("shared.modelLogo.logos")}
                                 </span>
                             </div>

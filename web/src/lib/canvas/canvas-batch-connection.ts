@@ -8,7 +8,6 @@ import type { AiConfig } from "@/stores/use-config-store";
 import { CanvasNodeType, type CanvasConnection, type CanvasNodeData, type ConnectionHandle, type Position } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 export type CanvasBatchConnectionPreview = {
     sourceNodeIds: string[];
     targetNodeId: string | null;

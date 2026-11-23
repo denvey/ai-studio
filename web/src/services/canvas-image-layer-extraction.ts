@@ -7,7 +7,6 @@ import { resolveImageLayerExtractions, type ImageLayerExtraction } from "@/lib/c
 import { extractImageLayerFromSource } from "@/services/canvas-image-layer-source";
 import { translate } from "@/i18n";
 
-
 export type ImageLayerStage = "extract" | "remove-background";
 type LayerImage = { dataUrl: string; storageKey?: string; width?: number; height?: number; bytes?: number; mimeType?: string };
 export type ImageLayerStageRequest = {

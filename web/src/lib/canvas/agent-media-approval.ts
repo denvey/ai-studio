@@ -4,7 +4,6 @@ import type { CanvasNodeData } from "@/types/canvas";
 import { logicalModelIDForConfig, modelOptionName, resolveModelChannel, selectableModelsByCapability, type AiConfig } from "@/stores/use-config-store";
 import { translate } from "@/i18n";
 
-
 export type AgentImageApproval = AgentMediaSettings & { prompt: string; referenceNodeIds: string[] };
 export type AgentVideoApproval = AgentImageApproval & { referenceTransientIds: string[]; sourceNodeId: string };
 

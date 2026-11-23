@@ -16,7 +16,6 @@ import { AdminSearchInput } from "../components/admin-search-input";
 import { AdminDataTable, AdminRowActions, AdminStatusBadge, AdminTableEmpty, PaginationBar, type AdminRowAction } from "../components/admin-ui";
 import { translate } from "@/i18n";
 
-
 const sourceLabels: Record<string, string> = { builtin: translate("adminPages.skills.skillsPage.builtIn"), markdown: "Markdown", zip: translate("adminPages.skills.skillsPage.skillPackage"), github: "GitHub" };
 const statusOptions: Array<{ value: AdminSkillStatusFilter; label: string }> = [
     { value: "", label: translate("library.ark.expiry.all") },
@@ -166,9 +165,23 @@ export default function AdminSkillsPage() {
             },
             { key: "author", title: translate("adminPages.skills.skillsPage.author"), width: 140, render: (_, skill) => <span className="truncate">{skill.effectiveUser.name || "—"}</span> },
             { key: "tag", title: translate("library.picker.category"), width: 110, render: (_, skill) => skillCategoryLabel(skill.tag, categories) },
-            { key: "version", title: translate("canvasA.assetView.version"), width: 130, render: (_, skill) => <span className="text-xs tabular-nums" title={skill.versionId}>{translate("adminPages.skills.skillsPage.vFiles", { v0: String(skill.version || "1"), v1: String(skill.fileCount || 1) })}</span> },
+            {
+                key: "version",
+                title: translate("canvasA.assetView.version"),
+                width: 130,
+                render: (_, skill) => (
+                    <span className="text-xs tabular-nums" title={skill.versionId}>
+                        {translate("adminPages.skills.skillsPage.vFiles", { v0: String(skill.version || "1"), v1: String(skill.fileCount || 1) })}
+                    </span>
+                ),
+            },
             { key: "added", title: translate("adminPages.skills.skillsPage.adds"), width: 80, align: "center", render: (_, skill) => <span className="tabular-nums">{skill.addedCount}</span> },
-            { key: "status", title: translate("library.tasks.detail.status"), width: 90, render: (_, skill) => <AdminStatusBadge label={skill.enabled ? translate("adminPages.skills.skillsPage.published") : translate("adminPages.skills.skillsPage.unpublished")} tone={skill.enabled ? "success" : "warning"} /> },
+            {
+                key: "status",
+                title: translate("library.tasks.detail.status"),
+                width: 90,
+                render: (_, skill) => <AdminStatusBadge label={skill.enabled ? translate("adminPages.skills.skillsPage.published") : translate("adminPages.skills.skillsPage.unpublished")} tone={skill.enabled ? "success" : "warning"} />,
+            },
             { key: "updatedAt", title: translate("adminPages.skills.skillsPage.updatedAt"), width: 150, render: (_, skill) => <span className="text-xs tabular-nums">{dayjs(skill.updatedAt).format("YYYY-MM-DD HH:mm")}</span> },
             {
                 key: "actions",
@@ -189,7 +202,11 @@ export default function AdminSkillsPage() {
                                   key: "disable",
                                   label: translate("adminPages.skills.skillsPage.unpublish"),
                                   icon: <ArchiveX className="size-3.5" />,
-                                  confirm: { title: translate("adminPages.skills.skillsPage.unpublish2", { v0: String(skill.skillName) }), description: translate("adminPages.skills.skillsPage.theSkillWillBeHiddenFromTheSkillMarketplaceUsers"), okText: translate("adminPages.skills.skillsPage.confirmUnpublish") },
+                                  confirm: {
+                                      title: translate("adminPages.skills.skillsPage.unpublish2", { v0: String(skill.skillName) }),
+                                      description: translate("adminPages.skills.skillsPage.theSkillWillBeHiddenFromTheSkillMarketplaceUsers"),
+                                      okText: translate("adminPages.skills.skillsPage.confirmUnpublish"),
+                                  },
                                   onClick: () => toggleEnabled(skill),
                               }
                             : { key: "enable", label: translate("adminPages.skills.skillsPage.publish"), icon: <ArchiveRestore className="size-3.5" />, onClick: () => toggleEnabled(skill) },
@@ -201,9 +218,7 @@ export default function AdminSkillsPage() {
                             confirm: {
                                 title: translate("adminPages.skills.skillsPage.permanentlyDelete", { v0: String(skill.skillName) }),
                                 description:
-                                    skill.sourceType === "builtin"
-                                        ? translate("adminPages.skills.skillsPage.allVersionsFilesAndUserAddFavoriteRecordsForThis")
-                                        : translate("adminPages.skills.skillsPage.allVersionsFilesAndUserAddFavoriteRecordsForThis2"),
+                                    skill.sourceType === "builtin" ? translate("adminPages.skills.skillsPage.allVersionsFilesAndUserAddFavoriteRecordsForThis") : translate("adminPages.skills.skillsPage.allVersionsFilesAndUserAddFavoriteRecordsForThis2"),
                                 okText: translate("adminPages.skills.skillsPage.deletePermanently"),
                             },
                             onClick: () => remove(skill),
@@ -244,19 +259,32 @@ export default function AdminSkillsPage() {
                     <>
                         <Select className="w-32" ariaLabel={translate("adminPages.skills.skillsPage.publicationStatus")} value={status} options={statusOptions} onChange={(value) => update({ status: value, page: 1 })} />
                         <Select className="w-32" ariaLabel={translate("adminPages.skills.skillsPage.skillSource")} value={sourceType} options={sourceOptions} onChange={(value) => update({ sourceType: value, page: 1 })} />
-                        <Select className="w-32" ariaLabel={translate("adminPages.skills.skillsPage.skillCategory")} value={tag} options={[{ value: "", label: translate("canvasA.skillLibrary.allCategories") }, ...categories.map(({ value, label }) => ({ value, label }))]} onChange={(value) => update({ tag: value, page: 1 })} />
+                        <Select
+                            className="w-32"
+                            ariaLabel={translate("adminPages.skills.skillsPage.skillCategory")}
+                            value={tag}
+                            options={[{ value: "", label: translate("canvasA.skillLibrary.allCategories") }, ...categories.map(({ value, label }) => ({ value, label }))]}
+                            onChange={(value) => update({ tag: value, page: 1 })}
+                        />
                     </>
                 }
                 empty={
                     error ? (
                         <div className="admin-inline-load-error" role="status">
-                            <span>{translate("adminPages.skills.skillsPage.skillListIsTemporarilyUnavailable")}{error}</span>
+                            <span>
+                                {translate("adminPages.skills.skillsPage.skillListIsTemporarilyUnavailable")}
+                                {error}
+                            </span>
                             <Button size="small" onClick={() => setReloadKey((value) => value + 1)}>
                                 {translate("common.retry")}
                             </Button>
                         </div>
                     ) : (
-                        <AdminTableEmpty filtered={filtered} title={filtered ? translate("adminPages.skills.skillsPage.noSkillsMatchTheFilters") : translate("adminPages.skills.skillsPage.noSkillsYet")} description={filtered ? translate("adminPages.skills.skillsPage.adjustTheFiltersAndTryAgain") : undefined} />
+                        <AdminTableEmpty
+                            filtered={filtered}
+                            title={filtered ? translate("adminPages.skills.skillsPage.noSkillsMatchTheFilters") : translate("adminPages.skills.skillsPage.noSkillsYet")}
+                            description={filtered ? translate("adminPages.skills.skillsPage.adjustTheFiltersAndTryAgain") : undefined}
+                        />
                     )
                 }
                 footer={<PaginationBar alwaysShow current={page} pageSize={pageSize} total={total} pageSizeOptions={pageSizes} onChange={(next, size) => update({ page: next, pageSize: size })} />}

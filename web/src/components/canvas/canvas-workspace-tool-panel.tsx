@@ -209,7 +209,12 @@ export function CanvasWorkspaceToolPanel({ onInsert }: CanvasWorkspaceToolPanelP
         if (toolsQuery.hasNextPage && !toolsQuery.isFetchingNextPage) void toolsQuery.fetchNextPage();
     }
 
-    const emptyTitle = feedTab === "favorites" ? translate("canvasTools.canvasWorkspaceToolPanel.noFavoriteToolsYet") : feedTab === "custom" ? translate("canvasTools.canvasWorkspaceToolPanel.noCustomToolsYet") : translate("canvasTools.canvasWorkspaceToolPanel.noMatchingTools");
+    const emptyTitle =
+        feedTab === "favorites"
+            ? translate("canvasTools.canvasWorkspaceToolPanel.noFavoriteToolsYet")
+            : feedTab === "custom"
+              ? translate("canvasTools.canvasWorkspaceToolPanel.noCustomToolsYet")
+              : translate("canvasTools.canvasWorkspaceToolPanel.noMatchingTools");
     const emptyDescription = feedTab === "custom" ? translate("canvasTools.canvasWorkspaceToolPanel.clickInTheUpperRightToCreateATool") : translate("canvasTools.canvasWorkspaceToolPanel.tryAnotherCategoryOrKeyword");
     const preview = previewTool ? resolveToolPreview(previewTool) : null;
 
@@ -246,15 +251,32 @@ export function CanvasWorkspaceToolPanel({ onInsert }: CanvasWorkspaceToolPanelP
                         </button>
                     ))}
                     <span className="asset-head-actions">
-                        <button type="button" className="icon-btn tip-down" data-tip={translate("canvasTools.canvasWorkspaceToolPanel.create", { v0: String(subTabLabel) })} aria-label={translate("canvasTools.canvasWorkspaceToolPanel.create", { v0: String(subTabLabel) })} onClick={() => setCreateOpen(true)}>
+                        <button
+                            type="button"
+                            className="icon-btn tip-down"
+                            data-tip={translate("canvasTools.canvasWorkspaceToolPanel.create", { v0: String(subTabLabel) })}
+                            aria-label={translate("canvasTools.canvasWorkspaceToolPanel.create", { v0: String(subTabLabel) })}
+                            onClick={() => setCreateOpen(true)}
+                        >
                             <Plus className="size-3.5" />
                         </button>
                     </span>
                 </div>
                 <div className="asset-filter-row mt-2">
-                    <input className="asset-search" placeholder={translate("canvasA.toolPicker.searchPlaceholder")} value={searchInput} onChange={(event) => setSearchInput(event.target.value)} aria-label={translate("canvasTools.canvasWorkspaceToolPanel.searchTools")} />
+                    <input
+                        className="asset-search"
+                        placeholder={translate("canvasA.toolPicker.searchPlaceholder")}
+                        value={searchInput}
+                        onChange={(event) => setSearchInput(event.target.value)}
+                        aria-label={translate("canvasTools.canvasWorkspaceToolPanel.searchTools")}
+                    />
                     {searchInput ? (
-                        <button type="button" className="grid size-5 shrink-0 place-items-center rounded text-foreground/32 hover:bg-surface-hover hover:text-foreground" onClick={() => setSearchInput("")} aria-label={translate("canvasA.toolPicker.clearSearch")}>
+                        <button
+                            type="button"
+                            className="grid size-5 shrink-0 place-items-center rounded text-foreground/32 hover:bg-surface-hover hover:text-foreground"
+                            onClick={() => setSearchInput("")}
+                            aria-label={translate("canvasA.toolPicker.clearSearch")}
+                        >
                             <X className="size-3" />
                         </button>
                     ) : null}
@@ -327,7 +349,11 @@ export function CanvasWorkspaceToolPanel({ onInsert }: CanvasWorkspaceToolPanelP
                     </Form.Item>
                     <div className="grid grid-cols-2 gap-3">
                         <Form.Item name="tag" label={translate("library.assets.form.tags")}>
-                            {tagOptions.length ? <Select allowClear showSearch options={tagOptions} placeholder={translate("canvasTools.canvasWorkspaceToolPanel.selectTags")} /> : <Input maxLength={64} placeholder={translate("account.settings.diagnostics.optional")} />}
+                            {tagOptions.length ? (
+                                <Select allowClear showSearch options={tagOptions} placeholder={translate("canvasTools.canvasWorkspaceToolPanel.selectTags")} />
+                            ) : (
+                                <Input maxLength={64} placeholder={translate("account.settings.diagnostics.optional")} />
+                            )}
                         </Form.Item>
                         <p className="text-xs text-muted-foreground">{translate("canvasTools.canvasWorkspaceToolPanel.previewsOnlySupportAssetsYouUploadedRemovePrivatePreviewsFrom")}</p>
                         <Form.Item name="visibility" label={translate("canvasTools.canvasWorkspaceToolPanel.visibility")}>

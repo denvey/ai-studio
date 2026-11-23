@@ -2,7 +2,6 @@ import type { CanvasProject } from "@/stores/canvas/use-canvas-store";
 import type { CanvasConnection, CanvasNodeData } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 type Change<T> = { before: T | null; after: T | null };
 export type AgentCanvasPatch = {
     canvasId: string;

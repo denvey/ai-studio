@@ -116,7 +116,13 @@ export function ReferenceUploader({
                         />
                     ) : null}
                     <CommerceHint text={translate("ecommerce.referenceUploader.removeThisProductReferenceFromTheCurrentCreation")}>
-                        <button className="commerce-reference-remove" type="button" aria-label={translate("ecommerce.referenceUploader.removeReferenceImage", { v0: String(index + 1) })} disabled={busy} onClick={() => onChange(references.filter((_, i) => i !== index))}>
+                        <button
+                            className="commerce-reference-remove"
+                            type="button"
+                            aria-label={translate("ecommerce.referenceUploader.removeReferenceImage", { v0: String(index + 1) })}
+                            disabled={busy}
+                            onClick={() => onChange(references.filter((_, i) => i !== index))}
+                        >
                             <X size={13} />
                         </button>
                     </CommerceHint>
@@ -128,7 +134,19 @@ export function ReferenceUploader({
         <CommerceHint text={translate("ecommerce.referenceUploader.uploadLocalMainOrDetailProductImagesMultipleImagesDragging")}>
             <label className={`commerce-reference-add ${busy ? "is-uploading" : ""}`}>
                 {busy ? <span className="commerce-reference-spinner" aria-hidden="true" /> : <Plus size={25} strokeWidth={1.5} aria-hidden="true" />}
-                <span>{busy ? translate("ecommerce.referenceUploader.uploading") : full ? translate("ecommerce.referenceUploader.referenceLimitReached") : dragging ? translate("ecommerce.referenceUploader.dropToAdd") : references.length ? translate("ecommerce.referenceUploader.addMore") : compact ? translate("ecommerce.referenceUploader.productImages") : translate("ecommerce.referenceUploader.uploadOrDragProductImages")}</span>
+                <span>
+                    {busy
+                        ? translate("ecommerce.referenceUploader.uploading")
+                        : full
+                          ? translate("ecommerce.referenceUploader.referenceLimitReached")
+                          : dragging
+                            ? translate("ecommerce.referenceUploader.dropToAdd")
+                            : references.length
+                              ? translate("ecommerce.referenceUploader.addMore")
+                              : compact
+                                ? translate("ecommerce.referenceUploader.productImages")
+                                : translate("ecommerce.referenceUploader.uploadOrDragProductImages")}
+                </span>
                 <input
                     type="file"
                     aria-label={translate("ecommerce.referenceUploader.addProductReferences")}

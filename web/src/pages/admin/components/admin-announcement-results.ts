@@ -147,7 +147,12 @@ export async function inspectPendingReview(review: AnnouncementPendingReview) {
             (review.imageResourceId === undefined || (target.imageResourceId || "") === review.imageResourceId);
         const expectedStatus: AnnouncementStatus = review.operation === "close" ? "closed" : "active";
         const statusMatches = target.status === expectedStatus;
-        return translate("admin.adminAnnouncementResults.foundTargetIDCurrentlyTitleBodyAndType", { v0: String(target.id), v1: String(target.status === "active" ? translate("admin.adminAnnouncementResults.published") : translate("account.feedback.status.closed")), v2: String(contentMatches ? translate("admin.adminAnnouncementResults.matchTheRequest") : translate("admin.adminAnnouncementResults.doNotMatchTheRequest")), v3: String(statusMatches ? translate("admin.adminAnnouncementResults.statusMatchesExpectations") : translate("admin.adminAnnouncementResults.statusDoesNotMatchExpectations")) });
+        return translate("admin.adminAnnouncementResults.foundTargetIDCurrentlyTitleBodyAndType", {
+            v0: String(target.id),
+            v1: String(target.status === "active" ? translate("admin.adminAnnouncementResults.published") : translate("account.feedback.status.closed")),
+            v2: String(contentMatches ? translate("admin.adminAnnouncementResults.matchTheRequest") : translate("admin.adminAnnouncementResults.doNotMatchTheRequest")),
+            v3: String(statusMatches ? translate("admin.adminAnnouncementResults.statusMatchesExpectations") : translate("admin.adminAnnouncementResults.statusDoesNotMatchExpectations")),
+        });
     }
 
     const requestedAt = new Date(review.requestedAt).getTime();
@@ -165,7 +170,11 @@ export async function inspectPendingReview(review: AnnouncementPendingReview) {
         .slice(0, 3)
         .map((announcement) => `${announcement.id} · ${formatDateTime(announcement.publishedAt)} · ${announcement.status === "active" ? translate("admin.adminAnnouncementResults.published") : translate("account.feedback.status.closed")}`)
         .join("；");
-    return translate("admin.adminAnnouncementResults.foundRecentRecordsExactlyMatchingTheRequest", { v0: String(matchingRecords.length), v1: String(resultSummary), v2: String(matchingRecords.length > 3 ? translate("admin.adminAnnouncementResults.reviewTheRemainingRecordsInTheList") : "") });
+    return translate("admin.adminAnnouncementResults.foundRecentRecordsExactlyMatchingTheRequest", {
+        v0: String(matchingRecords.length),
+        v1: String(resultSummary),
+        v2: String(matchingRecords.length > 3 ? translate("admin.adminAnnouncementResults.reviewTheRemainingRecordsInTheList") : ""),
+    });
 }
 
 export function formatPendingReviewOperation(operation: AnnouncementPendingReview["operation"]) {

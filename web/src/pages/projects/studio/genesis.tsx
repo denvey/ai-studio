@@ -21,7 +21,14 @@ export function StudioGenesis({ summary }: { summary: DramaSummary }) {
             <div className="drama-genesis-card">
                 {paused ? <PauseCircle className="mx-auto mb-5 size-16 text-[var(--status-warning)]" /> : <div className="drama-genesis-orb" aria-hidden />}
                 <h2>{paused ? (production.status === "draft" ? translate("drama.studio.genesis.startWhenYouReReady") : translate("drama.studio.genesis.productionPaused")) : translate("drama.studio.genesis.adaptingYourNovelIntoAShortDrama")}</h2>
-                <p>{paused ? translate("drama.studio.genesis.selectInTheUpperRight", { v0: String(production.pauseReason || translate("drama.studio.genesis.theSystemAutomaticallyHandlesAdaptationDesignRecordsStoryboardsAndThe")), v1: String(production.status === "draft" ? translate("drama.studio.genesis.startProduction") : translate("drama.studio.genesis.resumeProduction")) }) : translate("drama.studio.genesis.thisUsuallyTakesAMinuteOrTwoYouCanLeave")}</p>
+                <p>
+                    {paused
+                        ? translate("drama.studio.genesis.selectInTheUpperRight", {
+                              v0: String(production.pauseReason || translate("drama.studio.genesis.theSystemAutomaticallyHandlesAdaptationDesignRecordsStoryboardsAndThe")),
+                              v1: String(production.status === "draft" ? translate("drama.studio.genesis.startProduction") : translate("drama.studio.genesis.resumeProduction")),
+                          })
+                        : translate("drama.studio.genesis.thisUsuallyTakesAMinuteOrTwoYouCanLeave")}
+                </p>
                 <div className="drama-genesis-steps">
                     {steps.map((step) => (
                         <div key={step.label} className={`drama-genesis-step ${step.done ? "is-done" : step.active && !paused ? "is-active" : ""}`}>

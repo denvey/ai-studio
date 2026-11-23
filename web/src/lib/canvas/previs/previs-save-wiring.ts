@@ -1,7 +1,6 @@
 import type { PrevisCloseDecision, PrevisSaveSnapshot } from "@/lib/canvas/previs/previs-save";
 import { translate } from "@/i18n";
 
-
 export type PrevisSaveProgress = PrevisSaveSnapshot;
 
 export const idlePrevisSaveProgress: PrevisSaveProgress = {

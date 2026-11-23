@@ -4,7 +4,6 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { translate } from "@/i18n";
 
-
 const DEFAULT_UNAVAILABLE_LABEL = translate("library.tasks.row.previewMissing");
 
 export function MediaPreview({

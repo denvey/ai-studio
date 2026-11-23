@@ -522,7 +522,8 @@ export function parsePlannerOutput(text: string, draft: EcommerceDraft): Ecommer
         else if (image.referenceScreen && typeof image.referenceScreen === "object") delete image.referenceScreen.resourceId;
         const required: Array<keyof EcommercePlanImage> = ["imageType", "platform", "language", "fidelity", "imageModel", "ratio", "resolution"];
         for (const key of required) if (typeof image[key] !== "string" || !image[key]?.trim()) throw new Error(translate("ecommerce.planner.imageIsMissing", { v0: String(index + 1), v1: String(key) }));
-        for (const key of ["copy", "verifiedClaims", "performanceAngle", "informationComponent", "lighting", "negativePrompt"] as const) if (image[key] != null && typeof image[key] !== "string") throw new Error(translate("ecommerce.planner.imageHasAnInvalidFormat", { v0: String(index + 1), v1: String(key) }));
+        for (const key of ["copy", "verifiedClaims", "performanceAngle", "informationComponent", "lighting", "negativePrompt"] as const)
+            if (image[key] != null && typeof image[key] !== "string") throw new Error(translate("ecommerce.planner.imageHasAnInvalidFormat", { v0: String(index + 1), v1: String(key) }));
         const normalizedType = imageTypes.find(([id, label]) => image.imageType === id || image.imageType === label)?.[0];
         if (!normalizedType || (draft.imageType === "set" && normalizedType === "set") || (draft.imageType !== "set" && normalizedType !== draft.imageType)) {
             throw new Error(translate("ecommerce.planner.imageDoesNotMatchTheSelectedCreationTypeReplan", { v0: String(index + 1) }));
@@ -557,11 +558,13 @@ export function parsePlannerOutput(text: string, draft: EcommerceDraft): Ecommer
         // A no-text choice wins over whatever layout the model proposed: the
         // page keeps only the product display instead of forcing a paid re-plan.
         if (draft.imageType === "detail" && !commerceAllowsText(draft, image.imageType) && componentMatch?.[1] !== "无文字陈列") image.informationComponent = "无文字陈列｜用户选择无文字，本页只保留商品与画面陈列，不放置标题、标签或说明";
-        else if (draft.imageType === "detail" && commerceAllowsText(draft, image.imageType) && componentMatch?.[1] === "无文字陈列") throw new Error(translate("ecommerce.planner.theInformationComponentsInImageDoNotMatchItsText", { v0: String(index + 1) }));
+        else if (draft.imageType === "detail" && commerceAllowsText(draft, image.imageType) && componentMatch?.[1] === "无文字陈列")
+            throw new Error(translate("ecommerce.planner.theInformationComponentsInImageDoNotMatchItsText", { v0: String(index + 1) }));
         image.lighting ||= "";
         image.negativePrompt ||= "";
     }
-    if ([result.confirmedFacts, result.uncertainFacts, result.qualityChecks].some((items) => !Array.isArray(items) || items.some((item) => typeof item !== "string"))) throw new Error(translate("ecommerce.planner.productFactsAndQualityCheckItemsInThePlanHave"));
+    if ([result.confirmedFacts, result.uncertainFacts, result.qualityChecks].some((items) => !Array.isArray(items) || items.some((item) => typeof item !== "string")))
+        throw new Error(translate("ecommerce.planner.productFactsAndQualityCheckItemsInThePlanHave"));
     assertCommerceDetailRhythm(result, draft);
     if (draft.imageType === "sku") {
         for (const sku of draft.skus) {

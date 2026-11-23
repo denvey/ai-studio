@@ -91,7 +91,9 @@ export function AnnouncementEditor({
             >
                 <div className={`admin-announcement-editor-intro${editingAnnouncement ? " is-warning" : ""}`}>
                     <strong>{editingAnnouncement ? translate("admin.adminAnnouncementEditor.savingRepublishesThisAnnouncementToAllUsers") : translate("admin.adminAnnouncementEditor.publishedAnnouncementsAppearInUsersAnnouncementCenters")}</strong>
-                    <p>{editingAnnouncement ? translate("admin.adminAnnouncementEditor.savingUpdatesThePublicationTimeRepublishesTheAnnouncementAndClears") : translate("admin.adminAnnouncementEditor.openPagesReceiveTheAnnouncementAtTheNextSyncUsually")}</p>
+                    <p>
+                        {editingAnnouncement ? translate("admin.adminAnnouncementEditor.savingUpdatesThePublicationTimeRepublishesTheAnnouncementAndClears") : translate("admin.adminAnnouncementEditor.openPagesReceiveTheAnnouncementAtTheNextSyncUsually")}
+                    </p>
                 </div>
                 <Form form={form} layout="vertical" requiredMark={false} disabled={publishBlocked} initialValues={DEFAULT_ANNOUNCEMENT} scrollToFirstError={{ focus: true, block: "center" }} onFinish={onPreview}>
                     <div className="admin-announcement-editor-layout">
@@ -111,7 +113,12 @@ export function AnnouncementEditor({
                                 >
                                     <Input ref={titleInputRef} maxLength={120} showCount placeholder={translate("admin.adminAnnouncementEditor.eGVideoModelsAreBackToNormal")} />
                                 </Form.Item>
-                                <Form.Item name="level" label={translate("admin.adminAnnouncementEditor.announcementType")} extra={previewMeta.guidance} rules={[{ required: true, message: translate("admin.adminAnnouncementEditor.chooseAnAnnouncementType") }]}>
+                                <Form.Item
+                                    name="level"
+                                    label={translate("admin.adminAnnouncementEditor.announcementType")}
+                                    extra={previewMeta.guidance}
+                                    rules={[{ required: true, message: translate("admin.adminAnnouncementEditor.chooseAnAnnouncementType") }]}
+                                >
                                     <Select aria-label={translate("admin.adminAnnouncementEditor.chooseAnnouncementType")} options={levelOptions} />
                                 </Form.Item>
                             </div>
@@ -166,8 +173,14 @@ export function AnnouncementEditor({
                                 </div>
                             </div>
                             <h3>{watchedTitle?.trim() || translate("admin.adminAnnouncementEditor.theAnnouncementTitleAppearsHere")}</h3>
-                            {imagePreviewUrl ? <img src={imagePreviewUrl} alt={translate("admin.adminAnnouncementEditor.announcementImagePreview")} className="mt-4 max-h-56 w-full rounded-lg border border-border/70 bg-muted/20 object-contain p-1" /> : null}
-                            {watchedContent?.trim() ? <AnnouncementContent content={watchedContent.trim()} className="admin-announcement-preview-content" /> : <p className="admin-announcement-preview-placeholder">{translate("admin.adminAnnouncementEditor.thisAnnouncementDisplaysOnlyItsTitle")}</p>}
+                            {imagePreviewUrl ? (
+                                <img src={imagePreviewUrl} alt={translate("admin.adminAnnouncementEditor.announcementImagePreview")} className="mt-4 max-h-56 w-full rounded-lg border border-border/70 bg-muted/20 object-contain p-1" />
+                            ) : null}
+                            {watchedContent?.trim() ? (
+                                <AnnouncementContent content={watchedContent.trim()} className="admin-announcement-preview-content" />
+                            ) : (
+                                <p className="admin-announcement-preview-placeholder">{translate("admin.adminAnnouncementEditor.thisAnnouncementDisplaysOnlyItsTitle")}</p>
+                            )}
                         </section>
                     </div>
                 </Form>
@@ -200,7 +213,13 @@ export function AnnouncementEditor({
                         <dl className="admin-operation-confirmation-grid">
                             <div>
                                 <dt>{translate("account.settings.runninghub.actions")}</dt>
-                                <dd>{pending.mode === "update" ? (pending.previousStatus === "closed" ? translate("admin.adminAnnouncementEditor.reopenAndPublish") : translate("admin.adminAnnouncementEditor.updateAndRepublish")) : translate("admin.adminAnnouncementEditor.publishNewAnnouncement")}</dd>
+                                <dd>
+                                    {pending.mode === "update"
+                                        ? pending.previousStatus === "closed"
+                                            ? translate("admin.adminAnnouncementEditor.reopenAndPublish")
+                                            : translate("admin.adminAnnouncementEditor.updateAndRepublish")
+                                        : translate("admin.adminAnnouncementEditor.publishNewAnnouncement")}
+                                </dd>
                             </div>
                             <div>
                                 <dt>{translate("admin.adminAnnouncementEditor.announcementType")}</dt>

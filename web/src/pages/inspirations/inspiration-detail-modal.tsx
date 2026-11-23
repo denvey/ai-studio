@@ -11,7 +11,6 @@ import { modeLabels } from "@/pages/create/creation-types";
 import { useUserStore } from "@/stores/use-user-store";
 import { translate } from "@/i18n";
 
-
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div className="flex min-w-0 items-baseline gap-3 text-xs leading-5">
@@ -74,7 +73,14 @@ export function InspirationDetailModal({
                             </div>
                             <div className="flex shrink-0 items-center gap-2">
                                 <Tooltip title={favorite ? translate("shared.inspirations.inspirationDetailModal.removeFromFavorites") : translate("shared.inspirations.inspirationDetailModal.favorite")}>
-                                    <button type="button" data-icon-only className="inspiration-icon-button" aria-label={favorite ? translate("shared.inspirations.inspirationDetailModal.removeInspirationFromFavorites") : translate("shared.inspirations.inspirationDetailModal.favoriteInspiration")} aria-pressed={favorite} onClick={() => onToggleFavorite(item)}>
+                                    <button
+                                        type="button"
+                                        data-icon-only
+                                        className="inspiration-icon-button"
+                                        aria-label={favorite ? translate("shared.inspirations.inspirationDetailModal.removeInspirationFromFavorites") : translate("shared.inspirations.inspirationDetailModal.favoriteInspiration")}
+                                        aria-pressed={favorite}
+                                        onClick={() => onToggleFavorite(item)}
+                                    >
                                         <span aria-hidden="true">
                                             <Heart className="size-4" fill={favorite ? "currentColor" : "none"} />
                                         </span>
@@ -88,7 +94,13 @@ export function InspirationDetailModal({
                                     </button>
                                 </Tooltip>
                                 <Tooltip title={custom ? translate("common.delete") : translate("shared.inspirations.inspirationDetailModal.hideFromLibrary")}>
-                                    <button type="button" data-icon-only className="inspiration-icon-button" aria-label={custom ? translate("shared.inspirations.inspirationDetailModal.deleteInspiration") : translate("shared.inspirations.inspirationDetailModal.hideInspiration")} onClick={() => onDelete(item)}>
+                                    <button
+                                        type="button"
+                                        data-icon-only
+                                        className="inspiration-icon-button"
+                                        aria-label={custom ? translate("shared.inspirations.inspirationDetailModal.deleteInspiration") : translate("shared.inspirations.inspirationDetailModal.hideInspiration")}
+                                        onClick={() => onDelete(item)}
+                                    >
                                         <span aria-hidden="true">
                                             <Trash2 className="size-4" />
                                         </span>
@@ -100,7 +112,8 @@ export function InspirationDetailModal({
                         <div className="flex flex-col gap-2">
                             {showSources ? (
                                 <MetaRow label={translate("canvasA.assetView.origin")}>
-                                    {source?.name ?? (item.sourceId && item.sourceId !== "original" ? (source?.label ?? translate("shared.inspirations.inspirationDetailModal.sourceNotSpecified")) : translate("shared.inspirations.inspirationDetailModal.original"))}
+                                    {source?.name ??
+                                        (item.sourceId && item.sourceId !== "original" ? (source?.label ?? translate("shared.inspirations.inspirationDetailModal.sourceNotSpecified")) : translate("shared.inspirations.inspirationDetailModal.original"))}
                                     {item.credit ? ` · ${item.credit}` : ""}
                                 </MetaRow>
                             ) : null}

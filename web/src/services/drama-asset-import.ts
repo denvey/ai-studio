@@ -3,7 +3,6 @@ import { getDrama, getDramaEpisode, listDramaCast, setDramaCastImage, updateDram
 import { uploadResourceFile } from "@/services/api/resources";
 import { translate } from "@/i18n";
 
-
 // 资产包导入：浏览器按 ZIP 中央目录只读取清单与要用的图片，按设定类型与名称、集号与段号
 // 套用到当前作品。全部写入都走现有的短剧接口，归属与校验由后端负责；视频与声音样本不导入。
 
@@ -119,7 +118,15 @@ export async function planDramaAssetImport(projectId: string, pkg: DramaAssetPac
                 const extension = item.image.split(".").pop()?.toLowerCase() || "";
                 if (!entry) skipped.push(translate("shared.dramaAssetImport.theReferenceImageIsMissingFromTheArchive", { v0: String(label) }));
                 else if (!IMAGE_MIME[extension]) skipped.push(translate("shared.dramaAssetImport.theReferenceImageFormatIsNotSupported", { v0: String(label) }));
-                else operations.push({ kind: "cast-image", label: translate("shared.dramaAssetImport.referenceImage", { v0: String(label) }), castId: target.id, entry, fileName: item.image.split("/").pop() || `cast.${extension}`, mime: IMAGE_MIME[extension] });
+                else
+                    operations.push({
+                        kind: "cast-image",
+                        label: translate("shared.dramaAssetImport.referenceImage", { v0: String(label) }),
+                        castId: target.id,
+                        entry,
+                        fileName: item.image.split("/").pop() || `cast.${extension}`,
+                        mime: IMAGE_MIME[extension],
+                    });
             }
             if (options.castText) {
                 const appearance = item.appearance?.trim() && item.appearance.trim() !== target.appearance.trim() ? item.appearance.trim() : undefined;
@@ -141,7 +148,8 @@ export async function planDramaAssetImport(projectId: string, pkg: DramaAssetPac
                 }
                 const detail = await getDramaEpisode(projectId, row.id);
                 if (options.shotPrompts) {
-                    if (detail.shots.length !== source.shots.length) skipped.push(translate("shared.dramaAssetImport.episodeShotPromptsShotCountsDoNotMatchInThe", { v0: String(source.number), v1: String(source.shots.length), v2: String(detail.shots.length) }));
+                    if (detail.shots.length !== source.shots.length)
+                        skipped.push(translate("shared.dramaAssetImport.episodeShotPromptsShotCountsDoNotMatchInThe", { v0: String(source.number), v1: String(source.shots.length), v2: String(detail.shots.length) }));
                     else
                         source.shots.forEach((shot, index) => {
                             const target = detail.shots[index];
@@ -158,7 +166,8 @@ export async function planDramaAssetImport(projectId: string, pkg: DramaAssetPac
                         if (!prompt) continue;
                         const target = segments.get(segment.index);
                         if (!target) skipped.push(translate("shared.dramaAssetImport.episodeSegmentThisSegmentDoesNotExistInTheCurrent", { v0: String(source.number), v1: String(segment.index + 1) }));
-                        else if (prompt !== target.videoPrompt.trim()) operations.push({ kind: "segment-prompt", label: translate("shared.dramaAssetImport.episodeSegmentVideoPrompt", { v0: String(source.number), v1: String(segment.index + 1) }), episodeId: row.id, index: segment.index, prompt });
+                        else if (prompt !== target.videoPrompt.trim())
+                            operations.push({ kind: "segment-prompt", label: translate("shared.dramaAssetImport.episodeSegmentVideoPrompt", { v0: String(source.number), v1: String(segment.index + 1) }), episodeId: row.id, index: segment.index, prompt });
                     }
                 }
             }

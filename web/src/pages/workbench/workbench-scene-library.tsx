@@ -68,9 +68,21 @@ export function SceneLibraryModal({
                 <header className="wb-library-head">
                     <div className="wb-library-title">
                         <h2>{translate("ecommerce.workbench.workbenchSceneLibrary.chooseAnOutputScenario")}</h2>
-                        <p>{kind === "image" ? translate("ecommerce.workbench.workbenchSceneLibrary.appliesThePromptTemplateAutomaticallyAndShowsTheRequiredProduct") : translate("ecommerce.workbench.workbenchSceneLibrary.appliesTheShotTemplateAutomaticallyAndShowsRequirementsSuchAs")}</p>
+                        <p>
+                            {kind === "image"
+                                ? translate("ecommerce.workbench.workbenchSceneLibrary.appliesThePromptTemplateAutomaticallyAndShowsTheRequiredProduct")
+                                : translate("ecommerce.workbench.workbenchSceneLibrary.appliesTheShotTemplateAutomaticallyAndShowsRequirementsSuchAs")}
+                        </p>
                     </div>
-                    <Input className="wb-library-search" aria-label={translate("ecommerce.workbench.workbenchSceneLibrary.searchScenarios")} prefix={<Search className="size-4" />} allowClear value={query} onChange={(event) => setQuery(event.target.value)} placeholder={translate("ecommerce.workbench.workbenchSceneLibrary.searchScenariosEGWhiteBackgroundModelUnboxing")} />
+                    <Input
+                        className="wb-library-search"
+                        aria-label={translate("ecommerce.workbench.workbenchSceneLibrary.searchScenarios")}
+                        prefix={<Search className="size-4" />}
+                        allowClear
+                        value={query}
+                        onChange={(event) => setQuery(event.target.value)}
+                        placeholder={translate("ecommerce.workbench.workbenchSceneLibrary.searchScenariosEGWhiteBackgroundModelUnboxing")}
+                    />
                     <button type="button" className="wb-icon-button" data-icon-only aria-label={translate("common.close")} onClick={onClose}>
                         <X />
                     </button>

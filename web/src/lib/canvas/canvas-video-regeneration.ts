@@ -4,7 +4,6 @@ import type { CanvasVideoEditOperation } from "@/types/canvas";
 import { resolveModelChannel, selectableModelsByCapability, type AiConfig } from "@/stores/use-config-store";
 import { translate } from "@/i18n";
 
-
 export function listVideoReferenceModels(config: AiConfig): string[] {
     return selectableModelsByCapability(config, "video").filter((model) => {
         const profile = modelCapabilityConfigFor(config, model).video;

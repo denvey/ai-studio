@@ -1,7 +1,6 @@
 import type { PrevisAspectRatio, PrevisCamera, PrevisShot } from "@/types/previs";
 import { translate } from "@/i18n";
 
-
 /**
  * 预演台镜头光学的唯一真源。
  *

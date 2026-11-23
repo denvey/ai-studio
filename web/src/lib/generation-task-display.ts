@@ -1,7 +1,6 @@
 import type { GenerationTask, TaskStatus } from "@/services/api/task-center";
 import { translate } from "@/i18n";
 
-
 export const statusLabel: Record<TaskStatus, string> = {
     queued: translate("canvasPage.taskStatus.queued"),
     running: translate("canvasB.mediaVersion.generating"),
@@ -35,8 +34,19 @@ export function canCancelGenerationTask(task: GenerationTaskDisplayTarget) {
 export function mediaDeliverySummary(status: TaskStatus | undefined, stage: GenerationTask["mediaStage"]) {
     if (!stage) return "";
     if (stage === "completed") return translate("shared.generationTaskDisplay.generationSucceededFileSavedAssetRegistered");
-    const prefix = stage === "download" || stage === "checkpoint" ? translate("shared.generationTaskDisplay.generationSucceeded") : stage === "register" ? translate("shared.generationTaskDisplay.generationSucceededFileSaved") : translate("shared.generationTaskDisplay.generationSucceededDownloadComplete");
-    const action = { download: translate("canvasA.assetView.download"), upload: translate("shared.generationTaskDisplay.uploadToOSS"), local_save: translate("shared.generationTaskDisplay.saveFile"), register: translate("shared.generationTaskDisplay.registerAsset"), checkpoint: translate("shared.generationTaskDisplay.recordRecoveryInformation") }[stage];
+    const prefix =
+        stage === "download" || stage === "checkpoint"
+            ? translate("shared.generationTaskDisplay.generationSucceeded")
+            : stage === "register"
+              ? translate("shared.generationTaskDisplay.generationSucceededFileSaved")
+              : translate("shared.generationTaskDisplay.generationSucceededDownloadComplete");
+    const action = {
+        download: translate("canvasA.assetView.download"),
+        upload: translate("shared.generationTaskDisplay.uploadToOSS"),
+        local_save: translate("shared.generationTaskDisplay.saveFile"),
+        register: translate("shared.generationTaskDisplay.registerAsset"),
+        checkpoint: translate("shared.generationTaskDisplay.recordRecoveryInformation"),
+    }[stage];
     return `${prefix} · ${action}${status === "failed" ? translate("shared.generationTaskDisplay.failed") : status === "cancelled" ? translate("shared.generationTaskDisplay.stopped") : translate("shared.generationTaskDisplay.pending")}`;
 }
 
@@ -201,7 +211,11 @@ export function generationPhaseLabel(phase: GenerationPhase, kind?: GenerationMe
             return upstreamGenerationStage(stage) || translate("shared.generationTaskDisplay.generating", { v0: String(noun) });
         case "saving": {
             const saving = generationTaskSavingState(stage);
-            return saving === "retrying" ? translate("shared.generationTaskDisplay.savingEncounteredAProblemRetrying") : saving === "waiting" ? translate("shared.generationTaskDisplay.waitingToSave") : translate("shared.generationTaskDisplay.saving", { v0: String(noun) });
+            return saving === "retrying"
+                ? translate("shared.generationTaskDisplay.savingEncounteredAProblemRetrying")
+                : saving === "waiting"
+                  ? translate("shared.generationTaskDisplay.waitingToSave")
+                  : translate("shared.generationTaskDisplay.saving", { v0: String(noun) });
         }
         case "finalizing":
             return translate("shared.generationTaskDisplay.loading", { v0: String(noun) });
@@ -219,7 +233,11 @@ export function generationPhaseHint(phase: GenerationPhase, kind?: GenerationMed
             return kind === "video" ? translate("shared.generationTaskDisplay.generationContinuesIfYouLeaveThisPage") : "";
         case "saving": {
             const saving = generationTaskSavingState(stage);
-            return saving === "retrying" ? translate("shared.generationTaskDisplay.generatedSavingIsBeingRetriedAutomaticallyWithoutRegenerating") : saving === "waiting" ? translate("shared.generationTaskDisplay.generatedWillSaveAutomaticallyWhenItIsYourTurn") : translate("shared.generationTaskDisplay.generatedSavingToTheAssetLibrary2");
+            return saving === "retrying"
+                ? translate("shared.generationTaskDisplay.generatedSavingIsBeingRetriedAutomaticallyWithoutRegenerating")
+                : saving === "waiting"
+                  ? translate("shared.generationTaskDisplay.generatedWillSaveAutomaticallyWhenItIsYourTurn")
+                  : translate("shared.generationTaskDisplay.generatedSavingToTheAssetLibrary2");
         }
         case "uncertain":
             return translate("shared.generationTaskDisplay.noAutomaticRetryWasMadeToAvoidDuplicateCharges");

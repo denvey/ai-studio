@@ -9,7 +9,6 @@ import type { WorkflowFieldMapping, WorkflowGraphPreview } from "@/stores/use-co
 import { Select } from "@/components/ui/base/select";
 import { translate } from "@/i18n";
 
-
 type WorkflowNode = {
     id: string;
     title: string;
@@ -170,13 +169,22 @@ export function WorkflowGraphEditor({ workflowJson, workflowGraph, fields, onCha
                         value={selectedNodeId || undefined}
                         placeholder={translate("shared.workflowGraphEditor.selectNodes")}
                         optionFilterProp="label"
-                        options={[{ label: translate("shared.workflowGraphEditor.allEnabledFields", { v0: String(enabledFields.length) }), value: allEnabledFieldsNodeId }, ...graph.nodes.map((node) => ({ label: `${node.title} · #${node.id}`, value: node.id }))]}
+                        options={[
+                            { label: translate("shared.workflowGraphEditor.allEnabledFields", { v0: String(enabledFields.length) }), value: allEnabledFieldsNodeId },
+                            ...graph.nodes.map((node) => ({ label: `${node.title} · #${node.id}`, value: node.id })),
+                        ]}
                         onChange={setSelectedNodeId}
                     />
                 </label>
                 <div className="workflow-graph-selected-heading">
                     <strong>{selectedNodeId === allEnabledFieldsNodeId ? translate("shared.workflowGraphEditor.allEnabledFields2") : selectedNode?.title || translate("shared.workflowGraphEditor.workflowFields")}</strong>
-                    <span>{selectedNodeId === allEnabledFieldsNodeId ? translate("shared.workflowGraphEditor.fields", { v0: String(enabledFields.length) }) : selectedNode ? `${selectedNode.classType} · #${selectedNode.id}` : translate("shared.workflowGraphEditor.selectANodeOnTheRightToConfigureIt")}</span>
+                    <span>
+                        {selectedNodeId === allEnabledFieldsNodeId
+                            ? translate("shared.workflowGraphEditor.fields", { v0: String(enabledFields.length) })
+                            : selectedNode
+                              ? `${selectedNode.classType} · #${selectedNode.id}`
+                              : translate("shared.workflowGraphEditor.selectANodeOnTheRightToConfigureIt")}
+                    </span>
                 </div>
                 <WorkflowFieldMappingEditor fields={selectedFields} disabled={disabled} onChange={updateSelectedFields} />
             </aside>

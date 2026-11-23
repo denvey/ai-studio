@@ -7,7 +7,6 @@ import { DEFAULT_AUDIO_TRACK_ID, DEFAULT_SUBTITLE_TRACK_ID, DEFAULT_VIDEO_TRACK_
 import { getTimelineVisualEndMs } from "./timeline-view";
 import { translate } from "@/i18n";
 
-
 function nodeDurationMs(node: CanvasNodeData, fallbackMs = 4_000): number {
     const durationMs = node.metadata?.durationMs;
     return durationMs && durationMs > 0 ? Math.round(durationMs) : fallbackMs;

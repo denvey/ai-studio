@@ -4,7 +4,6 @@ import type { ArkAssetStatus, ArkGroupKind, ArkPortraitGroup, ArkUserSummary } f
 import { AdminStatusBadge, type AdminStatusTone } from "../../components/admin-ui";
 import { currentLocale, translate } from "@/i18n";
 
-
 export const ARK_KIND_LABEL: Record<ArkGroupKind, string> = { real: translate("adminPages.settings.arkAssets.arkAdminShared.human"), virtual: translate("adminPages.settings.arkAssets.arkAdminShared.virtual"), ip: translate("library.ark.kinds.ip") };
 
 export const ARK_SOURCE_LABEL: Record<string, string> = { liveness: translate("library.ark.group.source.liveness"), created: translate("library.ark.group.source.created"), manual: translate("library.ark.group.source.manual") };

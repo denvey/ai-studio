@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export type ReferenceMediaTransportMode = "inherit" | "protocol" | "url" | "base64";
 export type ReferenceMediaTransport = Partial<Record<"image" | "audio" | "video", ReferenceMediaTransportMode>>;

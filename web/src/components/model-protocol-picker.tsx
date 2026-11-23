@@ -7,7 +7,6 @@ import { modelProtocolLabel, type ModelProtocol, type ModelProtocolDefinition, t
 import { cn } from "@/lib/utils";
 import { translate } from "@/i18n";
 
-
 export type ModelCapabilityChoice = ProtocolCapability;
 
 const capabilityChoices: Array<{

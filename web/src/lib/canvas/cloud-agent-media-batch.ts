@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 /**
  * 批量生成进度：后端每次条目状态变化发一条 `media_batch_progress`。阶段切换时带全部条目，
@@ -86,5 +85,13 @@ export function agentMediaBatchCounts(batch: CloudAgentMediaBatchProgress) {
 }
 
 export function agentMediaBatchPhaseLabel(phase: CloudAgentMediaBatchPhase) {
-    return ({ approval: translate("shared.canvas.cloudAgentMediaBatch.awaitingApproval"), canary: translate("shared.canvas.cloudAgentMediaBatch.dryRunInProgress"), canary_done: translate("shared.canvas.cloudAgentMediaBatch.dryRunCompleteAwaitingRelease"), running: translate("shared.canvas.cloudAgentMediaBatch.running"), done: translate("account.wallet.topup.ended") } as const)[phase];
+    return (
+        {
+            approval: translate("shared.canvas.cloudAgentMediaBatch.awaitingApproval"),
+            canary: translate("shared.canvas.cloudAgentMediaBatch.dryRunInProgress"),
+            canary_done: translate("shared.canvas.cloudAgentMediaBatch.dryRunCompleteAwaitingRelease"),
+            running: translate("shared.canvas.cloudAgentMediaBatch.running"),
+            done: translate("account.wallet.topup.ended"),
+        } as const
+    )[phase];
 }

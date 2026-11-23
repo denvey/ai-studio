@@ -77,7 +77,13 @@ export function CanvasWorkspaceAssetPanel({ onInsert, onManage, onProjectAssets 
                     />
                     <Button type="text" aria-label={translate("canvasTools.canvasWorkspaceAssetPanel.refreshAssets")} loading={query.isFetching} icon={<RefreshCw className="size-4" />} onClick={() => void query.refetch()} />
                 </div>
-                <input className="w-full rounded-md border border-border bg-transparent px-2 py-2 text-sm" aria-label={translate("canvasTools.canvasWorkspaceAssetPanel.searchAssetNamesOrTags")} placeholder={translate("canvasA.toolPicker.searchPlaceholder")} value={input} onChange={(event) => setInput(event.target.value)} />
+                <input
+                    className="w-full rounded-md border border-border bg-transparent px-2 py-2 text-sm"
+                    aria-label={translate("canvasTools.canvasWorkspaceAssetPanel.searchAssetNamesOrTags")}
+                    placeholder={translate("canvasA.toolPicker.searchPlaceholder")}
+                    value={input}
+                    onChange={(event) => setInput(event.target.value)}
+                />
             </div>
             <div className="thin-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
                 {!userId ? (
@@ -89,7 +95,8 @@ export function CanvasWorkspaceAssetPanel({ onInsert, onManage, onProjectAssets 
                 ) : null}
                 {query.isError ? (
                     <div role="alert" className="p-3 text-sm">
-                        {translate("canvasTools.canvasWorkspaceAssetPanel.failedToLoadAssetsPreviouslyLoadedContentIsRetained")}<Button onClick={() => void query.refetch()}>{translate("common.retry")}</Button>
+                        {translate("canvasTools.canvasWorkspaceAssetPanel.failedToLoadAssetsPreviouslyLoadedContentIsRetained")}
+                        <Button onClick={() => void query.refetch()}>{translate("common.retry")}</Button>
                     </div>
                 ) : null}
                 {assets.map((asset) => {
@@ -122,7 +129,9 @@ export function CanvasWorkspaceAssetPanel({ onInsert, onManage, onProjectAssets 
                         </div>
                     );
                 })}
-                {query.isSuccess && !assets.length ? <WorkspaceState icon="canvas" compact title={translate("canvasTools.canvasWorkspaceAssetPanel.noMatchingAssets")} description={translate("canvasTools.canvasWorkspaceAssetPanel.tryADifferentCategoryOrSearchFilter")} /> : null}
+                {query.isSuccess && !assets.length ? (
+                    <WorkspaceState icon="canvas" compact title={translate("canvasTools.canvasWorkspaceAssetPanel.noMatchingAssets")} description={translate("canvasTools.canvasWorkspaceAssetPanel.tryADifferentCategoryOrSearchFilter")} />
+                ) : null}
                 {query.hasNextPage ? (
                     <Button block loading={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>
                         {translate("canvasA.toolPicker.loadMore")}

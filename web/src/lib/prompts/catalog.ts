@@ -2,7 +2,6 @@ import type { CanvasGenerationMode } from "@/types/canvas";
 import type { SrtEntry } from "@/types/timeline";
 import { translate } from "@/i18n";
 
-
 export type CanvasPromptPreset = {
     id: string;
     name: string;

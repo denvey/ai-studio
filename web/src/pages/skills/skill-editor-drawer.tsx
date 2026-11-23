@@ -12,7 +12,6 @@ import { useConfigStore, useEffectiveConfig } from "@/stores/use-config-store";
 import { createSkill, updateSkill, type Skill, type SkillMutationInput, type SkillShowcaseMedia } from "@/services/api/skills";
 import { translate } from "@/i18n";
 
-
 type SkillFormValues = Omit<SkillMutationInput, "isPrivate"> & { is_public: boolean };
 
 /** 后台基本信息：不含正文和公开状态。 */
@@ -72,7 +71,14 @@ export function SkillEditorDrawer({
             onClose();
             return;
         }
-        modal.confirm({ title: translate("shared.skills.skillEditorDrawer.discardUnsavedChanges"), content: translate("shared.skills.skillEditorDrawer.whatYouHaveEnteredWillNotBeKept"), okText: translate("shared.skills.skillEditorDrawer.discardChanges"), okButtonProps: { danger: true }, cancelText: translate("account.settings.prompts.switchCancel"), onOk: onClose });
+        modal.confirm({
+            title: translate("shared.skills.skillEditorDrawer.discardUnsavedChanges"),
+            content: translate("shared.skills.skillEditorDrawer.whatYouHaveEnteredWillNotBeKept"),
+            okText: translate("shared.skills.skillEditorDrawer.discardChanges"),
+            okButtonProps: { danger: true },
+            cancelText: translate("account.settings.prompts.switchCancel"),
+            onOk: onClose,
+        });
     };
 
     const submit = async (values: SkillFormValues) => {
@@ -174,9 +180,7 @@ export function SkillEditorDrawer({
                     </div>
                 </div>
             ) : (
-                <div className="mb-4 rounded-xl border bg-foreground/[.02] p-3 text-sm leading-6 text-foreground/58">
-                    {translate("shared.skills.skillEditorDrawer.thisIsASkillPackageWithMultipleFilesEditOnly")}
-                </div>
+                <div className="mb-4 rounded-xl border bg-foreground/[.02] p-3 text-sm leading-6 text-foreground/58">{translate("shared.skills.skillEditorDrawer.thisIsASkillPackageWithMultipleFilesEditOnly")}</div>
             )}
             <Form form={form} layout="vertical" requiredMark="optional" onFinish={submit} onValuesChange={() => setDirty(true)}>
                 <div className="grid gap-x-4 sm:grid-cols-2">
@@ -216,7 +220,13 @@ export function SkillEditorDrawer({
                         ]}
                         extra={translate("shared.skills.skillEditorDrawer.singleFileSkillsAreInstalledAsSKILLMdAndRead")}
                     >
-                        <Input.TextArea className="font-mono text-xs leading-5" autoSize={{ minRows: 14, maxRows: 28 }} maxLength={100000} showCount placeholder={translate("shared.skills.skillEditorDrawer.useMarkdownToWriteRolesConstraintsWorkflowsChecklistsAndOutput")} />
+                        <Input.TextArea
+                            className="font-mono text-xs leading-5"
+                            autoSize={{ minRows: 14, maxRows: 28 }}
+                            maxLength={100000}
+                            showCount
+                            placeholder={translate("shared.skills.skillEditorDrawer.useMarkdownToWriteRolesConstraintsWorkflowsChecklistsAndOutput")}
+                        />
                     </Form.Item>
                 ) : null}
 
@@ -267,7 +277,12 @@ export function SkillEditorDrawer({
                                         >
                                             <Input type="url" inputMode="url" spellCheck={false} placeholder="https://example.com/media" />
                                         </Form.Item>
-                                        <Button aria-label={translate("shared.skills.skillEditorDrawer.removeMedia")} title={translate("shared.skills.skillEditorDrawer.removeMedia")} icon={<Minus className="size-4" />} onClick={() => remove(field.name)} />
+                                        <Button
+                                            aria-label={translate("shared.skills.skillEditorDrawer.removeMedia")}
+                                            title={translate("shared.skills.skillEditorDrawer.removeMedia")}
+                                            icon={<Minus className="size-4" />}
+                                            onClick={() => remove(field.name)}
+                                        />
                                         <Form.Item {...field} name={[field.name, "showcaseUri"]} hidden>
                                             <Input />
                                         </Form.Item>

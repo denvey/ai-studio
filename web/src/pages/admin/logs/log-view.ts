@@ -1,7 +1,6 @@
 import type { ApiCallLog } from "@/services/api/auth";
 import { translate } from "@/i18n";
 
-
 export type LogView = "troubleshoot" | "billing" | "all";
 
 export function normalizeLogView(value: string | null): LogView {
@@ -18,7 +17,13 @@ export function logStatus(log: Pick<ApiCallLog, "status" | "providerStatus">) {
 export function logBillingLabel(log: Pick<ApiCallLog, "billable" | "billingAvailable" | "billingStatus">) {
     if (!log.billable) return translate("adminPages.logs.logsPage.notBilled");
     if (!log.billingAvailable) return translate("adminPages.logs.logsPage.noCreditsCharged");
-    const labels = { settled: translate("adminPages.logs.logsPage.settled"), refunded: translate("adminPages.logs.logsPage.refunded"), uncertain: translate("adminPages.logs.logsPage.pendingReview"), running: translate("library.tasks.filter.active"), reserved: translate("adminPages.logs.logsPage.preauthorized2") };
+    const labels = {
+        settled: translate("adminPages.logs.logsPage.settled"),
+        refunded: translate("adminPages.logs.logsPage.refunded"),
+        uncertain: translate("adminPages.logs.logsPage.pendingReview"),
+        running: translate("library.tasks.filter.active"),
+        reserved: translate("adminPages.logs.logsPage.preauthorized2"),
+    };
     return log.billingStatus ? labels[log.billingStatus] : translate("adminPages.logs.logsPage.preauthorized2");
 }
 

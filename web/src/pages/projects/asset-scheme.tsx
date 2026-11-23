@@ -41,7 +41,14 @@ export function defaultAssetSettings(catalog?: DramaAssetSchemeCatalog): DramaAs
 
 export type AssetPreviewSample = { characterName: string; characterAppearance: string; sceneName: string; sceneAppearance: string; style: string; rules: string };
 
-const FALLBACK_SAMPLE: AssetPreviewSample = { characterName: translate("drama.assetScheme.protagonist"), characterAppearance: translate("drama.assetScheme.characterAppearanceIsFilledInAfterTheStoryBibleIs"), sceneName: translate("drama.assetScheme.mainScene"), sceneAppearance: translate("drama.assetScheme.environmentDescriptionIsFilledInAfterTheStoryBibleIs"), style: translate("drama.assetScheme.realisticCinematicLook"), rules: "" };
+const FALLBACK_SAMPLE: AssetPreviewSample = {
+    characterName: translate("drama.assetScheme.protagonist"),
+    characterAppearance: translate("drama.assetScheme.characterAppearanceIsFilledInAfterTheStoryBibleIs"),
+    sceneName: translate("drama.assetScheme.mainScene"),
+    sceneAppearance: translate("drama.assetScheme.environmentDescriptionIsFilledInAfterTheStoryBibleIs"),
+    style: translate("drama.assetScheme.realisticCinematicLook"),
+    rules: "",
+};
 
 /** 方案示意：用色块画出版式，比文字更快看懂差别。 */
 function SchemeGlyph({ mode }: { mode: DramaAssetMode }) {
@@ -132,7 +139,14 @@ export function AssetSchemePicker({
             });
         const characterModified = scheme ? value.characterPrompt.trim() !== scheme.characterPrompt.trim() : true;
         if (target && characterModified) {
-            modal.confirm({ title: translate("drama.assetScheme.switchTo", { v0: ASSET_SCHEME_COPY[target.mode]?.name || target.name }), content: translate("drama.assetScheme.theCharacterPromptHasBeenEditedSwitchingWillReplaceIt"), okText: translate("canvasB.mediaVersion.switch"), cancelText: translate("drama.assetScheme.keepCurrent"), centered: true, onOk: apply });
+            modal.confirm({
+                title: translate("drama.assetScheme.switchTo", { v0: ASSET_SCHEME_COPY[target.mode]?.name || target.name }),
+                content: translate("drama.assetScheme.theCharacterPromptHasBeenEditedSwitchingWillReplaceIt"),
+                okText: translate("canvasB.mediaVersion.switch"),
+                cancelText: translate("drama.assetScheme.keepCurrent"),
+                centered: true,
+                onOk: apply,
+            });
             return;
         }
         apply();
@@ -150,7 +164,12 @@ export function AssetSchemePicker({
 
     const schemes: Array<{ mode: DramaAssetMode; name: string; description: string; ratio: string }> = [
         ...catalog.schemes.map((item) => ({ ...item, ...ASSET_SCHEME_COPY[item.mode] })),
-        { mode: "custom", name: translate("account.settings.models.scopeCustom"), description: translate("drama.assetScheme.writeYourOwnRequirementsOrImportThemFromASkill"), ratio: value.mode === "custom" ? value.characterRatio : translate("drama.assetScheme.chooseRatio") },
+        {
+            mode: "custom",
+            name: translate("account.settings.models.scopeCustom"),
+            description: translate("drama.assetScheme.writeYourOwnRequirementsOrImportThemFromASkill"),
+            ratio: value.mode === "custom" ? value.characterRatio : translate("drama.assetScheme.chooseRatio"),
+        },
     ];
 
     return (
@@ -247,22 +266,31 @@ export function AssetSchemePicker({
                 {unknown.length ? (
                     <p className="drama-assets-warning">
                         <TriangleAlert className="size-3.5" />
-                        {translate("drama.assetScheme.unsupportedVariables")}{unknown.join("、")}{translate("drama.assetScheme.savingWillBeRejectedSeeTheSupportedVariablesAbove")}
+                        {translate("drama.assetScheme.unsupportedVariables")}
+                        {unknown.join("、")}
+                        {translate("drama.assetScheme.savingWillBeRejectedSeeTheSupportedVariablesAbove")}
                     </p>
                 ) : null}
                 {tab === "character" && value.sourceSkillName ? (
                     <p className="drama-assets-source">
                         <Blocks className="size-3.5" />
-                        {translate("drama.sentences.importedSkill", { name: value.sourceSkillName })}{value.sourcePath ? ` · ${value.sourcePath}` : ""}
+                        {translate("drama.sentences.importedSkill", { name: value.sourceSkillName })}
+                        {value.sourcePath ? ` · ${value.sourcePath}` : ""}
                     </p>
                 ) : null}
                 <div className="drama-assets-preview">
                     <div className="drama-assets-preview-head">
                         <Eye className="size-3.5" />
-                        {translate("drama.assetScheme.previewSubmittedPrompt")}<span>{translate("drama.sentences.previewExample", { name: tab === "character" ? preview.characterName : preview.sceneName })}</span>
+                        {translate("drama.assetScheme.previewSubmittedPrompt")}
+                        <span>{translate("drama.sentences.previewExample", { name: tab === "character" ? preview.characterName : preview.sceneName })}</span>
                     </div>
                     <p>{rendered}</p>
-                    {tab === "character" && scheme ? <small>{translate("drama.assetScheme.referenceLayoutInstructions")}{ASSET_SCHEME_COPY[scheme.mode]?.frameHint || scheme.frameHint}</small> : null}
+                    {tab === "character" && scheme ? (
+                        <small>
+                            {translate("drama.assetScheme.referenceLayoutInstructions")}
+                            {ASSET_SCHEME_COPY[scheme.mode]?.frameHint || scheme.frameHint}
+                        </small>
+                    ) : null}
                 </div>
             </div>
             <SkillPromptImportModal
@@ -352,7 +380,11 @@ function SkillPromptImportModal({ open, onClose, onImport }: { open: boolean; on
                     <section>
                         <div className="drama-skill-import-caption">
                             {path || translate("drama.assetScheme.sourceText")}
-                            {content ? <span>{content.length.toLocaleString(currentLocale())} {translate("drama.assetScheme.characters")}</span> : null}
+                            {content ? (
+                                <span>
+                                    {content.length.toLocaleString(currentLocale())} {translate("drama.assetScheme.characters")}
+                                </span>
+                            ) : null}
                         </div>
                         <pre ref={contentRef} className="drama-skill-import-content thin-scrollbar">
                             {fileQuery.isLoading ? translate("drama.assetScheme.loading") : content || translate("drama.assetScheme.selectAFileToViewItsSourceTextHereThen")}

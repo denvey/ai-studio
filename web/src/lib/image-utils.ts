@@ -2,7 +2,6 @@ import type { ReferenceImage } from "@/types/image";
 import { loadRasterImage } from "./image-raster";
 import { translate } from "@/i18n";
 
-
 export function formatBytes(bytes: number): string {
     if (!(bytes > 0) || !Number.isFinite(bytes)) return "";
     const exponent = Math.min(3, Math.floor(Math.log(bytes) / Math.log(1024)));

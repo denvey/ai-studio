@@ -6,7 +6,6 @@ import { useAdminUserOptions } from "../../components/use-admin-user-options";
 import { arkUserLabel } from "./ark-admin-shared";
 import { translate } from "@/i18n";
 
-
 /** 平台素材组的授权用户：远程搜索用户，已选用户不在当前搜索结果里时保留名称。 */
 export function ArkGrantUsersField({ value, onChange, known, disabled }: { value: string[]; onChange: (ids: string[]) => void; known?: ArkUserSummary[]; disabled?: boolean }) {
     const users = useAdminUserOptions(undefined);

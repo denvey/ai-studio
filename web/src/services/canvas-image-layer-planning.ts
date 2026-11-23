@@ -5,7 +5,6 @@ import { getImageBlob } from "@/services/image-storage";
 import type { ReferenceImage } from "@/types/image";
 import { translate } from "@/i18n";
 
-
 /** 列表只有安全摘要，按源节点筛选后通过已有鉴权详情接口读取计划。 */
 export async function readImageLayerPlanningHistory(projectId: string, sourceNodeId: string, sourceStorageKey: string | undefined, signal: AbortSignal) {
     const tasks = await listGenerationTasks(50, { projectId }, undefined, signal);

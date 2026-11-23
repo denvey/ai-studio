@@ -78,15 +78,25 @@ function DeleteEpisodeDialog({ projectId, episode, blockedReason, onClose, onDel
                         <div className="drama-episode-delete-warn" role="alert">
                             <AlertTriangle className="size-4 shrink-0" />
                             <span>
-                                {translate("drama.studio.episodeDeleteModal.thisEpisodeAlreadyHasGeneratedSegmentVideos")}{videos > 0 ? translate("drama.studio.episodeDeleteModal.segments", { v0: String(videos) }) : ""}
-                                {episode.finalResourceId ? translate("drama.studio.episodeDeleteModal.andAFinalCut") : ""}{translate("drama.studio.episodeDeleteModal.deletingPermanentlyRemovesTheseVideosFinalCutsAndPreviousVersions")}
+                                {translate("drama.studio.episodeDeleteModal.thisEpisodeAlreadyHasGeneratedSegmentVideos")}
+                                {videos > 0 ? translate("drama.studio.episodeDeleteModal.segments", { v0: String(videos) }) : ""}
+                                {episode.finalResourceId ? translate("drama.studio.episodeDeleteModal.andAFinalCut") : ""}
+                                {translate("drama.studio.episodeDeleteModal.deletingPermanentlyRemovesTheseVideosFinalCutsAndPreviousVersions")}
                             </span>
                         </div>
                         <label className="drama-episode-delete-field">
                             <span>
                                 {translate("drama.studio.episodeDeleteModal.enter")} <b>{confirmText}</b> {translate("account.ui.delete.confirm")}
                             </span>
-                            <Input autoFocus value={typed} placeholder={confirmText} aria-label={translate("drama.studio.episodeDeleteModal.enterToConfirmDeletion", { v0: String(confirmText) })} disabled={Boolean(blockedReason)} onChange={(event) => setTyped(event.target.value)} onPressEnter={submit} />
+                            <Input
+                                autoFocus
+                                value={typed}
+                                placeholder={confirmText}
+                                aria-label={translate("drama.studio.episodeDeleteModal.enterToConfirmDeletion", { v0: String(confirmText) })}
+                                disabled={Boolean(blockedReason)}
+                                onChange={(event) => setTyped(event.target.value)}
+                                onPressEnter={submit}
+                            />
                         </label>
                     </>
                 ) : null}

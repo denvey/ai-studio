@@ -6,7 +6,6 @@ import type { DramaModelChoice, DramaModelOption, DramaVideoContinuity } from "@
 import { formatVideoResolutionLabel, videoResolutionComparisonKey } from "@/lib/video-generation-options";
 import { translate } from "@/i18n";
 
-
 export function dramaChoiceKey(choice?: DramaModelChoice) {
     if (!choice) return "";
     return choice.logicalModelId ? `l:${choice.logicalModelId}` : choice.channelId ? `c:${choice.channelId}:${choice.modelKey}` : "";
@@ -59,7 +58,9 @@ export function dramaVideoResolutionIssue(option: DramaModelOption | undefined, 
     if (!option || !resolution) return "";
     const values = option.videoResolutions || [];
     if (values.some((value) => videoResolutionComparisonKey(value) === videoResolutionComparisonKey(resolution))) return "";
-    return values.length ? translate("shared.drama.modelChoice.doesNotSupportResolutionAvailable", { v0: String(formatVideoResolutionLabel(resolution)), v1: String(values.map(formatVideoResolutionLabel).join("、")) }) : translate("shared.drama.modelChoice.doesNotOfferSelectableResolutions");
+    return values.length
+        ? translate("shared.drama.modelChoice.doesNotSupportResolutionAvailable", { v0: String(formatVideoResolutionLabel(resolution)), v1: String(values.map(formatVideoResolutionLabel).join("、")) })
+        : translate("shared.drama.modelChoice.doesNotOfferSelectableResolutions");
 }
 
 /** 视频模型能否用于作品：给得出作品画幅与分辨率，尾帧续接时还要支持图生视频（tailFrameChain 为 false 时服务端不下发该字段）。 */

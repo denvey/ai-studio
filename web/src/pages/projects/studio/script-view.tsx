@@ -16,8 +16,22 @@ import { translate } from "@/i18n";
 
 function storyboardSummary(value: DramaStoryboardSettings) {
     const rules = normalizeStoryboard(value);
-    const dialogue = rules.dialogue === "custom" ? translate("drama.studio.scriptView.customCharactersSecondOneLineEverySeconds", { v0: String(rules.speechRate), v1: String(rules.lineSeconds) }) : { dense: translate("drama.studio.scriptView.dense"), standard: translate("library.assets.density.standard"), sparse: translate("drama.studio.scriptView.restrained") }[rules.dialogue];
-    const duration = translate("drama.studio.scriptView.averageSShotDialogueSegments", { v0: String(PACING_LABEL[rules.pacing]), v1: String(averageShotSeconds(rules)), v2: String(dialogue), v3: String({ auto: translate("drama.studio.scriptView.smartSegmentation"), fixed: translate("drama.studio.scriptView.fixedS", { v0: String(rules.segmentSeconds) }), range: translate("drama.studio.scriptView.s", { v0: String(rules.segmentMinSeconds), v1: String(rules.segmentMaxSeconds) }) }[rules.segmentMode]) });
+    const dialogue =
+        rules.dialogue === "custom"
+            ? translate("drama.studio.scriptView.customCharactersSecondOneLineEverySeconds", { v0: String(rules.speechRate), v1: String(rules.lineSeconds) })
+            : { dense: translate("drama.studio.scriptView.dense"), standard: translate("library.assets.density.standard"), sparse: translate("drama.studio.scriptView.restrained") }[rules.dialogue];
+    const duration = translate("drama.studio.scriptView.averageSShotDialogueSegments", {
+        v0: String(PACING_LABEL[rules.pacing]),
+        v1: String(averageShotSeconds(rules)),
+        v2: String(dialogue),
+        v3: String(
+            {
+                auto: translate("drama.studio.scriptView.smartSegmentation"),
+                fixed: translate("drama.studio.scriptView.fixedS", { v0: String(rules.segmentSeconds) }),
+                range: translate("drama.studio.scriptView.s", { v0: String(rules.segmentMinSeconds), v1: String(rules.segmentMaxSeconds) }),
+            }[rules.segmentMode],
+        ),
+    });
     const transition = rules.transition === "auto" ? translate("drama.studio.scriptView.smartTransitions") : translate("drama.studio.scriptView.uniformTransitions", { v0: String(TRANSITION_LABEL[rules.transition]) });
     return `${duration} · ${transition}`;
 }
@@ -111,7 +125,8 @@ export function ScriptView({
                     <div className="drama-scriptv-brief-head">
                         <span className="drama-eyebrow">{translate("drama.studio.scriptView.episodeSynopsis")}</span>
                         <span className="drama-scriptv-format" title={SOURCE_FORMAT_LABEL[format].detail}>
-                            {translate("drama.studio.scriptView.assets")}{SOURCE_FORMAT_LABEL[format].title}
+                            {translate("drama.studio.scriptView.assets")}
+                            {SOURCE_FORMAT_LABEL[format].title}
                         </span>
                         <div className="ml-auto flex items-center gap-2">
                             {detail.scriptJob ? (
@@ -149,7 +164,8 @@ export function ScriptView({
                         <span>{translate("drama.studio.scriptView.storyboardRules")}</span>
                         <b>{storyboardSummary(storyboard)}</b>
                         <span>
-                            {translate("drama.studio.scriptView.actual")} {shots.length} {translate("drama.studio.scriptView.shots")} {(shots.reduce((sum, shot) => sum + shot.durationMs, 0) / 1000).toFixed(0)} {translate("account.settings.models.unitSecond")}
+                            {translate("drama.studio.scriptView.actual")} {shots.length} {translate("drama.studio.scriptView.shots")} {(shots.reduce((sum, shot) => sum + shot.durationMs, 0) / 1000).toFixed(0)}{" "}
+                            {translate("account.settings.models.unitSecond")}
                         </span>
                     </div>
                     {detail.dialogueCheck ? <DialogueCheckNotice check={detail.dialogueCheck} busy={busy} onRescript={confirmRescript} /> : null}
@@ -160,7 +176,9 @@ export function ScriptView({
                         {scenes.map((group, sceneIndex) => (
                             <section key={group.key} className="drama-screenplay-scene">
                                 <header>
-                                    <span className="drama-screenplay-scene-no">{translate("drama.studio.scriptView.scenes")} {sceneIndex + 1}</span>
+                                    <span className="drama-screenplay-scene-no">
+                                        {translate("drama.studio.scriptView.scenes")} {sceneIndex + 1}
+                                    </span>
                                     <strong>{group.scene || translate("drama.studio.scriptView.untitledScene")}</strong>
                                     <span className="drama-screenplay-scene-meta">
                                         {group.shots.length} {translate("drama.studio.scriptView.shots")} {(group.shots.reduce((sum, shot) => sum + shot.durationMs, 0) / 1000).toFixed(0)} {translate("account.settings.models.unitSecond")}
@@ -191,7 +209,12 @@ export function ScriptView({
                                                 {shot.shotSize ? <span>{shotVisualLabel(shot.shotSize)}</span> : null}
                                                 {shot.camera && shot.camera !== "固定" ? <span>{shotVisualLabel(shot.camera)}</span> : null}
                                                 <span>{(shot.durationMs / 1000).toFixed(1)}s</span>
-                                                {shot.transition && shot.transition !== "cut" ? <span className="is-transition">{TRANSITION_LABEL[shot.transition as keyof typeof TRANSITION_LABEL]}{translate("drama.studio.scriptView.enter")}</span> : null}
+                                                {shot.transition && shot.transition !== "cut" ? (
+                                                    <span className="is-transition">
+                                                        {TRANSITION_LABEL[shot.transition as keyof typeof TRANSITION_LABEL]}
+                                                        {translate("drama.studio.scriptView.enter")}
+                                                    </span>
+                                                ) : null}
                                                 {shot.sourceQuote ? (
                                                     <span className="is-source">
                                                         <Quote className="size-3" />
@@ -240,7 +263,9 @@ export function ScriptView({
                     <div className="drama-scriptv-pending">
                         <Clapperboard className="size-7" />
                         <strong>{empty.title}</strong>
-                        <span>{empty.text} {translate("drama.studio.scriptView.readTheNovelSourceForThisEpisodeOnTheRight")}</span>
+                        <span>
+                            {empty.text} {translate("drama.studio.scriptView.readTheNovelSourceForThisEpisodeOnTheRight")}
+                        </span>
                         {empty.action}
                     </div>
                 )}
@@ -280,9 +305,7 @@ function DialogueCheckNotice({ check, busy, onRescript }: { check: DramaDialogue
         <div className="drama-dialogue-check" role="status">
             <div className="drama-dialogue-check-head">
                 <AlertTriangle className="size-4 shrink-0" />
-                <strong>
-                    {translate("drama.sentences.sourceDialogueMissing", { total: check.sourceLines, missing: check.missingCount })}
-                </strong>
+                <strong>{translate("drama.sentences.sourceDialogueMissing", { total: check.sourceLines, missing: check.missingCount })}</strong>
                 <span className="flex-1" />
                 <Button size="small" disabled={busy} onClick={onRescript}>
                     {translate("drama.studio.scriptView.adaptAgain")}
@@ -296,7 +319,9 @@ function DialogueCheckNotice({ check, busy, onRescript }: { check: DramaDialogue
             </ul>
             {check.missing.length > 3 ? (
                 <button type="button" className="drama-link" onClick={() => setExpanded((value) => !value)}>
-                    {expanded ? translate("account.feedback.collapse") : translate("drama.studio.scriptView.showAll", { v0: String(check.missingCount > check.missing.length ? translate("drama.studio.scriptView.showingFirstLines", { v0: String(check.missing.length) }) : "") })}
+                    {expanded
+                        ? translate("account.feedback.collapse")
+                        : translate("drama.studio.scriptView.showAll", { v0: String(check.missingCount > check.missing.length ? translate("drama.studio.scriptView.showingFirstLines", { v0: String(check.missing.length) }) : "") })}
                 </button>
             ) : null}
         </div>
@@ -344,7 +369,9 @@ function SourcePane({ projectId, chapters, quote, onEdit }: { projectId: string;
                     {chapters.map((chapter) => (
                         <button key={chapter.id} type="button" role="tab" aria-selected={chapter.id === activeId} onClick={() => setChapterId(chapter.id)}>
                             {chapter.title}
-                            <span>{formatCount(chapter.wordCount)} {translate("drama.studio.scriptView.characters")}</span>
+                            <span>
+                                {formatCount(chapter.wordCount)} {translate("drama.studio.scriptView.characters")}
+                            </span>
                         </button>
                     ))}
                 </div>

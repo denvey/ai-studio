@@ -14,7 +14,6 @@ import { AdminDataTable, AdminStatusBadge, AdminTableEmpty, PaginationBar } from
 import "./email-logs-page.css";
 import { translate } from "@/i18n";
 
-
 export const emailPurposeLabels: Record<EmailLogPurpose, string> = {
     registration: translate("adminPages.emailLogs.emailLogsPage.registrationVerificationCode"),
     password_reset: translate("auth.panel.recoveryTitle"),
@@ -147,7 +146,9 @@ export default function EmailLogsPage() {
                     </button>
                 ))}
             </div>
-            {failedRecently ? <Alert type="warning" showIcon title={translate("adminPages.emailLogs.emailLogsPage.someEmailsFailedToSendInTheLast24Hours")} description={translate("adminPages.emailLogs.emailLogsPage.commonCausesUseAnAppPasswordRatherThanYourLogin")} /> : null}
+            {failedRecently ? (
+                <Alert type="warning" showIcon title={translate("adminPages.emailLogs.emailLogsPage.someEmailsFailedToSendInTheLast24Hours")} description={translate("adminPages.emailLogs.emailLogsPage.commonCausesUseAnAppPasswordRatherThanYourLogin")} />
+            ) : null}
             {error ? (
                 <Alert
                     type="error"
@@ -202,7 +203,11 @@ export default function EmailLogsPage() {
                     error ? (
                         <AdminTableEmpty title={translate("adminPages.emailLogs.emailLogsPage.logsAreTemporarilyUnavailable")} description={translate("adminPages.emailLogs.emailLogsPage.tryAgainNoQueryResultsAreCurrentlyDisplayed")} />
                     ) : (
-                        <AdminTableEmpty filtered={filtered} title={filtered ? translate("adminPages.emailLogs.emailLogsPage.noMatchingDeliveryLogs") : translate("adminPages.emailLogs.emailLogsPage.noEmailDeliveryLogsYet")} description={filtered ? translate("adminPages.emailLogs.emailLogsPage.adjustTheFiltersAndTryAgain") : translate("adminPages.emailLogs.emailLogsPage.logsAppearHereAfterUsersRequestVerificationCodesResetPasswords")} />
+                        <AdminTableEmpty
+                            filtered={filtered}
+                            title={filtered ? translate("adminPages.emailLogs.emailLogsPage.noMatchingDeliveryLogs") : translate("adminPages.emailLogs.emailLogsPage.noEmailDeliveryLogsYet")}
+                            description={filtered ? translate("adminPages.emailLogs.emailLogsPage.adjustTheFiltersAndTryAgain") : translate("adminPages.emailLogs.emailLogsPage.logsAppearHereAfterUsersRequestVerificationCodesResetPasswords")}
+                        />
                     )
                 }
                 footer={<PaginationBar alwaysShow current={page} pageSize={pageSize} total={data?.total ?? 0} onChange={(next, size) => update({ page: next, pageSize: size })} />}

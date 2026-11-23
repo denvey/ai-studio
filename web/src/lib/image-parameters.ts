@@ -3,7 +3,6 @@ import type { CapabilitySpec, OptionConstraint } from "@/services/api/logical-mo
 import { DEFAULT_IMAGE_RATIOS, imagePresetForRatio, imageSizeConfigWithPresets } from "./image-size-presets";
 import { translate } from "@/i18n";
 
-
 export type ImageParameterValue = string | number | boolean;
 export type ImageParameter = {
     name: string;
@@ -81,7 +80,8 @@ export function imageParameterRequest(profile: ImageCapabilityConfig, config: { 
         }
         if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error(translate("shared.imageParameters.imageExtensionParametersMustBeAnObject"));
         for (const field of profile.parameters) {
-            if (field.enabled !== false && !imageHostControls.has(field.name) && Object.hasOwn(parsed, field.name) && !imageParameterAccepts(field, (parsed as Record<string, unknown>)[field.name])) throw new Error(translate("shared.imageParameters.isOutsideTheModelSSupportedRange", { v0: String(field.label) }));
+            if (field.enabled !== false && !imageHostControls.has(field.name) && Object.hasOwn(parsed, field.name) && !imageParameterAccepts(field, (parsed as Record<string, unknown>)[field.name]))
+                throw new Error(translate("shared.imageParameters.isOutsideTheModelSSupportedRange", { v0: String(field.label) }));
         }
     }
     const values = parseImageParameters(config.imageParameters);
@@ -100,7 +100,8 @@ export function imageParameterRequest(profile: ImageCapabilityConfig, config: { 
         for (const field of profile.parameters) {
             if (field.enabled === false) continue;
             const value = values[field.name] ?? field.default;
-            if ((value !== undefined && !imageParameterAccepts(field, value)) || (field.required && (value === undefined || value === ""))) throw new Error(translate("shared.imageParameters.isOutsideTheModelSSupportedRangeOrHasNot", { v0: String(field.label) }));
+            if ((value !== undefined && !imageParameterAccepts(field, value)) || (field.required && (value === undefined || value === "")))
+                throw new Error(translate("shared.imageParameters.isOutsideTheModelSSupportedRangeOrHasNot", { v0: String(field.label) }));
         }
     }
     return normalizeImageParameters(profile.parameters, values);

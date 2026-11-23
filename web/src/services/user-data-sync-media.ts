@@ -8,7 +8,6 @@ import { getMediaBlob } from "@/services/file-storage";
 import { rebaseCanvasBatchInputSignatures } from "@/lib/canvas/canvas-batch-input-signature";
 import { translate } from "@/i18n";
 
-
 export function numberValue(value: unknown) {
     const number = Number(value);
     return Number.isFinite(number) && number > 0 ? number : undefined;

@@ -2,7 +2,6 @@ import { buildImageResolutionOptions, type ImageResolutionOption, type ImageReso
 import type { ImageCapabilityConfig } from "./model-capabilities";
 import { translate } from "@/i18n";
 
-
 export const IMAGE_RESOLUTIONS: ImageResolutionTier[] = ["1k", "2k", "4k"];
 // 1.5K 只在模型明确配置此档位时出现，既有模型的档位保持原有顺序。
 export function imageResolutionTiers(profile: ImageCapabilityConfig): ImageResolutionTier[] {

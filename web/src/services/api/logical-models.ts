@@ -4,7 +4,6 @@ import type { ImageResolutionOption } from "@/lib/image-resolution-tiers";
 import type { TokenPriceRule } from "@/services/api/wallet";
 import { translate } from "@/i18n";
 
-
 export type InputConstraint = { min: number; max: number };
 export type OptionConstraint = { values?: unknown[]; min?: number; max?: number; step?: number };
 export type CapabilityImageSizePreset = ImageResolutionOption;

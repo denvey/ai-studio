@@ -4,7 +4,6 @@ import { getActiveUserScope, scopedStorageKey } from "@/lib/user-scope";
 import { createEcommerceProject, saveEcommerceProject, type EcommerceDraft, type EcommercePlan, type EcommerceProject } from "@/services/api/ecommerce";
 import { translate } from "@/i18n";
 
-
 export type EcommerceWorkspaceCheckpoint = {
     sessionId: string;
     draft: EcommerceDraft;

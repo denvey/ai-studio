@@ -2,7 +2,6 @@ import { formatCredits } from "@/constant/credits";
 import type { GenerationTask } from "@/services/api/task-center";
 import { translate } from "@/i18n";
 
-
 type TaskBilling = NonNullable<GenerationTask["billing"]>;
 
 export type TaskBillingDisplay = {

@@ -124,11 +124,18 @@ export function SegmentDialog({
                     <header className="drama-sd-head">
                         <div className="min-w-0">
                             <div className="drama-eyebrow">
-                                {translate("drama.sentences.segmentMeta", { episode: detail.episode.number, segment: segment.index + 1, total: segments.length, shots: shots.length ? `${shots[0].position + 1}–${shots[shots.length - 1].position + 1}` : "—" })}
+                                {translate("drama.sentences.segmentMeta", {
+                                    episode: detail.episode.number,
+                                    segment: segment.index + 1,
+                                    total: segments.length,
+                                    shots: shots.length ? `${shots[0].position + 1}–${shots[shots.length - 1].position + 1}` : "—",
+                                })}
                             </div>
                             <div className="drama-sd-title">
                                 <h2>{segment.title}</h2>
-                                <span className="drama-sdx-total">{translate("drama.studio.segmentDialog.totalDuration")} {secondsLabel(segment.durationMs)}</span>
+                                <span className="drama-sdx-total">
+                                    {translate("drama.studio.segmentDialog.totalDuration")} {secondsLabel(segment.durationMs)}
+                                </span>
                                 <SegmentStatus segment={segment} />
                             </div>
                         </div>
@@ -279,7 +286,13 @@ function SegmentToolbar({
         <section className="drama-sdx-toolbar" aria-label={translate("drama.studio.segmentDialog.generationSettings")}>
             <div className="drama-sdx-toolbar-row">
                 <DramaModelPicker capability="video" size="sm" value={choice} onChange={setChoice} placeholder={translate("drama.studio.segmentDialog.videoModel")} className="drama-sdx-model" aspectRatio={aspectRatio} videoResolution={videoResolution} />
-                <Tooltip title={segment.request.maxVideoSeconds ? translate("drama.studio.segmentDialog.usesThisSegmentSShotDurationModelLimitSecondsPer", { v0: String(segment.request.maxVideoSeconds) }) : translate("drama.studio.segmentDialog.usesThisSegmentSShotDuration")}>
+                <Tooltip
+                    title={
+                        segment.request.maxVideoSeconds
+                            ? translate("drama.studio.segmentDialog.usesThisSegmentSShotDurationModelLimitSecondsPer", { v0: String(segment.request.maxVideoSeconds) })
+                            : translate("drama.studio.segmentDialog.usesThisSegmentSShotDuration")
+                    }
+                >
                     <span className="drama-sdx-chip">{segment.request.seconds ? `${segment.request.seconds}s` : secondsLabel(segment.durationMs)}</span>
                 </Tooltip>
                 <Tooltip title={translate("drama.studio.segmentDialog.aspectRatioFollowsTheProductionSettingsAndCannotChangeAfter")}>
@@ -316,9 +329,19 @@ function SegmentToolbar({
                 </Button>
             </div>
             {!promptReady(segment) && !running ? <p className="drama-sdx-hint">{translate("drama.studio.segmentDialog.thePromptMustBeReadyBeforeGeneratingAVideo")}</p> : null}
-            {changed && chosenAudioLimit !== undefined ? <p className="drama-sdx-hint">{translate("drama.studio.segmentDialog.selectedModel")}{chosenAudioLimit ? translate("drama.studio.segmentDialog.supportsUpToReferenceVoices", { v0: String(chosenAudioLimit) }) : translate("drama.studio.segmentDialog.doesNotSupportReferenceVoices")}{translate("drama.studio.segmentDialog.referencePanelSubmissionStatusesUpdateAfterTheModelIsApplied")}</p> : null}
+            {changed && chosenAudioLimit !== undefined ? (
+                <p className="drama-sdx-hint">
+                    {translate("drama.studio.segmentDialog.selectedModel")}
+                    {chosenAudioLimit ? translate("drama.studio.segmentDialog.supportsUpToReferenceVoices", { v0: String(chosenAudioLimit) }) : translate("drama.studio.segmentDialog.doesNotSupportReferenceVoices")}
+                    {translate("drama.studio.segmentDialog.referencePanelSubmissionStatusesUpdateAfterTheModelIsApplied")}
+                </p>
+            ) : null}
             {quoteMissing && !running ? <p className="drama-sdx-hint is-error">{SEGMENT_NO_QUOTE_HINT}</p> : null}
-            {segment.request.unknownReferences?.length ? <p className="drama-sdx-hint is-error">{translate("drama.studio.segmentDialog.inThePrompt")} {segment.request.unknownReferences.join("、")} {translate("drama.studio.segmentDialog.isNotAReferenceForThisSegmentCorrectTheNumber")}</p> : null}
+            {segment.request.unknownReferences?.length ? (
+                <p className="drama-sdx-hint is-error">
+                    {translate("drama.studio.segmentDialog.inThePrompt")} {segment.request.unknownReferences.join("、")} {translate("drama.studio.segmentDialog.isNotAReferenceForThisSegmentCorrectTheNumber")}
+                </p>
+            ) : null}
         </section>
     );
 }
@@ -331,23 +354,59 @@ function SegmentReceipt({ segment }: { segment: DramaSegment }) {
     const references = request.references.length;
     const sent = request.references.filter((ref) => ref.sent).length;
     const first = segment.index === 0 && !request.firstFrameResourceId && !request.firstFramePending;
-    const promptText = segment.custom ? translate("drama.studio.segmentDialog.editedManually") : { none: translate("drama.studio.segmentDialog.notWritten"), queued: translate("drama.studio.segmentDialog.queuedForWriting2"), running: translate("drama.studio.segmentDialog.writing"), ready: translate("drama.studio.segmentDialog.ready"), stale: translate("drama.studio.segmentDialog.outdatedRewriteRequired"), failed: translate("drama.studio.segmentDialog.writingFailed") }[segment.promptStatus];
+    const promptText = segment.custom
+        ? translate("drama.studio.segmentDialog.editedManually")
+        : {
+              none: translate("drama.studio.segmentDialog.notWritten"),
+              queued: translate("drama.studio.segmentDialog.queuedForWriting2"),
+              running: translate("drama.studio.segmentDialog.writing"),
+              ready: translate("drama.studio.segmentDialog.ready"),
+              stale: translate("drama.studio.segmentDialog.outdatedRewriteRequired"),
+              failed: translate("drama.studio.segmentDialog.writingFailed"),
+          }[segment.promptStatus];
     // 读到视频模型能力时才有画面与声音参数（aspectRatio 与它们一起填写）。
     const outputRows: ReceiptRow[] = request.aspectRatio
         ? [
               {
                   tone: request.size || request.resolution ? "ok" : "warn",
                   label: translate("drama.studio.segmentDialog.visuals"),
-                  value: request.resolution ? translate("drama.studio.segmentDialog.generatedAt", { v0: String(request.aspectRatio), v1: String(request.resolution) }) : request.size ? request.aspectRatio : translate("drama.studio.segmentDialog.unsupportedByTheSelectedModel", { v0: String(request.aspectRatio) }),
+                  value: request.resolution
+                      ? translate("drama.studio.segmentDialog.generatedAt", { v0: String(request.aspectRatio), v1: String(request.resolution) })
+                      : request.size
+                        ? request.aspectRatio
+                        : translate("drama.studio.segmentDialog.unsupportedByTheSelectedModel", { v0: String(request.aspectRatio) }),
               },
-              { tone: request.generateAudio ? "ok" : "warn", label: translate("canvasA.characterStudio.tabVoice"), value: request.generateAudio ? translate("drama.studio.segmentDialog.theModelGeneratesDialogueAndSoundEffectsWithTheVideo") : translate("drama.studio.segmentDialog.theSelectedModelHasNoAudioOutputThisSegmentVideo") },
+              {
+                  tone: request.generateAudio ? "ok" : "warn",
+                  label: translate("canvasA.characterStudio.tabVoice"),
+                  value: request.generateAudio ? translate("drama.studio.segmentDialog.theModelGeneratesDialogueAndSoundEffectsWithTheVideo") : translate("drama.studio.segmentDialog.theSelectedModelHasNoAudioOutputThisSegmentVideo"),
+              },
           ]
         : [];
     const rows: ReceiptRow[] = [
-        { tone: sent === references ? "ok" : "warn", label: translate("drama.studio.segmentDialog.referencesSent"), value: translate("drama.studio.segmentDialog.images", { v0: String(sent), v1: String(references), v2: String(references > sent ? translate("drama.studio.segmentDialog.missingImagesUseTextDesigns") : "") }) },
-        { tone: first || request.firstFrameResourceId ? "ok" : "warn", label: translate("canvasC.videoPromptTools.startFrame"), value: first ? translate("drama.studio.segmentDialog.openingSegmentNoFirstFrame") : request.firstFrameResourceId ? translate("drama.studio.segmentDialog.lastFrameOfSegmentVideo", { v0: String(segment.index) }) : translate("drama.studio.segmentDialog.waitingForSegmentVideo", { v0: String(segment.index) }) },
+        {
+            tone: sent === references ? "ok" : "warn",
+            label: translate("drama.studio.segmentDialog.referencesSent"),
+            value: translate("drama.studio.segmentDialog.images", { v0: String(sent), v1: String(references), v2: String(references > sent ? translate("drama.studio.segmentDialog.missingImagesUseTextDesigns") : "") }),
+        },
+        {
+            tone: first || request.firstFrameResourceId ? "ok" : "warn",
+            label: translate("canvasC.videoPromptTools.startFrame"),
+            value: first
+                ? translate("drama.studio.segmentDialog.openingSegmentNoFirstFrame")
+                : request.firstFrameResourceId
+                  ? translate("drama.studio.segmentDialog.lastFrameOfSegmentVideo", { v0: String(segment.index) })
+                  : translate("drama.studio.segmentDialog.waitingForSegmentVideo", { v0: String(segment.index) }),
+        },
         { tone: "info", label: translate("drama.studio.segmentDialog.generationMethod"), value: OPERATION_LABEL[request.operation] },
-        { tone: "info", label: translate("canvasA.assetView.duration"), value: translate("drama.studio.segmentDialog.seconds", { v0: String(request.seconds || Math.round(segment.durationMs / 1000)), v1: String(request.maxVideoSeconds ? translate("drama.studio.segmentDialog.modelLimitSPerGeneration", { v0: String(request.maxVideoSeconds) }) : "") }) },
+        {
+            tone: "info",
+            label: translate("canvasA.assetView.duration"),
+            value: translate("drama.studio.segmentDialog.seconds", {
+                v0: String(request.seconds || Math.round(segment.durationMs / 1000)),
+                v1: String(request.maxVideoSeconds ? translate("drama.studio.segmentDialog.modelLimitSPerGeneration", { v0: String(request.maxVideoSeconds) }) : ""),
+            }),
+        },
         ...outputRows,
         { tone: "info", label: translate("drama.studio.segmentDialog.videoModel"), value: segment.videoModel?.label || translate("drama.studio.segmentDialog.productionDefault") },
         { tone: promptReady(segment) ? "ok" : "warn", label: translate("canvasA.assetView.prompt"), value: promptText },
@@ -429,7 +488,16 @@ function ShotCard({
         [castById],
     );
     const rows: Array<[string, string]> = [
-        [translate("drama.studio.segmentDialog.shotSize"), [shotVisualLabel(shot.shotSize), shot.camera ? translate("drama.studio.segmentDialog.camera", { v0: shotVisualLabel(shot.camera) }) : "", shot.transition && shot.transition !== "cut" && shot.position > 0 ? translate("drama.studio.segmentDialog.transition2", { v0: String(TRANSITION_LABEL[shot.transition]) }) : ""].filter(Boolean).join(" · ")],
+        [
+            translate("drama.studio.segmentDialog.shotSize"),
+            [
+                shotVisualLabel(shot.shotSize),
+                shot.camera ? translate("drama.studio.segmentDialog.camera", { v0: shotVisualLabel(shot.camera) }) : "",
+                shot.transition && shot.transition !== "cut" && shot.position > 0 ? translate("drama.studio.segmentDialog.transition2", { v0: String(TRANSITION_LABEL[shot.transition]) }) : "",
+            ]
+                .filter(Boolean)
+                .join(" · "),
+        ],
         [translate("drama.studio.segmentDialog.scene"), shot.scene],
         [translate("drama.studio.segmentDialog.visuals"), shot.imagePrompt],
         [translate("drama.studio.segmentDialog.motion"), shot.action],
@@ -748,13 +816,27 @@ export function ShotEditor({ shot, onPatch }: { shot: DramaShot; onPatch: (patch
                     <span className="drama-sd-label">
                         <span>{translate("drama.studio.segmentDialog.shotSize")}</span>
                     </span>
-                    <Select className="w-full" value={shot.shotSize || undefined} placeholder={translate("account.layout.oss.auto")} aria-label={translate("drama.studio.segmentDialog.shotSize")} options={SHOT_SIZES.map((value) => ({ value, label: shotVisualLabel(value) }))} onChange={(value) => onPatch({ shotSize: value })} />
+                    <Select
+                        className="w-full"
+                        value={shot.shotSize || undefined}
+                        placeholder={translate("account.layout.oss.auto")}
+                        aria-label={translate("drama.studio.segmentDialog.shotSize")}
+                        options={SHOT_SIZES.map((value) => ({ value, label: shotVisualLabel(value) }))}
+                        onChange={(value) => onPatch({ shotSize: value })}
+                    />
                 </label>
                 <label className="drama-sd-field">
                     <span className="drama-sd-label">
                         <span>{translate("canvasA.toolPicker.motion.short")}</span>
                     </span>
-                    <Select className="w-full" value={shot.camera || undefined} placeholder={translate("account.layout.oss.auto")} aria-label={translate("canvasA.toolPicker.motion.short")} options={CAMERAS.map((value) => ({ value, label: shotVisualLabel(value) }))} onChange={(value) => onPatch({ camera: value })} />
+                    <Select
+                        className="w-full"
+                        value={shot.camera || undefined}
+                        placeholder={translate("account.layout.oss.auto")}
+                        aria-label={translate("canvasA.toolPicker.motion.short")}
+                        options={CAMERAS.map((value) => ({ value, label: shotVisualLabel(value) }))}
+                        onChange={(value) => onPatch({ camera: value })}
+                    />
                 </label>
                 <label className="drama-sd-field">
                     <span className="drama-sd-label">

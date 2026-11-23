@@ -307,7 +307,14 @@ export const PrevisViewport = forwardRef<PrevisViewportHandle, PrevisViewportPro
             {onViewModeChange ? <PrevisViewToolbar viewMode={props.viewMode ?? PREVIS_DEFAULT_VIEW_MODE} onViewModeChange={onViewModeChange} /> : null}
             {props.viewMode === "camera" ? <PrevisSafeFrameOverlay aspectRatio={resolvePrevisActiveShot(props.scene)?.aspectRatio} /> : null}
             {showNavigation ? <PrevisNavigationToolbar navigation={navigation} /> : null}
-            {capture.contextLost ? <PrevisViewportNotice title={translate("canvasTools.previs.previsViewport.item3DDisplayContextLost")} description={translate("canvasTools.previs.previsViewport.theBrowserReclaimedTheWebGLContextWaitForAutomaticRecovery")} actionLabel={translate("canvasTools.previs.previsViewport.rebuild3DViewport")} onAction={retry} /> : null}
+            {capture.contextLost ? (
+                <PrevisViewportNotice
+                    title={translate("canvasTools.previs.previsViewport.item3DDisplayContextLost")}
+                    description={translate("canvasTools.previs.previsViewport.theBrowserReclaimedTheWebGLContextWaitForAutomaticRecovery")}
+                    actionLabel={translate("canvasTools.previs.previsViewport.rebuild3DViewport")}
+                    onAction={retry}
+                />
+            ) : null}
             {!capture.contextLost && showModelLoadNotice && failedIds.length ? (
                 <PrevisViewportNotice
                     variant="corner"
@@ -428,10 +435,22 @@ function PrevisNavigationToolbar({ navigation }: { navigation: Pick<PrevisViewpo
     };
     return (
         <div className="previs-viewport-navigation" aria-label={translate("canvasTools.previs.previsViewport.viewportNavigationTools")}>
-            <button type="button" aria-label={translate("canvasTools.previs.previsViewport.focusSelectedObject")} title={translate("canvasTools.previs.previsViewport.focusSelectedObject")} disabled={!navigation} onClick={() => navigation && action(navigation.focusSelected)}>
+            <button
+                type="button"
+                aria-label={translate("canvasTools.previs.previsViewport.focusSelectedObject")}
+                title={translate("canvasTools.previs.previsViewport.focusSelectedObject")}
+                disabled={!navigation}
+                onClick={() => navigation && action(navigation.focusSelected)}
+            >
                 {translate("canvasTools.previs.previsViewport.focus")}
             </button>
-            <button type="button" aria-label={translate("canvasTools.previs.previsViewport.fitAllObjects")} title={translate("canvasTools.previs.previsViewport.fitAllObjects")} disabled={!navigation} onClick={() => navigation && action(navigation.frameScene)}>
+            <button
+                type="button"
+                aria-label={translate("canvasTools.previs.previsViewport.fitAllObjects")}
+                title={translate("canvasTools.previs.previsViewport.fitAllObjects")}
+                disabled={!navigation}
+                onClick={() => navigation && action(navigation.frameScene)}
+            >
                 {translate("canvasTools.previs.previsViewport.wideShot")}
             </button>
             <button type="button" aria-label={translate("canvasTools.previs.previsViewport.resetView")} title={translate("canvasTools.previs.previsViewport.resetView")} disabled={!navigation} onClick={() => navigation && action(navigation.resetCamera)}>

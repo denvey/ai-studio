@@ -73,7 +73,12 @@ export function ReferenceToolsPopover({
                 </div>
             }
         >
-            <button type="button" className={`canvas-node-composer-settings-trigger canvas-node-composer-reference-tools-trigger inline-flex shrink-0 items-center gap-1 ${compact ? "is-compact" : ""}`} aria-label={translate("canvasTools.canvasNodePromptReferences.openSmartReferences")} title={translate("canvasTools.canvasNodePromptReferences.smartReferences")}>
+            <button
+                type="button"
+                className={`canvas-node-composer-settings-trigger canvas-node-composer-reference-tools-trigger inline-flex shrink-0 items-center gap-1 ${compact ? "is-compact" : ""}`}
+                aria-label={translate("canvasTools.canvasNodePromptReferences.openSmartReferences")}
+                title={translate("canvasTools.canvasNodePromptReferences.smartReferences")}
+            >
                 <SlidersHorizontal className="size-3.5" />
                 {!compact ? <span>{translate("canvasTools.canvasNodePromptReferences.references")}</span> : null}
             </button>

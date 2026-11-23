@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 /**
  * 首页常驻通知条的标题样式模型。

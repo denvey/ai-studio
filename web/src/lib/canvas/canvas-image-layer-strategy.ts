@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export type ImageLayerRegion = {
     bbox: [number, number, number, number];
@@ -17,15 +16,18 @@ export type ImageLayerBackgroundPatch = { source: ImageLayerSource; regions: Ima
 
 export function validateImageLayerRegion(value: ImageLayerRegion): ImageLayerRegion {
     const box = value?.bbox;
-    if (!Array.isArray(box) || box.length !== 4 || box.some((n) => !Number.isFinite(n) || n < 0 || n > 1000) || box[2] - box[0] < 2 || box[3] - box[1] < 2) throw new Error(translate("shared.canvas.canvasImageLayerStrategy.invalidSourceExtractionRegionSelectARegionOnTheImage"));
+    if (!Array.isArray(box) || box.length !== 4 || box.some((n) => !Number.isFinite(n) || n < 0 || n > 1000) || box[2] - box[0] < 2 || box[3] - box[1] < 2)
+        throw new Error(translate("shared.canvas.canvasImageLayerStrategy.invalidSourceExtractionRegionSelectARegionOnTheImage"));
     if (!["rect", "rounded-rect", "ellipse"].includes(value.shape)) throw new Error(translate("shared.canvas.canvasImageLayerStrategy.invalidSourceExtractionRegionShape"));
-    if (value.shape === "rounded-rect" && (typeof value.radiusRatio !== "number" || !Number.isFinite(value.radiusRatio) || value.radiusRatio < 0 || value.radiusRatio > 0.5)) throw new Error(translate("shared.canvas.canvasImageLayerStrategy.cornerRadiusRatioMustBeBetween0And05"));
+    if (value.shape === "rounded-rect" && (typeof value.radiusRatio !== "number" || !Number.isFinite(value.radiusRatio) || value.radiusRatio < 0 || value.radiusRatio > 0.5))
+        throw new Error(translate("shared.canvas.canvasImageLayerStrategy.cornerRadiusRatioMustBeBetween0And05"));
     return { bbox: [...box], shape: value.shape, ...(value.shape === "rounded-rect" ? { radiusRatio: value.radiusRatio } : {}) };
 }
 
 /** 未指定策略时沿用模型路径；无效的显式策略不能回退为付费调用。 */
 export function resolveImageLayerExtractions(count: number, input?: ImageLayerExtraction[], removals?: boolean[]) {
-    if (!Number.isInteger(count) || count < 2 || count > 8 || (input && input.length !== count) || (removals && removals.length !== count)) throw new Error(translate("shared.canvas.canvasImageLayerStrategy.theLayerSeparationMethodDoesNotMatchTheTargetCount"));
+    if (!Number.isInteger(count) || count < 2 || count > 8 || (input && input.length !== count) || (removals && removals.length !== count))
+        throw new Error(translate("shared.canvas.canvasImageLayerStrategy.theLayerSeparationMethodDoesNotMatchTheTargetCount"));
     return Array.from({ length: count }, (_, index): ImageLayerExtraction => {
         const extraction: ImageLayerExtraction = input ? input[index] : { method: "generate" };
         if (!extraction || typeof extraction !== "object") throw new Error(translate("shared.canvas.canvasImageLayerStrategy.missingExtractionMethodForLayer", { v0: String(index + 1) }));

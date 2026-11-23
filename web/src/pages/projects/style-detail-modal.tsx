@@ -7,7 +7,6 @@ import { DRAMA_STYLE_CATEGORIES, findDramaStyle, styleCoverBackground } from "@/
 import { translate } from "@/i18n";
 import { dramaStyleDisplay } from "./style-copy";
 
-
 const DETAIL_ROWS = [
     { key: "medium", label: translate("drama.styleDetailModal.visualMedium") },
     { key: "world", label: translate("drama.styleDetailModal.genreAndSetting") },
@@ -126,7 +125,10 @@ export function DramaStyleDetailModal({
                                 <dd className="is-prompt">{style.prompt}</dd>
                             </div>
                         </dl>
-                        <p className="drama-style-detail-note">{translate("drama.styleDetailModal.styleDefinesTheVisualTreatmentColorPaletteCostumesMakeupAnd")}{style.cover ? "" : translate("drama.styleDetailModal.noPreviewImageIsAvailableForThisStyleTheLeft")}</p>
+                        <p className="drama-style-detail-note">
+                            {translate("drama.styleDetailModal.styleDefinesTheVisualTreatmentColorPaletteCostumesMakeupAnd")}
+                            {style.cover ? "" : translate("drama.styleDetailModal.noPreviewImageIsAvailableForThisStyleTheLeft")}
+                        </p>
                         <footer className="drama-style-detail-foot">
                             <Button icon={<ChevronLeft className="size-4" />} disabled={!prevId} onClick={() => prevId && onNavigate(prevId)} aria-label={translate("drama.styleDetailModal.previousStyle")} />
                             <Button icon={<ChevronRight className="size-4" />} disabled={!nextId} onClick={() => nextId && onNavigate(nextId)} aria-label={translate("drama.styleDetailModal.nextStyle")} />

@@ -4,7 +4,6 @@ import { getActiveUserScope } from "@/lib/user-scope";
 import type { AgentPermissionMode, AgentRun } from "@/services/api/agent";
 import { translate } from "@/i18n";
 
-
 export type CloudAgentMessagePresentation = {
     displayText?: string;
     canvasReferenceNodeId?: string;

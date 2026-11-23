@@ -73,9 +73,16 @@ export function normalizePublicAppearance(value?: Partial<PublicAppearance> | nu
     const darkLogoUrl = safeAppearanceURL(value?.darkLogoUrl, logoUrl);
     const resolvedBrandName = !value?.configured && brandName === "影策" ? DEFAULT_PUBLIC_APPEARANCE.brandName : brandName || DEFAULT_PUBLIC_APPEARANCE.brandName;
     const seoTitle = normalizeAppearanceCopy(!value?.configured && value?.seoTitle === "影策" ? undefined : value?.seoTitle, resolvedBrandName);
-    const seoDescription = normalizeAppearanceCopy(!value?.configured && value?.seoDescription === "影策，面向 AI 影视与短剧创作的工作台。" ? undefined : value?.seoDescription, translate("shared.appearance.seoDescription", { brand: resolvedBrandName }), true);
+    const seoDescription = normalizeAppearanceCopy(
+        !value?.configured && value?.seoDescription === "影策，面向 AI 影视与短剧创作的工作台。" ? undefined : value?.seoDescription,
+        translate("shared.appearance.seoDescription", { brand: resolvedBrandName }),
+        true,
+    );
     const seoKeywords = normalizeAppearanceCopy(value?.seoKeywords, "", true);
-    const footerCopyright = normalizeAppearanceCopy(!value?.configured && /^© \d{4} 影策\. All rights reserved\.$/.test(value?.footerCopyright || "") ? undefined : value?.footerCopyright, `© ${new Date().getFullYear()} ${resolvedBrandName}. All rights reserved.`);
+    const footerCopyright = normalizeAppearanceCopy(
+        !value?.configured && /^© \d{4} 影策\. All rights reserved\.$/.test(value?.footerCopyright || "") ? undefined : value?.footerCopyright,
+        `© ${new Date().getFullYear()} ${resolvedBrandName}. All rights reserved.`,
+    );
     const icpFilingNumber = normalizeAppearanceCopy(value?.icpFilingNumber, "", true);
     const redeemPurchaseUrl = typeof value?.redeemPurchaseUrl === "string" ? safeAppearanceURL(value.redeemPurchaseUrl, "") : "";
     return {

@@ -16,7 +16,6 @@ import {
 } from "@/services/api/ecommerce-knowledge";
 import { currentLocale, translate } from "@/i18n";
 
-
 export default function EcommerceKnowledgePage() {
     const { message } = App.useApp();
     const [stats, setStats] = useState<CommerceKnowledgeStats>();
@@ -93,7 +92,11 @@ export default function EcommerceKnowledgePage() {
                 <AdminStatTile label={translate("adminPages.ecommerceKnowledgePage.knowledgeEntries")} value={stats?.entryCount ?? "—"} detail={translate("adminPages.ecommerceKnowledgePage.sources", { v0: String(stats?.sourceCount ?? "—") })} />
                 <AdminStatTile label={translate("library.ark.expiry.valid")} value={stats?.approvedCount ?? "—"} detail={translate("adminPages.ecommerceKnowledgePage.reviewedAndUnexpired")} />
                 <AdminStatTile label={translate("adminPages.ecommerceKnowledgePage.inReview")} value={stats?.pendingCount ?? "—"} detail={translate("adminPages.ecommerceKnowledgePage.communitySourcesAwaitReviewByDefault")} />
-                <AdminStatTile label={translate("adminPages.ecommerceKnowledgePage.rejectedExpired")} value={stats ? `${stats.rejectedCount} / ${stats.expiredCount}` : "—"} detail={translate("adminPages.ecommerceKnowledgePage.duplicatesRemovedInTheLatestSync", { v0: String(stats?.lastSyncDuplicateCount ?? "—") })} />
+                <AdminStatTile
+                    label={translate("adminPages.ecommerceKnowledgePage.rejectedExpired")}
+                    value={stats ? `${stats.rejectedCount} / ${stats.expiredCount}` : "—"}
+                    detail={translate("adminPages.ecommerceKnowledgePage.duplicatesRemovedInTheLatestSync", { v0: String(stats?.lastSyncDuplicateCount ?? "—") })}
+                />
             </div>
             {stats ? (
                 <div className="eal-stack">
@@ -126,7 +129,14 @@ export default function EcommerceKnowledgePage() {
                         label: translate("adminPages.ecommerceKnowledgePage.knowledgeSources", { v0: String(stats?.sourceCount ?? 0) }),
                         children: (
                             <div className="eal-stack">
-                                <Input allowClear prefix={<Search size={14} />} value={sourceSearch} onChange={(event) => setSourceSearch(event.target.value)} placeholder={translate("adminPages.ecommerceKnowledgePage.searchSourceNameRepositoryLicenseOrStatus")} style={{ maxWidth: 430, marginBottom: 14 }} />
+                                <Input
+                                    allowClear
+                                    prefix={<Search size={14} />}
+                                    value={sourceSearch}
+                                    onChange={(event) => setSourceSearch(event.target.value)}
+                                    placeholder={translate("adminPages.ecommerceKnowledgePage.searchSourceNameRepositoryLicenseOrStatus")}
+                                    style={{ maxWidth: 430, marginBottom: 14 }}
+                                />
                                 <Table
                                     rowKey="id"
                                     size="small"
@@ -150,7 +160,11 @@ export default function EcommerceKnowledgePage() {
                                         { title: translate("adminPages.ecommerceKnowledgePage.pinnedVersion"), dataIndex: "commit", render: (value: string) => value.slice(0, 12) },
                                         { title: translate("adminPages.ecommerceKnowledgePage.license"), dataIndex: "license" },
                                         { title: translate("library.tasks.detail.status"), dataIndex: "status", render: (value: string) => <Tag color={value === "ready" ? "green" : value === "partial" ? "gold" : "default"}>{value}</Tag> },
-                                        { title: translate("adminPages.ecommerceKnowledgePage.lastSynced"), dataIndex: "lastSyncedAt", render: (value?: string) => (value ? new Date(value).toLocaleString(currentLocale()) : translate("adminPages.ecommerceKnowledgePage.notSynced")) },
+                                        {
+                                            title: translate("adminPages.ecommerceKnowledgePage.lastSynced"),
+                                            dataIndex: "lastSyncedAt",
+                                            render: (value?: string) => (value ? new Date(value).toLocaleString(currentLocale()) : translate("adminPages.ecommerceKnowledgePage.notSynced")),
+                                        },
                                         {
                                             title: translate("account.settings.runninghub.actions"),
                                             key: "actions",
@@ -161,7 +175,11 @@ export default function EcommerceKnowledgePage() {
                                             ),
                                         },
                                     ]}
-                                    expandable={{ expandedRowRender: (source) => <Typography.Paragraph style={{ whiteSpace: "pre-wrap", maxWidth: 760 }}>{source.licenseText || source.errorMessage || translate("adminPages.ecommerceKnowledgePage.noLicenseTextAvailable")}</Typography.Paragraph> }}
+                                    expandable={{
+                                        expandedRowRender: (source) => (
+                                            <Typography.Paragraph style={{ whiteSpace: "pre-wrap", maxWidth: 760 }}>{source.licenseText || source.errorMessage || translate("adminPages.ecommerceKnowledgePage.noLicenseTextAvailable")}</Typography.Paragraph>
+                                        ),
+                                    }}
                                 />
                             </div>
                         ),

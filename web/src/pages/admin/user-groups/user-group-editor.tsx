@@ -10,7 +10,6 @@ import { Callout, Switch } from "../ui/controls";
 import { emptyUserGroupForm, userGroupFormValues, userGroupInput, type UserGroupFormValues } from "./user-group-form";
 import { translate } from "@/i18n";
 
-
 const badgeStyleOptions = [
     { value: "none", label: translate("adminPages.userGroups.userGroupEditor.noBadge") },
     { value: "vip", label: translate("adminPages.userGroups.userGroupEditor.vIPGold") },
@@ -126,7 +125,9 @@ export function UserGroupEditor({ open, group, onClose, onSaved }: { open: boole
                         <Input maxLength={16} placeholder="VIP" />
                     </Form.Item>
                     <Form.Item label={translate("account.feedback.preview")}>
-                        <div className="flex h-8 items-center">{badgeStyle === "none" ? <span className="text-xs text-foreground/45">{translate("adminPages.userGroups.userGroupEditor.hidden")}</span> : <UserGroupBadge group={{ name, badgeLabel, badgeStyle }} />}</div>
+                        <div className="flex h-8 items-center">
+                            {badgeStyle === "none" ? <span className="text-xs text-foreground/45">{translate("adminPages.userGroups.userGroupEditor.hidden")}</span> : <UserGroupBadge group={{ name, badgeLabel, badgeStyle }} />}
+                        </div>
                     </Form.Item>
                 </div>
 
@@ -135,13 +136,27 @@ export function UserGroupEditor({ open, group, onClose, onSaved }: { open: boole
                     {translate("adminPages.userGroups.userGroupEditor.actualChargeModelPriceCurrencyConversionRateForUSDCNY")}
                 </Callout>
                 <div className="grid gap-x-4 sm:grid-cols-3">
-                    <Form.Item name="ratio" label={translate("adminPages.userGroups.userGroupEditor.groupMultiplier")} rules={[{ required: true, type: "number", min: 0.0001, max: 100, message: translate("adminPages.userGroups.userGroupEditor.item00001To100") }]}>
+                    <Form.Item
+                        name="ratio"
+                        label={translate("adminPages.userGroups.userGroupEditor.groupMultiplier")}
+                        rules={[{ required: true, type: "number", min: 0.0001, max: 100, message: translate("adminPages.userGroups.userGroupEditor.item00001To100") }]}
+                    >
                         <InputNumber className="w-full" min={0.0001} max={100} step={0.05} />
                     </Form.Item>
-                    <Form.Item name="pointsPerUsd" label={translate("adminPages.userGroups.userGroupEditor.creditsPer1USD")} rules={[{ type: "number", min: 0, max: 1_000_000 }]} extra={translate("adminPages.userGroups.userGroupEditor.item0PreventsThisGroupFromUsingModelsPricedInUSD")}>
+                    <Form.Item
+                        name="pointsPerUsd"
+                        label={translate("adminPages.userGroups.userGroupEditor.creditsPer1USD")}
+                        rules={[{ type: "number", min: 0, max: 1_000_000 }]}
+                        extra={translate("adminPages.userGroups.userGroupEditor.item0PreventsThisGroupFromUsingModelsPricedInUSD")}
+                    >
                         <InputNumber className="w-full" min={0} max={1_000_000} step={0.1} />
                     </Form.Item>
-                    <Form.Item name="pointsPerCny" label={translate("adminPages.userGroups.userGroupEditor.creditsPer1CNY")} rules={[{ type: "number", min: 0, max: 1_000_000 }]} extra={translate("adminPages.userGroups.userGroupEditor.item0PreventsThisGroupFromUsingModelsPricedInCNY")}>
+                    <Form.Item
+                        name="pointsPerCny"
+                        label={translate("adminPages.userGroups.userGroupEditor.creditsPer1CNY")}
+                        rules={[{ type: "number", min: 0, max: 1_000_000 }]}
+                        extra={translate("adminPages.userGroups.userGroupEditor.item0PreventsThisGroupFromUsingModelsPricedInCNY")}
+                    >
                         <InputNumber className="w-full" min={0} max={1_000_000} step={0.1} />
                     </Form.Item>
                 </div>
@@ -151,7 +166,11 @@ export function UserGroupEditor({ open, group, onClose, onSaved }: { open: boole
                     <Switch aria-label={translate("adminPages.userGroups.userGroupEditor.allowAllSystemChannels")} />
                 </Form.Item>
                 {!allChannels ? (
-                    <Form.Item name="channelIds" label={translate("adminPages.userGroups.userGroupEditor.assignedChannels")} extra={channelIds?.length ? undefined : translate("adminPages.userGroups.userGroupEditor.withNoChannelsAssignedUsersInThisGroupCannotSee")}>
+                    <Form.Item
+                        name="channelIds"
+                        label={translate("adminPages.userGroups.userGroupEditor.assignedChannels")}
+                        extra={channelIds?.length ? undefined : translate("adminPages.userGroups.userGroupEditor.withNoChannelsAssignedUsersInThisGroupCannotSee")}
+                    >
                         <Select mode="multiple" allowClear showSearch optionFilterProp="label" options={channelOptions} placeholder={translate("adminPages.userGroups.userGroupEditor.chooseSystemChannelsAvailableToThisGroup")} />
                     </Form.Item>
                 ) : null}
@@ -164,10 +183,23 @@ export function UserGroupEditor({ open, group, onClose, onSaved }: { open: boole
                             {fields.map((field) => (
                                 <div key={field.key} className="grid items-start gap-2 sm:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))_auto]">
                                     <Form.Item name={[field.name, "modelKey"]} className="mb-0" rules={[{ required: true, whitespace: true, message: translate("adminPages.userGroups.userGroupEditor.pleaseSelectAModel") }]}>
-                                        <Select showSearch allowClear options={modelOptions} placeholder={translate("adminPages.userGroups.userGroupEditor.modelIdentifier")} aria-label={translate("adminPages.userGroups.userGroupEditor.modelIdentifier")} />
+                                        <Select
+                                            showSearch
+                                            allowClear
+                                            options={modelOptions}
+                                            placeholder={translate("adminPages.userGroups.userGroupEditor.modelIdentifier")}
+                                            aria-label={translate("adminPages.userGroups.userGroupEditor.modelIdentifier")}
+                                        />
                                     </Form.Item>
                                     <Form.Item name={[field.name, "ratio"]} className="mb-0">
-                                        <InputNumber className="w-full" min={0.0001} max={100} step={0.05} placeholder={translate("adminPages.userGroups.userGroupEditor.multiplier")} aria-label={translate("adminPages.userGroups.userGroupEditor.modelMultiplier")} />
+                                        <InputNumber
+                                            className="w-full"
+                                            min={0.0001}
+                                            max={100}
+                                            step={0.05}
+                                            placeholder={translate("adminPages.userGroups.userGroupEditor.multiplier")}
+                                            aria-label={translate("adminPages.userGroups.userGroupEditor.modelMultiplier")}
+                                        />
                                     </Form.Item>
                                     <Form.Item name={[field.name, "pointsPerUsd"]} className="mb-0">
                                         <InputNumber className="w-full" min={0} max={1_000_000} placeholder="1 USD=" aria-label={translate("adminPages.userGroups.userGroupEditor.creditsPer1USD2")} />

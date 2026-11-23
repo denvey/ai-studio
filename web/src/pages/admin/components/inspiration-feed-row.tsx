@@ -69,7 +69,9 @@ export function InspirationFeedRow() {
                         <strong>{translate("admin.inspirationFeedRow.inspirationUpdates")}</strong>
                         <span className="afp-location">{translate("admin.inspirationFeedRow.creationHomeInspiration")}</span>
                     </div>
-                    <p>{translate("admin.inspirationFeedRow.every")} {status?.intervalHours ?? 6} {translate("admin.inspirationFeedRow.hoursSyncNewChineseLanguagePromptsFromYouMindAndAwesome")}</p>
+                    <p>
+                        {translate("admin.inspirationFeedRow.every")} {status?.intervalHours ?? 6} {translate("admin.inspirationFeedRow.hoursSyncNewChineseLanguagePromptsFromYouMindAndAwesome")}
+                    </p>
                     {query.isError ? (
                         <p className="afp-row-warning" role="alert">
                             <AlertTriangle className="size-3.5 shrink-0" aria-hidden="true" />
@@ -81,12 +83,12 @@ export function InspirationFeedRow() {
                                 {translate("admin.inspirationFeedRow.collected")} {status.total.toLocaleString(currentLocale())} {translate("account.layout.pagination.item")}
                                 {status.lastAttemptAt ? (
                                     <>
-                                        {(" " + translate("admin.inspirationFeedRow.lastSynced") + " ")}
+                                        {" " + translate("admin.inspirationFeedRow.lastSynced") + " "}
                                         <RelativeTime value={status.lastAttemptAt} />
                                         {status.sources.length ? `（${status.sources.map((item) => translate("admin.inspirationFeedRow.added", { v0: String(SOURCE_NAMES[item.sourceId] ?? item.sourceId), v1: String(item.created) })).join("，")}）` : ""}
                                     </>
                                 ) : enabled ? (
-                                    (" " + translate("admin.inspirationFeedRow.waitingForFirstSyncAbout2MinutesAfterServiceStartup"))
+                                    " " + translate("admin.inspirationFeedRow.waitingForFirstSyncAbout2MinutesAfterServiceStartup")
                                 ) : null}
                                 {translate("admin.inspirationFeedRow.entriesDuplicatedInTheBuiltInCatalogAreAutomaticallyDeduplicated")}
                             </p>

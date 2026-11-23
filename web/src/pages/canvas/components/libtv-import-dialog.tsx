@@ -169,7 +169,9 @@ export function LibTVImportDialog({ open, projectId, viewport, viewportSize, onC
                                 <CircleAlert className="mt-0.5 size-4 shrink-0" />
                                 <div>
                                     {result.skippedNodes.length ? <div>{translate("canvasTools.inline.libtvImportDialog.unsupportedNodesWereNotImportedTheirConnectionsWereIgnoredAutomatically", { v0: String(result.skippedNodes.length) })}</div> : null}
-                                    {!result.skippedNodes.length && result.skippedConnections.length ? <div>{translate("canvasTools.inline.libtvImportDialog.invalidConnectionsWereIgnoredAutomatically", { v0: String(result.skippedConnections.length) })}</div> : null}
+                                    {!result.skippedNodes.length && result.skippedConnections.length ? (
+                                        <div>{translate("canvasTools.inline.libtvImportDialog.invalidConnectionsWereIgnoredAutomatically", { v0: String(result.skippedConnections.length) })}</div>
+                                    ) : null}
                                     {result.reusedFailedNodeCount ? <div>{translate("canvasTools.inline.libtvImportDialog.nodesWithFailedRecentTasksButPreviousResultsWereRetained", { v0: String(result.reusedFailedNodeCount) })}</div> : null}
                                     {result.placeholderNodeCount ? <div>{translate("canvasTools.inline.libtvImportDialog.nodesWithoutGeneratedResultsWereRetainedAsPlaceholders", { v0: String(result.placeholderNodeCount) })}</div> : null}
                                     {result.convertedSpecialCount ? <div>{translate("canvasTools.inline.libtvImportDialog.specialNodesWereConvertedToImageReferenceNodes", { v0: String(result.convertedSpecialCount) })}</div> : null}

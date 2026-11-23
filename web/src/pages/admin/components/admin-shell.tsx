@@ -114,7 +114,14 @@ const adminNavigation: AdminNavigationGroup[] = [
         label: translate("admin.adminShell.modelsAndChannels"),
         items: [
             { path: "/admin/channels", keywords: "渠道 模型 API Key 密钥 上游 定价 协议", label: translate("admin.adminShell.channelsAndModels"), shortLabel: translate("admin.adminShell.channel"), icon: <RadioTower className="size-4" /> },
-            { path: "/admin/models", keywords: "前台模型 逻辑模型 能力", label: translate("admin.adminShell.userFacingModels"), shortLabel: translate("canvasA.assetView.model"), icon: <Layers3 className="size-4" />, requireFeature: "frontendModelsEnabled" },
+            {
+                path: "/admin/models",
+                keywords: "前台模型 逻辑模型 能力",
+                label: translate("admin.adminShell.userFacingModels"),
+                shortLabel: translate("canvasA.assetView.model"),
+                icon: <Layers3 className="size-4" />,
+                requireFeature: "frontendModelsEnabled",
+            },
         ],
     },
     {
@@ -143,7 +150,13 @@ const adminNavigation: AdminNavigationGroup[] = [
         key: "settings",
         label: translate("admin.adminShell.systemSettings"),
         items: [
-            { path: "/admin/settings/appearance", keywords: "站点 外观 品牌 主题 Logo 皮肤", label: translate("admin.adminShell.siteAndAppearance"), shortLabel: translate("canvasA.characterStudio.groups.appearance"), icon: <Palette className="size-4" /> },
+            {
+                path: "/admin/settings/appearance",
+                keywords: "站点 外观 品牌 主题 Logo 皮肤",
+                label: translate("admin.adminShell.siteAndAppearance"),
+                shortLabel: translate("canvasA.characterStudio.groups.appearance"),
+                icon: <Palette className="size-4" />,
+            },
             { path: "/admin/settings/features", keywords: "功能 开关 开放", label: translate("admin.adminShell.featureAvailability"), shortLabel: translate("admin.adminShell.features"), icon: <ToggleLeft className="size-4" /> },
             { path: "/admin/settings/access", keywords: "登录 注册 验证码 认证", label: translate("admin.adminShell.signInAndRegistration"), shortLabel: translate("admin.adminShell.signUp"), icon: <ShieldCheck className="size-4" /> },
             { path: "/admin/settings/email", keywords: "邮件 SMTP 发信 邮箱", label: translate("admin.adminShell.emailService"), shortLabel: translate("admin.adminShell.email"), icon: <Mail className="size-4" /> },
@@ -151,7 +164,13 @@ const adminNavigation: AdminNavigationGroup[] = [
             { path: "/admin/settings/runtime-policy", keywords: "资源 策略 并发 限流 配额 worker", label: translate("admin.adminShell.resourcesAndPolicy"), shortLabel: translate("admin.adminShell.strategy"), icon: <Settings2 className="size-4" /> },
             { path: "/admin/settings/ark-private-assets", keywords: "方舟 素材库 火山", label: translate("settings.sections.ark-assets.label"), shortLabel: translate("admin.adminShell.ark"), icon: <CloudUpload className="size-4" /> },
             { path: "/admin/settings/third-party", keywords: "第三方 参数 配置 密钥 LibTV", label: translate("admin.adminShell.thirdPartySettings"), shortLabel: translate("admin.adminShell.thirdParty"), icon: <KeyRound className="size-4" /> },
-            { path: "/admin/settings/response-interception", keywords: "模型 响应 拦截 敏感词 过滤", label: translate("admin.adminShell.modelResponseFiltering"), shortLabel: translate("admin.adminShell.interception"), icon: <ShieldAlert className="size-4" /> },
+            {
+                path: "/admin/settings/response-interception",
+                keywords: "模型 响应 拦截 敏感词 过滤",
+                label: translate("admin.adminShell.modelResponseFiltering"),
+                shortLabel: translate("admin.adminShell.interception"),
+                icon: <ShieldAlert className="size-4" />,
+            },
             { path: "/admin/settings/system-update", keywords: "系统 更新 升级 版本 部署", label: translate("admin.adminShell.systemUpdates"), shortLabel: translate("canvasA.assetView.updated"), icon: <RefreshCw className="size-4" /> },
         ],
     },

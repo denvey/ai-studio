@@ -638,7 +638,14 @@ export function CanvasPromptOptimizerDrawer({ open, children, prompt, generation
                     beginPanelInteraction(event, "drag");
                 }}
             >
-                <div className="canvas-prompt-optimizer-header-main canvas-prompt-optimizer-drag-region" role="button" tabIndex={0} aria-label={translate("canvasTools.canvasPromptOptimizerDrawer.movePromptOptimizationPanel")} title={translate("canvasTools.canvasPromptOptimizerDrawer.dragToMoveThePanelOrUseTheArrowKeys")} onKeyDown={handlePanelMoveKeyDown}>
+                <div
+                    className="canvas-prompt-optimizer-header-main canvas-prompt-optimizer-drag-region"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={translate("canvasTools.canvasPromptOptimizerDrawer.movePromptOptimizationPanel")}
+                    title={translate("canvasTools.canvasPromptOptimizerDrawer.dragToMoveThePanelOrUseTheArrowKeys")}
+                    onKeyDown={handlePanelMoveKeyDown}
+                >
                     <span className="canvas-prompt-optimizer-icon">
                         <PenLine className="size-4" aria-hidden="true" />
                     </span>
@@ -792,7 +799,11 @@ function ReferenceSelection({ references, selectedReferences, onToggle }: { refe
         <div className="canvas-prompt-optimizer-reference-selection">
             <div className="canvas-prompt-optimizer-reference-heading">
                 <span>{translate("library.picker.eyebrow")}</span>
-                <span>{references.length ? translate("canvasTools.canvasPromptOptimizerDrawer.selected", { v0: String(selectedReferences.length), v1: String(references.length) }) : translate("canvasTools.canvasPromptOptimizerDrawer.noReferencesConnectedInTheCurrentContext")}</span>
+                <span>
+                    {references.length
+                        ? translate("canvasTools.canvasPromptOptimizerDrawer.selected", { v0: String(selectedReferences.length), v1: String(references.length) })
+                        : translate("canvasTools.canvasPromptOptimizerDrawer.noReferencesConnectedInTheCurrentContext")}
+                </span>
             </div>
             {references.length ? (
                 <div className="canvas-prompt-optimizer-reference-list" role="group" aria-label={translate("canvasTools.canvasPromptOptimizerDrawer.referencesUsedForThisOptimization")}>

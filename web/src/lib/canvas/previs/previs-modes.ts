@@ -1,7 +1,6 @@
 import type { PrevisRenderMode } from "@/types/previs";
 import { translate } from "@/i18n";
 
-
 /**
  * 预演台一级模式：只有「摆场」和「动画」两种。
  *

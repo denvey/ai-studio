@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export const MODEL_LOGO_CATEGORIES = [
     { id: "image", label: translate("shared.modelLogoCatalog.image") },

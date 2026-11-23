@@ -13,7 +13,6 @@ import { agentErrorPresentation } from "@/lib/canvas/agent-error-presentation";
 import { mergeAgentMediaBatchProgress } from "@/lib/canvas/cloud-agent-media-batch";
 import { currentLocale, translate } from "@/i18n";
 
-
 /** 待用户处理的 Agent 审批（面板状态与事件归约共用）。 */
 export type ApprovalState = { approvalId: string; detail: Record<string, unknown>; reason: string };
 
@@ -364,7 +363,9 @@ export function applyAgentEvent(
         if (payload.operation === "generate_media_submit" || payload.operation === "generate_media_complete") return;
         const { canvasPatch: _patch, ...detail } = payload;
         const id = payload.callId ? `canvas-${event.runId}-${payload.callId}` : event.eventId;
-        setMessages((current) => upsertCloudAgentCanvasMutation(current, { id, role: "tool", title: "canvas_apply_ops", text: String(payload.text || translate("canvasPage.operationHistory.done")), detail: { ...detail, runId: event.runId, eventType: event.type } }));
+        setMessages((current) =>
+            upsertCloudAgentCanvasMutation(current, { id, role: "tool", title: "canvas_apply_ops", text: String(payload.text || translate("canvasPage.operationHistory.done")), detail: { ...detail, runId: event.runId, eventType: event.type } }),
+        );
         return;
     }
     if (event.type.startsWith("tool_") && agentToolRetry(payload)) {
@@ -395,7 +396,13 @@ export function applyAgentEvent(
     }
     if (event.type === "tool_completed" && typeof payload.callId === "string" && CANVAS_MUTATION_TOOLS.has(String(payload.toolName || ""))) {
         const id = `canvas-${event.runId}-${payload.callId}`;
-        const message: CloudAgentChatMessage = { id, role: "tool", title: String(payload.toolName), text: text || translate("canvasPage.operationHistory.done"), detail: { ...payload, runId: event.runId, eventType: event.type, completionEventType: event.type } };
+        const message: CloudAgentChatMessage = {
+            id,
+            role: "tool",
+            title: String(payload.toolName),
+            text: text || translate("canvasPage.operationHistory.done"),
+            detail: { ...payload, runId: event.runId, eventType: event.type, completionEventType: event.type },
+        };
         setMessages((current) => upsertCloudAgentCanvasMutation(current, message));
         return;
     }
@@ -405,7 +412,13 @@ export function applyAgentEvent(
         return;
     }
     if (event.type.startsWith("tool_")) {
-        const message: CloudAgentChatMessage = { id: event.eventId, role: "tool", title: String(payload.toolName || payload.title || translate("shared.canvas.cloudAgentEvents.toolExecution")), text: text || event.type, detail: { ...payload, eventType: event.type } };
+        const message: CloudAgentChatMessage = {
+            id: event.eventId,
+            role: "tool",
+            title: String(payload.toolName || payload.title || translate("shared.canvas.cloudAgentEvents.toolExecution")),
+            text: text || event.type,
+            detail: { ...payload, eventType: event.type },
+        };
         if (payload.toolName === "generate_media") {
             setMessages((current) => upsertMediaToolTrace(current, message));
         } else {

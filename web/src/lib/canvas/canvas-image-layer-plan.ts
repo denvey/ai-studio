@@ -5,7 +5,6 @@ import { IMAGE_LAYER_REGION_INSTRUCTIONS, parseImageLayerGeneration, type ImageL
 import type { ImageLayerExtraction } from "@/lib/canvas/canvas-image-layer-strategy";
 import { translate } from "@/i18n";
 
-
 export type ImageLayerPlanningPurpose = "materials" | "recompose";
 export type ImageLayerPlanningOptions = { input?: "preview" | "original"; history?: boolean; purpose?: ImageLayerPlanningPurpose };
 type ImageSize = { width: number; height: number };
@@ -114,7 +113,8 @@ export function parseImageLayerPlan(text: string, referenceSize?: ImageSize): Im
     } catch {
         throw new Error(translate("shared.canvas.canvasImageLayerPlan.imageAnalysisDidNotReturnValidJSONTheLayerSeparation"));
     }
-    if (!value || typeof value !== "object" || value.canPlan !== true) throw new Error(translate("shared.canvas.canvasImageLayerPlan.theSelectedModelCannotAnalyzeImagesOrPlanLayerSeparation", { v0: String(typeof value?.reason === "string" ? `：${value.reason.slice(0, 300)}` : "") }));
+    if (!value || typeof value !== "object" || value.canPlan !== true)
+        throw new Error(translate("shared.canvas.canvasImageLayerPlan.theSelectedModelCannotAnalyzeImagesOrPlanLayerSeparation", { v0: String(typeof value?.reason === "string" ? `：${value.reason.slice(0, 300)}` : "") }));
     if (!Array.isArray(value.layers) || value.layers.length < 2 || value.layers.length > 8) throw new Error(translate("shared.canvas.canvasImageLayerPlan.theImageAnalysisPlanMustContain28Layers"));
     const names = new Set<string>();
     const warnings: string[] = [];
@@ -188,7 +188,11 @@ export function latestImageLayerPlan(tasks: GenerationTask[], projectId: string,
                 ...plan,
                 taskId: task.id,
                 model: task.model,
-                warnings: [...(plan.warnings || []), translate("shared.canvas.canvasImageLayerPlan.loadedTheExistingPlanForWithoutAnotherModelCallReview", { v0: String(task.createdAt) }), ...(!metadata.sourceStorageKey ? [translate("shared.canvas.canvasImageLayerPlan.thisOlderRecordHasNoSourceImageResourceIDConfirm")] : [])],
+                warnings: [
+                    ...(plan.warnings || []),
+                    translate("shared.canvas.canvasImageLayerPlan.loadedTheExistingPlanForWithoutAnotherModelCallReview", { v0: String(task.createdAt) }),
+                    ...(!metadata.sourceStorageKey ? [translate("shared.canvas.canvasImageLayerPlan.thisOlderRecordHasNoSourceImageResourceIDConfirm")] : []),
+                ],
             };
         } catch {
             /* 跳过未形成可用计划的旧记录，不创建或重试任务。 */

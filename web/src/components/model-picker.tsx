@@ -19,7 +19,6 @@ import { referenceCapabilityTag } from "@/lib/model-tags";
 import { quoteModel, type LogicalModelQuote, type PublicChannelModelAvailability } from "@/services/api/logical-models";
 import { currentLocale, translate } from "@/i18n";
 
-
 type ModelPickerProps = {
     config: AiConfig;
     value?: string;
@@ -218,12 +217,15 @@ export function ModelPicker({
                                         <span className="flex items-center gap-2 min-w-0">
                                             <strong className="truncate">{group.label}</strong>
                                             {group.scope === "personal" ? (
-                                                <span className="shrink-0 rounded px-2 py-0.5 text-[var(--fs-label)] font-medium leading-none bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/25">{translate("shared.modelPicker.personalChannels")}</span>
+                                                <span className="shrink-0 rounded px-2 py-0.5 text-[var(--fs-label)] font-medium leading-none bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/25">
+                                                    {translate("shared.modelPicker.personalChannels")}
+                                                </span>
                                             ) : null}
                                         </span>
                                         <small className="canvas-model-picker-brand-meta">
                                             <span className="canvas-model-picker-brand-subtext">
-                                                {group.models.length} {translate("shared.modelPicker.items")}{group.kind === "product" ? translate("shared.modelPicker.channel") : translate("canvasA.assetView.model")}
+                                                {group.models.length} {translate("shared.modelPicker.items")}
+                                                {group.kind === "product" ? translate("shared.modelPicker.channel") : translate("canvasA.assetView.model")}
                                                 {group.scope ? ` · ${modelPickerGroupScopeLabel(group.scope)}` : ""}
                                             </span>
                                             <ModelRecentHealthTrack availability={groupAvailability(config, group)} />
@@ -247,12 +249,15 @@ export function ModelPicker({
                                             <span className="flex items-center gap-2 min-w-0">
                                                 <strong className="truncate">{group.label}</strong>
                                                 {group.scope === "personal" ? (
-                                                    <span className="shrink-0 rounded px-2 py-0.5 text-[var(--fs-label)] font-medium leading-none bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/25">{translate("shared.modelPicker.personalChannels")}</span>
+                                                    <span className="shrink-0 rounded px-2 py-0.5 text-[var(--fs-label)] font-medium leading-none bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/25">
+                                                        {translate("shared.modelPicker.personalChannels")}
+                                                    </span>
                                                 ) : null}
                                             </span>
                                             <small className="canvas-model-picker-brand-meta">
                                                 <span className="canvas-model-picker-brand-subtext">
-                                                    {group.models.length} {translate("shared.modelPicker.items")}{group.kind === "product" ? translate("shared.modelPicker.channel") : translate("canvasA.assetView.model")}
+                                                    {group.models.length} {translate("shared.modelPicker.items")}
+                                                    {group.kind === "product" ? translate("shared.modelPicker.channel") : translate("canvasA.assetView.model")}
                                                     {group.scope ? ` · ${modelPickerGroupScopeLabel(group.scope)}` : ""}
                                                 </span>
                                                 <ModelRecentHealthTrack availability={groupAvailability(config, group)} />
@@ -369,7 +374,9 @@ export function ModelPicker({
                             <ModelIcon config={config} model={current} />
                         </span>
                         <span className="min-w-0 flex-1 truncate">{current ? (creationVariant ? pickerModelDisplayName(config, current, showConfiguredModelName) : pickerModelOptionLabel(config, current, showConfiguredModelName)) : placeholder}</span>
-                        {isCurrentCustomChannel ? <span className="shrink-0 rounded px-2 py-0.5 text-[var(--fs-label)] font-medium leading-none bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/25">{translate("shared.modelPicker.personal")}</span> : null}
+                        {isCurrentCustomChannel ? (
+                            <span className="shrink-0 rounded px-2 py-0.5 text-[var(--fs-label)] font-medium leading-none bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/25">{translate("shared.modelPicker.personal")}</span>
+                        ) : null}
                         {showSelectedPrice && creditsEnabled ? <ModelPrice price={currentPrice} quote={routeQuote} compact /> : null}
                     </span>
                     <ChevronDown className={cn("canvas-model-picker-chevron", open && "is-open")} aria-hidden="true" />
@@ -393,7 +400,16 @@ function focusPickerOption(target: HTMLButtonElement | null | undefined) {
 }
 
 function emptyModelLabel(config: AiConfig, capability?: ModelCapability) {
-    const label = capability === "image" ? translate("shared.auth.requireFeature.generateImage") : capability === "video" ? translate("account.feedback.video") : capability === "text" ? translate("account.settings.modelConfig.capabilities.text") : capability === "audio" ? translate("account.settings.modelConfig.capabilities.audio") : "";
+    const label =
+        capability === "image"
+            ? translate("shared.auth.requireFeature.generateImage")
+            : capability === "video"
+              ? translate("account.feedback.video")
+              : capability === "text"
+                ? translate("account.settings.modelConfig.capabilities.text")
+                : capability === "audio"
+                  ? translate("account.settings.modelConfig.capabilities.audio")
+                  : "";
     if (capability && config.models.length) return translate("shared.modelPicker.noModelSupportsTheCurrentInput", { v0: String(label) });
     return config.models.length ? translate("shared.modelPicker.noMatchingModels", { v0: String(label) }) : translate("shared.modelPicker.noModelAvailableContactAnAdministratorOrCheckModelSettings");
 }
@@ -447,7 +463,9 @@ export function ModelLabel({
                         <span className="canvas-model-picker-option-name text-[var(--fs-label)] font-medium leading-none truncate !flex-initial max-w-full" title={label || pickerModelDisplayName(config, model, showConfiguredModelName)}>
                             {label || pickerModelDisplayName(config, model, showConfiguredModelName)}
                         </span>
-                        {channel.scope !== "system" ? <span className="shrink-0 rounded px-2 py-0.5 text-[var(--fs-label)] font-medium leading-none bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/25">{translate("shared.modelPicker.personal")}</span> : null}
+                        {channel.scope !== "system" ? (
+                            <span className="shrink-0 rounded px-2 py-0.5 text-[var(--fs-label)] font-medium leading-none bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/25">{translate("shared.modelPicker.personal")}</span>
+                        ) : null}
                     </span>
                     {showPrice ? (
                         <span className="canvas-model-picker-option-price">
@@ -543,7 +561,13 @@ function modelMenuPrice(config: AiConfig, model: string, capability?: ModelCapab
         const tiers = cost.logicalPriceTiers || [];
         if (!tiers.length) return null;
         const matched = summary ? tiers : priceTiersForCurrentSelection(tiers, capability, config, requirements);
-        if (!summary && !matched.length) return { kind: "tiers", label: translate("shared.modelPicker.noPriceAvailableForTheseSettings"), compactLabel: translate("shared.modelPicker.noPriceAvailableForTheseSettings"), title: translate("shared.modelPicker.adjustTheSettingsOrChooseAChannelThatSupportsThem") };
+        if (!summary && !matched.length)
+            return {
+                kind: "tiers",
+                label: translate("shared.modelPicker.noPriceAvailableForTheseSettings"),
+                compactLabel: translate("shared.modelPicker.noPriceAvailableForTheseSettings"),
+                title: translate("shared.modelPicker.adjustTheSettingsOrChooseAChannelThatSupportsThem"),
+            };
         return channelTierPriceSummary(matched.length ? matched : tiers, tiers, capability);
     }
     if (cost.billingMode === "token") {
@@ -577,7 +601,17 @@ function channelTierPriceSummary(
         kind: "tiers",
         label,
         compactLabel: label,
-        title: translate("shared.modelPicker.systemPriceForTheseSettings", { v0: String(allTiers.map((tier) => `${tierSpecificationLabel(tier)} ${priceTierSummaryLabel([tier], capability)}`).join("；")), v1: String(allTiers.some((tier) => tier.billingMode === "token") ? (capability === "video" ? translate("shared.modelPicker.validUsageReportedByTheProviderTakesPriorityIfNo") : translate("shared.modelPicker.tokenChargesAreEstimatesFinalBillingUsesTheActualUsage")) : ""), v2: String(ruleNotes.length ? translate("shared.modelPicker.timeAndContextPricingShanghaiTimeTheTimeWindowIs", { v0: String(ruleNotes.join("；")) }) : "") }),
+        title: translate("shared.modelPicker.systemPriceForTheseSettings", {
+            v0: String(allTiers.map((tier) => `${tierSpecificationLabel(tier)} ${priceTierSummaryLabel([tier], capability)}`).join("；")),
+            v1: String(
+                allTiers.some((tier) => tier.billingMode === "token")
+                    ? capability === "video"
+                        ? translate("shared.modelPicker.validUsageReportedByTheProviderTakesPriorityIfNo")
+                        : translate("shared.modelPicker.tokenChargesAreEstimatesFinalBillingUsesTheActualUsage")
+                    : "",
+            ),
+            v2: String(ruleNotes.length ? translate("shared.modelPicker.timeAndContextPricingShanghaiTimeTheTimeWindowIs", { v0: String(ruleNotes.join("；")) }) : ""),
+        }),
     };
 }
 
@@ -592,7 +626,13 @@ function tierDurationLabel(seconds: number) {
 
 function tierSpecificationLabel(tier: NonNullable<NonNullable<AiConfig["channels"][number]["modelCosts"]>[number]["logicalPriceTiers"]>[number]) {
     const selector = tier.selector || {};
-    const operationLabels: Record<string, string> = { text_to_image: translate("shared.modelPicker.textToImage"), image_to_image: translate("shared.modelPicker.imageToImage"), text_to_video: translate("shared.modelPicker.textToVideo"), image_to_video: translate("shared.modelPicker.imageToVideo"), video_to_video: translate("shared.modelPicker.videoToVideo") };
+    const operationLabels: Record<string, string> = {
+        text_to_image: translate("shared.modelPicker.textToImage"),
+        image_to_image: translate("shared.modelPicker.imageToImage"),
+        text_to_video: translate("shared.modelPicker.textToVideo"),
+        image_to_video: translate("shared.modelPicker.imageToVideo"),
+        video_to_video: translate("shared.modelPicker.videoToVideo"),
+    };
     const operation = selector.operation && selector.operation !== "*" ? operationLabels[selector.operation] || selector.operation : "";
     const details = [
         operation,
@@ -640,7 +680,7 @@ function ModelPrice({ price, quote, compact = false }: { price: ModelMenuPrice |
         <span className="model-picker-price inline-flex shrink-0 items-center gap-1 text-[var(--fs-tiny)] font-semibold tabular-nums">
             <Coins className="model-picker-price-icon" aria-hidden="true" />
             {price.value.toLocaleString(currentLocale(), { maximumFractionDigits: compact ? 3 : 6 })}
-            {compact ? "/" : (" " + translate("shared.modelPicker.credits2"))}
+            {compact ? "/" : " " + translate("shared.modelPicker.credits2")}
             {price.unit}
         </span>
     );
@@ -676,7 +716,17 @@ export function ModelRecentHealthTrack({ availability, inPopover = false }: { av
                 const isSuccess = hasRun ? recentResults[idx] : null;
                 const stateClass = isSuccess === true ? "is-success" : isSuccess === false ? "is-failed" : "is-empty";
                 return (
-                    <span key={idx} className={cn("model-picker-availability-pill", inPopover && "in-popover", stateClass)} title={inPopover ? (hasRun ? translate("shared.modelPicker.attempt", { v0: String(idx + 1), v1: String(isSuccess ? translate("shared.skinThemes.success") : translate("shared.modelPicker.failure")) }) : translate("shared.modelPicker.slotNoRequest", { v0: String(idx + 1) })) : undefined} />
+                    <span
+                        key={idx}
+                        className={cn("model-picker-availability-pill", inPopover && "in-popover", stateClass)}
+                        title={
+                            inPopover
+                                ? hasRun
+                                    ? translate("shared.modelPicker.attempt", { v0: String(idx + 1), v1: String(isSuccess ? translate("shared.skinThemes.success") : translate("shared.modelPicker.failure")) })
+                                    : translate("shared.modelPicker.slotNoRequest", { v0: String(idx + 1) })
+                                : undefined
+                        }
+                    />
                 );
             })}
         </span>
@@ -692,11 +742,21 @@ function ModelAvailabilityBadge({ availability, available, showAvailability }: {
     const failCount = recentResults.filter((item) => item === false).length;
     const hasRuns = recentResults.length > 0;
 
-    const label = availability?.dataState === "ready" && availability.rate24h !== null ? `${Math.round(availability.rate24h * 100)}%` : availability?.dataState === "insufficient" ? translate("shared.modelPicker.insufficientData") : translate("shared.modelPicker.noData");
+    const label =
+        availability?.dataState === "ready" && availability.rate24h !== null
+            ? `${Math.round(availability.rate24h * 100)}%`
+            : availability?.dataState === "insufficient"
+              ? translate("shared.modelPicker.insufficientData")
+              : translate("shared.modelPicker.noData");
     const trend = availability?.trend7d || [];
     const trendSamples = trend.reduce((total, item) => total + item.sampleCount, 0);
     const summary = hasRuns
-        ? translate("shared.modelPicker.lastRequestsSucceededFailedCurrently", { v0: String(recentResults.length), v1: String(successCount), v2: String(failCount), v3: String(available ? translate("account.settings.channels.ready") : translate("shared.modelPicker.unavailable")) })
+        ? translate("shared.modelPicker.lastRequestsSucceededFailedCurrently", {
+              v0: String(recentResults.length),
+              v1: String(successCount),
+              v2: String(failCount),
+              v3: String(available ? translate("account.settings.channels.ready") : translate("shared.modelPicker.unavailable")),
+          })
         : availability
           ? translate("shared.modelPicker.currentlyLast24HoursNoRecentRequests", { v0: String(available ? translate("account.settings.channels.ready") : translate("shared.modelPicker.unavailable")), v1: String(label) })
           : translate("shared.modelPicker.currentlyHistoricalSuccessRateUnavailable", { v0: String(available ? translate("account.settings.channels.ready") : translate("shared.modelPicker.unavailable")) });
@@ -707,7 +767,9 @@ function ModelAvailabilityBadge({ availability, available, showAvailability }: {
                 <strong>{translate("shared.modelPicker.last10Requests")}</strong>
                 <span className={failCount > 0 ? "has-failures" : ""}>{hasRuns ? translate("shared.modelPicker.succeededFailed", { v0: String(successCount), v1: String(failCount) }) : translate("shared.modelPicker.noRequestHistory")}</span>
             </div>
-            <div className="model-picker-availability-popover-meta">{hasRuns ? translate("shared.modelPicker.lastExecutionsGreenSuccessRedFailureGrayNoRecord", { v0: String(recentResults.length) }) : translate("shared.modelPicker.thisModelHasNoRecentRequestsShowing10EmptySlots")}</div>
+            <div className="model-picker-availability-popover-meta">
+                {hasRuns ? translate("shared.modelPicker.lastExecutionsGreenSuccessRedFailureGrayNoRecord", { v0: String(recentResults.length) }) : translate("shared.modelPicker.thisModelHasNoRecentRequestsShowing10EmptySlots")}
+            </div>
             <div style={{ margin: "6px 0 8px" }}>
                 <ModelRecentHealthTrack availability={availability} inPopover />
             </div>
@@ -722,7 +784,12 @@ function ModelAvailabilityBadge({ availability, available, showAvailability }: {
                 {trend.map((item) => {
                     const dayLabel = item.rate === null ? translate("shared.modelPicker.noData") : `${Math.round(item.rate * 100)}%`;
                     return (
-                        <span key={item.day} className={`model-picker-availability-segment is-${item.dataState}`} title={translate("shared.modelPicker.records", { v0: String(item.day), v1: String(dayLabel), v2: String(item.sampleCount) })} style={item.rate === null ? undefined : { opacity: 0.35 + item.rate * 0.65 }} />
+                        <span
+                            key={item.day}
+                            className={`model-picker-availability-segment is-${item.dataState}`}
+                            title={translate("shared.modelPicker.records", { v0: String(item.day), v1: String(dayLabel), v2: String(item.sampleCount) })}
+                            style={item.rate === null ? undefined : { opacity: 0.35 + item.rate * 0.65 }}
+                        />
                     );
                 })}
             </div>

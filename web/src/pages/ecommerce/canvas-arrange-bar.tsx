@@ -92,8 +92,18 @@ export function CommerceArrangeMenu({
     ];
     const available = frame.width - leftInset - rightInset - EDGE * 2;
     return (
-        <div ref={bar} className="commerce-arrange-bar" role="group" aria-label={translate("ecommerce.canvasArrangeBar.multipleImageActions")} data-compact={available < 620 || undefined} data-canvas-no-zoom style={{ left: center, top, maxWidth: Math.max(180, available) }}>
-            <span className="commerce-selection-count">{translate("ecommerce.canvasArrangeBar.selected")} {count} {translate("canvasA.characterLibrary.pageItem")}</span>
+        <div
+            ref={bar}
+            className="commerce-arrange-bar"
+            role="group"
+            aria-label={translate("ecommerce.canvasArrangeBar.multipleImageActions")}
+            data-compact={available < 620 || undefined}
+            data-canvas-no-zoom
+            style={{ left: center, top, maxWidth: Math.max(180, available) }}
+        >
+            <span className="commerce-selection-count">
+                {translate("ecommerce.canvasArrangeBar.selected")} {count} {translate("canvasA.characterLibrary.pageItem")}
+            </span>
             <Dropdown trigger={["click"]} placement="bottom" menu={{ items, onClick: ({ key }) => onArrange(key as CommerceArrangeAction) }}>
                 <button type="button" aria-haspopup="menu" aria-label={translate("ecommerce.canvasArrangeBar.alignAndArrangeSelectedImages", { v0: String(count) })}>
                     {translate("ecommerce.canvasArrangeBar.alignAndArrange")}

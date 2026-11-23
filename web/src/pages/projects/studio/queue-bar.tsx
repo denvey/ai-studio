@@ -32,7 +32,8 @@ export function QueueBar({ projectId, summary, retrying, onRetry, onJump }: { pr
         <div className="drama-queue">
             <div className="drama-queue-bar">
                 <span className={`drama-queue-stat ${(jobCounts.running || 0) > 0 ? "is-run" : ""}`}>
-                    {(jobCounts.running || 0) > 0 ? <Loader2 className="size-3.5 animate-spin" /> : <span className="drama-dot opacity-40" />}{translate("library.tasks.filter.active")} <b>{jobCounts.running || 0}</b>
+                    {(jobCounts.running || 0) > 0 ? <Loader2 className="size-3.5 animate-spin" /> : <span className="drama-dot opacity-40" />}
+                    {translate("library.tasks.filter.active")} <b>{jobCounts.running || 0}</b>
                 </span>
                 <span className="drama-queue-stat">
                     {translate("drama.studio.queueBar.queued")} <b>{jobCounts.queued || 0}</b>
@@ -58,8 +59,20 @@ export function QueueBar({ projectId, summary, retrying, onRetry, onJump }: { pr
                         </span>
                     ) : null}
                     {translate("drama.studio.queueBar.used")} <b>{formatCredits(production.spentMicrocredits)}</b>
-                    {held > 0 ? <> {translate("drama.studio.queueBar.reserved")} {formatCredits(held)}</> : null}
-                    {budget ? <> / {formatCredits(budget)} {translate("shell.credits")}</> : (" " + translate("drama.studio.queueBar.creditsUnlimitedBudget"))}
+                    {held > 0 ? (
+                        <>
+                            {" "}
+                            {translate("drama.studio.queueBar.reserved")} {formatCredits(held)}
+                        </>
+                    ) : null}
+                    {budget ? (
+                        <>
+                            {" "}
+                            / {formatCredits(budget)} {translate("shell.credits")}
+                        </>
+                    ) : (
+                        " " + translate("drama.studio.queueBar.creditsUnlimitedBudget")
+                    )}
                 </span>
                 <button type="button" className="drama-queue-toggle" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
                     {open ? <ChevronDown className="size-3.5" /> : <ChevronUp className="size-3.5" />}
@@ -108,7 +121,9 @@ export function QueueBar({ projectId, summary, retrying, onRetry, onJump }: { pr
                         {jobsQuery.isLoading ? (
                             <div className="drama-queue-empty">{translate("drama.studio.queueBar.loadingQueue")}</div>
                         ) : !jobs.length ? (
-                            <div className="drama-queue-empty">{filter === "failed" ? translate("drama.studio.queueBar.noFailedJobs") : filter === "active" ? translate("drama.studio.queueBar.noJobsInProgress") : translate("drama.studio.queueBar.noSchedulingHistoryYet")}</div>
+                            <div className="drama-queue-empty">
+                                {filter === "failed" ? translate("drama.studio.queueBar.noFailedJobs") : filter === "active" ? translate("drama.studio.queueBar.noJobsInProgress") : translate("drama.studio.queueBar.noSchedulingHistoryYet")}
+                            </div>
                         ) : null}
                     </div>
                 </div>

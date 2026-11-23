@@ -3,7 +3,6 @@ import { nanoid } from "nanoid";
 import type { PrevisKeyframe, PrevisTransform, PrevisVec3 } from "@/types/previs";
 import { translate } from "@/i18n";
 
-
 export type PrevisPathWaypoint = {
     time: number;
     position: PrevisVec3;

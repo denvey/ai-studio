@@ -14,8 +14,18 @@ import { Select } from "@/components/ui/base/select";
 import { currentLocale, translate } from "@/i18n";
 
 const LOGIN_MODES: Array<{ mode: AuthLoginMode; label: string; description: string; short: string }> = [
-    { mode: "modal", label: translate("admin.accessSettingsPanel.signInDialogDefault"), description: translate("admin.accessSettingsPanel.openASignInDialogOnTheCurrentPageAnd"), short: translate("admin.accessSettingsPanel.brandIntroductionOnTheLeftLoginFormOnTheRight") },
-    { mode: "page", label: translate("admin.accessSettingsPanel.dedicatedPage"), description: translate("admin.accessSettingsPanel.openTheDedicatedLoginPageForSignInAndRegistration"), short: translate("admin.accessSettingsPanel.fullPageBrandVideoLoginCard") },
+    {
+        mode: "modal",
+        label: translate("admin.accessSettingsPanel.signInDialogDefault"),
+        description: translate("admin.accessSettingsPanel.openASignInDialogOnTheCurrentPageAnd"),
+        short: translate("admin.accessSettingsPanel.brandIntroductionOnTheLeftLoginFormOnTheRight"),
+    },
+    {
+        mode: "page",
+        label: translate("admin.accessSettingsPanel.dedicatedPage"),
+        description: translate("admin.accessSettingsPanel.openTheDedicatedLoginPageForSignInAndRegistration"),
+        short: translate("admin.accessSettingsPanel.fullPageBrandVideoLoginCard"),
+    },
 ];
 
 const DEFAULT_AGREEMENT_TEMPLATE = `一、服务说明与接受
@@ -236,7 +246,15 @@ export default function AccessSettingsPanel() {
             const data = await updateAdminRegistrationSetting({ enabled: registration.enabled, [field]: value });
             setRegistration(data.setting);
             void useAuthSettingsStore.getState().load({ maxAgeMs: 0 });
-            message.success(field === "emailRequired" ? (value ? translate("admin.accessSettingsPanel.emailIsNowRequiredForRegistration") : translate("admin.accessSettingsPanel.emailIsNowOptionalForRegistration")) : value ? translate("admin.accessSettingsPanel.registrationNowRequiresVerification") : translate("admin.accessSettingsPanel.registrationNoLongerRequiresVerification"));
+            message.success(
+                field === "emailRequired"
+                    ? value
+                        ? translate("admin.accessSettingsPanel.emailIsNowRequiredForRegistration")
+                        : translate("admin.accessSettingsPanel.emailIsNowOptionalForRegistration")
+                    : value
+                      ? translate("admin.accessSettingsPanel.registrationNowRequiresVerification")
+                      : translate("admin.accessSettingsPanel.registrationNoLongerRequiresVerification"),
+            );
         } catch (error) {
             message.error(error instanceof Error ? error.message : translate("admin.accessSettingsPanel.failedToUpdateEmailRequirements"));
         } finally {
@@ -350,7 +368,11 @@ export default function AccessSettingsPanel() {
                         <p>
                             {dirty
                                 ? translate("admin.accessSettingsPanel.completeTheConnectionDetailsThenSaveToApplyThem")
-                                : translate("admin.accessSettingsPanel.newRegistrationsLinuxDo", { v0: String(registration.enabled ? translate("admin.accessSettingsPanel.enabled") : translate("account.feedback.status.closed")), v1: String(linuxdo.enabled ? translate("account.layout.oss.enabled") : translate("account.layout.oss.notEnabled")), v2: String((registration.loginMode ?? "modal") === "page" ? translate("admin.accessSettingsPanel.dedicatedLoginPage") : translate("admin.accessSettingsPanel.loginModal")) })}
+                                : translate("admin.accessSettingsPanel.newRegistrationsLinuxDo", {
+                                      v0: String(registration.enabled ? translate("admin.accessSettingsPanel.enabled") : translate("account.feedback.status.closed")),
+                                      v1: String(linuxdo.enabled ? translate("account.layout.oss.enabled") : translate("account.layout.oss.notEnabled")),
+                                      v2: String((registration.loginMode ?? "modal") === "page" ? translate("admin.accessSettingsPanel.dedicatedLoginPage") : translate("admin.accessSettingsPanel.loginModal")),
+                                  })}
                         </p>
                     </div>
                 </div>
@@ -393,7 +415,13 @@ export default function AccessSettingsPanel() {
                             <p>{translate("admin.accessSettingsPanel.whenDisabledLocalRegistrationAndFirstTimeLinuxDoSign")}</p>
                             <span>{formatSettingTime(registration.updatedAt, translate("admin.accessSettingsPanel.currentlyUsingTheDeploymentDefault"))}</span>
                         </div>
-                        <Switch checked={registration.enabled} loading={savingRegistration} disabled={loading || refreshing || savingLinuxDO} onChange={requestRegistrationChange} aria-label={translate("admin.accessSettingsPanel.allowNewAccountsChangesApplyImmediately")} />
+                        <Switch
+                            checked={registration.enabled}
+                            loading={savingRegistration}
+                            disabled={loading || refreshing || savingLinuxDO}
+                            onChange={requestRegistrationChange}
+                            aria-label={translate("admin.accessSettingsPanel.allowNewAccountsChangesApplyImmediately")}
+                        />
                     </div>
                     <div className="admin-access-registration-policy">
                         <span className="admin-access-policy-icon">
@@ -442,7 +470,20 @@ export default function AccessSettingsPanel() {
                     icon={<KeyRound className="size-4" aria-hidden="true" />}
                     title={translate("admin.accessSettingsPanel.item2EnableLinuxDoSignIn")}
                     description={translate("admin.accessSettingsPanel.chooseWhetherToShowLinuxDoOnSignInAnd")}
-                    status={<AdminStatusBadge label={draftLinuxDOEnabled ? (dirty ? translate("admin.accessSettingsPanel.pendingEnablement") : translate("library.tasks.filter.active")) : dirty && linuxdo.enabled ? translate("admin.accessSettingsPanel.pendingDisablement") : translate("account.layout.oss.notEnabled")} tone={dirty ? "warning" : draftLinuxDOEnabled ? "success" : "neutral"} />}
+                    status={
+                        <AdminStatusBadge
+                            label={
+                                draftLinuxDOEnabled
+                                    ? dirty
+                                        ? translate("admin.accessSettingsPanel.pendingEnablement")
+                                        : translate("library.tasks.filter.active")
+                                    : dirty && linuxdo.enabled
+                                      ? translate("admin.accessSettingsPanel.pendingDisablement")
+                                      : translate("account.layout.oss.notEnabled")
+                            }
+                            tone={dirty ? "warning" : draftLinuxDOEnabled ? "success" : "neutral"}
+                        />
+                    }
                     footer={
                         <>
                             <div className="admin-access-footer-note">
@@ -494,9 +535,18 @@ export default function AccessSettingsPanel() {
                         {draftLinuxDOEnabled ? (
                             <>
                                 <div className="admin-access-form-section">
-                                    <FormSectionTitle icon={<KeyRound className="size-4" />} title={translate("admin.accessSettingsPanel.applicationCredentials")} description={translate("admin.accessSettingsPanel.enterTheClientDetailsForYourLinuxDoOAuthApp")} />
+                                    <FormSectionTitle
+                                        icon={<KeyRound className="size-4" />}
+                                        title={translate("admin.accessSettingsPanel.applicationCredentials")}
+                                        description={translate("admin.accessSettingsPanel.enterTheClientDetailsForYourLinuxDoOAuthApp")}
+                                    />
                                     <div className="admin-access-form-grid is-credentials">
-                                        <Form.Item name="clientAuthMethod" label={translate("admin.accessSettingsPanel.tokenRequestAuthentication")} rules={[{ required: true, message: translate("admin.accessSettingsPanel.selectAnAuthenticationMethod") }]} extra={translate("admin.accessSettingsPanel.useClientSecretPostUnlessTheApplicationRequiresAnotherMethod")}>
+                                        <Form.Item
+                                            name="clientAuthMethod"
+                                            label={translate("admin.accessSettingsPanel.tokenRequestAuthentication")}
+                                            rules={[{ required: true, message: translate("admin.accessSettingsPanel.selectAnAuthenticationMethod") }]}
+                                            extra={translate("admin.accessSettingsPanel.useClientSecretPostUnlessTheApplicationRequiresAnotherMethod")}
+                                        >
                                             <Select
                                                 options={[
                                                     { label: translate("admin.accessSettingsPanel.clientSecretPostRecommended"), value: "client_secret_post" },
@@ -508,13 +558,20 @@ export default function AccessSettingsPanel() {
                                             <Input autoComplete="off" placeholder={translate("admin.accessSettingsPanel.clientIDOfYourLinuxDoOAuthApp")} />
                                         </Form.Item>
                                         <Form.Item name="clientSecret" label={linuxdo.hasClientSecret ? `Client Secret（${configuredSecretText}）` : "Client Secret"}>
-                                            <Input.Password autoComplete="new-password" placeholder={linuxdo.hasClientSecret ? translate("admin.accessSettingsPanel.leaveBlankToKeepTheCurrentKey") : translate("admin.accessSettingsPanel.clientSecretOfYourLinuxDoOAuthApp")} />
+                                            <Input.Password
+                                                autoComplete="new-password"
+                                                placeholder={linuxdo.hasClientSecret ? translate("admin.accessSettingsPanel.leaveBlankToKeepTheCurrentKey") : translate("admin.accessSettingsPanel.clientSecretOfYourLinuxDoOAuthApp")}
+                                            />
                                         </Form.Item>
                                     </div>
                                 </div>
 
                                 <div className="admin-access-form-section">
-                                    <FormSectionTitle icon={<Globe2 className="size-4" />} title={translate("admin.accessSettingsPanel.oAuthEndpoints")} description={translate("admin.accessSettingsPanel.authorizationTokenAndUserProfileEndpointsMustUseHTTPSLocal")} />
+                                    <FormSectionTitle
+                                        icon={<Globe2 className="size-4" />}
+                                        title={translate("admin.accessSettingsPanel.oAuthEndpoints")}
+                                        description={translate("admin.accessSettingsPanel.authorizationTokenAndUserProfileEndpointsMustUseHTTPSLocal")}
+                                    />
                                     <div className="admin-access-form-grid">
                                         <Form.Item name="authorizationUrl" label={translate("admin.accessSettingsPanel.authorizationURL")}>
                                             <Input inputMode="url" placeholder="https://connect.linux.do/oauth2/authorize" />
@@ -576,7 +633,12 @@ export default function AccessSettingsPanel() {
                     icon={<FileText className="size-4" aria-hidden="true" />}
                     title={translate("admin.accessSettingsPanel.item3TermsOfServiceTitleAndContent")}
                     description={translate("admin.accessSettingsPanel.contentShownInTheRegistrationCheckboxAndDialogIfThe")}
-                    status={<AdminStatusBadge label={agreementDirty ? translate("admin.accessSettingsPanel.unsaved") : agreementContent.trim() ? translate("admin.accessSettingsPanel.customized") : translate("admin.accessSettingsPanel.notYetProvided")} tone={agreementDirty ? "warning" : agreementContent.trim() ? "success" : "neutral"} />}
+                    status={
+                        <AdminStatusBadge
+                            label={agreementDirty ? translate("admin.accessSettingsPanel.unsaved") : agreementContent.trim() ? translate("admin.accessSettingsPanel.customized") : translate("admin.accessSettingsPanel.notYetProvided")}
+                            tone={agreementDirty ? "warning" : agreementContent.trim() ? "success" : "neutral"}
+                        />
+                    }
                     footer={
                         <>
                             <div className="admin-access-footer-note">
@@ -597,7 +659,11 @@ export default function AccessSettingsPanel() {
                     }
                 >
                     <Form layout="vertical" requiredMark={false} disabled={loading || refreshing || savingAgreement}>
-                        <Form.Item label={translate("admin.accessSettingsPanel.termsTitle")} extra={translate("admin.accessSettingsPanel.leaveBlankToGenerateTheTitleFromTheBrandName", { v0: String(brandName) })} className="admin-access-agreement-title-field">
+                        <Form.Item
+                            label={translate("admin.accessSettingsPanel.termsTitle")}
+                            extra={translate("admin.accessSettingsPanel.leaveBlankToGenerateTheTitleFromTheBrandName", { v0: String(brandName) })}
+                            className="admin-access-agreement-title-field"
+                        >
                             <Input
                                 value={agreementTitle}
                                 maxLength={60}
@@ -626,7 +692,11 @@ export default function AccessSettingsPanel() {
                                 <span>{translate("admin.accessSettingsPanel.ifYourTermsAreNotReadyInsertTheGeneralTemplate")}</span>
                             </div>
                             <div className="admin-access-agreement-template-actions">
-                                <span className="admin-access-agreement-metric">{agreementContent.trim() ? translate("admin.accessSettingsPanel.paragraphsCharacters", { v0: String(agreementParagraphsCount), v1: String(agreementContent.length) }) : translate("admin.accessSettingsPanel.noTermsProvided")}</span>
+                                <span className="admin-access-agreement-metric">
+                                    {agreementContent.trim()
+                                        ? translate("admin.accessSettingsPanel.paragraphsCharacters", { v0: String(agreementParagraphsCount), v1: String(agreementContent.length) })
+                                        : translate("admin.accessSettingsPanel.noTermsProvided")}
+                                </span>
                                 <Button
                                     size="small"
                                     disabled={savingAgreement || loading || refreshing}
@@ -767,7 +837,8 @@ function hasLinuxDOChanges(values: LinuxDOFormValues, setting: LinuxDOSetting | 
 function validateLinuxDODraft(values: LinuxDOFormValues, setting: LinuxDOSetting | null) {
     const draft = normalizeLinuxDOFormValues(values);
     if (!draft.enabled) return "";
-    if (!draft.clientId || (!draft.clientSecret && !setting?.hasClientSecret) || !draft.authorizationUrl || !draft.tokenUrl || !draft.userInfoUrl || !draft.redirectUrl) return translate("admin.accessSettingsPanel.completeTheClientEndpointAndCallbackSettingsBeforeEnablingLinux");
+    if (!draft.clientId || (!draft.clientSecret && !setting?.hasClientSecret) || !draft.authorizationUrl || !draft.tokenUrl || !draft.userInfoUrl || !draft.redirectUrl)
+        return translate("admin.accessSettingsPanel.completeTheClientEndpointAndCallbackSettingsBeforeEnablingLinux");
     for (const value of [draft.authorizationUrl, draft.tokenUrl, draft.userInfoUrl]) if (!isValidURL(value, true)) return translate("admin.accessSettingsPanel.linuxDoAuthorizationTokenAndUserInformationEndpointsMustBe");
     if (!isValidRedirectURL(draft.redirectUrl)) return translate("admin.accessSettingsPanel.theLinuxDoCallbackURLMustUseHTTPSLocalLoopback");
     return "";

@@ -5,7 +5,6 @@ import type { CanvasNodeData } from "@/types/canvas";
 import type { ReferenceVideo } from "@/types/media";
 import { translate } from "@/i18n";
 
-
 /** 与后端 VideoProcessingOperationEnhance 一致。 */
 export const VIDEO_ENHANCE_OPERATION = "enhance";
 

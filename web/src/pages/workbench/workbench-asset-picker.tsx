@@ -35,7 +35,8 @@ async function pickedResource(item: AssetLibraryPickerItem): Promise<PickedWorkb
     if (!source) throw new Error(translate("ecommerce.workbench.workbenchAssetPicker.theImageFileForNoLongerExists", { v0: String(item.title) }));
     const uploaded = await uploadImage(source);
     const id = resourceIdFromStorageKey(uploaded.storageKey);
-    if (uploaded.pendingRemoteUpload || !id) throw new Error(translate("ecommerce.workbench.workbenchAssetPicker.couldNotBeUploadedToTheServerTryAgainLater", { v0: String(item.title), v1: String(uploaded.remoteUploadError ? `：${uploaded.remoteUploadError}` : "") }));
+    if (uploaded.pendingRemoteUpload || !id)
+        throw new Error(translate("ecommerce.workbench.workbenchAssetPicker.couldNotBeUploadedToTheServerTryAgainLater", { v0: String(item.title), v1: String(uploaded.remoteUploadError ? `：${uploaded.remoteUploadError}` : "") }));
     return { resourceId: id, kind: "image", name: item.title };
 }
 

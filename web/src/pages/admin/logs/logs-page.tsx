@@ -25,7 +25,6 @@ import { useAdminContext } from "../admin-context";
 import { useAdminUserOptions } from "../components/use-admin-user-options";
 import { currentLocale, translate } from "@/i18n";
 
-
 // 后端单次查询最多覆盖 366 天（含首尾），超出时服务端会静默截断，所以在界面上直接拒绝。
 const MAX_RANGE_DAYS = 366;
 
@@ -151,7 +150,11 @@ export default function LogsPage() {
             ),
         },
         { title: translate("adminPages.logs.logsPage.capability"), dataIndex: "capability", width: 88, render: capabilityText },
-        { title: translate("adminPages.logs.logsPage.result"), width: 118, render: (_, log) => <MediaResult log={log} onPreview={(url, kind) => setMediaPreview({ url, kind, title: translate("adminPages.logs.logsPage.result2", { v0: String(capabilityText(log.capability)) }) })} /> },
+        {
+            title: translate("adminPages.logs.logsPage.result"),
+            width: 118,
+            render: (_, log) => <MediaResult log={log} onPreview={(url, kind) => setMediaPreview({ url, kind, title: translate("adminPages.logs.logsPage.result2", { v0: String(capabilityText(log.capability)) }) })} />,
+        },
         { title: translate("adminPages.logs.logsPage.requestStageStatus"), width: 160, render: (_, log) => <CallStatus log={log} /> },
         {
             title: translate("adminPages.logs.logsPage.errorMessage"),
@@ -203,7 +206,13 @@ export default function LogsPage() {
             key: "time",
             width: 142,
             render: (_, log) => (
-                <button type="button" className="admin-log-detail-link" title={formatTime(log.startedAt || log.createdAt)} aria-label={translate("adminPages.logs.logsPage.viewRequestDetails", { v0: String(log.id) })} onClick={() => setDetailLogId(log.id)}>
+                <button
+                    type="button"
+                    className="admin-log-detail-link"
+                    title={formatTime(log.startedAt || log.createdAt)}
+                    aria-label={translate("adminPages.logs.logsPage.viewRequestDetails", { v0: String(log.id) })}
+                    onClick={() => setDetailLogId(log.id)}
+                >
                     {formatCompactTime(log.startedAt || log.createdAt)}
                 </button>
             ),
@@ -211,17 +220,41 @@ export default function LogsPage() {
         { title: translate("library.tasks.detail.status"), key: "status", width: 88, render: (_, log) => <AdminStatusBadge {...logStatus(log)} /> },
         { title: translate("canvasA.assetView.model"), dataIndex: "model", width: 170, ellipsis: true, render: (value) => value || translate("adminPages.logs.logsPage.unrecognizedModel") },
         { title: translate("adminPages.logs.logsPage.channel"), dataIndex: "channelName", width: 116, ellipsis: true, render: (value) => value || translate("adminPages.logs.logsPage.noChannelRecorded") },
-        { title: translate("adminPages.logs.logsPage.users"), key: "user", width: 110, ellipsis: true, render: (_, log) => <span title={[log.userDisplayName, log.userAccount].filter(Boolean).join(" · ")}>{log.userDisplayName || log.userAccount || translate("adminPages.logs.logsPage.unknownUser")}</span> },
+        {
+            title: translate("adminPages.logs.logsPage.users"),
+            key: "user",
+            width: 110,
+            ellipsis: true,
+            render: (_, log) => <span title={[log.userDisplayName, log.userAccount].filter(Boolean).join(" · ")}>{log.userDisplayName || log.userAccount || translate("adminPages.logs.logsPage.unknownUser")}</span>,
+        },
     ];
     const compactColumns: ColumnsType<ApiCallLog> =
         view === "billing"
             ? [
                   ...identityColumns,
                   { title: translate("adminPages.logs.logsPage.preauthorization"), key: "reserved", align: "right", width: 100, render: (_, log) => (log.billable && log.billingAvailable ? formatCredits(log.billingReservedMicrocredits) : "—") },
-                  { title: translate("adminPages.logs.logsPage.charged"), key: "settled", align: "right", width: 100, render: (_, log) => (log.billable && log.billingAvailable && log.billingSettledMicrocredits !== undefined ? formatCredits(log.billingSettledMicrocredits) : "—") },
-                  { title: translate("adminPages.logs.logsPage.costInCredits"), key: "cost", align: "right", width: 108, render: (_, log) => (log.creditCostMicrocredits !== undefined ? formatCredits(log.creditCostMicrocredits) : log.creditCostConfigured ? translate("adminPages.logs.logsPage.pendingCalculation") : translate("account.layout.oss.cdnAuthNone")) },
+                  {
+                      title: translate("adminPages.logs.logsPage.charged"),
+                      key: "settled",
+                      align: "right",
+                      width: 100,
+                      render: (_, log) => (log.billable && log.billingAvailable && log.billingSettledMicrocredits !== undefined ? formatCredits(log.billingSettledMicrocredits) : "—"),
+                  },
+                  {
+                      title: translate("adminPages.logs.logsPage.costInCredits"),
+                      key: "cost",
+                      align: "right",
+                      width: 108,
+                      render: (_, log) =>
+                          log.creditCostMicrocredits !== undefined ? formatCredits(log.creditCostMicrocredits) : log.creditCostConfigured ? translate("adminPages.logs.logsPage.pendingCalculation") : translate("account.layout.oss.cdnAuthNone"),
+                  },
                   { title: translate("adminPages.logs.logsPage.billingStatus"), key: "billingStatus", width: 100, render: (_, log) => logBillingLabel(log) },
-                  { title: translate("adminPages.logs.logsPage.tokensInOut"), key: "usage", width: 142, render: (_, log) => (log.usageAvailable ? `${log.inputTokens.toLocaleString(currentLocale())} / ${log.outputTokens.toLocaleString(currentLocale())}` : translate("adminPages.logs.logsPage.notReturned")) },
+                  {
+                      title: translate("adminPages.logs.logsPage.tokensInOut"),
+                      key: "usage",
+                      width: 142,
+                      render: (_, log) => (log.usageAvailable ? `${log.inputTokens.toLocaleString(currentLocale())} / ${log.outputTokens.toLocaleString(currentLocale())}` : translate("adminPages.logs.logsPage.notReturned")),
+                  },
               ]
             : [
                   ...identityColumns,
@@ -233,7 +266,8 @@ export default function LogsPage() {
                       ellipsis: true,
                       render: (_, log) => (
                           <span className={logStatus(log).tone === "error" ? "admin-log-error" : undefined} title={[log.errorCode, log.error].filter(Boolean).join(" · ")}>
-                              {[log.errorCode, log.error].filter(Boolean).join(" · ") || (logStatus(log).tone === "error" ? translate("adminPages.logs.logsPage.hTTPNoDetailsReturned", { v0: String(log.statusCode || translate("library.assets.batch.failed")) }) : "—")}
+                              {[log.errorCode, log.error].filter(Boolean).join(" · ") ||
+                                  (logStatus(log).tone === "error" ? translate("adminPages.logs.logsPage.hTTPNoDetailsReturned", { v0: String(log.statusCode || translate("library.assets.batch.failed")) }) : "—")}
                           </span>
                       ),
                   },
@@ -282,13 +316,19 @@ export default function LogsPage() {
                 width: 560,
                 content: (
                     <div className="max-h-[50vh] space-y-2 overflow-auto">
-                        <div className="mb-3">
-                            {translate("adminPages.logs.logsPage.bulkRecoveryCounts", { succeeded: result.success, failed: result.failed, skipped: totalSkipped })}
-                        </div>
+                        <div className="mb-3">{translate("adminPages.logs.logsPage.bulkRecoveryCounts", { succeeded: result.success, failed: result.failed, skipped: totalSkipped })}</div>
                         {result.items.map((item) => (
                             <div key={item.logId} className="rounded border border-border/70 px-3 py-2 text-xs">
                                 <div className="font-mono">{item.logId}</div>
-                                <div>{item.recovered ? translate("adminPages.logs.logsPage.success") : item.error?.startsWith("跳过") ? item.error : item.providerStatus ? translate("adminPages.logs.logsPage.stillGenerating", { v0: String(item.providerStatus) }) : translate("adminPages.logs.logsPage.failed", { v0: String(item.error || translate("adminPages.logs.logsPage.notRecovered")) })}</div>
+                                <div>
+                                    {item.recovered
+                                        ? translate("adminPages.logs.logsPage.success")
+                                        : item.error?.startsWith("跳过")
+                                          ? item.error
+                                          : item.providerStatus
+                                            ? translate("adminPages.logs.logsPage.stillGenerating", { v0: String(item.providerStatus) })
+                                            : translate("adminPages.logs.logsPage.failed", { v0: String(item.error || translate("adminPages.logs.logsPage.notRecovered")) })}
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -369,7 +409,12 @@ export default function LogsPage() {
                 toolbarActiveFilters={
                     <>
                         {keyword ? <AdminFilterChip label={translate("adminPages.logs.logsPage.search", { v0: String(keyword) })} onRemove={() => updateUrl({ filter: "", page: 1 })} /> : null}
-                        {status !== "all" ? <AdminFilterChip label={translate("adminPages.logs.logsPage.result3", { v0: String(status === "succeeded" ? translate("adminPages.logs.logsPage.success") : translate("library.assets.batch.failed")) })} onRemove={() => updateUrl({ status: "all", page: 1 })} /> : null}
+                        {status !== "all" ? (
+                            <AdminFilterChip
+                                label={translate("adminPages.logs.logsPage.result3", { v0: String(status === "succeeded" ? translate("adminPages.logs.logsPage.success") : translate("library.assets.batch.failed")) })}
+                                onRemove={() => updateUrl({ status: "all", page: 1 })}
+                            />
+                        ) : null}
                         {capability !== "all" ? <AdminFilterChip label={translate("adminPages.logs.logsPage.capability2", { v0: String(capabilityText(capability)) })} onRemove={() => updateUrl({ capability: "all", page: 1 })} /> : null}
                     </>
                 }
@@ -564,7 +609,14 @@ function formatCompactTime(value: string) {
     return date.toLocaleString(currentLocale(), { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
 }
 function capabilityText(value: string) {
-    return ({ text: translate("account.settings.modelConfig.capabilities.text"), image: translate("account.feedback.image"), video: translate("account.feedback.video"), audio: translate("account.settings.modelConfig.capabilities.audio") } as Record<string, string>)[value] || translate("adminPages.logs.logsPage.unknown");
+    return (
+        (
+            { text: translate("account.settings.modelConfig.capabilities.text"), image: translate("account.feedback.image"), video: translate("account.feedback.video"), audio: translate("account.settings.modelConfig.capabilities.audio") } as Record<
+                string,
+                string
+            >
+        )[value] || translate("adminPages.logs.logsPage.unknown")
+    );
 }
 function formatDuration(value: number) {
     if (value < 1_000) return `${value} ms`;
@@ -578,12 +630,33 @@ function BillingSummary({ log }: { log: ApiCallLog }) {
     if (!log.billable) return <span className="text-foreground/45">{translate("adminPages.logs.logsPage.notBilled")}</span>;
     if (!log.billingAvailable) return <span className="text-foreground/35">{translate("adminPages.logs.logsPage.noCreditsCharged")}</span>;
     const status = log.billingStatus || "reserved";
-    const statusLabel = ({ settled: translate("adminPages.logs.logsPage.settled"), refunded: translate("adminPages.logs.logsPage.refunded"), uncertain: translate("adminPages.logs.logsPage.pendingReview"), running: translate("library.tasks.filter.active"), reserved: translate("adminPages.logs.logsPage.preauthorized2") } as const)[status];
+    const statusLabel = (
+        {
+            settled: translate("adminPages.logs.logsPage.settled"),
+            refunded: translate("adminPages.logs.logsPage.refunded"),
+            uncertain: translate("adminPages.logs.logsPage.pendingReview"),
+            running: translate("library.tasks.filter.active"),
+            reserved: translate("adminPages.logs.logsPage.preauthorized2"),
+        } as const
+    )[status];
     return (
         <div>
-            <div className="tabular-nums">{translate("adminPages.logs.logsPage.preauthorized")}{formatCredits(log.billingReservedMicrocredits)} {translate("shell.credits")}</div>
-            <div className="tabular-nums">{translate("adminPages.logs.logsPage.charged2")}{log.billingSettledMicrocredits !== undefined ? translate("adminPages.logs.logsPage.credits", { v0: String(formatCredits(log.billingSettledMicrocredits)) }) : translate("adminPages.logs.logsPage.notSettled")}</div>
-            <div className="tabular-nums text-xs text-foreground/60">{translate("adminPages.logs.logsPage.costPrice")}{log.creditCostMicrocredits !== undefined ? translate("adminPages.logs.logsPage.credits", { v0: String(formatCredits(log.creditCostMicrocredits)) }) : log.creditCostConfigured ? translate("adminPages.logs.logsPage.pendingCalculation") : translate("account.layout.oss.cdnAuthNone")}</div>
+            <div className="tabular-nums">
+                {translate("adminPages.logs.logsPage.preauthorized")}
+                {formatCredits(log.billingReservedMicrocredits)} {translate("shell.credits")}
+            </div>
+            <div className="tabular-nums">
+                {translate("adminPages.logs.logsPage.charged2")}
+                {log.billingSettledMicrocredits !== undefined ? translate("adminPages.logs.logsPage.credits", { v0: String(formatCredits(log.billingSettledMicrocredits)) }) : translate("adminPages.logs.logsPage.notSettled")}
+            </div>
+            <div className="tabular-nums text-xs text-foreground/60">
+                {translate("adminPages.logs.logsPage.costPrice")}
+                {log.creditCostMicrocredits !== undefined
+                    ? translate("adminPages.logs.logsPage.credits", { v0: String(formatCredits(log.creditCostMicrocredits)) })
+                    : log.creditCostConfigured
+                      ? translate("adminPages.logs.logsPage.pendingCalculation")
+                      : translate("account.layout.oss.cdnAuthNone")}
+            </div>
             <div className="text-xs text-foreground/40">{statusLabel}</div>
         </div>
     );
@@ -599,13 +672,30 @@ function MediaResult({ log, onPreview }: { log: ApiCallLog; onPreview: (url: str
         <div className="flex w-[90px] items-center gap-2">
             <button
                 type="button"
-                title={previewUnavailable ? translate("adminPages.logs.logsPage.previewUnavailableTheAssetMayHaveBeenDeleted") : translate("adminPages.logs.logsPage.preview", { v0: String(kind === "video" ? translate("account.feedback.video") : translate("account.feedback.image")) })}
-                aria-label={previewUnavailable ? translate("adminPages.logs.logsPage.previewUnavailableTheAssetMayHaveBeenDeleted") : translate("adminPages.logs.logsPage.preview", { v0: String(kind === "video" ? translate("account.feedback.video") : translate("account.feedback.image")) })}
+                title={
+                    previewUnavailable
+                        ? translate("adminPages.logs.logsPage.previewUnavailableTheAssetMayHaveBeenDeleted")
+                        : translate("adminPages.logs.logsPage.preview", { v0: String(kind === "video" ? translate("account.feedback.video") : translate("account.feedback.image")) })
+                }
+                aria-label={
+                    previewUnavailable
+                        ? translate("adminPages.logs.logsPage.previewUnavailableTheAssetMayHaveBeenDeleted")
+                        : translate("adminPages.logs.logsPage.preview", { v0: String(kind === "video" ? translate("account.feedback.video") : translate("account.feedback.image")) })
+                }
                 disabled={previewUnavailable}
                 className="group relative h-11 w-16 shrink-0 overflow-hidden rounded border border-border/75 bg-black/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => onPreview(url, kind)}
             >
-                <MediaPreview src={url} kind={kind} alt={translate("library.tasks.detail.generated")} loading="lazy" className="size-full object-cover" fallbackClassName="text-white/55" fallbackLabel={translate("library.tasks.row.previewUnavailable")} onUnavailable={() => setUnavailableUrl(url)} />
+                <MediaPreview
+                    src={url}
+                    kind={kind}
+                    alt={translate("library.tasks.detail.generated")}
+                    loading="lazy"
+                    className="size-full object-cover"
+                    fallbackClassName="text-white/55"
+                    fallbackLabel={translate("library.tasks.row.previewUnavailable")}
+                    onUnavailable={() => setUnavailableUrl(url)}
+                />
                 {!previewUnavailable ? (
                     <span className="absolute inset-0 grid place-items-center bg-black/0 text-white opacity-0 transition group-hover:bg-black/35 group-hover:opacity-100 group-focus-visible:bg-black/35 group-focus-visible:opacity-100">
                         {kind === "video" ? <Play className="size-4 fill-current" /> : <Eye className="size-4" />}
@@ -628,7 +718,11 @@ function CallStatus({ log }: { log: ApiCallLog }) {
             <div className="mb-1 text-xs font-medium text-foreground/70">{requestKindText(log.requestKind)}</div>
             <AdminStatusBadge {...logStatus(log)} />
             {log.mediaStage ? <div className="mt-1 text-xs text-foreground/60">{mediaDeliverySummary(log.taskStatus, log.mediaStage)}</div> : null}
-            {log.capability === "video" ? <div className="mt-1 text-xs tabular-nums text-foreground/45">{translate("adminPages.logs.logsPage.polled")} {log.pollCount || 0} {translate("account.settings.models.unitCall")}</div> : null}
+            {log.capability === "video" ? (
+                <div className="mt-1 text-xs tabular-nums text-foreground/45">
+                    {translate("adminPages.logs.logsPage.polled")} {log.pollCount || 0} {translate("account.settings.models.unitCall")}
+                </div>
+            ) : null}
         </div>
     );
 }

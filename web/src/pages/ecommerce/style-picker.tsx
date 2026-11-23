@@ -68,7 +68,14 @@ function StyleCard({ direction, index, chosen, disabled, onSelect, onEdit }: { d
             <span className="commerce-style-card-check" aria-hidden="true">
                 <Check size={14} />
             </span>
-            <button type="button" className="commerce-style-card-edit" aria-label={translate("ecommerce.stylePicker.rewriteStyle", { v0: String(direction.name) })} title={translate("ecommerce.stylePicker.rewriteThisStyle")} disabled={disabled} onClick={onEdit}>
+            <button
+                type="button"
+                className="commerce-style-card-edit"
+                aria-label={translate("ecommerce.stylePicker.rewriteStyle", { v0: String(direction.name) })}
+                title={translate("ecommerce.stylePicker.rewriteThisStyle")}
+                disabled={disabled}
+                onClick={onEdit}
+            >
                 <PencilLine size={14} />
             </button>
         </div>
@@ -120,7 +127,14 @@ export function CommerceStylePicker({
     const visible = tab === RECOMMENDED ? directions : library.filter((item) => (item.group || UNGROUPED) === tab);
     const customReady = Boolean(custom.name.trim() || custom.description.trim());
     const picked = selectedId === CUSTOM ? undefined : all.find((entry) => entry.id === selectedId);
-    const chosen = selectedId === CUSTOM ? (customReady ? { name: custom.name.trim() || translate("ecommerce.stylePicker.customStyle"), group: translate("account.settings.models.scopeCustom") } : undefined) : picked ? { name: resolve(picked).name, group: picked.group || translate("ecommerce.stylePicker.recommendedForYou") } : undefined;
+    const chosen =
+        selectedId === CUSTOM
+            ? customReady
+                ? { name: custom.name.trim() || translate("ecommerce.stylePicker.customStyle"), group: translate("account.settings.models.scopeCustom") }
+                : undefined
+            : picked
+              ? { name: resolve(picked).name, group: picked.group || translate("ecommerce.stylePicker.recommendedForYou") }
+              : undefined;
     const tabs = [
         { id: RECOMMENDED, label: translate("ecommerce.stylePicker.recommendedForYou"), count: directions.length },
         ...groups.map((group) => ({ id: group, label: group, count: library.filter((item) => (item.group || UNGROUPED) === group).length })),
@@ -157,7 +171,9 @@ export function CommerceStylePicker({
                             STYLE STUDIO · {total} {translate("ecommerce.stylePicker.styles")}
                         </small>
                         <h2>{translate("ecommerce.stylePicker.chooseAVisualStyleForThisProduct")}</h2>
-                        <p>{translate("ecommerce.stylePicker.recommendedForThisProductCategory")} {total} {translate("ecommerce.stylePicker.visualConceptsWithTailoredScenesFontsAndLayoutsBrowseCategories")}</p>
+                        <p>
+                            {translate("ecommerce.stylePicker.recommendedForThisProductCategory")} {total} {translate("ecommerce.stylePicker.visualConceptsWithTailoredScenesFontsAndLayoutsBrowseCategories")}
+                        </p>
                     </div>
                 </header>
                 <nav className="commerce-style-picker-tabs" role="tablist" aria-label={translate("ecommerce.stylePicker.styleCategories")}>
@@ -242,7 +258,8 @@ export function CommerceStylePicker({
                     <span>
                         {chosen ? (
                             <>
-                                {translate("ecommerce.stylePicker.selected")}<b>{chosen.name}</b>
+                                {translate("ecommerce.stylePicker.selected")}
+                                <b>{chosen.name}</b>
                                 <em>{chosen.group}</em>
                             </>
                         ) : degraded ? (

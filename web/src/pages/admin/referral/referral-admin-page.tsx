@@ -10,7 +10,6 @@ import { AdminDataTable, AdminTableEmpty, SettingsSectionCard } from "../compone
 import { Switch } from "../ui/controls";
 import { currentLocale, translate } from "@/i18n";
 
-
 const PAGE_SIZE = 20;
 
 export default function AdminReferralPage() {
@@ -58,7 +57,11 @@ export default function AdminReferralPage() {
                     icon={<Gift className="size-4" />}
                     title={translate("adminPages.referral.referralAdminPage.referralSettings")}
                     description={translate("adminPages.referral.referralAdminPage.inDesignatedReferrerModeEditUsersInUserManagementAnd")}
-                    status={setting.data ? { label: setting.data.enabled ? translate("adminPages.referral.referralAdminPage.enabled") : translate("adminPages.referral.referralAdminPage.disabled"), color: setting.data.enabled ? "success" : undefined } : undefined}
+                    status={
+                        setting.data
+                            ? { label: setting.data.enabled ? translate("adminPages.referral.referralAdminPage.enabled") : translate("adminPages.referral.referralAdminPage.disabled"), color: setting.data.enabled ? "success" : undefined }
+                            : undefined
+                    }
                     footer={
                         <>
                             <span className="text-xs text-foreground/55">{translate("adminPages.referral.referralAdminPage.commissionIsCalculatedOnCreditsReceivedForEachPurchaseBy")}</span>
@@ -89,7 +92,11 @@ export default function AdminReferralPage() {
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <span>
                                     <strong className="block text-sm">{translate("adminPages.referral.referralAdminPage.accessMode")}</strong>
-                                    <span className="text-xs text-foreground/55">{draft.mode === "all" ? translate("adminPages.referral.referralAdminPage.allActiveAccountsCanViewTheReferralCenterReferralLinks") : translate("adminPages.referral.referralAdminPage.onlyDesignatedReferrersCanAccessTheReferralCenterAndEarn")}</span>
+                                    <span className="text-xs text-foreground/55">
+                                        {draft.mode === "all"
+                                            ? translate("adminPages.referral.referralAdminPage.allActiveAccountsCanViewTheReferralCenterReferralLinks")
+                                            : translate("adminPages.referral.referralAdminPage.onlyDesignatedReferrersCanAccessTheReferralCenterAndEarn")}
+                                    </span>
                                 </span>
                                 <SegmentedControl<ReferralMode>
                                     ariaLabel={translate("adminPages.referral.referralAdminPage.referralAccessMode")}
@@ -133,11 +140,35 @@ export default function AdminReferralPage() {
                             columns: [
                                 { key: "inviter", title: translate("adminPages.referral.referralAdminPage.referrer"), dataIndex: "inviterName" },
                                 { key: "invitee", title: translate("adminPages.referral.referralAdminPage.referredUser"), dataIndex: "inviteeName" },
-                                { key: "amount", title: translate("adminPages.referral.referralAdminPage.purchaseAmount"), dataIndex: "orderAmountFen", align: "right", render: (value: number) => <span className="tabular-nums">{formatReferralYuan(value)}</span> },
-                                { key: "credits", title: translate("adminPages.referral.referralAdminPage.creditsDelivered"), dataIndex: "orderCreditsMicrocredits", align: "right", render: (value: number) => <span className="tabular-nums">{formatReferralCredits(value)}</span> },
+                                {
+                                    key: "amount",
+                                    title: translate("adminPages.referral.referralAdminPage.purchaseAmount"),
+                                    dataIndex: "orderAmountFen",
+                                    align: "right",
+                                    render: (value: number) => <span className="tabular-nums">{formatReferralYuan(value)}</span>,
+                                },
+                                {
+                                    key: "credits",
+                                    title: translate("adminPages.referral.referralAdminPage.creditsDelivered"),
+                                    dataIndex: "orderCreditsMicrocredits",
+                                    align: "right",
+                                    render: (value: number) => <span className="tabular-nums">{formatReferralCredits(value)}</span>,
+                                },
                                 { key: "rate", title: translate("canvasB.sizePicker.placeholder"), dataIndex: "rateBasisPoints", align: "center", render: (value: number) => formatReferralRate(value) },
-                                { key: "commission", title: translate("adminPages.referral.referralAdminPage.commissionCredits"), dataIndex: "commissionMicrocredits", align: "right", render: (value: number) => <span className="tabular-nums">+{formatReferralCredits(value)}</span> },
-                                { key: "createdAt", title: translate("adminPages.referral.referralAdminPage.creditedTime"), dataIndex: "createdAt", align: "center", render: (value: string) => <span className="tabular-nums">{new Date(value).toLocaleString(currentLocale(), { hour12: false })}</span> },
+                                {
+                                    key: "commission",
+                                    title: translate("adminPages.referral.referralAdminPage.commissionCredits"),
+                                    dataIndex: "commissionMicrocredits",
+                                    align: "right",
+                                    render: (value: number) => <span className="tabular-nums">+{formatReferralCredits(value)}</span>,
+                                },
+                                {
+                                    key: "createdAt",
+                                    title: translate("adminPages.referral.referralAdminPage.creditedTime"),
+                                    dataIndex: "createdAt",
+                                    align: "center",
+                                    render: (value: string) => <span className="tabular-nums">{new Date(value).toLocaleString(currentLocale(), { hour12: false })}</span>,
+                                },
                             ],
                         }}
                     />

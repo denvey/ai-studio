@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { translate } from "@/i18n";
 
-
 export type LocalCanvasPersistencePhase = "saved" | "pending" | "error";
 
 export type SyncProjectProgress = {

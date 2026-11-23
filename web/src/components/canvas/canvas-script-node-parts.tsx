@@ -18,7 +18,12 @@ export function storyboardStepState(stage: StoryboardPipelineStage): "done" | "c
 
 export function StoryboardMiniPipeline({ pipeline, theme, rows }: { pipeline: CanvasStoryboardPipelineProgress; theme: (typeof canvasThemes)[keyof typeof canvasThemes]; rows: StoryboardRow[] }) {
     const steps: Array<{ key: string; label: string; state: "done" | "current" | "error" | "idle"; hint: string }> = [
-        { key: "script", label: translate("account.welcome.chapters.shots.label"), state: rows.length > 0 ? "done" : "idle", hint: rows.length > 0 ? translate("canvasTools.canvasScriptNodeParts.shots", { v0: String(rows.length) }) : translate("canvasTools.canvasScriptNodeParts.shotsToAdd") },
+        {
+            key: "script",
+            label: translate("account.welcome.chapters.shots.label"),
+            state: rows.length > 0 ? "done" : "idle",
+            hint: rows.length > 0 ? translate("canvasTools.canvasScriptNodeParts.shots", { v0: String(rows.length) }) : translate("canvasTools.canvasScriptNodeParts.shotsToAdd"),
+        },
         { key: "images", label: translate("canvasTools.canvasScriptNodeParts.storyboardFrameOptional"), state: storyboardStepState(pipeline.images), hint: pipelineStatusLabel(pipeline.images) },
         { key: "videos", label: translate("account.feedback.video"), state: storyboardStepState(pipeline.videos), hint: pipelineStatusLabel(pipeline.videos) },
         {
@@ -100,20 +105,41 @@ export function GenerationBatchDetails({ batch, rows, onRetryItem }: { batch: Ca
 }
 
 export function generationBatchModeLabel(batch: CanvasGenerationBatch) {
-    return batch.mode === "storyboard_video" ? translate("nav.sidebar.toolboxVideo") : batch.mode === "storyboard_image" ? translate("canvasTools.canvasScriptNodeParts.storyboardFrameGeneration") : translate("canvasTools.canvasScriptNodeParts.actionBoardGeneration");
+    return batch.mode === "storyboard_video"
+        ? translate("nav.sidebar.toolboxVideo")
+        : batch.mode === "storyboard_image"
+          ? translate("canvasTools.canvasScriptNodeParts.storyboardFrameGeneration")
+          : translate("canvasTools.canvasScriptNodeParts.actionBoardGeneration");
 }
 
 export function generationBatchSummary(batch: CanvasGenerationBatch) {
     const count = (status: CanvasGenerationBatchItemStatus) => batch.items.filter((item) => item.status === status).length;
     const generating = count("submitting") + count("queued") + count("running");
     const stopped = count("cancelled");
-    return translate("canvasTools.canvasScriptNodeParts.completedFailedGeneratingWaiting", { v0: String(generationBatchModeLabel(batch)), v1: String(batch.status === "completed" ? translate("account.payment.done") : batch.status === "cancelled" ? translate("create.status.stopped") : translate("canvasTools.canvasScriptNodeParts.inProgress")), v2: String(count("succeeded")), v3: String(batch.items.length), v4: String(count("failed")), v5: String(generating), v6: String(count("waiting")), v7: String(stopped ? translate("canvasTools.canvasScriptNodeParts.stopped", { v0: String(stopped) }) : "") });
+    return translate("canvasTools.canvasScriptNodeParts.completedFailedGeneratingWaiting", {
+        v0: String(generationBatchModeLabel(batch)),
+        v1: String(batch.status === "completed" ? translate("account.payment.done") : batch.status === "cancelled" ? translate("create.status.stopped") : translate("canvasTools.canvasScriptNodeParts.inProgress")),
+        v2: String(count("succeeded")),
+        v3: String(batch.items.length),
+        v4: String(count("failed")),
+        v5: String(generating),
+        v6: String(count("waiting")),
+        v7: String(stopped ? translate("canvasTools.canvasScriptNodeParts.stopped", { v0: String(stopped) }) : ""),
+    });
 }
 
 export function generationBatchItemLabel(item: CanvasGenerationBatchItem) {
     if (item.costUncertain) return translate("canvasTools.canvasScriptNodeParts.chargePendingConfirmation");
     if (isContentModerationError(item.errorDetails)) return translate("canvasTools.canvasScriptNodeParts.reviewFailedReviseThePrompt");
-    const labels: Record<CanvasGenerationBatchItemStatus, string> = { waiting: translate("canvasTools.canvasScriptNodeParts.waiting"), submitting: translate("canvasTools.canvasScriptNodeParts.submitting"), queued: translate("canvasTools.canvasScriptNodeParts.queued"), running: translate("canvasB.mediaVersion.generating"), succeeded: translate("canvasTools.canvasScriptNodeParts.success"), failed: translate("library.assets.batch.failed"), cancelled: translate("create.status.stopped") };
+    const labels: Record<CanvasGenerationBatchItemStatus, string> = {
+        waiting: translate("canvasTools.canvasScriptNodeParts.waiting"),
+        submitting: translate("canvasTools.canvasScriptNodeParts.submitting"),
+        queued: translate("canvasTools.canvasScriptNodeParts.queued"),
+        running: translate("canvasB.mediaVersion.generating"),
+        succeeded: translate("canvasTools.canvasScriptNodeParts.success"),
+        failed: translate("library.assets.batch.failed"),
+        cancelled: translate("create.status.stopped"),
+    };
     return labels[item.status];
 }
 

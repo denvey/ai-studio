@@ -3,7 +3,6 @@ import { loadRasterImage } from "@/lib/image-raster";
 import type { PixelSize } from "@/lib/canvas/image-operation-plan";
 import { translate } from "@/i18n";
 
-
 export function useImageToolSource(source: string) {
     const [result, setResult] = useState<{ source: string; size: PixelSize | null; error: string }>({ source, size: null, error: "" });
     useEffect(() => {

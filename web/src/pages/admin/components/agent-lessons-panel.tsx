@@ -89,7 +89,12 @@ export default function AgentLessonsPanel() {
             render: (value: string, record) => (
                 <div className="flex flex-col gap-0.5">
                     <span className="font-medium">{value}</span>
-                    {record.source ? <span className="text-[var(--fs-label)] opacity-60">{translate("admin.agentLessonsPanel.source")}{record.source}</span> : null}
+                    {record.source ? (
+                        <span className="text-[var(--fs-label)] opacity-60">
+                            {translate("admin.agentLessonsPanel.source")}
+                            {record.source}
+                        </span>
+                    ) : null}
                 </div>
             ),
         },
@@ -122,7 +127,12 @@ export default function AgentLessonsPanel() {
             title: translate("library.tasks.detail.status"),
             dataIndex: "status",
             width: 96,
-            render: (value: string) => <AdminStatusBadge label={value === "approved" ? translate("admin.agentLessonsPanel.approved") : value === "rejected" ? translate("account.settings.memory.statusRejected") : translate("admin.agentLessonsPanel.pendingReview")} tone={value === "approved" ? "success" : value === "rejected" ? "error" : "warning"} />,
+            render: (value: string) => (
+                <AdminStatusBadge
+                    label={value === "approved" ? translate("admin.agentLessonsPanel.approved") : value === "rejected" ? translate("account.settings.memory.statusRejected") : translate("admin.agentLessonsPanel.pendingReview")}
+                    tone={value === "approved" ? "success" : value === "rejected" ? "error" : "warning"}
+                />
+            ),
         },
         {
             title: (
@@ -189,7 +199,9 @@ export default function AgentLessonsPanel() {
                         <Button icon={<RefreshCw className="size-4" />} onClick={() => void load()}>
                             {translate("common.refresh")}
                         </Button>
-                        <span className="text-xs opacity-60">{translate("admin.agentLessonsPanel.total")} {items.length} {translate("account.layout.pagination.item")}</span>
+                        <span className="text-xs opacity-60">
+                            {translate("admin.agentLessonsPanel.total")} {items.length} {translate("account.layout.pagination.item")}
+                        </span>
                     </div>
                 }
                 table={{

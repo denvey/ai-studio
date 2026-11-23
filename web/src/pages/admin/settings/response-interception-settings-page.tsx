@@ -10,7 +10,6 @@ import { AdminPageFrame } from "../components/admin-shell";
 import { AdminStatusBadge, SettingsSectionCard } from "../components/admin-ui";
 import { translate } from "@/i18n";
 
-
 const MAX_RULES = 100;
 const MAX_MATCH_RUNES = 200;
 const MAX_REPLACE_RUNES = 500;
@@ -218,7 +217,11 @@ export default function ResponseInterceptionSettingsPage() {
 
     if (loading && !setting) {
         return (
-            <AdminPageFrame title={translate("adminPages.settings.responseInterceptionSettingsPage.modelResponseInterception")} description={translate("adminPages.settings.responseInterceptionSettingsPage.chooseWhetherToReplaceUserFacingErrorsThenConfigureRules")} scroll>
+            <AdminPageFrame
+                title={translate("adminPages.settings.responseInterceptionSettingsPage.modelResponseInterception")}
+                description={translate("adminPages.settings.responseInterceptionSettingsPage.chooseWhetherToReplaceUserFacingErrorsThenConfigureRules")}
+                scroll
+            >
                 <div className="admin-settings-stack admin-intercept-settings" aria-label={translate("adminPages.settings.responseInterceptionSettingsPage.loadingModelResponseInterceptionSettings")} role="status">
                     <div className="admin-intercept-command-bar">
                         <Skeleton active title={{ width: 190 }} paragraph={false} />
@@ -233,7 +236,11 @@ export default function ResponseInterceptionSettingsPage() {
 
     if (!setting) {
         return (
-            <AdminPageFrame title={translate("adminPages.settings.responseInterceptionSettingsPage.modelResponseInterception")} description={translate("adminPages.settings.responseInterceptionSettingsPage.chooseWhetherToReplaceUserFacingErrorsThenConfigureRules")} scroll>
+            <AdminPageFrame
+                title={translate("adminPages.settings.responseInterceptionSettingsPage.modelResponseInterception")}
+                description={translate("adminPages.settings.responseInterceptionSettingsPage.chooseWhetherToReplaceUserFacingErrorsThenConfigureRules")}
+                scroll
+            >
                 <div className="admin-settings-stack admin-intercept-settings">
                     <div className="admin-intercept-load-error" role="alert">
                         <span className="admin-intercept-load-error-icon">
@@ -253,7 +260,11 @@ export default function ResponseInterceptionSettingsPage() {
     }
 
     return (
-        <AdminPageFrame title={translate("adminPages.settings.responseInterceptionSettingsPage.modelResponseInterception")} description={translate("adminPages.settings.responseInterceptionSettingsPage.chooseWhetherToReplaceUserFacingErrorsThenConfigureRules")} scroll>
+        <AdminPageFrame
+            title={translate("adminPages.settings.responseInterceptionSettingsPage.modelResponseInterception")}
+            description={translate("adminPages.settings.responseInterceptionSettingsPage.chooseWhetherToReplaceUserFacingErrorsThenConfigureRules")}
+            scroll
+        >
             <div className="admin-settings-stack admin-intercept-settings">
                 <div className={cn("admin-intercept-command-bar", dirty && "is-dirty")}>
                     <div className="admin-intercept-command-copy" aria-live="polite">
@@ -262,10 +273,19 @@ export default function ResponseInterceptionSettingsPage() {
                         </span>
                         <div>
                             <div className="flex flex-wrap items-center gap-2">
-                                <strong>{dirty ? translate("adminPages.settings.responseInterceptionSettingsPage.responseInterceptionHasUnsavedChanges") : translate("adminPages.settings.responseInterceptionSettingsPage.responseInterceptionSettingsSynced")}</strong>
-                                <AdminStatusBadge label={dirty ? translate("adminPages.settings.responseInterceptionSettingsPage.notYetApplied") : translate("adminPages.settings.responseInterceptionSettingsPage.currentServerValue")} tone={dirty ? "warning" : "neutral"} />
+                                <strong>
+                                    {dirty ? translate("adminPages.settings.responseInterceptionSettingsPage.responseInterceptionHasUnsavedChanges") : translate("adminPages.settings.responseInterceptionSettingsPage.responseInterceptionSettingsSynced")}
+                                </strong>
+                                <AdminStatusBadge
+                                    label={dirty ? translate("adminPages.settings.responseInterceptionSettingsPage.notYetApplied") : translate("adminPages.settings.responseInterceptionSettingsPage.currentServerValue")}
+                                    tone={dirty ? "warning" : "neutral"}
+                                />
                             </div>
-                            <p>{dirty ? translate("adminPages.settings.responseInterceptionSettingsPage.theSwitchTextAndPrioritiesAreDraftsOnThisPage") : translate("adminPages.settings.responseInterceptionSettingsPage.onlyChangesTheFinalErrorTextShownToUsersOriginal")}</p>
+                            <p>
+                                {dirty
+                                    ? translate("adminPages.settings.responseInterceptionSettingsPage.theSwitchTextAndPrioritiesAreDraftsOnThisPage")
+                                    : translate("adminPages.settings.responseInterceptionSettingsPage.onlyChangesTheFinalErrorTextShownToUsersOriginal")}
+                            </p>
                         </div>
                     </div>
                     <div className="admin-intercept-command-actions">
@@ -293,7 +313,20 @@ export default function ResponseInterceptionSettingsPage() {
                         icon={<ShieldAlert className="size-4" aria-hidden="true" />}
                         title={translate("adminPages.settings.responseInterceptionSettingsPage.item1ReplaceUserFacingUpstreamErrors")}
                         description={translate("adminPages.settings.responseInterceptionSettingsPage.thisIsTheMainResponseInterceptionSwitchWhenDisabledRules")}
-                        status={<AdminStatusBadge label={enabledDirty ? (enabled ? translate("adminPages.settings.responseInterceptionSettingsPage.pendingEnable") : translate("adminPages.settings.responseInterceptionSettingsPage.pendingDisable")) : enabled ? translate("account.layout.oss.enabled") : translate("adminPages.settings.responseInterceptionSettingsPage.disabled")} tone={enabledDirty ? "warning" : enabled ? "success" : "neutral"} />}
+                        status={
+                            <AdminStatusBadge
+                                label={
+                                    enabledDirty
+                                        ? enabled
+                                            ? translate("adminPages.settings.responseInterceptionSettingsPage.pendingEnable")
+                                            : translate("adminPages.settings.responseInterceptionSettingsPage.pendingDisable")
+                                        : enabled
+                                          ? translate("account.layout.oss.enabled")
+                                          : translate("adminPages.settings.responseInterceptionSettingsPage.disabled")
+                                }
+                                tone={enabledDirty ? "warning" : enabled ? "success" : "neutral"}
+                            />
+                        }
                         footer={
                             !enabled ? (
                                 <>
@@ -322,7 +355,13 @@ export default function ResponseInterceptionSettingsPage() {
                             <div className="admin-intercept-policy-copy">
                                 <strong>{translate("adminPages.settings.responseInterceptionSettingsPage.replaceUserFacingErrorText")}</strong>
                                 <p>{translate("adminPages.settings.responseInterceptionSettingsPage.whenEnabledErrorTextIsCheckedInRuleOrderIgnoring")}</p>
-                                <span>{enabled ? (draft.rules.length ? translate("adminPages.settings.responseInterceptionSettingsPage.theCurrentDraftChecksAllRulesInOrderUnmatchedText") : translate("adminPages.settings.responseInterceptionSettingsPage.thereAreNoRulesEnablingInterceptionWillNotChangeUser")) : translate("adminPages.settings.responseInterceptionSettingsPage.currentlyDisabledAllUserFacingErrorsAreShownUnchanged")}</span>
+                                <span>
+                                    {enabled
+                                        ? draft.rules.length
+                                            ? translate("adminPages.settings.responseInterceptionSettingsPage.theCurrentDraftChecksAllRulesInOrderUnmatchedText")
+                                            : translate("adminPages.settings.responseInterceptionSettingsPage.thereAreNoRulesEnablingInterceptionWillNotChangeUser")
+                                        : translate("adminPages.settings.responseInterceptionSettingsPage.currentlyDisabledAllUserFacingErrorsAreShownUnchanged")}
+                                </span>
                             </div>
                             <div className="admin-intercept-policy-switch">
                                 <span>{enabled ? translate("adminPages.settings.responseInterceptionSettingsPage.enable") : translate("adminPages.settings.responseInterceptionSettingsPage.disable")}</span>
@@ -344,7 +383,12 @@ export default function ResponseInterceptionSettingsPage() {
                                 icon={<ListOrdered className="size-4" aria-hidden="true" />}
                                 title={translate("adminPages.settings.responseInterceptionSettingsPage.item2ConfigureReplacementRulesAndPriority")}
                                 description={translate("adminPages.settings.responseInterceptionSettingsPage.rulesAreMatchedFromTopToBottomCheckingStopsAt")}
-                                status={<AdminStatusBadge label={translate("adminPages.settings.responseInterceptionSettingsPage.rules", { v0: String(draft.rules.length), v1: String(MAX_RULES) })} tone={duplicateRuleIndexes.size ? "warning" : draft.rules.length ? "info" : "neutral"} />}
+                                status={
+                                    <AdminStatusBadge
+                                        label={translate("adminPages.settings.responseInterceptionSettingsPage.rules", { v0: String(draft.rules.length), v1: String(MAX_RULES) })}
+                                        tone={duplicateRuleIndexes.size ? "warning" : draft.rules.length ? "info" : "neutral"}
+                                    />
+                                }
                                 footer={
                                     <>
                                         <div className="admin-intercept-footer-note">
@@ -394,7 +438,9 @@ export default function ResponseInterceptionSettingsPage() {
                                                 <div key={index} className={cn("admin-intercept-rule-row", duplicateRuleIndexes.has(index) && "has-duplicate")}>
                                                     <div className="admin-intercept-rule-index">
                                                         <span>{index + 1}</span>
-                                                        <small>{index === 0 ? translate("adminPages.settings.responseInterceptionSettingsPage.first") : translate("adminPages.settings.responseInterceptionSettingsPage.no", { v0: String(index + 1) })}</small>
+                                                        <small>
+                                                            {index === 0 ? translate("adminPages.settings.responseInterceptionSettingsPage.first") : translate("adminPages.settings.responseInterceptionSettingsPage.no", { v0: String(index + 1) })}
+                                                        </small>
                                                     </div>
                                                     <div className="admin-intercept-rule-field">
                                                         <Input
@@ -423,7 +469,13 @@ export default function ResponseInterceptionSettingsPage() {
                                                         <small>{translate("adminPages.settings.responseInterceptionSettingsPage.replacesTheEntireMessageNotJustTheMatchedPortion")}</small>
                                                     </div>
                                                     <div className="admin-intercept-rule-actions">
-                                                        <Button type="text" icon={<ArrowUp className="size-4" />} aria-label={translate("adminPages.settings.responseInterceptionSettingsPage.moveRuleUp", { v0: String(index + 1) })} disabled={loading || refreshing || saving || index === 0} onClick={() => moveRule(index, -1)} />
+                                                        <Button
+                                                            type="text"
+                                                            icon={<ArrowUp className="size-4" />}
+                                                            aria-label={translate("adminPages.settings.responseInterceptionSettingsPage.moveRuleUp", { v0: String(index + 1) })}
+                                                            disabled={loading || refreshing || saving || index === 0}
+                                                            onClick={() => moveRule(index, -1)}
+                                                        />
                                                         <Button
                                                             type="text"
                                                             icon={<ArrowDown className="size-4" />}
@@ -431,7 +483,14 @@ export default function ResponseInterceptionSettingsPage() {
                                                             disabled={loading || refreshing || saving || index === rules.length - 1}
                                                             onClick={() => moveRule(index, 1)}
                                                         />
-                                                        <Button type="text" danger icon={<Trash2 className="size-4" />} aria-label={translate("adminPages.settings.responseInterceptionSettingsPage.deleteRule", { v0: String(index + 1) })} disabled={loading || refreshing || saving} onClick={() => removeRule(index)} />
+                                                        <Button
+                                                            type="text"
+                                                            danger
+                                                            icon={<Trash2 className="size-4" />}
+                                                            aria-label={translate("adminPages.settings.responseInterceptionSettingsPage.deleteRule", { v0: String(index + 1) })}
+                                                            disabled={loading || refreshing || saving}
+                                                            onClick={() => removeRule(index)}
+                                                        />
                                                     </div>
                                                 </div>
                                             ))}
@@ -465,14 +524,28 @@ export default function ResponseInterceptionSettingsPage() {
                                 <div className="admin-intercept-preview-grid">
                                     <div className="admin-intercept-preview-input">
                                         <label htmlFor="admin-intercept-preview-input">{translate("adminPages.settings.responseInterceptionSettingsPage.simulatedUpstreamErrorText")}</label>
-                                        <Input.TextArea id="admin-intercept-preview-input" value={previewInput} autoSize={{ minRows: 4, maxRows: 8 }} placeholder={translate("adminPages.settings.responseInterceptionSettingsPage.pasteAnErrorMessageForLocalPreview")} onChange={(event) => setPreviewInput(event.target.value)} />
+                                        <Input.TextArea
+                                            id="admin-intercept-preview-input"
+                                            value={previewInput}
+                                            autoSize={{ minRows: 4, maxRows: 8 }}
+                                            placeholder={translate("adminPages.settings.responseInterceptionSettingsPage.pasteAnErrorMessageForLocalPreview")}
+                                            onChange={(event) => setPreviewInput(event.target.value)}
+                                        />
                                         <p>{translate("adminPages.settings.responseInterceptionSettingsPage.computedOnlyInMemoryExcludedFromSaveRequestsAuditsAnd")}</p>
                                     </div>
                                     <div className="admin-intercept-preview-result" aria-live="polite">
                                         <div className="admin-intercept-preview-heading">
                                             <strong>{translate("adminPages.settings.responseInterceptionSettingsPage.finalUserFacingMessage")}</strong>
                                             <AdminStatusBadge
-                                                label={!preview.raw ? translate("adminPages.settings.responseInterceptionSettingsPage.waitingForInput") : preview.matchIndex < 0 ? translate("adminPages.settings.responseInterceptionSettingsPage.noMatch") : enabled ? translate("adminPages.settings.responseInterceptionSettingsPage.matchedRule", { v0: String(preview.matchIndex + 1) }) : translate("adminPages.settings.responseInterceptionSettingsPage.ruleMatchesButInterceptionIsDisabled", { v0: String(preview.matchIndex + 1) })}
+                                                label={
+                                                    !preview.raw
+                                                        ? translate("adminPages.settings.responseInterceptionSettingsPage.waitingForInput")
+                                                        : preview.matchIndex < 0
+                                                          ? translate("adminPages.settings.responseInterceptionSettingsPage.noMatch")
+                                                          : enabled
+                                                            ? translate("adminPages.settings.responseInterceptionSettingsPage.matchedRule", { v0: String(preview.matchIndex + 1) })
+                                                            : translate("adminPages.settings.responseInterceptionSettingsPage.ruleMatchesButInterceptionIsDisabled", { v0: String(preview.matchIndex + 1) })
+                                                }
                                                 tone={!preview.raw || preview.matchIndex < 0 || !enabled ? "neutral" : "success"}
                                             />
                                         </div>

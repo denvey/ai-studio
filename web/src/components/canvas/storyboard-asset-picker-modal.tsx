@@ -56,8 +56,21 @@ export function StoryboardAssetPickerModal({
                 <div data-canvas-no-zoom data-canvas-wheel-scroll onPointerDown={(event) => event.stopPropagation()} onWheel={(event) => event.stopPropagation()}>
                     <p className="mb-4 text-sm text-foreground/55">{translate("canvasTools.storyboardAssetPickerModal.selectCharactersLocationsPropsOrReferenceMediaForThisShot")}</p>
                     <div className="mb-4 flex flex-wrap gap-2">
-                        <Input className="min-w-40 flex-1" prefix={<Search className="size-4 text-foreground/40" />} allowClear placeholder={translate("canvasTools.storyboardAssetPickerModal.searchAssetNamesOrTags")} value={query} onChange={(event) => setQuery(event.target.value)} />
-                        <Select className="w-32" aria-label={translate("canvasTools.storyboardAssetPickerModal.filterAssetType")} value={role} onChange={setRole} options={[{ value: "all", label: translate("library.tasks.page.allKinds") }, ...Object.entries(STORYBOARD_ASSET_ROLE_LABELS).map(([value, label]) => ({ value, label }))]} />
+                        <Input
+                            className="min-w-40 flex-1"
+                            prefix={<Search className="size-4 text-foreground/40" />}
+                            allowClear
+                            placeholder={translate("canvasTools.storyboardAssetPickerModal.searchAssetNamesOrTags")}
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                        />
+                        <Select
+                            className="w-32"
+                            aria-label={translate("canvasTools.storyboardAssetPickerModal.filterAssetType")}
+                            value={role}
+                            onChange={setRole}
+                            options={[{ value: "all", label: translate("library.tasks.page.allKinds") }, ...Object.entries(STORYBOARD_ASSET_ROLE_LABELS).map(([value, label]) => ({ value, label }))]}
+                        />
                         <Button icon={<Library className="size-4" />} onClick={() => setLibraryOpen(true)}>
                             {translate("canvasTools.storyboardAssetPickerModal.referenceProjectAssets")}
                         </Button>
@@ -85,7 +98,11 @@ export function StoryboardAssetPickerModal({
                             </button>
                         ))}
                         {!filtered.length ? (
-                            <div className="col-span-full grid place-items-center px-4 py-8 text-center text-sm text-foreground/45">{keyword || role !== "all" ? translate("canvasTools.storyboardAssetPickerModal.noMatchingAssetsTryDifferentSearchCriteria") : translate("canvasTools.storyboardAssetPickerModal.noAssetsAvailableOnThisCanvasYetClickReferenceProject")}</div>
+                            <div className="col-span-full grid place-items-center px-4 py-8 text-center text-sm text-foreground/45">
+                                {keyword || role !== "all"
+                                    ? translate("canvasTools.storyboardAssetPickerModal.noMatchingAssetsTryDifferentSearchCriteria")
+                                    : translate("canvasTools.storyboardAssetPickerModal.noAssetsAvailableOnThisCanvasYetClickReferenceProject")}
+                            </div>
                         ) : null}
                     </div>
                     <div className="mt-4 border-t border-foreground/10 pt-3">

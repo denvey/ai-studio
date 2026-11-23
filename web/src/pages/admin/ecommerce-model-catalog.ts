@@ -5,7 +5,6 @@ import { defaultConfig, resolveModelChannel, selectableModelsByCapability, type 
 import { encodeChannelModel, modelOptionName } from "@/stores/config-model-options";
 import { translate } from "@/i18n";
 
-
 /** 阶段模型必须能读商品图；不能选时直接告诉管理员去哪里开启。 */
 export const COMMERCE_VISION_DISABLED_REASON = translate("adminPages.ecommerceModelCatalog.imageRecognitionIsDisabledChannelManagementThisModelCapabilitiesAnd");
 

@@ -4,7 +4,6 @@ import { http, apiBaseURL, ApiError } from "@/services/api/request";
 import type { OSSConnectionTestInput, OSSConnectionTestResult, OSSProvider, S3Preset } from "@/lib/oss-settings";
 import { translate } from "@/i18n";
 
-
 export type RemoteResource = {
     id: string;
     userId: string;

@@ -138,7 +138,13 @@ export const AgentLauncher = memo(function AgentLauncher({
             <motion.button
                 type="button"
                 aria-label={translate("canvasTools.canvasCloudAgentPanelParts.open", { v0: String(appearance.agentName) })}
-                title={live && live2DError ? live2DError : translate("canvasTools.canvasCloudAgentPanelParts.dragToRepositionUseTheArrowKeysWhenFocused", { v0: String(approvalPending ? translate("canvasTools.canvasCloudAgentPanelParts.agentIsWaitingForYourApproval") : translate("canvasTools.canvasCloudAgentPanelParts.openAgentAssistant")) })}
+                title={
+                    live && live2DError
+                        ? live2DError
+                        : translate("canvasTools.canvasCloudAgentPanelParts.dragToRepositionUseTheArrowKeysWhenFocused", {
+                              v0: String(approvalPending ? translate("canvasTools.canvasCloudAgentPanelParts.agentIsWaitingForYourApproval") : translate("canvasTools.canvasCloudAgentPanelParts.openAgentAssistant")),
+                          })
+                }
                 className={cn(
                     "canvas-agent-launcher fixed z-[var(--z-panel-floating)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/35",
                     dragging && "is-dragging",
@@ -268,8 +274,19 @@ export function AgentHeader({
     const modifierEnter = agentModifierShortcut("Enter");
     const moreItems = [
         { key: "settings", icon: <Settings2 className="size-3.5" />, label: translate("canvasTools.canvasCloudAgentPanelParts.agentSettings"), onClick: onSettings },
-        { key: "layout", icon: <Scaling className="size-3.5" />, label: docked ? translate("canvasTools.canvasCloudAgentPanelParts.restoreDefaultWidth") : translate("canvasTools.canvasCloudAgentPanelParts.restoreDefaultSizeAndPosition"), onClick: onResetLayout },
-        { key: "export", icon: <Download className="size-3.5" />, label: exporting ? translate("canvasTools.canvasCloudAgentPanelParts.exportingDebugRecords") : translate("canvasTools.canvasCloudAgentPanelParts.exportDebugRecordsCheckForPrivateInformationBeforeSharing"), disabled: exporting, onClick: onExport },
+        {
+            key: "layout",
+            icon: <Scaling className="size-3.5" />,
+            label: docked ? translate("canvasTools.canvasCloudAgentPanelParts.restoreDefaultWidth") : translate("canvasTools.canvasCloudAgentPanelParts.restoreDefaultSizeAndPosition"),
+            onClick: onResetLayout,
+        },
+        {
+            key: "export",
+            icon: <Download className="size-3.5" />,
+            label: exporting ? translate("canvasTools.canvasCloudAgentPanelParts.exportingDebugRecords") : translate("canvasTools.canvasCloudAgentPanelParts.exportDebugRecordsCheckForPrivateInformationBeforeSharing"),
+            disabled: exporting,
+            onClick: onExport,
+        },
         { type: "divider" as const },
         {
             key: "shortcuts",
@@ -305,7 +322,7 @@ export function AgentHeader({
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="agent-panel-title">
                         {agentCopy(appearance.panelTitle, appearance.agentName)}
-                        {hasMessages ? "" : (" " + translate("canvasTools.canvasCloudAgentPanelParts.newConversation"))}
+                        {hasMessages ? "" : " " + translate("canvasTools.canvasCloudAgentPanelParts.newConversation")}
                     </span>
                     {/* 状态用圆点表示：运行中缓慢呼吸，减少动效时静止；颜色只是辅助，文字始终在。 */}
                     <span className="agent-panel-status flex items-center gap-1.5" style={{ color: statusColor }} role="status">
@@ -314,7 +331,8 @@ export function AgentHeader({
                     </span>
                 </div>
                 <div className="agent-panel-context">
-                    {appearance.agentName} · {nodeCount === null ? translate("canvasTools.canvasCloudAgentPanelParts.youCanChatOutsideACanvasACanvasIsLinked") : translate("canvasTools.canvasCloudAgentPanelParts.nodesOnTheCurrentCanvas", { v0: String(nodeCount) })}
+                    {appearance.agentName} ·{" "}
+                    {nodeCount === null ? translate("canvasTools.canvasCloudAgentPanelParts.youCanChatOutsideACanvasACanvasIsLinked") : translate("canvasTools.canvasCloudAgentPanelParts.nodesOnTheCurrentCanvas", { v0: String(nodeCount) })}
                 </div>
             </div>
             <div className="agent-header-actions flex items-center gap-0.5" style={{ color: theme.node.muted }}>
@@ -329,13 +347,40 @@ export function AgentHeader({
                         title={docked ? translate("canvasTools.canvasCloudAgentPanelParts.switchToAFloatingWindow") : translate("canvasTools.canvasCloudAgentPanelParts.dockToTheRightAndResizeTheCanvasToKeep")}
                     />
                 ) : null}
-                <Button type="text" shape="circle" icon={<History className="size-4" />} onClick={onHistory} aria-label={translate("canvasTools.canvasCloudAgentPanelParts.conversationHistory")} title={translate("canvasTools.canvasCloudAgentPanelParts.conversationHistory")} />
-                <Button type="text" shape="circle" icon={<MessageSquarePlus className="size-4" />} onClick={onNew} aria-label={translate("canvasTools.canvasCloudAgentPanelParts.newConversation2")} title={translate("canvasTools.canvasCloudAgentPanelParts.newConversation2")} />
+                <Button
+                    type="text"
+                    shape="circle"
+                    icon={<History className="size-4" />}
+                    onClick={onHistory}
+                    aria-label={translate("canvasTools.canvasCloudAgentPanelParts.conversationHistory")}
+                    title={translate("canvasTools.canvasCloudAgentPanelParts.conversationHistory")}
+                />
+                <Button
+                    type="text"
+                    shape="circle"
+                    icon={<MessageSquarePlus className="size-4" />}
+                    onClick={onNew}
+                    aria-label={translate("canvasTools.canvasCloudAgentPanelParts.newConversation2")}
+                    title={translate("canvasTools.canvasCloudAgentPanelParts.newConversation2")}
+                />
                 {/* 不常用的入口收进「更多」：设置、恢复默认大小、导出调试记录，以及快捷键说明。 */}
                 <Dropdown trigger={["click"]} placement="bottomRight" menu={{ items: moreItems }}>
-                    <Button type="text" shape="circle" icon={exporting ? <LoaderCircle className="size-4 animate-spin" /> : <Ellipsis className="size-4" />} aria-label={translate("canvasA.creative.more")} title={translate("canvasTools.canvasCloudAgentPanelParts.moreAgentSettingsResetSizeExportDebugRecordsAndKeyboard")} />
+                    <Button
+                        type="text"
+                        shape="circle"
+                        icon={exporting ? <LoaderCircle className="size-4 animate-spin" /> : <Ellipsis className="size-4" />}
+                        aria-label={translate("canvasA.creative.more")}
+                        title={translate("canvasTools.canvasCloudAgentPanelParts.moreAgentSettingsResetSizeExportDebugRecordsAndKeyboard")}
+                    />
                 </Dropdown>
-                <Button type="text" shape="circle" icon={<X className="size-4" />} onClick={onCollapse} aria-label={translate("canvasTools.canvasCloudAgentPanelParts.collapseTheAgent")} title={translate("canvasTools.canvasCloudAgentPanelParts.collapse", { v0: String(modifierJ) })} />
+                <Button
+                    type="text"
+                    shape="circle"
+                    icon={<X className="size-4" />}
+                    onClick={onCollapse}
+                    aria-label={translate("canvasTools.canvasCloudAgentPanelParts.collapseTheAgent")}
+                    title={translate("canvasTools.canvasCloudAgentPanelParts.collapse", { v0: String(modifierJ) })}
+                />
             </div>
         </header>
     );
@@ -378,7 +423,14 @@ export function AgentContextRing({ view, theme }: { view: AgentContextUsageView;
     const usedRatio = view.ratio === undefined ? 0 : Math.max(0, Math.min(1, view.ratio));
     const phaseLabel = CONTEXT_PHASE_LABEL[view.phase];
     const sourceLabel = view.tokenSource === "pi" ? translate("canvasTools.canvasCloudAgentPanelParts.piSessionEstimate") : translate("canvasTools.canvasCloudAgentPanelParts.notMeasured");
-    const usageHeading = view.ratio !== undefined ? translate("canvasTools.canvasCloudAgentPanelParts.contextUsed", { v0: String(percent) }) : view.phase === "idle" ? translate("canvasTools.canvasCloudAgentPanelParts.contextUsage") : view.phase === "unknown" ? translate("canvasTools.canvasCloudAgentPanelParts.unknownContextWindow") : translate("canvasTools.canvasCloudAgentPanelParts.context", { v0: String(view.label) });
+    const usageHeading =
+        view.ratio !== undefined
+            ? translate("canvasTools.canvasCloudAgentPanelParts.contextUsed", { v0: String(percent) })
+            : view.phase === "idle"
+              ? translate("canvasTools.canvasCloudAgentPanelParts.contextUsage")
+              : view.phase === "unknown"
+                ? translate("canvasTools.canvasCloudAgentPanelParts.unknownContextWindow")
+                : translate("canvasTools.canvasCloudAgentPanelParts.context", { v0: String(view.label) });
 
     return (
         <Popover
@@ -418,7 +470,14 @@ export function AgentContextRing({ view, theme }: { view: AgentContextUsageView;
                         <span>{translate("canvasTools.canvasCloudAgentPanelParts.contextWindowUsage")}</span>
                         <strong>{percent}</strong>
                     </div>
-                    <div className="agent-context-progress" role="progressbar" aria-label={translate("canvasTools.canvasCloudAgentPanelParts.contextUsed", { v0: String(percent) })} aria-valuemin={0} aria-valuemax={100} aria-valuenow={view.ratio === undefined ? undefined : Math.round(view.ratio * 100)}>
+                    <div
+                        className="agent-context-progress"
+                        role="progressbar"
+                        aria-label={translate("canvasTools.canvasCloudAgentPanelParts.contextUsed", { v0: String(percent) })}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={view.ratio === undefined ? undefined : Math.round(view.ratio * 100)}
+                    >
                         <span style={{ width: `${usedRatio * 100}%` }} />
                         {marker ? <i style={{ left: `${marker * 100}%` }} aria-hidden="true" /> : null}
                     </div>
@@ -451,7 +510,7 @@ export function AgentContextRing({ view, theme }: { view: AgentContextUsageView;
                     <div className="agent-context-panel-foot">
                         <span>
                             {sourceLabel}
-                            {view.tokenSource === "pi" ? (" " + translate("canvasTools.canvasCloudAgentPanelParts.notBillableTokens")) : ""}
+                            {view.tokenSource === "pi" ? " " + translate("canvasTools.canvasCloudAgentPanelParts.notBillableTokens") : ""}
                         </span>
                         {view.compactAtTokens ? <span>{translate("canvasTools.inline.canvasCloudAgentPanelParts.compactionThreshold", { v0: String(formatContextCount(view.compactAtTokens)) })}</span> : null}
                     </div>
@@ -465,7 +524,14 @@ export function AgentContextRing({ view, theme }: { view: AgentContextUsageView;
                 </div>
             }
         >
-            <button type="button" className={`agent-context-ring is-${view.phase}`} aria-label={translate("canvasTools.canvasCloudAgentPanelParts.clickForDetails", { v0: String(usageHeading), v1: String(phaseLabel) })} aria-expanded={open} title={translate("canvasTools.canvasCloudAgentPanelParts.viewContextUsage")} onPointerDown={(event) => event.stopPropagation()}>
+            <button
+                type="button"
+                className={`agent-context-ring is-${view.phase}`}
+                aria-label={translate("canvasTools.canvasCloudAgentPanelParts.clickForDetails", { v0: String(usageHeading), v1: String(phaseLabel) })}
+                aria-expanded={open}
+                title={translate("canvasTools.canvasCloudAgentPanelParts.viewContextUsage")}
+                onPointerDown={(event) => event.stopPropagation()}
+            >
                 <span
                     className="agent-context-ring-visual"
                     aria-hidden="true"
@@ -522,9 +588,28 @@ export function AgentHistory({
                     <div className="text-sm font-semibold">{translate("canvasTools.canvasCloudAgentPanelParts.conversationHistory")}</div>
                     <div className="mt-0.5 text-[var(--fs-label)] opacity-40">{translate("canvasTools.canvasCloudAgentPanelParts.cloudConversationsAndLocalHistoryForThisCanvas")}</div>
                 </div>
-                {onRefresh ? <Button type="text" shape="circle" loading={loading} icon={<RefreshCw className="size-4" />} onClick={onRefresh} aria-label={translate("canvasTools.canvasCloudAgentPanelParts.refreshCloudConversations")} title={translate("canvasTools.canvasCloudAgentPanelParts.refreshCloudConversations")} /> : null}
-                <Button type="text" shape="circle" icon={<MessageSquarePlus className="size-4" />} onClick={onNew} aria-label={translate("canvasTools.canvasCloudAgentPanelParts.newConversation2")} title={translate("canvasTools.canvasCloudAgentPanelParts.newConversation2")} />
-                {onCollapse ? <Button type="text" shape="circle" icon={<X className="size-4" />} onClick={onCollapse} aria-label={translate("canvasTools.canvasCloudAgentPanelParts.collapseTheAgent")} title={translate("account.feedback.collapse")} /> : null}
+                {onRefresh ? (
+                    <Button
+                        type="text"
+                        shape="circle"
+                        loading={loading}
+                        icon={<RefreshCw className="size-4" />}
+                        onClick={onRefresh}
+                        aria-label={translate("canvasTools.canvasCloudAgentPanelParts.refreshCloudConversations")}
+                        title={translate("canvasTools.canvasCloudAgentPanelParts.refreshCloudConversations")}
+                    />
+                ) : null}
+                <Button
+                    type="text"
+                    shape="circle"
+                    icon={<MessageSquarePlus className="size-4" />}
+                    onClick={onNew}
+                    aria-label={translate("canvasTools.canvasCloudAgentPanelParts.newConversation2")}
+                    title={translate("canvasTools.canvasCloudAgentPanelParts.newConversation2")}
+                />
+                {onCollapse ? (
+                    <Button type="text" shape="circle" icon={<X className="size-4" />} onClick={onCollapse} aria-label={translate("canvasTools.canvasCloudAgentPanelParts.collapseTheAgent")} title={translate("account.feedback.collapse")} />
+                ) : null}
             </header>
             <div className="canvas-agent-history-scroll thin-scrollbar min-h-0 min-w-0 flex-1 overflow-y-auto px-3 py-3">
                 {error ? (
@@ -550,7 +635,7 @@ export function AgentHistory({
                                         <span className="canvas-agent-history-text min-w-0 flex-1">
                                             <span className="canvas-agent-history-title block truncate text-[var(--fs-ui)] font-medium">{conversation.title}</span>
                                             <span className="canvas-agent-history-preview mt-0.5 block text-[var(--fs-label)] opacity-40" title={preview}>
-                                                {cloudAgentConversationServerId(conversation) ? (translate("canvasTools.canvasCloudAgentPanelParts.cloud") + " ") : (translate("canvasTools.canvasCloudAgentPanelParts.local") + " ")}
+                                                {cloudAgentConversationServerId(conversation) ? translate("canvasTools.canvasCloudAgentPanelParts.cloud") + " " : translate("canvasTools.canvasCloudAgentPanelParts.local") + " "}
                                                 {preview}
                                             </span>
                                         </span>
@@ -851,7 +936,12 @@ export function AgentConversation({
                 </div>
             </div>
             {awayFromBottom ? (
-                <button type="button" className="agent-scroll-latest" onClick={scrollToLatest} aria-label={unseenCount > 0 ? translate("canvasTools.canvasCloudAgentPanelParts.newMessagesJumpToTheBottom", { v0: String(unseenCount) }) : translate("canvasTools.canvasCloudAgentPanelParts.jumpToBottom")}>
+                <button
+                    type="button"
+                    className="agent-scroll-latest"
+                    onClick={scrollToLatest}
+                    aria-label={unseenCount > 0 ? translate("canvasTools.canvasCloudAgentPanelParts.newMessagesJumpToTheBottom", { v0: String(unseenCount) }) : translate("canvasTools.canvasCloudAgentPanelParts.jumpToBottom")}
+                >
                     <ArrowDown className="size-3.5" aria-hidden="true" />
                     {unseenCount > 0 ? translate("canvasTools.canvasCloudAgentPanelParts.newMessages", { v0: String(unseenCount) }) : translate("canvasTools.canvasCloudAgentPanelParts.jumpToBottom")}
                 </button>
@@ -921,7 +1011,13 @@ export function ComposerControls({
                         </div>
                     }
                 >
-                    <button type="button" className="agent-thinking-trigger" aria-label={translate("canvasTools.canvasCloudAgentPanelParts.chooseReasoningLevel", { v0: String(thinkingLabel) })} aria-expanded={thinkingOpen} onPointerDown={(event) => event.stopPropagation()}>
+                    <button
+                        type="button"
+                        className="agent-thinking-trigger"
+                        aria-label={translate("canvasTools.canvasCloudAgentPanelParts.chooseReasoningLevel", { v0: String(thinkingLabel) })}
+                        aria-expanded={thinkingOpen}
+                        onPointerDown={(event) => event.stopPropagation()}
+                    >
                         <span>{thinkingLabel}</span>
                         <ChevronDown className="size-3" aria-hidden="true" />
                     </button>
@@ -944,10 +1040,16 @@ export function ComposerControls({
                 type="button"
                 className="flex h-8 shrink-0 items-center gap-1 rounded-md px-2 text-[var(--fs-label)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/25"
                 style={{ color: selectedSkillCount ? theme.accent.primary : theme.node.muted, background: skillsOpen ? theme.node.fill : "transparent" }}
-                aria-label={translate("canvasTools.canvasCloudAgentPanelParts.openTheSkillsLibrary", { v0: String(selectedSkillCount ? translate("canvasTools.canvasCloudAgentPanelParts.pinnedInThisConversation", { v0: String(selectedSkillCount) }) : "") })}
+                aria-label={translate("canvasTools.canvasCloudAgentPanelParts.openTheSkillsLibrary", {
+                    v0: String(selectedSkillCount ? translate("canvasTools.canvasCloudAgentPanelParts.pinnedInThisConversation", { v0: String(selectedSkillCount) }) : ""),
+                })}
                 aria-expanded={skillsOpen}
                 aria-haspopup="dialog"
-                title={selectedSkillCount ? translate("canvasTools.canvasCloudAgentPanelParts.skillsArePinnedToThisConversationTheAgentFindsOther", { v0: String(selectedSkillCount) }) : translate("canvasTools.canvasCloudAgentPanelParts.theAgentFindsInstalledSkillsAsNeededForEachTask")}
+                title={
+                    selectedSkillCount
+                        ? translate("canvasTools.canvasCloudAgentPanelParts.skillsArePinnedToThisConversationTheAgentFindsOther", { v0: String(selectedSkillCount) })
+                        : translate("canvasTools.canvasCloudAgentPanelParts.theAgentFindsInstalledSkillsAsNeededForEachTask")
+                }
                 onClick={() => onSkillsOpenChange(true)}
             >
                 <Blocks className="size-3.5" aria-hidden="true" />
@@ -1055,7 +1157,11 @@ export function ApprovalCard({
                 </button>
                 <button type="button" className="canvas-agent-approval-approve" disabled={submitting || Boolean(blockedReason) || Boolean(targetGenerating)} onClick={() => onApprove(mediaSettings)}>
                     {submitting ? <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Check className="size-4" aria-hidden="true" />}
-                    {submitting ? translate("canvasTools.canvasCloudAgentPanelParts.submitting") : targetGenerating ? translate("canvasTools.canvasCloudAgentPanelParts.generationSubmittedFromTheNode") : translate("canvasTools.canvasCloudAgentPanelParts.approveExecution")}
+                    {submitting
+                        ? translate("canvasTools.canvasCloudAgentPanelParts.submitting")
+                        : targetGenerating
+                          ? translate("canvasTools.canvasCloudAgentPanelParts.generationSubmittedFromTheNode")
+                          : translate("canvasTools.canvasCloudAgentPanelParts.approveExecution")}
                 </button>
             </div>
         </section>

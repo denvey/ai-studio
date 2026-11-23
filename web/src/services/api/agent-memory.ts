@@ -1,7 +1,6 @@
 import { http, compactApiParams } from "./request";
 import { translate } from "@/i18n";
 
-
 /** 长期记忆文件：每个用户一份，分「关于用户」和「工作笔记」，Agent 自己维护，每次修改可撤销。 */
 export type AgentMemorySection = "user" | "notes";
 

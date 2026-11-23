@@ -1,7 +1,6 @@
 import { http, apiBaseURL, compactApiParams } from "@/services/api/request";
 import { translate } from "@/i18n";
 
-
 export type AdminStorageResource = {
     id: string;
     userId: string;

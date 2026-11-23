@@ -124,7 +124,8 @@ export function typeValidation(draft: EcommerceDraft): string | null {
     if (!type) return translate("ecommerce.typeConfig.unsupportedCreationTypeSelectAnother");
     if (draft.imageType === "white" && (draft.modelEnabled || !draft.noText)) return translate("ecommerce.typeConfig.whiteBackgroundImagesRequireModelsAndAddedTextToBe");
     if (draft.imageType === "single" && draft.count !== 1) return translate("ecommerce.typeConfig.singleImageModeGeneratesExactlyOneImage");
-    if (draft.imageType === "marketing" && (marketingPlanSlots(draft).length < 1 || marketingPlanSlots(draft).length > 15 || draft.count !== marketingPlanSlots(draft).length)) return translate("ecommerce.typeConfig.select1To15ImagesInMaterialSettingsAndConfirm");
+    if (draft.imageType === "marketing" && (marketingPlanSlots(draft).length < 1 || marketingPlanSlots(draft).length > 15 || draft.count !== marketingPlanSlots(draft).length))
+        return translate("ecommerce.typeConfig.select1To15ImagesInMaterialSettingsAndConfirm");
     if (draft.modelEnabled && draft.imageType === "scene" && draft.typeOptions?.people === "不出现人物") return translate("ecommerce.typeConfig.modelsAreEnabledChoosePersonAndProductTogetherOrDisable");
     const missing = type.required?.find((field) => !draft[field]?.trim());
     if (missing) return translate("ecommerce.typeConfig.isRequiredFactualInformationForThisCreationTypeFillIt", { v0: commerceUiText(fieldLabel[missing]) });

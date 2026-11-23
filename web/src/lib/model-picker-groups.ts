@@ -2,7 +2,6 @@ import { groupModelsByDisplayName, isDirectSystemModel, type DisplayModelGroup }
 import { modelIcon, modelOptionName, PUBLIC_MODEL_CATALOG_ID, resolveModelChannel, type AiConfig } from "@/stores/use-config-store";
 import { translate } from "@/i18n";
 
-
 export type ModelPickerGroup = {
     key: string;
     label: string;

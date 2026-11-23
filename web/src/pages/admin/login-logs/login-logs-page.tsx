@@ -16,7 +16,6 @@ import { LoginLogDetailDrawer } from "./login-log-detail-drawer";
 import "./login-logs-page.css";
 import { translate } from "@/i18n";
 
-
 export default function LoginLogsPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const keyword = searchParams.get("keyword") || "";
@@ -105,7 +104,11 @@ export default function LoginLogsPage() {
             ),
         },
         { title: translate("auth.login.method"), width: 165, render: (_, log) => loginMethodLabels[log.method] },
-        { title: translate("adminPages.loginLogs.loginLogsPage.result"), width: 92, render: (_, log) => <AdminStatusBadge label={log.result === "success" ? translate("adminPages.loginLogs.loginLogsPage.success") : translate("library.assets.batch.failed")} tone={log.result === "success" ? "success" : "error"} /> },
+        {
+            title: translate("adminPages.loginLogs.loginLogsPage.result"),
+            width: 92,
+            render: (_, log) => <AdminStatusBadge label={log.result === "success" ? translate("adminPages.loginLogs.loginLogsPage.success") : translate("library.assets.batch.failed")} tone={log.result === "success" ? "success" : "error"} />,
+        },
         { title: "IP", dataIndex: "ip", width: 175, render: (value: string) => <span className="break-all font-mono text-xs">{value || translate("adminPages.loginLogs.loginLogsPage.notRecorded")}</span> },
         {
             title: translate("adminPages.loginLogs.loginLogsPage.browserSystem"),
@@ -169,7 +172,12 @@ export default function LoginLogsPage() {
                             aria-label={translate("adminPages.loginLogs.loginLogsPage.searchLoginLogUsers")}
                             onValueChange={(value) => update({ keyword: value, page: 1 }, true)}
                         />
-                        <Select ariaLabel={translate("adminPages.loginLogs.loginLogsPage.eventType")} value={event} options={[{ value: "", label: translate("adminPages.loginLogs.loginLogsPage.allEvents") }, ...Object.entries(loginEventLabels).map(([value, label]) => ({ value, label }))]} onChange={(value) => update({ event: value, page: 1 })} />
+                        <Select
+                            ariaLabel={translate("adminPages.loginLogs.loginLogsPage.eventType")}
+                            value={event}
+                            options={[{ value: "", label: translate("adminPages.loginLogs.loginLogsPage.allEvents") }, ...Object.entries(loginEventLabels).map(([value, label]) => ({ value, label }))]}
+                            onChange={(value) => update({ event: value, page: 1 })}
+                        />
                         <Select
                             ariaLabel={translate("auth.login.method")}
                             value={method}
@@ -186,7 +194,13 @@ export default function LoginLogsPage() {
                             ]}
                             onChange={(value) => update({ result: value, page: 1 })}
                         />
-                        <AdminSearchInput allowClear value={ip} placeholder={translate("adminPages.loginLogs.loginLogsPage.filterByIP")} aria-label={translate("adminPages.loginLogs.loginLogsPage.filterSignInIP")} onValueChange={(value) => update({ ip: value, page: 1 }, true)} />
+                        <AdminSearchInput
+                            allowClear
+                            value={ip}
+                            placeholder={translate("adminPages.loginLogs.loginLogsPage.filterByIP")}
+                            aria-label={translate("adminPages.loginLogs.loginLogsPage.filterSignInIP")}
+                            onValueChange={(value) => update({ ip: value, page: 1 }, true)}
+                        />
                         <DatePicker.RangePicker
                             className="admin-login-log-dates"
                             showTime
@@ -212,7 +226,11 @@ export default function LoginLogsPage() {
                     error ? (
                         <AdminTableEmpty title={translate("adminPages.loginLogs.loginLogsPage.logsAreTemporarilyUnavailable")} description={translate("adminPages.loginLogs.loginLogsPage.tryAgainNoQueryResultsAreCurrentlyDisplayed")} />
                     ) : (
-                        <AdminTableEmpty filtered={filtered} title={filtered ? translate("adminPages.loginLogs.loginLogsPage.noMatchingLoginLogs") : translate("adminPages.loginLogs.loginLogsPage.noLoginLogsYet")} description={filtered ? translate("adminPages.loginLogs.loginLogsPage.adjustTheFiltersAndTryAgain") : translate("adminPages.loginLogs.loginLogsPage.signInAndExplicitSignOutEventsRecordedFromNow")} />
+                        <AdminTableEmpty
+                            filtered={filtered}
+                            title={filtered ? translate("adminPages.loginLogs.loginLogsPage.noMatchingLoginLogs") : translate("adminPages.loginLogs.loginLogsPage.noLoginLogsYet")}
+                            description={filtered ? translate("adminPages.loginLogs.loginLogsPage.adjustTheFiltersAndTryAgain") : translate("adminPages.loginLogs.loginLogsPage.signInAndExplicitSignOutEventsRecordedFromNow")}
+                        />
                     )
                 }
                 footer={<PaginationBar alwaysShow current={page} pageSize={pageSize} total={total} onChange={(next, size) => update({ page: next, pageSize: size })} />}

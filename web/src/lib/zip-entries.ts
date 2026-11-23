@@ -1,7 +1,6 @@
 import { inflateSync } from "fflate";
 import { translate } from "@/i18n";
 
-
 /**
  * 按中央目录随机读取 ZIP 条目，只读取需要的字节，适合打开含视频的大资产包。
  * 支持 ZIP64、存储（method 0）与 Deflate（method 8）；文件名优先按 UTF-8 解码，未标记 UTF-8 且解码失败时按 GBK（Windows 中文系统压缩）。

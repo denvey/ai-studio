@@ -4,7 +4,6 @@ import { getActiveUserScope } from "@/lib/user-scope";
 import type { TimelineDirectMedia } from "@/types/timeline";
 import { translate } from "@/i18n";
 
-
 const frames = new Map<string, string>();
 const MAX_CACHED_FRAMES = 640;
 let decoders = 0;

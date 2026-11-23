@@ -2,7 +2,6 @@ import { recordCommittedMediaVersion } from "@/lib/canvas/canvas-media-versions"
 import type { CanvasNodeData, CanvasNodeMetadata } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 const completedTaskObservationKeys = [
     "status",
     "taskStatus",

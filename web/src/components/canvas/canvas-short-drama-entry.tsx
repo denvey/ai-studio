@@ -83,7 +83,11 @@ export function CanvasDramaEmptyState({ dramaName, studioPath, episodeLabel, onP
                         onClick={onProjectEpisode}
                         className="flex h-9 min-w-0 items-center justify-center gap-1 rounded-md border px-2 text-[var(--fs-label)] font-medium disabled:opacity-35"
                         style={actionStyle}
-                        title={onProjectEpisode ? translate("canvasTools.canvasShortDramaEntry.sendStorySegmentsFromToTheCanvas", { v0: String(episodeLabel || translate("canvasTools.canvasShortDramaEntry.episode1")) }) : translate("canvasTools.canvasShortDramaEntry.noStorySegmentsAvailableToSendYet")}
+                        title={
+                            onProjectEpisode
+                                ? translate("canvasTools.canvasShortDramaEntry.sendStorySegmentsFromToTheCanvas", { v0: String(episodeLabel || translate("canvasTools.canvasShortDramaEntry.episode1")) })
+                                : translate("canvasTools.canvasShortDramaEntry.noStorySegmentsAvailableToSendYet")
+                        }
                     >
                         <LayoutGrid className="size-3.5 shrink-0" />
                         <span className="truncate">{translate("canvasTools.inline.canvasShortDramaEntry.send", { v0: String(episodeLabel || translate("canvasTools.canvasShortDramaEntry.episode1")) })}</span>
@@ -151,7 +155,8 @@ export function CanvasShortDramaEmptyState({
                     {translate("canvasTools.canvasShortDramaEntry.aIDramaStudio")}
                 </span>
                 <h2 className="canvas-entry-title">
-                    {translate("canvasTools.canvasShortDramaEntry.turnYourIdeas")}<strong>{translate("canvasTools.canvasShortDramaEntry.intoAFilm")}</strong>
+                    {translate("canvasTools.canvasShortDramaEntry.turnYourIdeas")}
+                    <strong>{translate("canvasTools.canvasShortDramaEntry.intoAFilm")}</strong>
                 </h2>
                 <p className="canvas-entry-subtitle">{translate("canvasTools.canvasShortDramaEntry.startWithAStoryIdeaAgentHelpsYouDevelopThe")}</p>
                 <form

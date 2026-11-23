@@ -2,7 +2,6 @@ import { parseBackendGenerationResult } from "@/services/api/generation-task";
 import type { GenerationTask } from "@/services/api/task-center";
 import { translate } from "@/i18n";
 
-
 export type RecoverableCreationTextMessage = {
     mode?: string;
     status?: string;

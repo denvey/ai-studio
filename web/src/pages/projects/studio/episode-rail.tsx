@@ -127,7 +127,13 @@ export function EpisodeRail({
                         </button>
                     </Tooltip>
                     {onPickChapters ? (
-                        <Tooltip title={reservedChapters > 0 ? translate("drama.studio.episodeRail.originalChaptersChaptersAreNotInProductionSelectThemTo", { v0: String(reservedChapters) }) : translate("drama.studio.episodeRail.originalChaptersViewAllChaptersAndTheirEpisodes")}>
+                        <Tooltip
+                            title={
+                                reservedChapters > 0
+                                    ? translate("drama.studio.episodeRail.originalChaptersChaptersAreNotInProductionSelectThemTo", { v0: String(reservedChapters) })
+                                    : translate("drama.studio.episodeRail.originalChaptersViewAllChaptersAndTheirEpisodes")
+                            }
+                        >
                             <button type="button" className="drama-title-edit !h-8 !w-8" aria-label={translate("drama.studio.episodeRail.originalChapters")} onClick={onPickChapters}>
                                 <BookOpenText className="size-4" />
                             </button>

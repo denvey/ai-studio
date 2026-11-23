@@ -142,7 +142,13 @@ function OutputTile({ batch, tile, kind, actions }: { batch: GalleryBatch; tile:
                 <video ref={videoRef} src={output.url} muted loop playsInline preload="metadata" onLoadedMetadata={(event) => reportSize(event.currentTarget.videoWidth, event.currentTarget.videoHeight)} onError={() => setFailed(true)} />
             )
         ) : (
-            <img src={output.thumbUrl || output.url} alt={batch.prompt.slice(0, 40) || translate("library.tasks.detail.generated")} loading="lazy" onLoad={(event) => reportSize(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight)} onError={() => setFailed(true)} />
+            <img
+                src={output.thumbUrl || output.url}
+                alt={batch.prompt.slice(0, 40) || translate("library.tasks.detail.generated")}
+                loading="lazy"
+                onLoad={(event) => reportSize(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight)}
+                onError={() => setFailed(true)}
+            />
         );
     return (
         <div
@@ -322,7 +328,8 @@ const BatchCard = memo(function BatchCard({ batch, kind, actions, busyTaskIds }:
                 <div className="wb-batch-notice" role="status">
                     <CircleAlert />
                     <span>
-                        {translate("ecommerce.workbench.workbenchGallery.thereAreStill")} {batch.resumable} {translate("ecommerce.workbench.workbenchGallery.unsubmittedTasks")}{batch.resumeError ? `：${batch.resumeError}` : ""}
+                        {translate("ecommerce.workbench.workbenchGallery.thereAreStill")} {batch.resumable} {translate("ecommerce.workbench.workbenchGallery.unsubmittedTasks")}
+                        {batch.resumeError ? `：${batch.resumeError}` : ""}
                     </span>
                     <Button size="small" onClick={() => actions.resume(batch)}>
                         {translate("ecommerce.workbench.workbenchGallery.continueSubmitting")}
@@ -422,7 +429,16 @@ export function WorkbenchGallery({
                             { value: "failed", label: totals.failedBatches ? translate("ecommerce.workbench.workbenchGallery.failed", { v0: String(totals.failedBatches) }) : translate("library.assets.batch.failed") },
                         ]}
                     />
-                    <Input className="wb-gallery-search" size="small" allowClear prefix={<Search className="size-3.5" />} placeholder={translate("ecommerce.workbench.workbenchGallery.searchPromptsOrScenarios")} aria-label={translate("ecommerce.workbench.workbenchGallery.searchWorks")} value={query} onChange={(event) => onQueryChange(event.target.value)} />
+                    <Input
+                        className="wb-gallery-search"
+                        size="small"
+                        allowClear
+                        prefix={<Search className="size-3.5" />}
+                        placeholder={translate("ecommerce.workbench.workbenchGallery.searchPromptsOrScenarios")}
+                        aria-label={translate("ecommerce.workbench.workbenchGallery.searchWorks")}
+                        value={query}
+                        onChange={(event) => onQueryChange(event.target.value)}
+                    />
                     <Tooltip title={translate("common.refresh")}>
                         <button type="button" className="wb-icon-button" data-icon-only aria-label={translate("ecommerce.workbench.workbenchGallery.refreshGallery")} onClick={onRefresh}>
                             <RefreshCw />
@@ -453,7 +469,11 @@ export function WorkbenchGallery({
                             compact
                             icon="assets"
                             title={kind === "image" ? translate("ecommerce.workbench.workbenchGallery.uploadProductImagesToGenerateACompleteSet") : translate("ecommerce.workbench.workbenchGallery.createProductVideosInBatchesFromOneProductImage")}
-                            description={kind === "image" ? translate("ecommerce.workbench.workbenchGallery.chooseAnOutputScenarioUploadOriginalProductImagesSetThe") : translate("ecommerce.workbench.workbenchGallery.chooseACameraScenarioUploadAProductOpeningFrameAnd")}
+                            description={
+                                kind === "image"
+                                    ? translate("ecommerce.workbench.workbenchGallery.chooseAnOutputScenarioUploadOriginalProductImagesSetThe")
+                                    : translate("ecommerce.workbench.workbenchGallery.chooseACameraScenarioUploadAProductOpeningFrameAnd")
+                            }
                             action={
                                 <Button type="primary" onClick={onOpenLibrary}>
                                     {translate("ecommerce.workbench.workbenchGallery.chooseAnOutputScenario")}

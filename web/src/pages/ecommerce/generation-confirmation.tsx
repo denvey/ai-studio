@@ -51,7 +51,11 @@ export function GenerationConfirmation({
                     {error}
                 </p>
             ) : null}
-            {!completed && plan.uncertainFacts.length ? <p className="ecommerce-confirmation-note">{translate("ecommerce.generationConfirmation.thereAre")} {plan.uncertainFacts.length} {translate("ecommerce.generationConfirmation.productDetailsToVerifyUseTheButtonBelowToAdd")}</p> : null}
+            {!completed && plan.uncertainFacts.length ? (
+                <p className="ecommerce-confirmation-note">
+                    {translate("ecommerce.generationConfirmation.thereAre")} {plan.uncertainFacts.length} {translate("ecommerce.generationConfirmation.productDetailsToVerifyUseTheButtonBelowToAdd")}
+                </p>
+            ) : null}
             <Button
                 type="primary"
                 block
@@ -69,7 +73,12 @@ export function GenerationConfirmation({
                     else void submit(plan);
                 }}
             >
-                {label || (completed ? translate("ecommerce.generationConfirmation.imageTasksSubmitted") : remaining < plan.images.length ? translate("ecommerce.generationConfirmation.generateTheRemainingImages", { v0: String(remaining) }) : translate("ecommerce.generationConfirmation.confirmAndGenerateImages", { v0: String(plan.images.length) }))}
+                {label ||
+                    (completed
+                        ? translate("ecommerce.generationConfirmation.imageTasksSubmitted")
+                        : remaining < plan.images.length
+                          ? translate("ecommerce.generationConfirmation.generateTheRemainingImages", { v0: String(remaining) })
+                          : translate("ecommerce.generationConfirmation.confirmAndGenerateImages", { v0: String(plan.images.length) }))}
             </Button>
             <Modal
                 title={translate("ecommerce.generationConfirmation.reviewProductInformationBeforeGenerating")}

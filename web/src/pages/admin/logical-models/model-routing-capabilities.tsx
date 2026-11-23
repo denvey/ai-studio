@@ -13,7 +13,6 @@ import { ImageParameterInput } from "@/components/image-parameter-fields";
 import { imageParameterConstraints, imageParametersForSpec, type ImageParameter } from "@/lib/image-parameters";
 import { translate } from "@/i18n";
 
-
 export type CapabilityKind = CapabilitySpec["capability"];
 export type Scalar = string | number | boolean;
 
@@ -300,7 +299,11 @@ export function CapabilityScopeEditor({ capability, sourceSpecs, value, onChange
                 </Button>
             </div>
 
-            {sourceError ? <Callout tone="warning" title={translate("adminPages.logicalModels.modelRoutingCapabilities.theCurrentSelectionNeedsAdjustment")}>{translate("adminPages.logicalModels.modelRoutingCapabilities.selectAgainOrUseAllAvailableOptions", { v0: String(sourceError) })}</Callout> : null}
+            {sourceError ? (
+                <Callout tone="warning" title={translate("adminPages.logicalModels.modelRoutingCapabilities.theCurrentSelectionNeedsAdjustment")}>
+                    {translate("adminPages.logicalModels.modelRoutingCapabilities.selectAgainOrUseAllAvailableOptions", { v0: String(sourceError) })}
+                </Callout>
+            ) : null}
 
             {source.operations?.length ? (
                 <CapabilityBlock title={translate("adminPages.logicalModels.modelRoutingCapabilities.generationMode")}>
@@ -732,7 +735,12 @@ function optionLabel(capability: CapabilityKind, name: string) {
 
 function constraintSummary(constraint: OptionConstraint, unit = "") {
     if (constraint.values) return translate("adminPages.logicalModels.modelRoutingCapabilities.routeSupports", { v0: String(constraint.values.map(scalarLabel).join("、")) });
-    return translate("adminPages.logicalModels.modelRoutingCapabilities.routeSupports2", { v0: String(constraint.min), v1: String(constraint.max), v2: String(unit), v3: String(constraint.step ? translate("adminPages.logicalModels.modelRoutingCapabilities.step", { v0: String(constraint.step) }) : "") });
+    return translate("adminPages.logicalModels.modelRoutingCapabilities.routeSupports2", {
+        v0: String(constraint.min),
+        v1: String(constraint.max),
+        v2: String(unit),
+        v3: String(constraint.step ? translate("adminPages.logicalModels.modelRoutingCapabilities.step", { v0: String(constraint.step) }) : ""),
+    });
 }
 
 function constraintIncludes(constraint: OptionConstraint, value: unknown) {

@@ -2,7 +2,6 @@ import { localForageStorageForScope } from "@/lib/localforage-storage";
 import type { PrevisMode } from "@/lib/canvas/previs/previs-modes";
 import { translate } from "@/i18n";
 
-
 /**
  * 预演台首次上手引导。
  *

@@ -82,7 +82,13 @@ export function CommerceMarketPicker({
                         </div>
                         <label className="commerce-market-field">
                             <h3>{translate("ecommerce.marketPicker.targetRegionOptional")}</h3>
-                            <input aria-label={translate("ecommerce.marketPicker.targetCountryOrRegion")} value={region} maxLength={80} placeholder={translate("ecommerce.marketPicker.eGUnitedStatesJapan")} onChange={(event) => onRegion(event.target.value)} />
+                            <input
+                                aria-label={translate("ecommerce.marketPicker.targetCountryOrRegion")}
+                                value={region}
+                                maxLength={80}
+                                placeholder={translate("ecommerce.marketPicker.eGUnitedStatesJapan")}
+                                onChange={(event) => onRegion(event.target.value)}
+                            />
                         </label>
                     </div>
                     {languageOpen ? (
@@ -107,7 +113,9 @@ export function CommerceMarketPicker({
                     ) : null}
                     {knowledge ? (
                         <details className="commerce-market-rules" aria-label={translate("ecommerce.marketPicker.imageRulesForTheSelectedPlatform")}>
-                            <summary>{displayLabelOf(platforms, platform)} {translate("ecommerce.marketPicker.imageAndContentRequirements")}</summary>
+                            <summary>
+                                {displayLabelOf(platforms, platform)} {translate("ecommerce.marketPicker.imageAndContentRequirements")}
+                            </summary>
                             <div>
                                 {[knowledge.style, knowledge.risk, knowledge.scope].filter(Boolean).map((text) => (
                                     <p key={text}>{commerceUiText(text)}</p>
@@ -120,7 +128,9 @@ export function CommerceMarketPicker({
                                     </ul>
                                 ) : null}
                                 <p className="commerce-market-source">
-                                    {knowledge.reviewStatus === "pending" ? translate("ecommerce.marketPicker.detailedRulesRequireVerificationInTheOfficialDashboard") : translate("ecommerce.marketPicker.somePublicSourcesVerified", { v0: String(knowledge.checkedAt) })}
+                                    {knowledge.reviewStatus === "pending"
+                                        ? translate("ecommerce.marketPicker.detailedRulesRequireVerificationInTheOfficialDashboard")
+                                        : translate("ecommerce.marketPicker.somePublicSourcesVerified", { v0: String(knowledge.checkedAt) })}
                                     {knowledge.sources.map((url, index) => (
                                         <a key={url} href={url} target="_blank" rel="noopener noreferrer">
                                             {translate("ecommerce.marketPicker.officialSources")} {index + 1}
@@ -128,7 +138,10 @@ export function CommerceMarketPicker({
                                     ))}
                                 </p>
                                 <p className="commerce-market-source">
-                                    {translate("ecommerce.marketPicker.commonRiskyWordingExamples")}{commercePlatformKnowledge.restrictedPhrases.join("、")}{translate("ecommerce.marketPicker.notACompleteOfficialProhibitedWordList")}{commerceUiText(commercePlatformKnowledge.boundary)}
+                                    {translate("ecommerce.marketPicker.commonRiskyWordingExamples")}
+                                    {commercePlatformKnowledge.restrictedPhrases.join("、")}
+                                    {translate("ecommerce.marketPicker.notACompleteOfficialProhibitedWordList")}
+                                    {commerceUiText(commercePlatformKnowledge.boundary)}
                                 </p>
                             </div>
                         </details>
@@ -136,7 +149,8 @@ export function CommerceMarketPicker({
                 </div>
                 <footer className="commerce-market-foot">
                     <span>
-                        {translate("ecommerce.marketPicker.current")}{displayLabelOf(platforms, platform)} · {commerceUiText(languageVisuals[language]?.label || displayLabelOf(languages, language))}
+                        {translate("ecommerce.marketPicker.current")}
+                        {displayLabelOf(platforms, platform)} · {commerceUiText(languageVisuals[language]?.label || displayLabelOf(languages, language))}
                         {region.trim() ? ` · ${region.trim()}` : ""}
                     </span>
                     <Button type="primary" onClick={onClose}>

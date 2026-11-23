@@ -31,7 +31,14 @@ function LookForm({ initial, submitting, onCancel, onSubmit }: { initial?: Drama
     return (
         <div className="drama-look-form">
             <Input value={name} maxLength={60} placeholder={translate("drama.studio.castLooks.lookNameEGApprenticeOrCEO")} aria-label={translate("drama.studio.castLooks.lookName")} onChange={(event) => setName(event.target.value)} />
-            <Input.TextArea value={appearance} maxLength={1000} autoSize={{ minRows: 2, maxRows: 5 }} placeholder={translate("drama.studio.castLooks.clothingHairstyleAndMakeupForThisLookFacialFeaturesStay")} aria-label={translate("drama.studio.castLooks.lookAppearance")} onChange={(event) => setAppearance(event.target.value)} />
+            <Input.TextArea
+                value={appearance}
+                maxLength={1000}
+                autoSize={{ minRows: 2, maxRows: 5 }}
+                placeholder={translate("drama.studio.castLooks.clothingHairstyleAndMakeupForThisLookFacialFeaturesStay")}
+                aria-label={translate("drama.studio.castLooks.lookAppearance")}
+                onChange={(event) => setAppearance(event.target.value)}
+            />
             <label className="drama-field-label">{translate("drama.studio.castLooks.lookGenerationPrompt")}</label>
             <Input.TextArea
                 value={imagePrompt}
@@ -121,9 +128,7 @@ export function CastLooks({ projectId, character, looks, restyle, onChanged }: {
         <div className="drama-field">
             <div className="drama-field-label">
                 <span>{translate("drama.studio.castLooks.looksCostumeAndMakeup")}</span>
-                <small>
-                    {translate("drama.sentences.appearanceLimit", { max: MAX_LOOKS, count: looks.length })}
-                </small>
+                <small>{translate("drama.sentences.appearanceLimit", { max: MAX_LOOKS, count: looks.length })}</small>
             </div>
             <div className="drama-looks">
                 {looks.map((look) =>
@@ -140,11 +145,33 @@ export function CastLooks({ projectId, character, looks, restyle, onChanged }: {
                                 <span className="drama-look-body">
                                     <b className="truncate">{look.lookName || translate("drama.studio.castLooks.untitledLook")}</b>
                                     <small>{chapterLabel(look.lookFromChapter, look.lookToChapter)}</small>
-                                    <small>{look.imageStatus === "draft" ? translate("drama.studio.castLooks.savedGenerateOrUploadAnImage") : look.locked ? translate("drama.studio.castLooks.customImageLocked") : look.imagePrompt ? translate("drama.studio.castLooks.usingCustomPrompt") : translate("drama.studio.castLooks.generateFromAppearance")}</small>
+                                    <small>
+                                        {look.imageStatus === "draft"
+                                            ? translate("drama.studio.castLooks.savedGenerateOrUploadAnImage")
+                                            : look.locked
+                                              ? translate("drama.studio.castLooks.customImageLocked")
+                                              : look.imagePrompt
+                                                ? translate("drama.studio.castLooks.usingCustomPrompt")
+                                                : translate("drama.studio.castLooks.generateFromAppearance")}
+                                    </small>
                                 </span>
                                 <span className="drama-look-actions">
-                                    <Button size="small" type="text" icon={<Pencil className="size-3.5" />} aria-label={translate("drama.studio.castLooks.editLook", { v0: String(look.lookName) })} disabled={busy || mediaBusy(look.imageStatus)} onClick={() => setEditingId(look.id)} />
-                                    <Button size="small" type="text" icon={<Trash2 className="size-3.5" />} aria-label={translate("drama.studio.castLooks.deleteLook", { v0: String(look.lookName) })} disabled={busy} onClick={() => remove.mutate(look.id)} />
+                                    <Button
+                                        size="small"
+                                        type="text"
+                                        icon={<Pencil className="size-3.5" />}
+                                        aria-label={translate("drama.studio.castLooks.editLook", { v0: String(look.lookName) })}
+                                        disabled={busy || mediaBusy(look.imageStatus)}
+                                        onClick={() => setEditingId(look.id)}
+                                    />
+                                    <Button
+                                        size="small"
+                                        type="text"
+                                        icon={<Trash2 className="size-3.5" />}
+                                        aria-label={translate("drama.studio.castLooks.deleteLook", { v0: String(look.lookName) })}
+                                        disabled={busy}
+                                        onClick={() => remove.mutate(look.id)}
+                                    />
                                 </span>
                             </div>
                             <div className="drama-look-form-actions">
@@ -168,7 +195,14 @@ export function CastLooks({ projectId, character, looks, restyle, onChanged }: {
                                     disabled={busy || mediaBusy(look.imageStatus) || character.imageStatus !== "ready" || !character.imageResourceId}
                                     title={!character.imageResourceId ? translate("drama.studio.castLooks.generateOrUploadTheBaseCharacterPortraitFirst") : undefined}
                                     onClick={() => {
-                                        if (look.locked) modal.confirm({ title: translate("drama.studio.castLooks.regenerateThisLookImage"), content: translate("drama.studio.castLooks.unlockTheCurrentCustomImageAndGenerateANewImage"), okText: translate("drama.studio.castLooks.unlockAndGenerate"), cancelText: translate("common.cancel"), onOk: () => generate.mutateAsync(look) });
+                                        if (look.locked)
+                                            modal.confirm({
+                                                title: translate("drama.studio.castLooks.regenerateThisLookImage"),
+                                                content: translate("drama.studio.castLooks.unlockTheCurrentCustomImageAndGenerateANewImage"),
+                                                okText: translate("drama.studio.castLooks.unlockAndGenerate"),
+                                                cancelText: translate("common.cancel"),
+                                                onOk: () => generate.mutateAsync(look),
+                                            });
                                         else generate.mutate(look);
                                     }}
                                 >
@@ -200,7 +234,13 @@ export function CastLooks({ projectId, character, looks, restyle, onChanged }: {
                         message.error(translate("drama.studio.castLooks.chooseAnImageNoLargerThan20MB"));
                         return;
                     }
-                    modal.confirm({ title: translate("drama.studio.castLooks.useTheCustomImageFor", { v0: String(look.lookName) }), content: translate("drama.studio.castLooks.confirmToSaveAndLockThisImageWithoutCallingA"), okText: translate("drama.studio.castLooks.confirmAndSave"), cancelText: translate("common.cancel"), onOk: () => upload.mutateAsync({ look, file }) });
+                    modal.confirm({
+                        title: translate("drama.studio.castLooks.useTheCustomImageFor", { v0: String(look.lookName) }),
+                        content: translate("drama.studio.castLooks.confirmToSaveAndLockThisImageWithoutCallingA"),
+                        okText: translate("drama.studio.castLooks.confirmAndSave"),
+                        cancelText: translate("common.cancel"),
+                        onOk: () => upload.mutateAsync({ look, file }),
+                    });
                 }}
             />
             {libraryLook ? (

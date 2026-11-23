@@ -3,7 +3,6 @@ import { THINKING_LEVEL_LABELS, type ThinkingLevel, type ThinkingRequest } from 
 import "./thinking-level-slider.css";
 import { translate } from "@/i18n";
 
-
 type Props = {
     levels: ThinkingLevel[];
     value: ThinkingRequest | "";

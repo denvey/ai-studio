@@ -8,7 +8,6 @@ import { uploadImage, type UploadedImage } from "@/services/image-storage";
 import { getCachedResourceBlob, primeResourceBlobCache } from "@/services/resource-blob-cache";
 import { translate } from "@/i18n";
 
-
 export type UploadedFile = {
     url: string;
     storageKey: string;

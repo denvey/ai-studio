@@ -1,7 +1,6 @@
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
 import { translate } from "@/i18n";
 
-
 export type VideoConcatEngine = Pick<FFmpeg, "writeFile" | "readFile" | "deleteFile" | "exec" | "ffprobe">;
 
 type MediaStream = { codec_type?: string; width?: number; height?: number; duration?: string; start_time?: string; avg_frame_rate?: string };

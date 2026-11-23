@@ -2,7 +2,6 @@ import { formatBytes } from "@/lib/image-utils";
 import type { AccountFileStorageUsage } from "@/services/api/resources";
 import { currentLocale, translate } from "@/i18n";
 
-
 export const accountFileStorageUsageQueryKey = ["account-file-storage-usage"] as const;
 
 export type AccountStorageTone = "ok" | "warn" | "critical";
@@ -79,7 +78,10 @@ export function accountStorageMeter(usage?: AccountFileStorageUsage | null): Acc
 /** 超额提示文案，侧栏、素材页和扩容弹窗共用。 */
 export function accountStorageStateMessage(meter: AccountStorageMeter) {
     if (meter.state === "read_only") return translate("shared.accountStorageUsage.storageCapacityExceededAndTheGracePeriodHasEndedYour");
-    if (meter.state === "grace") return translate("shared.accountStorageUsage.storageCapacityExceededUploadsAndGenerationArePausedYourAccount", { v0: String(meter.readOnlyAtLabel ? translate("shared.accountStorageUsage.after", { v0: String(meter.readOnlyAtLabel) }) : translate("shared.accountStorageUsage.afterTheGracePeriodEnds")) });
+    if (meter.state === "grace")
+        return translate("shared.accountStorageUsage.storageCapacityExceededUploadsAndGenerationArePausedYourAccount", {
+            v0: String(meter.readOnlyAtLabel ? translate("shared.accountStorageUsage.after", { v0: String(meter.readOnlyAtLabel) }) : translate("shared.accountStorageUsage.afterTheGracePeriodEnds")),
+        });
     if (meter.full) return translate("shared.accountStorageUsage.storageFullUploadsAndGenerationArePaused");
     return "";
 }

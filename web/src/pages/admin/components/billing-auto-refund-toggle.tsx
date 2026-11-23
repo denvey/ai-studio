@@ -79,9 +79,7 @@ export function BillingAutoRefundToggle() {
                 onOk={() => void save(true)}
                 destroyOnHidden
             >
-                <p className="admin-operation-confirmation-copy">
-                    {translate("admin.billingAutoRefundToggle.whenEnabledTheSystemChecksFrozenOrdersInBatchesEvery")}
-                </p>
+                <p className="admin-operation-confirmation-copy">{translate("admin.billingAutoRefundToggle.whenEnabledTheSystemChecksFrozenOrdersInBatchesEvery")}</p>
                 <p className="admin-operation-confirmation-copy">{translate("admin.billingAutoRefundToggle.ordersAreNotAutomaticallyRefundedIfTheirTaskIsQueued")}</p>
                 <p className="admin-operation-confirmation-copy">{translate("admin.billingAutoRefundToggle.someRequestsMayAlreadyHaveIncurredUpstreamChargesThePlatform")}</p>
             </AdminModal>

@@ -86,7 +86,6 @@ import { createCreationSubmitGate } from "./creation-submit-gate";
 import { creationVideoConfig } from "./creation-generation-config";
 import { translate } from "@/i18n";
 
-
 const AssetLibraryPickerModal = lazy(() => import("@/components/assets/asset-library-picker-modal").then((module) => ({ default: module.AssetLibraryPickerModal })));
 const InspirationHall = lazy(() => import("@/pages/inspirations"));
 const loadCreationRuntime = () => import("./creation-runtime");
@@ -1342,7 +1341,8 @@ export default function CreatePage() {
             <div className="grid h-full place-items-center">
                 <div className="text-center">
                     <p role="alert" className="mb-3 text-sm text-foreground/65">
-                        {translate("shared.create.failedToLoadCreationHistory")}{conversationStorageError}
+                        {translate("shared.create.failedToLoadCreationHistory")}
+                        {conversationStorageError}
                     </p>
                     <Button
                         onClick={() => {

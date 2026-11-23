@@ -60,7 +60,6 @@ import { useActiveTheme } from "@/stores/canvas/use-canvas-theme-store";
 import "./skill-workbench.css";
 import { translate } from "@/i18n";
 
-
 type Tab = { path: string; preview: boolean };
 type MarkdownMode = "edit" | "split" | "preview";
 type FileState = { status: "loading" } | { status: "binary" } | { status: "error"; message: string };
@@ -693,7 +692,13 @@ export function SkillWorkbench({ skillId, api, back, admin }: SkillWorkbenchProp
 
     const breadcrumbs = activePath ? activePath.split("/") : [];
     const rawURL = activeOrigin ? api.rawURL(skill.skillId, activeOrigin) : "";
-    const statusText = readOnly ? translate("shared.skills.workbench.readOnly") : saving ? translate("shared.skills.workbench.saving") : pendingCount ? translate("shared.skills.workbench.unsavedChanges", { v0: String(pendingCount) }) : translate("shared.skills.workbench.saved");
+    const statusText = readOnly
+        ? translate("shared.skills.workbench.readOnly")
+        : saving
+          ? translate("shared.skills.workbench.saving")
+          : pendingCount
+            ? translate("shared.skills.workbench.unsavedChanges", { v0: String(pendingCount) })
+            : translate("shared.skills.workbench.saved");
 
     return (
         <WorkspacePage fluid scroll={false} className="skill-wb-page">
@@ -703,7 +708,14 @@ export function SkillWorkbench({ skillId, api, back, admin }: SkillWorkbenchProp
                         {back.label}
                     </Button>
                     <span className="skill-wb-header-divider" aria-hidden="true" />
-                    <button type="button" className="skill-wb-icon-button" aria-label={explorerOpen ? translate("shared.skills.workbench.hideExplorer") : translate("shared.skills.workbench.showExplorer")} aria-pressed={explorerOpen} title={translate("shared.skills.workbench.explorerB", { v0: String(modKey) })} onClick={() => setExplorerOpen((value) => !value)}>
+                    <button
+                        type="button"
+                        className="skill-wb-icon-button"
+                        aria-label={explorerOpen ? translate("shared.skills.workbench.hideExplorer") : translate("shared.skills.workbench.showExplorer")}
+                        aria-pressed={explorerOpen}
+                        title={translate("shared.skills.workbench.explorerB", { v0: String(modKey) })}
+                        onClick={() => setExplorerOpen((value) => !value)}
+                    >
                         <PanelLeft className="size-4" />
                     </button>
                     <div className="skill-wb-title">
@@ -735,7 +747,8 @@ export function SkillWorkbench({ skillId, api, back, admin }: SkillWorkbenchProp
                         ) : null}
                         {!readOnly ? (
                             <Button type="primary" loading={saving} disabled={!pendingCount} icon={<Save className="size-4" />} onClick={() => void save()}>
-                                {translate("common.save")}{pendingCount ? `（${pendingCount}）` : ""}
+                                {translate("common.save")}
+                                {pendingCount ? `（${pendingCount}）` : ""}
                             </Button>
                         ) : null}
                     </div>
@@ -756,7 +769,9 @@ export function SkillWorkbench({ skillId, api, back, admin }: SkillWorkbenchProp
                         ) : (
                             <>
                                 <span>
-                                    {translate(skill.sourceType === "builtin" ? "shared.skills.workbench.readonlyBuiltinByAuthor" : "shared.skills.workbench.readonlyByAuthor", { author: skill.effectiveUser.name || translate("shared.skills.workbench.anotherAuthor") })}
+                                    {translate(skill.sourceType === "builtin" ? "shared.skills.workbench.readonlyBuiltinByAuthor" : "shared.skills.workbench.readonlyByAuthor", {
+                                        author: skill.effectiveUser.name || translate("shared.skills.workbench.anotherAuthor"),
+                                    })}
                                 </span>
                                 {!skill.isAdded ? (
                                     <Button size="small" loading={adding} icon={<Plus className="size-3.5" />} onClick={() => void joinSkill()}>
@@ -944,15 +959,18 @@ export function SkillWorkbench({ skillId, api, back, admin }: SkillWorkbenchProp
                                         action={
                                             <div className="skill-wb-shortcuts">
                                                 <span>
-                                                    <Kbd>{modKey} P</Kbd>{translate("shared.skills.workbench.quickOpen")}
+                                                    <Kbd>{modKey} P</Kbd>
+                                                    {translate("shared.skills.workbench.quickOpen")}
                                                 </span>
                                                 {!readOnly ? (
                                                     <span>
-                                                        <Kbd>{modKey} S</Kbd>{translate("common.save")}
+                                                        <Kbd>{modKey} S</Kbd>
+                                                        {translate("common.save")}
                                                     </span>
                                                 ) : null}
                                                 <span>
-                                                    <Kbd>{modKey} B</Kbd>{translate("library.workbench.explorer.title")}
+                                                    <Kbd>{modKey} B</Kbd>
+                                                    {translate("library.workbench.explorer.title")}
                                                 </span>
                                             </div>
                                         }
@@ -989,7 +1007,9 @@ export function SkillWorkbench({ skillId, api, back, admin }: SkillWorkbenchProp
                                     ) : (
                                         <div className="skill-wb-center" role="status">
                                             <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
-                                            <span>{translate("shared.skills.workbench.loading")} {baseName(activePath)}…</span>
+                                            <span>
+                                                {translate("shared.skills.workbench.loading")} {baseName(activePath)}…
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -1002,7 +1022,8 @@ export function SkillWorkbench({ skillId, api, back, admin }: SkillWorkbenchProp
                                 {statusText}
                             </span>
                             <span className="skill-wb-status-item" title={skill.versionId}>
-                                {translate("shared.skills.workbench.versionV")}{skill.version || "1"}
+                                {translate("shared.skills.workbench.versionV")}
+                                {skill.version || "1"}
                             </span>
                             {loading ? (
                                 <span className="skill-wb-status-item">
@@ -1013,7 +1034,8 @@ export function SkillWorkbench({ skillId, api, back, admin }: SkillWorkbenchProp
                             <span className="skill-wb-status-spacer" />
                             {activeIsText ? (
                                 <span className="skill-wb-status-item">
-                                    {translate("shared.skills.workbench.line")} {cursor.line}{translate("shared.skills.workbench.column")} {cursor.column}
+                                    {translate("shared.skills.workbench.line")} {cursor.line}
+                                    {translate("shared.skills.workbench.column")} {cursor.column}
                                 </span>
                             ) : null}
                             {activeEntry ? <span className="skill-wb-status-item">{formatSkillBytes(activeSize)}</span> : null}

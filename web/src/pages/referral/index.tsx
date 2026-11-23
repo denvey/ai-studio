@@ -11,7 +11,6 @@ import { useUserStore } from "@/stores/use-user-store";
 import "./referral-page.css";
 import { currentLocale, translate } from "@/i18n";
 
-
 type RecordTab = "invitees" | "commissions";
 
 const PAGE_SIZE = 20;
@@ -84,7 +83,8 @@ export default function ReferralPage() {
                                 <Button type="link" size="small" onClick={() => void copy(data.code, translate("shared.referral.referralCode"))}>
                                     {translate("canvasB.common.copy")}
                                 </Button>
-                                {translate("shared.referral.currentCommissionRate")} {formatReferralRate(data.commissionRateBasisPoints)}{translate("shared.referral.calculatedFromEachInvitedUserSCreditedPurchaseCommissionIs")}
+                                {translate("shared.referral.currentCommissionRate")} {formatReferralRate(data.commissionRateBasisPoints)}
+                                {translate("shared.referral.calculatedFromEachInvitedUserSCreditedPurchaseCommissionIs")}
                             </p>
                         </section>
                         <section className="referral-page-stats" aria-label={translate("shared.referral.referralEarnings")}>
@@ -120,7 +120,9 @@ export default function ReferralPage() {
                                     <div key={`${item.createdAt}-${index}`} className="referral-page-record-row">
                                         <div>
                                             {item.name}
-                                            <small>{translate("shared.referral.registeredOn")} {formatTime(item.createdAt)}</small>
+                                            <small>
+                                                {translate("shared.referral.registeredOn")} {formatTime(item.createdAt)}
+                                            </small>
                                         </div>
                                     </div>
                                 ))

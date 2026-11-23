@@ -4,7 +4,6 @@ import type { AiConfig } from "@/stores/use-config-store";
 import type { PluginHostContext, PluginInstallation, PluginTextRequest, RegisteredPlugin } from "@/lib/plugins/plugin-types";
 import { translate } from "@/i18n";
 
-
 export function createPluginHostContext(plugin: RegisteredPlugin, installation: PluginInstallation, aiConfig: AiConfig): PluginHostContext {
     const permissions = new Set(plugin.manifest.permissions);
     return {

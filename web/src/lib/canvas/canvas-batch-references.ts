@@ -3,7 +3,6 @@ import { batchInputColumns, batchPromptForRow, batchReferenceColumns, createBatc
 import { canvasBatchInputToken } from "./canvas-batch-input-signature";
 import { translate } from "@/i18n";
 
-
 export const BATCH_CELL_PREFIX = "batch-cell:";
 export const BATCH_TABLE_HEADER_HEIGHT = 121;
 export const BATCH_COLUMN_HEADER_HEIGHT = 36;

@@ -5,7 +5,6 @@ import { resourceIdFromStorageKey } from "@/services/api/resources";
 import type { CanvasNodeData } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 const MAX_ROTATION_PIXELS = 64_000_000;
 
 async function readOriginalBlob(image: RotationImage) {

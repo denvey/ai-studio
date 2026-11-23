@@ -4,7 +4,6 @@ import { getMediaBlob } from "@/services/file-storage";
 import type { CanvasExportAsset } from "@/types/canvas-export";
 import { translate } from "@/i18n";
 
-
 /** UTF-8 percent encoding keeps distinct storage IDs distinct inside an archive. */
 export function packageSegment(value: string): string {
     return encodeURIComponent(value).replace(/\./g, "%2E");

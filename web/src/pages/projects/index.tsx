@@ -16,9 +16,14 @@ import "./drama.css";
 import { translate } from "@/i18n";
 import { dramaStyleDisplayName } from "./style-copy";
 
-
 const PAGE_SIZES = [24, 48, 96];
-const PIPELINE = [translate("drama.page.parseChapters"), translate("drama.page.buildCharactersPropsAndScenes"), translate("drama.page.episodeAdaptationAndSegmentPrompts"), translate("drama.page.generateVideoByStorySegment"), translate("drama.page.renderFinalCut")];
+const PIPELINE = [
+    translate("drama.page.parseChapters"),
+    translate("drama.page.buildCharactersPropsAndScenes"),
+    translate("drama.page.episodeAdaptationAndSegmentPrompts"),
+    translate("drama.page.generateVideoByStorySegment"),
+    translate("drama.page.renderFinalCut"),
+];
 const STATUS_FILTERS: Array<{ value: DramaStatus | "all"; label: string }> = [
     { value: "all", label: translate("canvasA.toolPicker.all") },
     { value: "running", label: translate("drama.page.inProduction") },
@@ -118,7 +123,16 @@ export default function DramaListPage() {
         <WorkspacePage className="studio-collection-page drama-library">
             <div className="drama-root" {...dragProps}>
                 <div className="studio-band">
-                    <PageHeader title={translate("drama.page.shortDramas")} description={translate("drama.page.uploadANovelToAutomaticallyAdaptItPlanEpisodesBuild")} meta={<span className="app-projects-header-meta">{total} {translate("drama.page.productions")}</span>} actions={total ? actions : undefined} />
+                    <PageHeader
+                        title={translate("drama.page.shortDramas")}
+                        description={translate("drama.page.uploadANovelToAutomaticallyAdaptItPlanEpisodesBuild")}
+                        meta={
+                            <span className="app-projects-header-meta">
+                                {total} {translate("drama.page.productions")}
+                            </span>
+                        }
+                        actions={total ? actions : undefined}
+                    />
                     {total ? (
                         <CollectionToolbar
                             label={translate("drama.page.shortDramaBrowsingTools")}
@@ -128,7 +142,14 @@ export default function DramaListPage() {
                                 setStatus("all");
                             }}
                         >
-                            <Input prefix={<Search />} value={keyword} allowClear placeholder={translate("drama.page.searchProductionNames")} aria-label={translate("drama.page.searchProductionNames")} onChange={(event) => setKeyword(event.target.value)} />
+                            <Input
+                                prefix={<Search />}
+                                value={keyword}
+                                allowClear
+                                placeholder={translate("drama.page.searchProductionNames")}
+                                aria-label={translate("drama.page.searchProductionNames")}
+                                onChange={(event) => setKeyword(event.target.value)}
+                            />
                             <div className="drama-library-status" role="radiogroup" aria-label={translate("drama.page.filterByStatus")}>
                                 {STATUS_FILTERS.map((item) => {
                                     const count = item.value === "all" ? total : counts[item.value] || 0;
@@ -259,7 +280,13 @@ function DramaCard({ item, onDelete }: { item: DramaListItem; onDelete: () => vo
     const needsAction = item.status === "paused" && Boolean(item.pauseReason);
     // 保存了创建页表单的草稿回到创建页继续编辑，其余进入制作台。
     const href = item.hasDraftForm ? `/projects/new?draft=${encodeURIComponent(item.project.id)}` : `/projects/${item.project.id}`;
-    const stage = item.episodeCount ? translate("drama.page.episodesRendered", { v0: String(item.doneCount), v1: String(item.episodeCount) }) : item.status === "running" ? translate("drama.page.adaptingNovel") : item.status === "draft" ? translate("drama.page.notStarted2") : translate("drama.page.awaitingEpisodePlan");
+    const stage = item.episodeCount
+        ? translate("drama.page.episodesRendered", { v0: String(item.doneCount), v1: String(item.episodeCount) })
+        : item.status === "running"
+          ? translate("drama.page.adaptingNovel")
+          : item.status === "draft"
+            ? translate("drama.page.notStarted2")
+            : translate("drama.page.awaitingEpisodePlan");
     return (
         <article className={`drama-library-card is-${item.status}`}>
             <Link to={href} className="drama-library-open" aria-label={translate("drama.page.open", { v0: String(item.project.name) })}>
@@ -281,7 +308,11 @@ function DramaCard({ item, onDelete }: { item: DramaListItem; onDelete: () => vo
                         </span>
                         <span className="drama-library-progress-text">
                             <b>{stage}</b>
-                            {item.spentMicrocredits ? <span>{formatCredits(item.spentMicrocredits)} {translate("shell.credits")}</span> : null}
+                            {item.spentMicrocredits ? (
+                                <span>
+                                    {formatCredits(item.spentMicrocredits)} {translate("shell.credits")}
+                                </span>
+                            ) : null}
                         </span>
                     </div>
                     {needsAction ? (

@@ -75,7 +75,11 @@ function ProjectCard({
                 style={{ animationDelay: `${Math.min(index, 11) * 32}ms` }}
                 aria-current={active ? "true" : undefined}
                 aria-pressed={selecting ? selected : undefined}
-                aria-label={selecting ? translate("ecommerce.projectHistory.project", { v0: String(selected ? translate("ecommerce.projectHistory.clearSelection") : translate("ecommerce.projectHistory.select")), v1: String(title) }) : translate("ecommerce.projectHistory.openProject", { v0: String(title) })}
+                aria-label={
+                    selecting
+                        ? translate("ecommerce.projectHistory.project", { v0: String(selected ? translate("ecommerce.projectHistory.clearSelection") : translate("ecommerce.projectHistory.select")), v1: String(title) })
+                        : translate("ecommerce.projectHistory.openProject", { v0: String(title) })
+                }
                 disabled={disabled}
                 onClick={() => (selecting ? onSelect(project.id) : onOpen(project))}
             >
@@ -111,7 +115,14 @@ function ProjectCard({
                 )}
             </button>
             {!selecting ? (
-                <button type="button" className="ecommerce-project-delete" aria-label={translate("ecommerce.projectHistory.deleteProject", { v0: String(title) })} title={translate("ecommerce.projectHistory.deleteProject2")} disabled={disabled} onClick={() => onDelete(project)}>
+                <button
+                    type="button"
+                    className="ecommerce-project-delete"
+                    aria-label={translate("ecommerce.projectHistory.deleteProject", { v0: String(title) })}
+                    title={translate("ecommerce.projectHistory.deleteProject2")}
+                    disabled={disabled}
+                    onClick={() => onDelete(project)}
+                >
                     <Trash2 size={15} strokeWidth={1.8} />
                 </button>
             ) : null}
@@ -277,7 +288,9 @@ export function EcommerceProjectHistory({
                         ) : null}
                         {selecting ? (
                             <>
-                                <span className="ecommerce-history-selected">{translate("ecommerce.projectHistory.selected")} {selected.size}</span>
+                                <span className="ecommerce-history-selected">
+                                    {translate("ecommerce.projectHistory.selected")} {selected.size}
+                                </span>
                                 <button type="button" className="ecommerce-history-action" disabled={loading || deleting || !projects.length} onClick={togglePage}>
                                     {pageSelected ? translate("ecommerce.projectHistory.deselectThisPage") : translate("ecommerce.projectHistory.selectThisPage")}
                                 </button>
@@ -288,7 +301,8 @@ export function EcommerceProjectHistory({
                         ) : null}
                     </div>
                     <div className="ecommerce-history-actions">
-                        <label className="ecommerce-history-page-size">{translate("ecommerce.projectHistory.itemsPerPage")}{" "}
+                        <label className="ecommerce-history-page-size">
+                            {translate("ecommerce.projectHistory.itemsPerPage")}{" "}
                             <select
                                 aria-label={translate("ecommerce.projectHistory.projectsPerPage")}
                                 value={pageSize}
@@ -301,7 +315,9 @@ export function EcommerceProjectHistory({
                                 <option value={20}>20</option>
                                 <option value={50}>50</option>
                                 <option value={100}>100</option>
-                            </select>{" "}{translate("ecommerce.projectHistory.items")}</label>
+                            </select>{" "}
+                            {translate("ecommerce.projectHistory.items")}
+                        </label>
                         {total > 0 ? (
                             <button type="button" className="ecommerce-history-action ecommerce-history-danger" disabled={loading || deleting || deletionDisabled} onClick={() => setDeleteTarget({ kind: "all", ids: [], count: total })}>
                                 {translate("ecommerce.projectHistory.deleteAll")}
@@ -359,7 +375,14 @@ export function EcommerceProjectHistory({
                             <ChevronLeft size={17} />
                         </button>
                         {pages.map((number) => (
-                            <button key={number} type="button" aria-label={translate("ecommerce.projectHistory.page", { v0: String(number) })} aria-current={page === number ? "page" : undefined} disabled={loading || deleting} onClick={() => setPage(number)}>
+                            <button
+                                key={number}
+                                type="button"
+                                aria-label={translate("ecommerce.projectHistory.page", { v0: String(number) })}
+                                aria-current={page === number ? "page" : undefined}
+                                disabled={loading || deleting}
+                                onClick={() => setPage(number)}
+                            >
                                 {number}
                             </button>
                         ))}
@@ -372,7 +395,13 @@ export function EcommerceProjectHistory({
             <Modal
                 className="ecommerce-delete-confirm"
                 open={Boolean(deleteTarget)}
-                title={deleteTarget?.kind === "all" ? translate("ecommerce.projectHistory.deleteAllEcommerceProjects") : deleteTarget?.kind === "one" ? translate("ecommerce.projectHistory.deleteThisProject") : translate("ecommerce.projectHistory.deleteSelectedProjects", { v0: String(deleteTarget?.count || 0) })}
+                title={
+                    deleteTarget?.kind === "all"
+                        ? translate("ecommerce.projectHistory.deleteAllEcommerceProjects")
+                        : deleteTarget?.kind === "one"
+                          ? translate("ecommerce.projectHistory.deleteThisProject")
+                          : translate("ecommerce.projectHistory.deleteSelectedProjects", { v0: String(deleteTarget?.count || 0) })
+                }
                 centered
                 okText={deleting ? translate("ecommerce.projectHistory.deleting") : translate("account.ui.delete.confirm")}
                 okButtonProps={{ danger: true, loading: deleting }}

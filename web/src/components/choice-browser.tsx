@@ -4,7 +4,6 @@ import { useId, useState, type ReactNode } from "react";
 import "./choice-browser.css";
 import { translate } from "@/i18n";
 
-
 export type BrowserChoice = {
     value: string;
     label: string;
@@ -49,7 +48,17 @@ export function ChoiceBrowser({
 
     return (
         <div className="choice-browser">
-            <Input id={id} {...aria} allowClear aria-label={translate("shared.choiceBrowser.search", { v0: String(label) })} disabled={unavailable} prefix={<Search className="size-3.5" aria-hidden="true" />} placeholder={placeholder} value={query} onChange={(event) => setQuery(event.target.value)} />
+            <Input
+                id={id}
+                {...aria}
+                allowClear
+                aria-label={translate("shared.choiceBrowser.search", { v0: String(label) })}
+                disabled={unavailable}
+                prefix={<Search className="size-3.5" aria-hidden="true" />}
+                placeholder={placeholder}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+            />
             {loading || error || !options.length ? (
                 <div className="choice-browser-state" role={error ? "alert" : "status"}>
                     {loading ? translate("shared.choiceBrowser.loadingOptions") : error || translate("shared.choiceBrowser.noOptionsAvailable")}

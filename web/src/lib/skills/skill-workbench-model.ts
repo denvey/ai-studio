@@ -1,4 +1,3 @@
-
 import { currentLocale, translate } from "@/i18n";
 // 技能工作台的纯函数：工作副本 → 文件树、路径校验（与后端 normalizeSkillEditPath 对齐）、
 // 以及把本地修改折叠成 PUT /skills/:id/files 的有序批量操作。

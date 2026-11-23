@@ -1,7 +1,6 @@
 import type { CanvasNodeData } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 export const MEDIA_CONVERSION_SCHEMA_VERSION = 1 as const;
 
 export const MEDIA_CONVERSION_NODE_TYPE = "media-conversion" as const;

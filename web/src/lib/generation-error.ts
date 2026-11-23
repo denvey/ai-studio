@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export const CONTENT_MODERATION_ERROR_CODE = "sensitive_words_detected";
 
@@ -127,7 +126,8 @@ function actionableUpstreamReason(value: string) {
     const tooLarge = lower.includes("too large") || lower.includes("exceed") || lower.includes("超过") || lower.includes("25mb") || lower.includes("25 mb");
     if (image && tooLarge) return translate("shared.generationError.theReferenceImageExceedsTheModelSSizeLimitCompress");
     if (lower.includes("model_not_found") || lower.includes("model not found") || lower.includes("无可用渠道")) return translate("shared.generationError.noChannelsAreAvailableForThisModelChooseAnotherModel");
-    if (image && (lower.includes("unsupported size") || lower.includes("图片尺寸不支持") || lower.includes("unsupported format") || lower.includes("图片格式不支持"))) return translate("shared.generationError.theReferenceImageDimensionsOrFormatDoNotMeetThe");
+    if (image && (lower.includes("unsupported size") || lower.includes("图片尺寸不支持") || lower.includes("unsupported format") || lower.includes("图片格式不支持")))
+        return translate("shared.generationError.theReferenceImageDimensionsOrFormatDoNotMeetThe");
     return "";
 }
 

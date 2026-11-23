@@ -5,7 +5,6 @@ import { registerAddNodeMenuCommands, type AddNodeMenuCommand } from "@/lib/canv
 import { CanvasNodeType } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 /** 真正创建节点的命令，文案与图标统一取自节点注册表。 */
 function nodeCommand(type: CanvasNodeType, rest: Omit<AddNodeMenuCommand, "id" | "label" | "icon" | "section">): AddNodeMenuCommand {
     return { id: type, label: getNodeLabel(type), icon: getNodeIcon(type), section: "node", ...rest };
@@ -19,21 +18,46 @@ export const addNodeMenuCommands: AddNodeMenuCommand[] = [
     nodeCommand(CanvasNodeType.Drawing, { defaultOrder: 20, run: (ctx) => ctx.handlers.onAddDrawing() }),
     nodeCommand(CanvasNodeType.Script, { badge: translate("shared.canvas.toolRegistry.definitions.addNodeMenuTools.core"), defaultOrder: 30, run: (ctx) => ctx.handlers.onAddScript() }),
     nodeCommand(CanvasNodeType.Frame, { defaultOrder: 40, applicable: (ctx) => ctx.workspaceMode !== "simple", run: (ctx) => ctx.handlers.onAddFrame() }),
-    { id: "folder", label: translate("shared.canvas.toolRegistry.definitions.addNodeMenuTools.folder"), icon: <Folder />, badge: translate("shared.canvas.toolRegistry.definitions.addNodeMenuTools.item6Tools"), section: "node", defaultOrder: 45, run: (ctx) => ctx.handlers.onAddFolder() },
+    {
+        id: "folder",
+        label: translate("shared.canvas.toolRegistry.definitions.addNodeMenuTools.folder"),
+        icon: <Folder />,
+        badge: translate("shared.canvas.toolRegistry.definitions.addNodeMenuTools.item6Tools"),
+        section: "node",
+        defaultOrder: 45,
+        run: (ctx) => ctx.handlers.onAddFolder(),
+    },
     nodeCommand(CanvasNodeType.Image, { defaultOrder: 50, run: (ctx) => ctx.handlers.onAddImage() }),
     { id: "project-character", label: translate("canvasA.characterNode.card"), icon: <UserRound />, section: "node", defaultOrder: 55, run: (ctx) => ctx.handlers.onOpenProjectCharacters() },
     nodeCommand(CanvasNodeType.Video, { defaultOrder: 60, run: (ctx) => ctx.handlers.onAddVideo() }),
     nodeCommand(CanvasNodeType.BatchTable, { defaultOrder: 66, run: (ctx) => ctx.handlers.onAddExtensionNode(CanvasNodeType.BatchTable) }),
     nodeCommand(CanvasNodeType.MediaConversion, { badge: translate("shared.canvas.toolRegistry.definitions.addNodeMenuTools.local"), defaultOrder: 65, run: (ctx) => ctx.handlers.onAddExtensionNode(CanvasNodeType.MediaConversion) }),
     // 预演台落在节点分区，但它开的是导演工作台、不是某种画布节点，故不走注册表。
-    { id: "previs", label: translate("shared.canvas.toolRegistry.definitions.addNodeMenuTools.previs"), icon: <Layers3 />, badge: "3D", section: "node", defaultOrder: 70, applicable: (ctx) => ctx.workspaceMode !== "simple", run: (ctx) => ctx.handlers.onOpenPrevis() },
+    {
+        id: "previs",
+        label: translate("shared.canvas.toolRegistry.definitions.addNodeMenuTools.previs"),
+        icon: <Layers3 />,
+        badge: "3D",
+        section: "node",
+        defaultOrder: 70,
+        applicable: (ctx) => ctx.workspaceMode !== "simple",
+        run: (ctx) => ctx.handlers.onOpenPrevis(),
+    },
     nodeCommand(CanvasNodeType.Audio, { defaultOrder: 80, applicable: (ctx) => ctx.workspaceMode !== "simple", run: (ctx) => ctx.handlers.onAddAudio() }),
     // 云端和本地工作流共用独立配置节点，不进入基础模型节点的渠道选择。
     { id: "workflow", label: translate("library.tasks.model.workflow"), icon: <Workflow />, section: "workflow", defaultOrder: 10, applicable: (ctx) => ctx.workspaceMode !== "simple", run: (ctx) => ctx.handlers.onAddWorkflow() },
     // 导入资源
     { id: "upload", label: translate("canvasA.assetView.uploadFiles"), icon: <UploadCloud />, section: "resource", defaultOrder: 10, run: (ctx) => ctx.handlers.onUpload() },
     { id: "assets", label: translate("canvasB.mention.assetLibrary"), icon: <FolderOpen />, section: "resource", defaultOrder: 30, applicable: (ctx) => !ctx.isProjectLinked, run: (ctx) => ctx.handlers.onOpenMyAssets() },
-    { id: "pose-library", label: translate("shared.canvas.toolRegistry.definitions.addNodeMenuTools.poseLibrary"), icon: <PersonStanding />, section: "resource", defaultOrder: 35, applicable: (ctx) => Boolean(ctx.handlers.onOpenPoseLibrary), run: (ctx) => ctx.handlers.onOpenPoseLibrary?.() },
+    {
+        id: "pose-library",
+        label: translate("shared.canvas.toolRegistry.definitions.addNodeMenuTools.poseLibrary"),
+        icon: <PersonStanding />,
+        section: "resource",
+        defaultOrder: 35,
+        applicable: (ctx) => Boolean(ctx.handlers.onOpenPoseLibrary),
+        run: (ctx) => ctx.handlers.onOpenPoseLibrary?.(),
+    },
 ];
 
 registerAddNodeMenuCommands(addNodeMenuCommands);

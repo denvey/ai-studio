@@ -9,7 +9,6 @@ import { runTimelineRenderPlan, type TimelineExportProgress, type TimelineExport
 import { buildTimelineRenderPlan, type TimelineRenderContext, type TimelineRenderSource } from "./timeline-to-ffmpeg";
 import { translate } from "@/i18n";
 
-
 export type { TimelineExportProgress, TimelineExportResult } from "./timeline-export-runner";
 
 export type TimelineExportOptions = {
@@ -34,7 +33,9 @@ async function fetchSourceBlob(source: TimelineRenderSource): Promise<Blob> {
 export async function exportTimelineToMp4(timeline: TimelineProject, sources: TimelineRenderSource[], options: TimelineExportOptions = {}): Promise<TimelineExportResult> {
     const { onProgress, context } = options;
     onProgress?.({ phase: "loading", percent: 0, detail: translate("canvasPage.mediaTools.loadingFfmpeg") });
-    const ffmpeg = await loadFFmpeg(({ phase, progress }) => onProgress?.({ phase: phase === "loading" ? "loading" : "reading", percent: progress, detail: phase === "loading" ? translate("canvasPage.mediaTools.loadingFfmpeg") : translate("shared.plugins.readingAssets") }));
+    const ffmpeg = await loadFFmpeg(({ phase, progress }) =>
+        onProgress?.({ phase: phase === "loading" ? "loading" : "reading", percent: progress, detail: phase === "loading" ? translate("canvasPage.mediaTools.loadingFfmpeg") : translate("shared.plugins.readingAssets") }),
+    );
     const plan = buildTimelineRenderPlan(timeline, sources, context);
     return runTimelineRenderPlan(ffmpeg, timeline, sources, plan, {
         readSource: async (source) => fetchFile(await fetchSourceBlob(source)),

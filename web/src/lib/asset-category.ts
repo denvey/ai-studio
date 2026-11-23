@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export const ASSET_CATEGORIES = ["character", "environment", "prop", "material", "other", "ark"] as const;
 

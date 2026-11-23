@@ -6,7 +6,6 @@ import { observeGenerationTaskStatus, observeGenerationTaskStatuses } from "@/se
 import { getActiveUserScope } from "@/lib/user-scope";
 import { translate } from "@/i18n";
 
-
 export type { BackendEnvelope } from "@/services/api/request";
 
 export type TaskStatus = "queued" | "running" | "succeeded" | "failed" | "cancelled";
@@ -440,7 +439,10 @@ export function isGenerationTaskTerminalError(error: unknown): error is Generati
 }
 
 function terminalTaskError(task: GenerationTask) {
-    return new GenerationTaskTerminalError(task.error ? generationErrorMessage(task.error) : translate("shared.api.taskCenter.task", { v0: String(task.status === "cancelled" ? translate("shared.api.taskCenter.cancelled") : translate("shared.api.taskCenter.failed")) }), task);
+    return new GenerationTaskTerminalError(
+        task.error ? generationErrorMessage(task.error) : translate("shared.api.taskCenter.task", { v0: String(task.status === "cancelled" ? translate("shared.api.taskCenter.cancelled") : translate("shared.api.taskCenter.failed")) }),
+        task,
+    );
 }
 
 export type WaitForGenerationTaskOptions = {

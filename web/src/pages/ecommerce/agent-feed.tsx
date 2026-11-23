@@ -104,7 +104,9 @@ export function EcommerceAgentFeed({
                                 <span className="commerce-generation-glyph">
                                     <Images size={16} />
                                 </span>
-                                <strong>{translate("ecommerce.agentFeed.image")} {index + 1} {translate("ecommerce.agentFeed.incomplete")}</strong>
+                                <strong>
+                                    {translate("ecommerce.agentFeed.image")} {index + 1} {translate("ecommerce.agentFeed.incomplete")}
+                                </strong>
                             </header>
                             <p>{task.error || translate("ecommerce.agentFeed.theTaskCouldNotFinishYouCanRetryThisImage")}</p>
                             <Button size="small" onClick={() => onRetry(image)}>
@@ -129,7 +131,12 @@ export function EcommerceAgentFeed({
                             <span> · {image.ratio}</span>
                         </p>
                         <button type="button" className="commerce-generated-preview" onClick={() => onFocus(image.id)} aria-label={translate("ecommerce.agentFeed.selectImageOnTheCanvas", { v0: String(index + 1) })}>
-                            <img src={src} alt={translate("ecommerce.agentFeed.productImage", { v0: String(index + 1) })} draggable onDragStart={(event) => writeCommerceImageTransfer(event.dataTransfer, { resourceId, name: translate("ecommerce.agentFeed.imageResult", { v0: String(index + 1) }), url: src })} />
+                            <img
+                                src={src}
+                                alt={translate("ecommerce.agentFeed.productImage", { v0: String(index + 1) })}
+                                draggable
+                                onDragStart={(event) => writeCommerceImageTransfer(event.dataTransfer, { resourceId, name: translate("ecommerce.agentFeed.imageResult", { v0: String(index + 1) }), url: src })}
+                            />
                         </button>
                         <footer>
                             <Popover
@@ -141,7 +148,8 @@ export function EcommerceAgentFeed({
                                 content={<SingleImageEditor key={`${image.id}:${image.taskId}`} config={config} draft={image.sourceDraft || draft} image={image} imageModels={imageModels} onClose={() => setEditing(undefined)} onGenerate={onRegenerate} />}
                             >
                                 <Button size="small" icon={<RotateCcw size={14} />} onClick={() => setEditing(image.id)}>
-                                    {translate("ecommerce.agentFeed.regenerate")}{imageCost == null ? "" : translate("ecommerce.agentFeed.aboutCredits", { v0: String(imageCost.toLocaleString(currentLocale(), { maximumFractionDigits: 3 })) })}
+                                    {translate("ecommerce.agentFeed.regenerate")}
+                                    {imageCost == null ? "" : translate("ecommerce.agentFeed.aboutCredits", { v0: String(imageCost.toLocaleString(currentLocale(), { maximumFractionDigits: 3 })) })}
                                 </Button>
                             </Popover>
                             <Button size="small" icon={<Images size={14} />} onClick={() => setExpanded((id) => (id === image.id ? undefined : image.id))} aria-expanded={expanded === image.id}>

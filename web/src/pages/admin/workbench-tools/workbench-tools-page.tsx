@@ -27,7 +27,6 @@ import {
 import "./workbench-tools.css";
 import { translate } from "@/i18n";
 
-
 type ToolDraft = {
     id?: string;
     kind: WorkbenchKind;
@@ -122,7 +121,13 @@ function ResourceUpload({ label, value, kind = "image", disabled, upload, onChan
             <div className="admin-workbench-resource-preview">{value.url ? kind === "video" ? <video src={value.url} controls preload="metadata" /> : <img src={value.url} alt={label} /> : <Shapes className="size-5" />}</div>
             <div className="admin-workbench-resource-actions">
                 <strong>{label}</strong>
-                <small>{value.id ? (value.url ? translate("adminPages.workbenchTools.workbenchToolsPage.uploaded") : translate("adminPages.workbenchTools.workbenchToolsPage.uploadedPreviewTemporarilyUnavailable")) : translate("adminPages.workbenchTools.workbenchToolsPage.chooseFileToUpload")}</small>
+                <small>
+                    {value.id
+                        ? value.url
+                            ? translate("adminPages.workbenchTools.workbenchToolsPage.uploaded")
+                            : translate("adminPages.workbenchTools.workbenchToolsPage.uploadedPreviewTemporarilyUnavailable")
+                        : translate("adminPages.workbenchTools.workbenchToolsPage.chooseFileToUpload")}
+                </small>
                 <div>
                     <Upload
                         disabled={disabled}
@@ -177,7 +182,12 @@ function SlotEditor({
             <div className="admin-workbench-slot-fields">
                 <label>
                     {translate("adminPages.workbenchTools.workbenchToolsPage.inputName")}
-                    <Input aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.inputName2", { v0: String(index + 1) })} value={slot.name} placeholder={translate("adminPages.workbenchTools.workbenchToolsPage.forExampleModelFaceProduct")} onChange={(event) => onChange({ name: event.target.value })} />
+                    <Input
+                        aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.inputName2", { v0: String(index + 1) })}
+                        value={slot.name}
+                        placeholder={translate("adminPages.workbenchTools.workbenchToolsPage.forExampleModelFaceProduct")}
+                        onChange={(event) => onChange({ name: event.target.value })}
+                    />
                 </label>
                 <label>
                     {translate("library.picker.mediaKind")}
@@ -185,29 +195,60 @@ function SlotEditor({
                         mode="multiple"
                         aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.inputMediaType", { v0: String(index + 1) })}
                         value={slot.mediaTypes}
-                        options={(kind === "image" ? ["image"] : ["image", "video", "audio"]).map((value) => ({ value, label: value === "image" ? translate("account.feedback.image") : value === "video" ? translate("account.feedback.video") : translate("account.settings.modelConfig.capabilities.audio") }))}
+                        options={(kind === "image" ? ["image"] : ["image", "video", "audio"]).map((value) => ({
+                            value,
+                            label: value === "image" ? translate("account.feedback.image") : value === "video" ? translate("account.feedback.video") : translate("account.settings.modelConfig.capabilities.audio"),
+                        }))}
                         onChange={(mediaTypes) => onChange({ mediaTypes })}
                     />
                 </label>
                 <label>
                     {translate("adminPages.workbenchTools.workbenchToolsPage.minimumCount")}
-                    <InputNumber min={0} max={slot.maxCount} aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.inputMinimumCount", { v0: String(index + 1) })} value={slot.minCount} onChange={(value) => onChange({ minCount: value || 0, required: Boolean(value) })} />
+                    <InputNumber
+                        min={0}
+                        max={slot.maxCount}
+                        aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.inputMinimumCount", { v0: String(index + 1) })}
+                        value={slot.minCount}
+                        onChange={(value) => onChange({ minCount: value || 0, required: Boolean(value) })}
+                    />
                 </label>
                 <label>
                     {translate("adminPages.workbenchTools.workbenchToolsPage.maximumCount")}
-                    <InputNumber min={Math.max(1, slot.minCount)} max={20} aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.inputMaximumCount", { v0: String(index + 1) })} value={slot.maxCount} onChange={(value) => onChange({ maxCount: value || 1 })} />
+                    <InputNumber
+                        min={Math.max(1, slot.minCount)}
+                        max={20}
+                        aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.inputMaximumCount", { v0: String(index + 1) })}
+                        value={slot.maxCount}
+                        onChange={(value) => onChange({ maxCount: value || 1 })}
+                    />
                 </label>
                 <label>
                     {translate("adminPages.workbenchTools.workbenchToolsPage.required")}
-                    <Switch aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.inputRequired", { v0: String(index + 1) })} checked={slot.required} onChange={(required) => onChange({ required, minCount: required ? Math.max(1, slot.minCount) : 0 })} />
+                    <Switch
+                        aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.inputRequired", { v0: String(index + 1) })}
+                        checked={slot.required}
+                        onChange={(required) => onChange({ required, minCount: required ? Math.max(1, slot.minCount) : 0 })}
+                    />
                 </label>
                 <Button disabled={disabled} danger type="text" size="small" onClick={onRemove}>
                     {translate("adminPages.workbenchTools.workbenchToolsPage.removeInput")}
                 </Button>
             </div>
             <div className="admin-workbench-resource-grid">
-                <ResourceUpload label={translate("adminPages.workbenchTools.workbenchToolsPage.cover", { v0: String(slot.name || translate("adminPages.workbenchTools.workbenchToolsPage.input")) })} value={{ id: slot.coverResourceId, url: slot.coverUrl }} disabled={disabled} upload={upload} onChange={(value) => onChange({ coverResourceId: value.id, coverUrl: value.url })} />
-                <ResourceUpload label={translate("adminPages.workbenchTools.workbenchToolsPage.example", { v0: String(slot.name || translate("adminPages.workbenchTools.workbenchToolsPage.input")) })} value={{ id: slot.sampleResourceId, url: slot.sampleUrl }} disabled={disabled} upload={upload} onChange={(value) => onChange({ sampleResourceId: value.id, sampleUrl: value.url })} />
+                <ResourceUpload
+                    label={translate("adminPages.workbenchTools.workbenchToolsPage.cover", { v0: String(slot.name || translate("adminPages.workbenchTools.workbenchToolsPage.input")) })}
+                    value={{ id: slot.coverResourceId, url: slot.coverUrl }}
+                    disabled={disabled}
+                    upload={upload}
+                    onChange={(value) => onChange({ coverResourceId: value.id, coverUrl: value.url })}
+                />
+                <ResourceUpload
+                    label={translate("adminPages.workbenchTools.workbenchToolsPage.example", { v0: String(slot.name || translate("adminPages.workbenchTools.workbenchToolsPage.input")) })}
+                    value={{ id: slot.sampleResourceId, url: slot.sampleUrl }}
+                    disabled={disabled}
+                    upload={upload}
+                    onChange={(value) => onChange({ sampleResourceId: value.id, sampleUrl: value.url })}
+                />
             </div>
         </div>
     );
@@ -359,7 +400,13 @@ export default function WorkbenchToolsPage() {
             ),
         },
         { title: translate("library.picker.category"), dataIndex: "categoryId", width: 140, align: "center", render: workbenchCategoryLabel },
-        { title: translate("canvasB.nineGrid.presets"), dataIndex: "presets", width: 90, align: "center", render: (value: WorkbenchPromptPreset[]) => translate("adminPages.workbenchTools.workbenchToolsPage.enabled", { v0: String(value.filter((item) => item.enabled).length) }) },
+        {
+            title: translate("canvasB.nineGrid.presets"),
+            dataIndex: "presets",
+            width: 90,
+            align: "center",
+            render: (value: WorkbenchPromptPreset[]) => translate("adminPages.workbenchTools.workbenchToolsPage.enabled", { v0: String(value.filter((item) => item.enabled).length) }),
+        },
         { title: translate("adminPages.workbenchTools.workbenchToolsPage.order"), dataIndex: "sortOrder", width: 80, align: "center" },
         {
             title: translate("library.tasks.detail.status"),
@@ -369,7 +416,14 @@ export default function WorkbenchToolsPage() {
             render: (enabled: boolean, tool) => (
                 <div className="admin-workbench-tool-status">
                     <AdminStatusBadge label={enabled ? translate("adminPages.workbenchTools.workbenchToolsPage.available") : translate("adminPages.workbenchTools.workbenchToolsPage.unavailable")} tone={enabled ? "success" : "neutral"} />
-                    <Switch checked={enabled} aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.availabilityAction", { action: enabled ? translate("adminPages.workbenchTools.workbenchToolsPage.offline") : translate("adminPages.workbenchTools.workbenchToolsPage.available2"), name: tool.name })} onChange={(checked) => void toggle(tool, checked)} />
+                    <Switch
+                        checked={enabled}
+                        aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.availabilityAction", {
+                            action: enabled ? translate("adminPages.workbenchTools.workbenchToolsPage.offline") : translate("adminPages.workbenchTools.workbenchToolsPage.available2"),
+                            name: tool.name,
+                        })}
+                        onChange={(checked) => void toggle(tool, checked)}
+                    />
                 </div>
             ),
         },
@@ -407,7 +461,14 @@ export default function WorkbenchToolsPage() {
                             { label: translate("nav.sidebar.toolboxVideo"), value: "video" },
                         ]}
                     />
-                    <Input aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.searchWorkspaceTools")} prefix={<Search className="size-4" />} placeholder={translate("adminPages.workbenchTools.workbenchToolsPage.searchNameOrDescription")} value={query} onChange={(event) => setQuery(event.target.value)} allowClear />
+                    <Input
+                        aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.searchWorkspaceTools")}
+                        prefix={<Search className="size-4" />}
+                        placeholder={translate("adminPages.workbenchTools.workbenchToolsPage.searchNameOrDescription")}
+                        value={query}
+                        onChange={(event) => setQuery(event.target.value)}
+                        allowClear
+                    />
                     <Button icon={<RefreshCw className="size-4" />} loading={loading} onClick={() => void reload()}>
                         {translate("common.refresh")}
                     </Button>
@@ -631,9 +692,25 @@ export default function WorkbenchToolsPage() {
                         </header>
                         {draft.presets.map((preset, index) => (
                             <div className="admin-workbench-preset-row" key={preset.id}>
-                                <Input aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.presetName", { v0: String(index + 1) })} placeholder={translate("adminPages.workbenchTools.workbenchToolsPage.presetName2")} value={preset.name} onChange={(event) => updatePreset(preset.id, { name: event.target.value })} />
-                                <Input aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.presetDescription", { v0: String(index + 1) })} placeholder={translate("adminPages.workbenchTools.workbenchToolsPage.briefDescription")} value={preset.summary} onChange={(event) => updatePreset(preset.id, { summary: event.target.value })} />
-                                <Input.TextArea aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.presetPrompt", { v0: String(index + 1) })} rows={3} placeholder={translate("account.settings.prompts.template")} value={preset.promptTemplate} onChange={(event) => updatePreset(preset.id, { promptTemplate: event.target.value })} />
+                                <Input
+                                    aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.presetName", { v0: String(index + 1) })}
+                                    placeholder={translate("adminPages.workbenchTools.workbenchToolsPage.presetName2")}
+                                    value={preset.name}
+                                    onChange={(event) => updatePreset(preset.id, { name: event.target.value })}
+                                />
+                                <Input
+                                    aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.presetDescription", { v0: String(index + 1) })}
+                                    placeholder={translate("adminPages.workbenchTools.workbenchToolsPage.briefDescription")}
+                                    value={preset.summary}
+                                    onChange={(event) => updatePreset(preset.id, { summary: event.target.value })}
+                                />
+                                <Input.TextArea
+                                    aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.presetPrompt", { v0: String(index + 1) })}
+                                    rows={3}
+                                    placeholder={translate("account.settings.prompts.template")}
+                                    value={preset.promptTemplate}
+                                    onChange={(event) => updatePreset(preset.id, { promptTemplate: event.target.value })}
+                                />
                                 <Switch aria-label={translate("adminPages.workbenchTools.workbenchToolsPage.enablePreset", { v0: String(index + 1) })} checked={preset.enabled} onChange={(enabled) => updatePreset(preset.id, { enabled })} />
                                 {!draft.savedPresetIds.includes(preset.id) && (
                                     <Button danger size="small" onClick={() => setDraft((current) => ({ ...current, presets: current.presets.filter((item) => item.id !== preset.id) }))}>

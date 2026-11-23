@@ -18,7 +18,6 @@ import { createSeedanceTask, isSeedanceConfig, pollSeedanceTask } from "./video-
 import { createVideoTransport } from "./video-transport";
 import { translate } from "@/i18n";
 
-
 export type { VideoGenerationResult, VideoGenerationTask, VideoGenerationTaskState } from "./video-contracts";
 
 export async function requestVideoGeneration(config: AiConfig, prompt: string, references: ReferenceImage[] = [], videoReferences: ReferenceVideo[] = [], audioReferences: ReferenceAudio[] = [], options?: RequestOptions): Promise<VideoGenerationResult> {

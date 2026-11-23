@@ -1128,7 +1128,12 @@ function CanvasViewportPage() {
             connectionsRef.current = nextConnections;
             setNodes(nextNodes);
             setConnections(nextConnections);
-            message.success(translate("canvasTools.project.replacedReferenceImageWithAndUpdatedThePrompt", { v0: String(oldReference.label || translate("canvasPage.connection.referenceImage")), v1: String(sourceNode.title || translate("canvasTools.project.newImage")) }));
+            message.success(
+                translate("canvasTools.project.replacedReferenceImageWithAndUpdatedThePrompt", {
+                    v0: String(oldReference.label || translate("canvasPage.connection.referenceImage")),
+                    v1: String(sourceNode.title || translate("canvasTools.project.newImage")),
+                }),
+            );
         },
         [connectionsRef, message, nodesRef, setConnections, setNodes],
     );
@@ -2744,7 +2749,9 @@ function CanvasViewportPage() {
                 return;
             }
             // 未关联项目的画布在作品创建后关联到新短剧，成为它的精修画布；已关联的画布保持原关联。
-            navigate("/projects/new", { state: { prefill: { name: node.title || currentProject?.title || translate("canvasTools.project.canvasStoryboard"), sourceFormat: "storyboard", text: source.text, canvasId: currentProject?.projectId ? undefined : projectId } } });
+            navigate("/projects/new", {
+                state: { prefill: { name: node.title || currentProject?.title || translate("canvasTools.project.canvasStoryboard"), sourceFormat: "storyboard", text: source.text, canvasId: currentProject?.projectId ? undefined : projectId } },
+            });
         },
         [currentProject?.projectId, currentProject?.title, message, navigate, projectId],
     );
@@ -3681,7 +3688,8 @@ function CanvasViewportPage() {
                                                 return source ? { ...node, metadata: { ...node.metadata, assetCategory: normalizeAssetCategory(source.category) } } : node;
                                             }),
                                         );
-                                        if (!nodesRef.current.some((node) => node.id === storyboardAssetNode.id && node.metadata?.storyboard?.rows.some((row) => row.id === storyboardAssetRow.id))) throw new Error(translate("canvasTools.project.theShotNoLongerExistsSelectItAgain"));
+                                        if (!nodesRef.current.some((node) => node.id === storyboardAssetNode.id && node.metadata?.storyboard?.rows.some((row) => row.id === storyboardAssetRow.id)))
+                                            throw new Error(translate("canvasTools.project.theShotNoLongerExistsSelectItAgain"));
                                         if (imported.length) {
                                             nodesRef.current = [...nodesRef.current, ...imported];
                                             setNodes(nodesRef.current);

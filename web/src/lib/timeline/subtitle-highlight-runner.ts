@@ -5,7 +5,6 @@ import { buildSubtitleHighlightSystemPrompt, buildSubtitleHighlightUserMessage }
 import { parseSubtitleHighlightResponse } from "./subtitle-highlight-service";
 import { translate } from "@/i18n";
 
-
 export interface SubtitleHighlightProgress {
     batchIndex: number;
     batchTotal: number;

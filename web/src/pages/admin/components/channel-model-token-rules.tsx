@@ -8,7 +8,15 @@ import { validateTokenPriceRules } from "./channel-model-editor-form";
 import { defaultTokenPriceRule, tokenRuleClockMinutes, tokenRulesMatchingNow, type PriceTierFormValues, type TokenPriceRuleFormValues } from "./channel-model-price-tier-form";
 import { currentLocale, translate } from "@/i18n";
 
-const weekdayOptions = [translate("admin.channelModelTokenRules.mon"), translate("admin.channelModelTokenRules.tue"), translate("admin.channelModelTokenRules.wed"), translate("admin.channelModelTokenRules.thu"), translate("admin.channelModelTokenRules.fri"), translate("admin.channelModelTokenRules.sat"), translate("admin.channelModelTokenRules.sun")].map((label, index) => ({ label, value: index + 1 }));
+const weekdayOptions = [
+    translate("admin.channelModelTokenRules.mon"),
+    translate("admin.channelModelTokenRules.tue"),
+    translate("admin.channelModelTokenRules.wed"),
+    translate("admin.channelModelTokenRules.thu"),
+    translate("admin.channelModelTokenRules.fri"),
+    translate("admin.channelModelTokenRules.sat"),
+    translate("admin.channelModelTokenRules.sun"),
+].map((label, index) => ({ label, value: index + 1 }));
 
 /**
  * 文本 Token 价格档的分时与上下文价格。规则挂在某个 Token 价格档上：时段按任务创建时的上海时间锁定，
@@ -25,7 +33,11 @@ export function TokenPriceRulesSection({ form, onDirty }: { form: FormInstance<F
     if (tierIndex === undefined) return null;
     const tier = tiers[tierIndex];
     const matching = tokenRulesMatchingNow(rules);
-    const statusLabel = !enabled ? translate("admin.channelModelTokenRules.disabledAllRequestsUseTheBasePrice") : matching.length ? translate("admin.channelModelTokenRules.currentTimeSlotMatchesRules", { v0: String(matching.map((index) => index + 1).join("、")) }) : translate("admin.channelModelTokenRules.noCurrentTimeSlotMatchUsingTheBasePrice");
+    const statusLabel = !enabled
+        ? translate("admin.channelModelTokenRules.disabledAllRequestsUseTheBasePrice")
+        : matching.length
+          ? translate("admin.channelModelTokenRules.currentTimeSlotMatchesRules", { v0: String(matching.map((index) => index + 1).join("、")) })
+          : translate("admin.channelModelTokenRules.noCurrentTimeSlotMatchUsingTheBasePrice");
     return (
         <section className="admin-model-editor-section" aria-label={translate("admin.channelModelTokenRules.timeAndContextPricing")}>
             <div className="admin-token-rules-header">
@@ -48,7 +60,10 @@ export function TokenPriceRulesSection({ form, onDirty }: { form: FormInstance<F
                             <Select value={tierIndex} onChange={(value) => setPreferredTier(Number(value))} options={tokenTierIndexes.map((index) => ({ value: index, label: tierLabel(tiers[index], index) }))} />
                         </label>
                     ) : (
-                        <span className="admin-token-rules-tier-name">{translate("admin.channelModelTokenRules.basePriceTier")}{tierLabel(tier, tierIndex)}</span>
+                        <span className="admin-token-rules-tier-name">
+                            {translate("admin.channelModelTokenRules.basePriceTier")}
+                            {tierLabel(tier, tierIndex)}
+                        </span>
                     )}
                     <span className="admin-price-tier-cost-badge" role="status">
                         {statusLabel}
@@ -119,7 +134,10 @@ function TokenPriceRuleCard({ form, path, name, ordinal, priceUnit, onDirty, onR
     const enabled = rule?.enabled !== false;
     const min = rule?.minInputTokens || 0;
     const max = rule?.maxInputTokens || 0;
-    const summary = max > 0 ? translate("admin.channelModelTokenRules.inputTokens", { v0: String(min.toLocaleString(currentLocale())), v1: String(max.toLocaleString(currentLocale())) }) : translate("admin.channelModelTokenRules.inputTokensOrMore", { v0: String(min.toLocaleString(currentLocale())) });
+    const summary =
+        max > 0
+            ? translate("admin.channelModelTokenRules.inputTokens", { v0: String(min.toLocaleString(currentLocale())), v1: String(max.toLocaleString(currentLocale())) })
+            : translate("admin.channelModelTokenRules.inputTokensOrMore", { v0: String(min.toLocaleString(currentLocale())) });
     return (
         <article className="admin-price-tier-card">
             <header className="admin-price-tier-card-header">
@@ -141,7 +159,12 @@ function TokenPriceRuleCard({ form, path, name, ordinal, priceUnit, onDirty, onR
             </header>
             <div className="admin-token-rule-body">
                 <div className="admin-token-rule-column">
-                    <Form.Item className="mb-0" name={[name, "weekdays"]} label={translate("admin.channelModelTokenRules.daysOfWeek")} rules={[{ required: true, type: "array", min: 1, message: translate("admin.channelModelTokenRules.selectAtLeastOneDay") }]}>
+                    <Form.Item
+                        className="mb-0"
+                        name={[name, "weekdays"]}
+                        label={translate("admin.channelModelTokenRules.daysOfWeek")}
+                        rules={[{ required: true, type: "array", min: 1, message: translate("admin.channelModelTokenRules.selectAtLeastOneDay") }]}
+                    >
                         <Checkbox.Group options={weekdayOptions} />
                     </Form.Item>
                     <div className="admin-token-rule-pair">
@@ -165,7 +188,14 @@ function TokenPriceRuleCard({ form, path, name, ordinal, priceUnit, onDirty, onR
                     <div className="admin-token-rule-range">
                         <span aria-hidden>&lt;</span>
                         <Form.Item noStyle name={[name, "maxInputTokens"]}>
-                            <InputNumber aria-label={translate("admin.channelModelTokenRules.maximumInputContextExclusiveLeaveBlankForNoLimit")} className="w-full" min={1} precision={0} step={1000} placeholder={translate("admin.channelModelTokenRules.noLimit")} />
+                            <InputNumber
+                                aria-label={translate("admin.channelModelTokenRules.maximumInputContextExclusiveLeaveBlankForNoLimit")}
+                                className="w-full"
+                                min={1}
+                                precision={0}
+                                step={1000}
+                                placeholder={translate("admin.channelModelTokenRules.noLimit")}
+                            />
                         </Form.Item>
                         <span>Token</span>
                     </div>
@@ -179,7 +209,13 @@ function TokenPriceRuleCard({ form, path, name, ordinal, priceUnit, onDirty, onR
                             ["cacheWriteTokenPrice", translate("admin.channelModelTokenRules.cacheWrite")],
                         ] as const
                     ).map(([field, label]) => (
-                        <Form.Item key={field} className="admin-price-tier-unit-price mb-0" name={[name, field]} label={translate("admin.channelModelTokenRules.millionTokens", { v0: String(label), v1: String(priceUnit) })} rules={[{ required: true, message: translate("admin.channelModelTokenRules.enterThePrice", { v0: String(label) }) }]}>
+                        <Form.Item
+                            key={field}
+                            className="admin-price-tier-unit-price mb-0"
+                            name={[name, field]}
+                            label={translate("admin.channelModelTokenRules.millionTokens", { v0: String(label), v1: String(priceUnit) })}
+                            rules={[{ required: true, message: translate("admin.channelModelTokenRules.enterThePrice", { v0: String(label) }) }]}
+                        >
                             <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                         </Form.Item>
                     ))}

@@ -36,7 +36,13 @@ export function tierPriceLines(capability: ProviderCatalogModel["capability"], t
 }
 
 const selectorLabels: Record<string, (value: string) => string> = {
-    operation: (value) => ({ text_to_video: translate("admin.channels.providerCatalogPricing.fromText"), image_to_video: translate("admin.channels.providerCatalogPricing.fromImage"), text_to_image: translate("admin.channels.providerCatalogPricing.textToImage"), image_to_image: translate("admin.channels.providerCatalogPricing.imageToImage") })[value] || value,
+    operation: (value) =>
+        ({
+            text_to_video: translate("admin.channels.providerCatalogPricing.fromText"),
+            image_to_video: translate("admin.channels.providerCatalogPricing.fromImage"),
+            text_to_image: translate("admin.channels.providerCatalogPricing.textToImage"),
+            image_to_image: translate("admin.channels.providerCatalogPricing.imageToImage"),
+        })[value] || value,
     vquality: (value) => value,
     videoSeconds: (value) => `${value}s`,
     quality: (value) => value.toUpperCase(),
@@ -63,7 +69,10 @@ export function promotionExpiry(provider: Pick<ProviderCatalogProvider, "endsAt"
     const end = new Date(provider.endsAt);
     const date = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit" }).format(end);
     const days = Math.ceil((end.getTime() - now) / 86_400_000);
-    return translate("admin.channels.providerCatalogPricing.expiresBeijingTime", { v0: String(date), v1: String(days > 0 ? translate("admin.channels.providerCatalogPricing.daysRemaining", { v0: String(days) }) : translate("admin.channels.providerCatalogPricing.expired")) });
+    return translate("admin.channels.providerCatalogPricing.expiresBeijingTime", {
+        v0: String(date),
+        v1: String(days > 0 ? translate("admin.channels.providerCatalogPricing.daysRemaining", { v0: String(days) }) : translate("admin.channels.providerCatalogPricing.expired")),
+    });
 }
 
 export function matchesProvider(provider: ProviderCatalogProvider, keyword: string) {

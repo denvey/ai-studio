@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export const modelTagColors = [
     { value: "purple", label: translate("shared.modelTags.purple") },

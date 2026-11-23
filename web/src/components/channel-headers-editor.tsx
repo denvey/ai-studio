@@ -7,7 +7,6 @@ import type { ChangeEvent } from "react";
 import type { ChannelHeader } from "@/stores/use-config-store";
 import { translate } from "@/i18n";
 
-
 const DEFAULT_USER_AGENT = "Yingce/1.0 (+https://github.com/ddcat-ai/open-ai-canvas)";
 const MAX_HEADER_COUNT = 32;
 const BLOCKED_HEADERS = new Set([
@@ -50,7 +49,10 @@ export function ChannelHeadersEditor({ value = [], onChange, disabled }: Props) 
             <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
                     <div className="text-sm font-medium text-foreground">{translate("shared.channelHeadersEditor.customHeaders")}</div>
-                    <div className="mt-0.5 break-all text-xs leading-5 text-foreground/50">{translate("shared.channelHeadersEditor.sendByDefault")} {DEFAULT_USER_AGENT}{translate("shared.channelHeadersEditor.addingAUserAgentOverridesTheDefault")}</div>
+                    <div className="mt-0.5 break-all text-xs leading-5 text-foreground/50">
+                        {translate("shared.channelHeadersEditor.sendByDefault")} {DEFAULT_USER_AGENT}
+                        {translate("shared.channelHeadersEditor.addingAUserAgentOverridesTheDefault")}
+                    </div>
                 </div>
                 {!hasUserAgent ? (
                     <Button size="small" disabled={disabled || headers.length >= MAX_HEADER_COUNT} onClick={() => onChange?.([...headers, { name: "User-Agent", value: DEFAULT_USER_AGENT }])}>
@@ -70,10 +72,22 @@ export function ChannelHeadersEditor({ value = [], onChange, disabled }: Props) 
                         };
                         return (
                             <div key={index} className="grid min-w-0 grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_32px] gap-2">
-                                <Input aria-label={translate("shared.channelHeadersEditor.headerName", { v0: String(index + 1) })} disabled={disabled} value={header.name} placeholder={translate("shared.channelHeadersEditor.headerName2")} onChange={(event) => updateHeader(index, { name: event.target.value })} />
+                                <Input
+                                    aria-label={translate("shared.channelHeadersEditor.headerName", { v0: String(index + 1) })}
+                                    disabled={disabled}
+                                    value={header.name}
+                                    placeholder={translate("shared.channelHeadersEditor.headerName2")}
+                                    onChange={(event) => updateHeader(index, { name: event.target.value })}
+                                />
                                 {/token|key|secret/i.test(header.name) ? <Input.Password {...inputProps} /> : <Input {...inputProps} />}
                                 <Tooltip title={translate("shared.channelHeadersEditor.deleteHeader")}>
-                                    <Button aria-label={translate("shared.channelHeadersEditor.deleteHeader2", { v0: String(index + 1) })} className="size-8 p-0" disabled={disabled} icon={<Trash2 className="size-3.5" />} onClick={() => onChange?.(headers.filter((_, itemIndex) => itemIndex !== index))} />
+                                    <Button
+                                        aria-label={translate("shared.channelHeadersEditor.deleteHeader2", { v0: String(index + 1) })}
+                                        className="size-8 p-0"
+                                        disabled={disabled}
+                                        icon={<Trash2 className="size-3.5" />}
+                                        onClick={() => onChange?.(headers.filter((_, itemIndex) => itemIndex !== index))}
+                                    />
                                 </Tooltip>
                             </div>
                         );

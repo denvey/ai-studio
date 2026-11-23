@@ -115,7 +115,14 @@ export function ChapterPickerModal({
                                 </Button>
                             </div>
                         ) : (
-                            <ChapterPickList items={items} selected={selection} onChange={(next) => setPicked({ source: chapters, chapters: next })} previewIndex={previewIndex ?? firstReserved} onPreview={setPreviewIndex} quickLabel={translate("drama.studio.chapterPicker.next")} />
+                            <ChapterPickList
+                                items={items}
+                                selected={selection}
+                                onChange={(next) => setPicked({ source: chapters, chapters: next })}
+                                previewIndex={previewIndex ?? firstReserved}
+                                onPreview={setPreviewIndex}
+                                quickLabel={translate("drama.studio.chapterPicker.next")}
+                            />
                         )}
                     </aside>
                     <section className="drama-composer-editor">
@@ -131,10 +138,17 @@ export function ChapterPickerModal({
                                     <h3>
                                         {preview.title}
                                         <small>
-                                            {formatCount(preview.wordCount)} {translate("drama.studio.chapterPicker.characters")}{preview.reserved ? (" " + translate("drama.studio.chapterPicker.notInProduction")) : preview.episodeNumber ? translate("drama.studio.chapterPicker.episode", { v0: String(preview.episodeNumber) }) : ""}
+                                            {formatCount(preview.wordCount)} {translate("drama.studio.chapterPicker.characters")}
+                                            {preview.reserved ? " " + translate("drama.studio.chapterPicker.notInProduction") : preview.episodeNumber ? translate("drama.studio.chapterPicker.episode", { v0: String(preview.episodeNumber) }) : ""}
                                         </small>
                                     </h3>
-                                    <p>{previewQuery.isLoading ? translate("drama.studio.chapterPicker.loadingSourceText") : previewQuery.isError ? translate("drama.studio.chapterPicker.failedToLoadSourceText") : (previewQuery.data?.chapter.sourceText || "").slice(0, 8000)}</p>
+                                    <p>
+                                        {previewQuery.isLoading
+                                            ? translate("drama.studio.chapterPicker.loadingSourceText")
+                                            : previewQuery.isError
+                                              ? translate("drama.studio.chapterPicker.failedToLoadSourceText")
+                                              : (previewQuery.data?.chapter.sourceText || "").slice(0, 8000)}
+                                    </p>
                                 </>
                             ) : (
                                 <p>{translate("drama.studio.chapterPicker.noOriginalChapters")}</p>
@@ -145,9 +159,14 @@ export function ChapterPickerModal({
                 <footer className="drama-composer-foot">
                     <span className="drama-chapter-picker-size">
                         {translate("drama.studio.chapterPicker.perEpisode")}
-                        <InputNumber size="small" min={1} max={MAX_CHAPTERS_PER_EPISODE} precision={0} value={size} onChange={(value) => setPerEpisode(value || 1)} aria-label={translate("drama.studio.chapterPicker.chaptersPerEpisode")} />{translate("drama.studio.chapterPicker.chapters")}
+                        <InputNumber size="small" min={1} max={MAX_CHAPTERS_PER_EPISODE} precision={0} value={size} onChange={(value) => setPerEpisode(value || 1)} aria-label={translate("drama.studio.chapterPicker.chaptersPerEpisode")} />
+                        {translate("drama.studio.chapterPicker.chapters")}
                     </span>
-                    <span className="drama-composer-count">{reservedCount ? translate("drama.studio.chapterPicker.chaptersNotInProductionSelectedChaptersWillCreateEpisodes", { v0: String(formatCount(reservedCount)), v1: String(formatCount(chosen.length)), v2: String(formatCount(groups.length)) }) : translate("drama.studio.chapterPicker.allOriginalChaptersAreInProduction")}</span>
+                    <span className="drama-composer-count">
+                        {reservedCount
+                            ? translate("drama.studio.chapterPicker.chaptersNotInProductionSelectedChaptersWillCreateEpisodes", { v0: String(formatCount(reservedCount)), v1: String(formatCount(chosen.length)), v2: String(formatCount(groups.length)) })
+                            : translate("drama.studio.chapterPicker.allOriginalChaptersAreInProduction")}
+                    </span>
                     <span className="flex-1" />
                     <Button onClick={onClose}>{translate("common.cancel")}</Button>
                     <Button type="primary" disabled={!chosen.length || Boolean(problem)} loading={produce.isPending} onClick={() => produce.mutate()}>

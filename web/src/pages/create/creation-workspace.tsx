@@ -41,7 +41,6 @@ import "./creation-scrollbars.css";
 import { CreationAttachmentThumbnail, CreationMediaPreviewModal } from "./creation-workspace-messages";
 import { currentLocale, translate } from "@/i18n";
 
-
 export { CreationHistoryDrawer } from "./creation-workspace-history";
 export { CreationMessageView } from "./creation-workspace-messages";
 export { CreationEmptyBanner, CreationEmptySuggest, CreationFeaturedWorks } from "./creation-workspace-empty";
@@ -81,13 +80,15 @@ export function CreationWorkspaceToolbar({
             <div className="creation-toolbar-shots" ref={railRef}>
                 <button type="button" className="creation-rail-trigger" aria-expanded={railOpen} aria-haspopup="listbox" onClick={() => setRailOpen((open) => !open)}>
                     <Clapperboard />
-                    {translate("shared.create.creationWorkspace.shotTimeline")}{shots.length > 0 ? <em className="creation-rail-count">{shots.length}</em> : null}
+                    {translate("shared.create.creationWorkspace.shotTimeline")}
+                    {shots.length > 0 ? <em className="creation-rail-count">{shots.length}</em> : null}
                 </button>
                 {railOpen ? (
                     <div className="creation-rail-pop" role="listbox" aria-label={translate("shared.create.creationWorkspace.shotTimeline")}>
                         <div className="creation-rail-pop-head">
                             <span className="creation-rail-pop-title">
-                                {translate("shared.create.creationWorkspace.shotTimeline")}<small>{shots.length ? translate("shared.create.creationWorkspace.shotsTotal", { v0: String(shots.length) }) : translate("shared.create.creationWorkspace.emptyTrack")}</small>
+                                {translate("shared.create.creationWorkspace.shotTimeline")}
+                                <small>{shots.length ? translate("shared.create.creationWorkspace.shotsTotal", { v0: String(shots.length) }) : translate("shared.create.creationWorkspace.emptyTrack")}</small>
                             </span>
                             <button type="button" className="creation-rail-pop-close" aria-label={translate("shared.create.creationWorkspace.closeShotList")} onClick={() => setRailOpen(false)}>
                                 <X />
@@ -98,7 +99,18 @@ export function CreationWorkspaceToolbar({
                                 {shots.map((shot) => {
                                     const resultStatus = shot.result?.status;
                                     const resultNeedsSync = Boolean(shot.result && creationMessageNeedsResultSync(shot.result));
-                                    const statusLabel = resultStatus === "done" ? translate("account.payment.done") : resultNeedsSync ? translate("shared.create.creationWorkspace.awaitingSync") : resultStatus === "error" ? translate("canvasPage.batches.generationFailed") : resultStatus === "pending" ? translate("canvasB.mediaVersion.generating") : resultStatus === "cancelled" ? translate("create.status.stopped") : translate("shared.create.creationWorkspace.awaitingGeneration");
+                                    const statusLabel =
+                                        resultStatus === "done"
+                                            ? translate("account.payment.done")
+                                            : resultNeedsSync
+                                              ? translate("shared.create.creationWorkspace.awaitingSync")
+                                              : resultStatus === "error"
+                                                ? translate("canvasPage.batches.generationFailed")
+                                                : resultStatus === "pending"
+                                                  ? translate("canvasB.mediaVersion.generating")
+                                                  : resultStatus === "cancelled"
+                                                    ? translate("create.status.stopped")
+                                                    : translate("shared.create.creationWorkspace.awaitingGeneration");
                                     return (
                                         <li key={shot.key}>
                                             <button
@@ -252,19 +264,36 @@ export function CreationComposer(props: ComposerProps) {
     const generationCredits = routeQuote ? routeQuote.amountMicrocredits / 1_000_000 : credits;
     const showCost = creditsEnabled && generationCredits !== null && generationCredits !== undefined;
     const formattedCredits = generationCredits?.toLocaleString(currentLocale(), { maximumFractionDigits: 6 });
-    const actionLabel = props.referenceReplacementBusy ? translate("shared.create.creationWorkspace.replacingReferenceImage") : interactionBusy || (props.generationActive && !canSubmit) ? translate("canvasB.mediaVersion.generating") : showCost ? translate("shared.create.creationWorkspace.creditsSend", { v0: String(routeQuote?.estimated ? translate("shared.create.creationWorkspace.estimated2") : translate("shared.create.creationWorkspace.cost")), v1: String(formattedCredits) }) : translate("shared.testVoiceRecording.send");
+    const actionLabel = props.referenceReplacementBusy
+        ? translate("shared.create.creationWorkspace.replacingReferenceImage")
+        : interactionBusy || (props.generationActive && !canSubmit)
+          ? translate("canvasB.mediaVersion.generating")
+          : showCost
+            ? translate("shared.create.creationWorkspace.creditsSend", { v0: String(routeQuote?.estimated ? translate("shared.create.creationWorkspace.estimated2") : translate("shared.create.creationWorkspace.cost")), v1: String(formattedCredits) })
+            : translate("shared.testVoiceRecording.send");
     // Send-button working state must span the WHOLE generation (not just the
     // submit-lock window): spinner + glow stay while a message is pending and
     // the composer is empty; typing a next prompt returns the arrow so the
     // user knows a new send is possible.
     const showWorkingSpinner = interactionBusy || (props.generationActive && !canSubmit);
     const showWorkingGlow = props.generationActive && !canSubmit;
-    const placeholder = props.mode === "text" ? translate("shared.create.creationWorkspace.describeYourStoryCharactersOrTheIdeaYouWantTo") : props.mode === "image" ? translate("shared.create.creationWorkspace.describeTheFrameCharactersSettingCompositionAndStyle") : translate("shared.create.creationWorkspace.describeTheShotSContentMovementLightingAndPacing");
+    const placeholder =
+        props.mode === "text"
+            ? translate("shared.create.creationWorkspace.describeYourStoryCharactersOrTheIdeaYouWantTo")
+            : props.mode === "image"
+              ? translate("shared.create.creationWorkspace.describeTheFrameCharactersSettingCompositionAndStyle")
+              : translate("shared.create.creationWorkspace.describeTheShotSContentMovementLightingAndPacing");
     const emptyPlaceholder = translate("shared.create.creationWorkspace.describeYourShotImageOrStoryYouCanAlsoAdd");
     const imageReferencesSupported = props.imageProfile.references.maxImages > 0;
     const referencesSupported = props.mode === "image" ? imageReferencesSupported : props.mode !== "video" || props.maxReferences > 0;
     const canAddMoreReferences = referencesSupported && props.attachments.length < props.maxReferences;
-    const addReferenceLabel = interactionBusy ? (props.referenceReplacementBusy ? translate("shared.create.creationWorkspace.replacingReferenceImage") : translate("shared.create.creationWorkspace.referencesCannotBeAddedDuringGeneration")) : canAddMoreReferences ? translate("shared.create.creationWorkspace.addMoreReferences") : translate("shared.create.creationWorkspace.referenceLimitReachedForTheCurrentModel", { v0: String(props.maxReferences) });
+    const addReferenceLabel = interactionBusy
+        ? props.referenceReplacementBusy
+            ? translate("shared.create.creationWorkspace.replacingReferenceImage")
+            : translate("shared.create.creationWorkspace.referencesCannotBeAddedDuringGeneration")
+        : canAddMoreReferences
+          ? translate("shared.create.creationWorkspace.addMoreReferences")
+          : translate("shared.create.creationWorkspace.referenceLimitReachedForTheCurrentModel", { v0: String(props.maxReferences) });
     const referenceCounts = useMemo(
         () =>
             props.attachments.reduce(
@@ -437,7 +466,13 @@ export function CreationComposer(props: ComposerProps) {
                             <div className="creation-reference-track-wrapper">
                                 <div className="creation-reference-stack-shell">
                                     {trackState.canScrollLeft ? (
-                                        <button type="button" className="creation-reference-track-button is-left" onClick={() => scrollAttachmentTrack(-1)} aria-label={translate("shared.create.creationWorkspace.browseReferencesLeft")} title={translate("shared.create.creationWorkspace.browseReferencesLeft")}>
+                                        <button
+                                            type="button"
+                                            className="creation-reference-track-button is-left"
+                                            onClick={() => scrollAttachmentTrack(-1)}
+                                            aria-label={translate("shared.create.creationWorkspace.browseReferencesLeft")}
+                                            title={translate("shared.create.creationWorkspace.browseReferencesLeft")}
+                                        >
                                             <ChevronLeft aria-hidden="true" />
                                         </button>
                                     ) : null}
@@ -496,13 +531,25 @@ export function CreationComposer(props: ComposerProps) {
                                         ) : null}
                                     </Reorder.Group>
                                     {trackState.canScrollRight ? (
-                                        <button type="button" className="creation-reference-track-button is-right" onClick={() => scrollAttachmentTrack(1)} aria-label={translate("shared.create.creationWorkspace.browseReferencesRight")} title={translate("shared.create.creationWorkspace.browseReferencesRight")}>
+                                        <button
+                                            type="button"
+                                            className="creation-reference-track-button is-right"
+                                            onClick={() => scrollAttachmentTrack(1)}
+                                            aria-label={translate("shared.create.creationWorkspace.browseReferencesRight")}
+                                            title={translate("shared.create.creationWorkspace.browseReferencesRight")}
+                                        >
                                             <ChevronRight aria-hidden="true" />
                                         </button>
                                     ) : null}
                                     {!trackState.isExpanded && props.attachments.length ? (
                                         <Tooltip title={translate("create.recent.viewAll")}>
-                                            <button type="button" className="creation-reference-panel-expand" onClick={() => setReferencePanelExpanded(true)} aria-label={translate("shared.create.creationWorkspace.viewAllReferences", { v0: String(props.attachments.length) })} aria-expanded="false">
+                                            <button
+                                                type="button"
+                                                className="creation-reference-panel-expand"
+                                                onClick={() => setReferencePanelExpanded(true)}
+                                                aria-label={translate("shared.create.creationWorkspace.viewAllReferences", { v0: String(props.attachments.length) })}
+                                                aria-expanded="false"
+                                            >
                                                 <Maximize2 aria-hidden="true" />
                                             </button>
                                         </Tooltip>
@@ -527,7 +574,14 @@ export function CreationComposer(props: ComposerProps) {
                     <VoiceRecordingButton className="creation-voice-trigger" disabled={interactionBusy} onTranscribed={(text) => props.setPrompt(props.prompt.trim() ? `${props.prompt} ${text}` : text)} />
                     {canOptimizePrompt ? (
                         <Tooltip title={translate("shared.create.creationWorkspace.optimizePromptWithAI")}>
-                            <button type="button" className="creation-chat-control" onClick={() => setPromptOptimizerOpen(true)} aria-label={translate("shared.create.creationWorkspace.optimizePrompt")} aria-expanded={promptOptimizerOpen} aria-haspopup="dialog">
+                            <button
+                                type="button"
+                                className="creation-chat-control"
+                                onClick={() => setPromptOptimizerOpen(true)}
+                                aria-label={translate("shared.create.creationWorkspace.optimizePrompt")}
+                                aria-expanded={promptOptimizerOpen}
+                                aria-haspopup="dialog"
+                            >
                                 <PenLine />
                                 <span>{translate("shared.create.creationWorkspace.optimize")}</span>
                             </button>
@@ -549,7 +603,15 @@ export function CreationComposer(props: ComposerProps) {
                     {props.mode === "video" ? <DurationMenu profile={props.videoProfile} seconds={props.seconds} onChange={props.setSeconds} /> : null}
                     {props.mode === "text" ? (
                         <>
-                            <Tooltip title={interactionBusy ? translate("shared.create.creationWorkspace.generationInProgressThisToggleTakesEffectOnYourNext") : props.textStreaming ? translate("shared.create.creationWorkspace.streamingEnabled") : translate("shared.create.creationWorkspace.streamingDisabled")}>
+                            <Tooltip
+                                title={
+                                    interactionBusy
+                                        ? translate("shared.create.creationWorkspace.generationInProgressThisToggleTakesEffectOnYourNext")
+                                        : props.textStreaming
+                                          ? translate("shared.create.creationWorkspace.streamingEnabled")
+                                          : translate("shared.create.creationWorkspace.streamingDisabled")
+                                }
+                            >
                                 <button type="button" className="creation-chat-control" aria-pressed={props.textStreaming} disabled={interactionBusy} onClick={() => props.setTextStreaming(!props.textStreaming)}>
                                     <Waves />
                                     <span>{translate("shared.create.creationWorkspace.streaming")}</span>
@@ -665,7 +727,15 @@ export function CreationModeCard({ mode, agentActive, onModeChange, onAgentSelec
                     <CreationModeFolderWing side="end" />
                 </motion.span>
                 {creationModeItems.map((item) => (
-                    <button key={item.mode} type="button" className="creation-mode-folder-button" data-mode={item.mode} aria-pressed={activeKey === item.mode} aria-label={translate("shared.create.creationWorkspace.generation", { v0: String(item.label) })} onClick={() => onModeChange(item.mode)}>
+                    <button
+                        key={item.mode}
+                        type="button"
+                        className="creation-mode-folder-button"
+                        data-mode={item.mode}
+                        aria-pressed={activeKey === item.mode}
+                        aria-label={translate("shared.create.creationWorkspace.generation", { v0: String(item.label) })}
+                        onClick={() => onModeChange(item.mode)}
+                    >
                         {item.icon}
                         <span>{item.label}</span>
                     </button>
@@ -695,9 +765,24 @@ function CreationModeTabs({ mode, onModeChange, orientation = "horizontal" }: { 
     const indicator = (pressed: boolean) => (pressed ? <motion.span layoutId={`creation-mode-indicator-${orientation}`} className="creation-mode-indicator" aria-hidden transition={reducedMotion ? { duration: 0 } : aceternityMotion.spring.dock} /> : null);
     return (
         <LayoutGroup id={`creation-mode-tabs-${orientation}`}>
-            <div className="creation-mode-tabs" role="group" aria-label={translate("shared.create.creationWorkspace.creationMode")} data-active-mode={mode} data-orientation={orientation} style={{ gridTemplateColumns: orientation === "vertical" ? "minmax(0, 1fr)" : "repeat(3, minmax(0, 1fr))" }}>
+            <div
+                className="creation-mode-tabs"
+                role="group"
+                aria-label={translate("shared.create.creationWorkspace.creationMode")}
+                data-active-mode={mode}
+                data-orientation={orientation}
+                style={{ gridTemplateColumns: orientation === "vertical" ? "minmax(0, 1fr)" : "repeat(3, minmax(0, 1fr))" }}
+            >
                 {creationModeItems.map((item) => (
-                    <button key={item.mode} type="button" className="creation-mode-button" data-mode={item.mode} aria-pressed={item.mode === mode} aria-label={translate("shared.create.creationWorkspace.generation", { v0: String(item.label) })} onClick={() => onModeChange(item.mode)}>
+                    <button
+                        key={item.mode}
+                        type="button"
+                        className="creation-mode-button"
+                        data-mode={item.mode}
+                        aria-pressed={item.mode === mode}
+                        aria-label={translate("shared.create.creationWorkspace.generation", { v0: String(item.label) })}
+                        onClick={() => onModeChange(item.mode)}
+                    >
                         {indicator(item.mode === mode)}
                         {item.icon}
                         <span>{item.label}</span>
@@ -714,7 +799,9 @@ function ModePicker({ mode, onModeChange }: { mode: CreationMode; onModeChange: 
 
 function GenerationSettingsMenu(props: ComposerProps) {
     const [open, setOpen] = useState(false);
-    const activeQualityOptions = props.imageProfile.quality.values.map((value) => qualityOptions.find((item) => item.value === value) || { value, label: imageQualityLabel(value), description: translate("shared.create.creationWorkspace.qualityResolutionSupportedByTheModel") });
+    const activeQualityOptions = props.imageProfile.quality.values.map(
+        (value) => qualityOptions.find((item) => item.value === value) || { value, label: imageQualityLabel(value), description: translate("shared.create.creationWorkspace.qualityResolutionSupportedByTheModel") },
+    );
     const qualityLabel = activeQualityOptions.find((item) => item.value === props.quality)?.label || qualityOptions.find((item) => item.value === props.quality)?.label || props.quality || translate("account.layout.oss.auto");
     // 尺寸/比例/分辨率选项取同显示名分组内全部模型的并集，路由模型只决定发送参数。
     const mergedProfile = mergedImageCapabilityConfig(props.config, props.model || props.config.imageModel);
@@ -805,7 +892,10 @@ function GenerationSettingsMenu(props: ComposerProps) {
                 ) : (
                     <>
                         {props.imageProfile.quality.supported && !imageResolutionUsesQuality(mergedProfile) ? (
-                            <SettingSection title={activeQualityOptions.some((item) => item.value === "1k" || item.value === "2k") ? translate("library.tasks.params.resolution") : translate("shared.create.creationWorkspace.imageQuality")} value={qualityLabel}>
+                            <SettingSection
+                                title={activeQualityOptions.some((item) => item.value === "1k" || item.value === "2k") ? translate("library.tasks.params.resolution") : translate("shared.create.creationWorkspace.imageQuality")}
+                                value={qualityLabel}
+                            >
                                 <div className="creation-choice-grid is-quality">
                                     {activeQualityOptions.map((option) => (
                                         <button key={option.value} type="button" aria-pressed={option.value === props.quality} className={option.value === props.quality ? "is-selected" : ""} onClick={() => props.setQuality(option.value)}>
@@ -898,7 +988,17 @@ function DurationMenu({ profile, seconds, onChange }: { profile: VideoCapability
     const durationControl =
         profile.duration.selection === "range" ? (
             <>
-                <input className="h-8 w-full" style={{ accentColor: "var(--creation-text)" }} type="range" min={min} max={max} step={step} value={value} aria-label={translate("shared.create.creationWorkspace.videoDurationSeconds")} onChange={(event) => onChange(event.target.value)} />
+                <input
+                    className="h-8 w-full"
+                    style={{ accentColor: "var(--creation-text)" }}
+                    type="range"
+                    min={min}
+                    max={max}
+                    step={step}
+                    value={value}
+                    aria-label={translate("shared.create.creationWorkspace.videoDurationSeconds")}
+                    onChange={(event) => onChange(event.target.value)}
+                />
                 <div className="flex justify-between px-0.5 text-[var(--fs-tiny)] text-[var(--creation-muted)]">
                     <span>{min}s</span>
                     <span>{max}s</span>
@@ -943,7 +1043,9 @@ function DurationMenu({ profile, seconds, onChange }: { profile: VideoCapability
                 <div className="creation-duration-menu">
                     <div className="creation-duration-heading">
                         <span>{translate("canvasA.assetView.duration")}</span>
-                        <strong>{value} {translate("account.settings.models.unitSecond")}</strong>
+                        <strong>
+                            {value} {translate("account.settings.models.unitSecond")}
+                        </strong>
                     </div>
                     {durationControl}
                 </div>

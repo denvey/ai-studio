@@ -85,7 +85,11 @@ export function LoadingContent({ node, theme, onOpenTaskDetails }: Pick<CanvasNo
     const kind = canvasNodeGenerationKind(node.type);
     const Icon = generationKindIcon[kind];
     const uncertain = phase === "uncertain";
-    const title = workflow ? (workflow.stage === "planning" ? translate("canvasTools.canvasNodeStatusContent.planningLayers") : translate("canvasTools.canvasNodeStatusContent.splittingLayersImagesTotal", { v0: String(workflow.total) })) : metadata?.experimentalLayerPlan?.progress || generationPhaseLabel(phase, kind, metadata?.taskStage);
+    const title = workflow
+        ? workflow.stage === "planning"
+            ? translate("canvasTools.canvasNodeStatusContent.planningLayers")
+            : translate("canvasTools.canvasNodeStatusContent.splittingLayersImagesTotal", { v0: String(workflow.total) })
+        : metadata?.experimentalLayerPlan?.progress || generationPhaseLabel(phase, kind, metadata?.taskStage);
     const progress = taskId && generationTaskShowsProgress(displayTask) && typeof metadata?.taskProgress === "number" ? Math.max(0, Math.min(100, Math.round(metadata.taskProgress))) : null;
     const startedAt = workflow?.startedAt || metadata?.taskCreatedAt;
     const elapsed = useTaskElapsed(startedAt, taskTerminalStatus(metadata?.taskStatus) ? metadata?.taskCompletedAt : undefined);
@@ -140,16 +144,45 @@ function canvasFailureView(node: CanvasNodeData): CanvasFailureView {
     const metadata = node.metadata;
     const reason = generationErrorMessage(metadata?.errorDetails);
     if (isGenerationTaskSubmissionUncertain({ status: (metadata?.taskStatus || "failed") as GenerationTask["status"], stage: metadata?.taskStage })) {
-        return { kind: "uncertain", tone: "warning", icon: AlertTriangle, title: translate("canvasTools.canvasNodeStatusContent.submissionResultAwaitingConfirmation"), description: translate("canvasTools.canvasNodeStatusContent.notRetriedAutomaticallyToAvoidDuplicateChargesCheckTheDetails"), detail: reason };
+        return {
+            kind: "uncertain",
+            tone: "warning",
+            icon: AlertTriangle,
+            title: translate("canvasTools.canvasNodeStatusContent.submissionResultAwaitingConfirmation"),
+            description: translate("canvasTools.canvasNodeStatusContent.notRetriedAutomaticallyToAvoidDuplicateChargesCheckTheDetails"),
+            detail: reason,
+        };
     }
     if (metadata?.generationErrorCode === CONTENT_MODERATION_ERROR_CODE || isContentModerationError(metadata?.errorDetails)) {
         return { kind: "moderation", tone: "error", icon: ShieldAlert, title: translate("canvasTools.canvasNodeStatusContent.contentModerationFailed"), description: reason };
     }
-    if (metadata?.taskCanRecoverMedia) return { kind: "recover-media", tone: "warning", icon: AlertTriangle, title: translate("canvasTools.canvasNodeStatusContent.savingTheOutputIsIncomplete"), description: translate("canvasTools.canvasNodeStatusContent.theOutputHasBeenGeneratedSavingAgainWillNotRegenerate"), detail: reason };
+    if (metadata?.taskCanRecoverMedia)
+        return {
+            kind: "recover-media",
+            tone: "warning",
+            icon: AlertTriangle,
+            title: translate("canvasTools.canvasNodeStatusContent.savingTheOutputIsIncomplete"),
+            description: translate("canvasTools.canvasNodeStatusContent.theOutputHasBeenGeneratedSavingAgainWillNotRegenerate"),
+            detail: reason,
+        };
     if (canvasNodeCanResyncTask(metadata)) {
         return metadata?.resourceReloadAvailable
-            ? { kind: "resync", tone: "warning", icon: CloudOff, title: translate("canvasTools.canvasNodeStatusContent.failedToLoadOutput"), description: translate("canvasTools.canvasNodeStatusContent.theOutputHasBeenGeneratedFetchingItAgainWillNot"), detail: reason }
-            : { kind: "resync", tone: "warning", icon: CloudOff, title: translate("canvasTools.canvasNodeStatusContent.statusSynchronizationInterrupted"), description: translate("canvasTools.canvasNodeStatusContent.theTaskIsStillRunningInTheBackgroundFetchingIt"), detail: reason };
+            ? {
+                  kind: "resync",
+                  tone: "warning",
+                  icon: CloudOff,
+                  title: translate("canvasTools.canvasNodeStatusContent.failedToLoadOutput"),
+                  description: translate("canvasTools.canvasNodeStatusContent.theOutputHasBeenGeneratedFetchingItAgainWillNot"),
+                  detail: reason,
+              }
+            : {
+                  kind: "resync",
+                  tone: "warning",
+                  icon: CloudOff,
+                  title: translate("canvasTools.canvasNodeStatusContent.statusSynchronizationInterrupted"),
+                  description: translate("canvasTools.canvasNodeStatusContent.theTaskIsStillRunningInTheBackgroundFetchingIt"),
+                  detail: reason,
+              };
     }
     return { kind: "failed", tone: "error", icon: AlertCircle, title: metadata?.isBatchRoot ? translate("canvasTools.canvasNodeStatusContent.someImagesWereNotGenerated") : translate("canvasPage.batches.generationFailed"), description: reason };
 }

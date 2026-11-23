@@ -12,7 +12,12 @@ import { referenceMissingReason } from "./segment-parts";
 import { translate } from "@/i18n";
 
 const ASSET_KINDS = ["character", "scene", "prop"] as const;
-const KIND_LABEL = { character: translate("drama.studio.segmentReferences.characters"), scene: translate("drama.studio.segmentReferences.scene"), prop: translate("drama.studio.segmentReferences.props"), image: translate("drama.studio.segmentReferences.additionalImages") };
+const KIND_LABEL = {
+    character: translate("drama.studio.segmentReferences.characters"),
+    scene: translate("drama.studio.segmentReferences.scene"),
+    prop: translate("drama.studio.segmentReferences.props"),
+    image: translate("drama.studio.segmentReferences.additionalImages"),
+};
 type AssetKind = keyof typeof KIND_LABEL;
 type Reference = DramaSegment["request"]["references"][number];
 
@@ -139,10 +144,24 @@ export function ReferenceBoard({
                     disabled={busy || (!selected && (!character.voiceSampleResourceId || selectedVoices.length >= audioLimit))}
                     onClick={() => setVoiceDraft(selected ? selectedVoices.filter((id) => id !== character.id) : [...selectedVoices, character.id])}
                 >
-                    {selected ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}{translate("library.tasks.params.voice")}{selected ? translate("drama.studio.segmentReferences.enabled") : translate("account.feedback.status.closed")}
+                    {selected ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}
+                    {translate("library.tasks.params.voice")}
+                    {selected ? translate("drama.studio.segmentReferences.enabled") : translate("account.feedback.status.closed")}
                 </button>
                 <CastVoicePreview resourceId={character.voiceSampleResourceId} name={character.name} />
-                <small>{voiceDraft !== null ? translate("drama.studio.segmentReferences.unsavedVoiceChanges") : audio ? (audio.sent ? translate("drama.studio.segmentReferences.sentWithRequest", { v0: String(audio.label) }) : audio.note) : !character.voiceSampleResourceId ? translate("drama.studio.segmentReferences.attachAudioInTheCharacterDesign") : cast.parentId ? translate("drama.studio.segmentReferences.useTheBaseCharacterSVoice") : ""}</small>
+                <small>
+                    {voiceDraft !== null
+                        ? translate("drama.studio.segmentReferences.unsavedVoiceChanges")
+                        : audio
+                          ? audio.sent
+                              ? translate("drama.studio.segmentReferences.sentWithRequest", { v0: String(audio.label) })
+                              : audio.note
+                          : !character.voiceSampleResourceId
+                            ? translate("drama.studio.segmentReferences.attachAudioInTheCharacterDesign")
+                            : cast.parentId
+                              ? translate("drama.studio.segmentReferences.useTheBaseCharacterSVoice")
+                              : ""}
+                </small>
             </div>
         );
     };
@@ -159,7 +178,13 @@ export function ReferenceBoard({
                 badge={ref?.label}
                 checked={Boolean(ref)}
                 disabled={busy}
-                note={ref ? (ref.sent ? translate("drama.studio.segmentReferences.sentWithRequest2") : translate("drama.studio.segmentReferences.imageNotAttached", { v0: String(referenceMissingReason(segment, cast, ref.resourceId)) })) : translate("drama.studio.segmentReferences.referenceImageNotSelected")}
+                note={
+                    ref
+                        ? ref.sent
+                            ? translate("drama.studio.segmentReferences.sentWithRequest2")
+                            : translate("drama.studio.segmentReferences.imageNotAttached", { v0: String(referenceMissingReason(segment, cast, ref.resourceId)) })
+                        : translate("drama.studio.segmentReferences.referenceImageNotSelected")
+                }
                 onToggle={() => toggleCast(cast)}
                 onOpen={() => onOpenCast(cast.id)}
                 onPreview={openPreview}
@@ -224,7 +249,9 @@ export function ReferenceBoard({
                     {translate("drama.studio.segmentReferences.segmentReferences")} {request.references.filter((ref) => ref.sent).length}/{request.references.length}
                 </span>
                 <small>
-                    {segment.referenceMode === "custom" ? translate("drama.studio.segmentReferences.selectedManually") : translate("drama.studio.segmentReferences.selectedAutomaticallyFromShots")} {translate("drama.studio.segmentReferences.segmentLimit")} {request.referenceCapacity} {translate("canvasA.characterLibrary.pageItem")}{request.modelMaxImages ? translate("drama.studio.segmentReferences.modelLimitImagesIncludingFirstFrame", { v0: String(request.modelMaxImages) }) : ""}
+                    {segment.referenceMode === "custom" ? translate("drama.studio.segmentReferences.selectedManually") : translate("drama.studio.segmentReferences.selectedAutomaticallyFromShots")} {translate("drama.studio.segmentReferences.segmentLimit")}{" "}
+                    {request.referenceCapacity} {translate("canvasA.characterLibrary.pageItem")}
+                    {request.modelMaxImages ? translate("drama.studio.segmentReferences.modelLimitImagesIncludingFirstFrame", { v0: String(request.modelMaxImages) }) : ""}
                 </small>
                 {segment.referenceMode === "custom" ? (
                     <Button size="small" type="text" disabled={busy} icon={<RotateCcw className="size-3.5" />} onClick={() => save({ autoReferences: true })}>
@@ -279,11 +306,21 @@ export function ReferenceBoard({
             </div>
             <div className="drama-sdx-frame-note">
                 {request.firstFrameResourceId ? (
-                    <button type="button" aria-label={translate("drama.studio.segmentReferences.previewPreviousSegmentSLastFrame")} onClick={() => setPreview({ resourceId: request.firstFrameResourceId!, name: translate("drama.studio.segmentReferences.previousSegmentSLastFrame") })}>
+                    <button
+                        type="button"
+                        aria-label={translate("drama.studio.segmentReferences.previewPreviousSegmentSLastFrame")}
+                        onClick={() => setPreview({ resourceId: request.firstFrameResourceId!, name: translate("drama.studio.segmentReferences.previousSegmentSLastFrame") })}
+                    >
                         <MediaThumb resourceId={request.firstFrameResourceId} alt={translate("drama.studio.segmentReferences.previousSegmentSLastFrame")} />
                     </button>
                 ) : null}
-                <span>{first ? translate("drama.studio.segmentReferences.openingSegmentNoFirstFrameGeneratedFromPromptAndReferences") : request.firstFrameResourceId ? translate("drama.studio.segmentReferences.firstFrameLastFrameOfSegment", { v0: String(segment.index) }) : translate("drama.studio.segmentReferences.firstFrameWaitingForSegmentVideo", { v0: String(segment.index) })}</span>
+                <span>
+                    {first
+                        ? translate("drama.studio.segmentReferences.openingSegmentNoFirstFrameGeneratedFromPromptAndReferences")
+                        : request.firstFrameResourceId
+                          ? translate("drama.studio.segmentReferences.firstFrameLastFrameOfSegment", { v0: String(segment.index) })
+                          : translate("drama.studio.segmentReferences.firstFrameWaitingForSegmentVideo", { v0: String(segment.index) })}
+                </span>
             </div>
             {groupOrder.map((kind) => {
                 const group = [...ids.map((id) => castById.get(id)).filter((cast): cast is DramaCast => Boolean(cast)), ...[...castById.values()].filter((cast) => visible.has(cast.id) && !ids.includes(cast.id))].filter((cast) => cast.kind === kind);
@@ -292,14 +329,32 @@ export function ReferenceBoard({
                     <section className="drama-sdx-asset-group" aria-label={translate("drama.studio.segmentReferences.references", { v0: String(KIND_LABEL[kind]) })} key={kind}>
                         <div className="drama-sdx-group-head">
                             <strong>{KIND_LABEL[kind]}</strong>
-                            <small>{groupedIDs(kind).length} {translate("drama.studio.segmentReferences.references2")}</small>
-                            <Button size="small" type="text" disabled={busy || index <= 0} aria-label={translate("drama.studio.segmentReferences.moveGroupEarlier", { v0: String(KIND_LABEL[kind]) })} icon={<ArrowUp className="size-3.5" />} onClick={() => moveGroup(kind, -1)} />
-                            <Button size="small" type="text" disabled={busy || index < 0 || index === activeKinds.length - 1} aria-label={translate("drama.studio.segmentReferences.moveGroupLater", { v0: String(KIND_LABEL[kind]) })} icon={<ArrowDown className="size-3.5" />} onClick={() => moveGroup(kind, 1)} />
+                            <small>
+                                {groupedIDs(kind).length} {translate("drama.studio.segmentReferences.references2")}
+                            </small>
+                            <Button
+                                size="small"
+                                type="text"
+                                disabled={busy || index <= 0}
+                                aria-label={translate("drama.studio.segmentReferences.moveGroupEarlier", { v0: String(KIND_LABEL[kind]) })}
+                                icon={<ArrowUp className="size-3.5" />}
+                                onClick={() => moveGroup(kind, -1)}
+                            />
+                            <Button
+                                size="small"
+                                type="text"
+                                disabled={busy || index < 0 || index === activeKinds.length - 1}
+                                aria-label={translate("drama.studio.segmentReferences.moveGroupLater", { v0: String(KIND_LABEL[kind]) })}
+                                icon={<ArrowDown className="size-3.5" />}
+                                onClick={() => moveGroup(kind, 1)}
+                            />
                         </div>
                         {kind === "character" ? (
                             <div className="drama-sdx-assets-foot">
                                 <small>
-                                    {translate("library.tasks.params.voice")} {selectedVoices.length}/{audioLimit} · {segment.audioReferenceMode === "custom" ? translate("drama.studio.segmentReferences.selectedManually2") : translate("drama.studio.segmentReferences.enabledAutomaticallyFromDialogue")} · {audioLimit ? translate("drama.studio.segmentReferences.theCurrentModelSupportsNoMoreThanVoices", { v0: String(audioLimit) }) : translate("drama.studio.segmentReferences.theCurrentModelDoesNotSupportReferenceVoices")}
+                                    {translate("library.tasks.params.voice")} {selectedVoices.length}/{audioLimit} ·{" "}
+                                    {segment.audioReferenceMode === "custom" ? translate("drama.studio.segmentReferences.selectedManually2") : translate("drama.studio.segmentReferences.enabledAutomaticallyFromDialogue")} ·{" "}
+                                    {audioLimit ? translate("drama.studio.segmentReferences.theCurrentModelSupportsNoMoreThanVoices", { v0: String(audioLimit) }) : translate("drama.studio.segmentReferences.theCurrentModelDoesNotSupportReferenceVoices")}
                                 </small>
                                 {voiceActions}
                             </div>
@@ -366,7 +421,14 @@ function AssetMenu({
     const filteredImages = kind === "all" || kind === "image" ? images.filter((ref) => matches(ref.name)) : [];
     return (
         <div className="drama-root drama-sdx-asset-menu" aria-label={translate("drama.studio.segmentReferences.searchReferenceAssets")}>
-            <Input allowClear value={query} prefix={<Search className="size-3.5" />} placeholder={translate("drama.studio.segmentReferences.searchCharactersAliasesLooksScenesOrProps")} aria-label={translate("canvasA.assetView.searchPlaceholder")} onChange={(event) => setQuery(event.target.value)} />
+            <Input
+                allowClear
+                value={query}
+                prefix={<Search className="size-3.5" />}
+                placeholder={translate("drama.studio.segmentReferences.searchCharactersAliasesLooksScenesOrProps")}
+                aria-label={translate("canvasA.assetView.searchPlaceholder")}
+                onChange={(event) => setQuery(event.target.value)}
+            />
             <nav className="drama-sdx-asset-menu-kinds" aria-label={translate("drama.studio.segmentReferences.assetCategory")}>
                 {(["all", ...ASSET_KINDS, "image"] as const).map((value) => (
                     <button key={value} type="button" aria-pressed={kind === value} onClick={() => setKind(value)}>
@@ -380,7 +442,9 @@ function AssetMenu({
                 {!filteredCasts.length && !filteredImages.length ? <p className="drama-sdx-hint">{translate("drama.studio.segmentReferences.noMatchingAssetsTryOtherKeywordsOrAddAssetsFrom")}</p> : null}
             </div>
             <div className="drama-sdx-assets-foot">
-                <small>{translate("drama.studio.segmentReferences.added")} {ids.length + images.length} {translate("drama.studio.segmentReferences.itemsUseCardButtonsToAddOrRemove")}</small>
+                <small>
+                    {translate("drama.studio.segmentReferences.added")} {ids.length + images.length} {translate("drama.studio.segmentReferences.itemsUseCardButtonsToAddOrRemove")}
+                </small>
                 <Button size="small" disabled={busy} onClick={onLibrary}>
                     {translate("canvasB.mention.assetLibrary")}
                 </Button>
@@ -446,7 +510,14 @@ function AssetCard({
             )}
             <small className="drama-sdx-asset-note">{note}</small>
             <div className="drama-sdx-asset-actions">
-                <Button size="small" type="text" icon={checked ? <Trash2 className="size-3.5" /> : <Plus className="size-3.5" />} disabled={disabled} aria-label={checked ? translate("drama.studio.segmentReferences.removeReferenceImage", { v0: String(name) }) : translate("drama.studio.segmentReferences.addReferenceImage", { v0: String(name) })} onClick={onToggle}>
+                <Button
+                    size="small"
+                    type="text"
+                    icon={checked ? <Trash2 className="size-3.5" /> : <Plus className="size-3.5" />}
+                    disabled={disabled}
+                    aria-label={checked ? translate("drama.studio.segmentReferences.removeReferenceImage", { v0: String(name) }) : translate("drama.studio.segmentReferences.addReferenceImage", { v0: String(name) })}
+                    onClick={onToggle}
+                >
                     {checked ? translate("canvasB.common.remove") : translate("canvasB.common.add")}
                 </Button>
                 {checked ? (

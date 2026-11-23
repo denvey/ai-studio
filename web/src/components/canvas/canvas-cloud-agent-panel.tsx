@@ -426,7 +426,12 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
     const canvasCloudConversation = useMemo(() => canvasCloudAgentConversation(conversations, canvasId, canvasAgent?.runId), [conversations, canvasId, canvasAgent?.runId]);
     const canvasCloudConversationIsCurrent = Boolean(canvasCloudConversation && (canvasCloudConversation.id === activeConversationId || cloudAgentConversationServerId(canvasCloudConversation) === run?.conversationId));
     const restoredModelResolution = useMemo(() => (restoredModel ? resolveCloudAgentModel(restoredModel, selectableModelsByCapability(config, "text")) : null), [config, restoredModel]);
-    const modelRestoreError = restoredModelResolution?.problem === "ambiguous" ? translate("canvasTools.canvasCloudAgentPanel.theOriginalConversationModelMatchesMultipleChannelsSelectAModel") : restoredModelResolution?.problem === "unavailable" ? translate("canvasTools.canvasCloudAgentPanel.theOriginalConversationModelIsUnavailableSelectAModelManually") : "";
+    const modelRestoreError =
+        restoredModelResolution?.problem === "ambiguous"
+            ? translate("canvasTools.canvasCloudAgentPanel.theOriginalConversationModelMatchesMultipleChannelsSelectAModel")
+            : restoredModelResolution?.problem === "unavailable"
+              ? translate("canvasTools.canvasCloudAgentPanel.theOriginalConversationModelIsUnavailableSelectAModelManually")
+              : "";
     const selectedModel = useMemo(() => {
         if (restoredModelResolution) return restoredModelResolution.model;
         const textModels = selectableModelsByCapability(config, "text");
@@ -521,7 +526,12 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
                     appendUniqueMessage(current, {
                         id: `preset-${preset.presetId}-${Date.now()}`,
                         role: "system",
-                        text: translate("canvasTools.canvasCloudAgentPanel.attachedSkillsUsing", { v0: String(preset.name), v1: String(preset.skillIds.length), v2: String(missing.length ? translate("canvasTools.canvasCloudAgentPanel.newlyInstalled", { v0: String(missing.length) }) : ""), v3: String(preset.rationale) }),
+                        text: translate("canvasTools.canvasCloudAgentPanel.attachedSkillsUsing", {
+                            v0: String(preset.name),
+                            v1: String(preset.skillIds.length),
+                            v2: String(missing.length ? translate("canvasTools.canvasCloudAgentPanel.newlyInstalled", { v0: String(missing.length) }) : ""),
+                            v3: String(preset.rationale),
+                        }),
                     }),
                 );
             } catch (cause) {
@@ -1160,7 +1170,10 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
         outboxStoreRef.current = nextStore;
         setOutboxStore(nextStore);
         void saveCloudAgentOutbox(conversationId, next, accountScope).catch((cause) => {
-            if (accountIsCurrent()) void appMessage.error(cause instanceof Error ? translate("canvasTools.canvasCloudAgentPanel.failedToSaveQueuedMessagesLocally", { v0: String(cause.message) }) : translate("canvasTools.canvasCloudAgentPanel.failedToSaveQueuedMessagesLocally2"));
+            if (accountIsCurrent())
+                void appMessage.error(
+                    cause instanceof Error ? translate("canvasTools.canvasCloudAgentPanel.failedToSaveQueuedMessagesLocally", { v0: String(cause.message) }) : translate("canvasTools.canvasCloudAgentPanel.failedToSaveQueuedMessagesLocally2"),
+                );
         });
         return next;
     };
@@ -1230,7 +1243,9 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
                 await prepareCanvasForCloudAction(item.canvasId);
             } catch (cause) {
                 if (accountIsCurrent() && currentScope.current === scope)
-                    updateOutbox(scope, (current) => updateAgentOutboxItem(current, item.id, { status: "queued", error: translate("canvasTools.canvasCloudAgentPanel.canvasSyncIsIncompleteInterjectLater", { v0: String(cause instanceof Error ? cause.message : String(cause)) }) }));
+                    updateOutbox(scope, (current) =>
+                        updateAgentOutboxItem(current, item.id, { status: "queued", error: translate("canvasTools.canvasCloudAgentPanel.canvasSyncIsIncompleteInterjectLater", { v0: String(cause instanceof Error ? cause.message : String(cause)) }) }),
+                    );
                 return false;
             }
             if (!accountIsCurrent() || currentScope.current !== scope) return false;
@@ -1270,7 +1285,9 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
             return false;
         }
         const ambiguous = status === undefined || status >= 500 || (failure as { retryable?: boolean }).retryable === true;
-        const detail = ambiguous ? translate("canvasTools.canvasCloudAgentPanel.interjectionResultIsUnconfirmedItWillLeaveTheQueueAutomatically") : translate("canvasTools.canvasCloudAgentPanel.interjectionFailed", { v0: String(failure instanceof Error ? failure.message : String(failure)) });
+        const detail = ambiguous
+            ? translate("canvasTools.canvasCloudAgentPanel.interjectionResultIsUnconfirmedItWillLeaveTheQueueAutomatically")
+            : translate("canvasTools.canvasCloudAgentPanel.interjectionFailed", { v0: String(failure instanceof Error ? failure.message : String(failure)) });
         updateOutbox(scope, (current) => updateAgentOutboxItem(current, item.id, { status: "queued", error: detail }));
         return false;
     };
@@ -1575,7 +1592,12 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
                 // 回填到输入框的正文同时写进会话草稿：随后的云端同步按草稿恢复输入框，不能把它清掉。
                 let restoredDraft: string | undefined;
                 const failureText = cause instanceof Error ? cause.message : String(cause);
-                const pauseDetail = reason === "agent_conversation_stale_parent" ? translate("canvasTools.canvasCloudAgentPanel.theConversationWasUpdatedElsewhereReviewTheLatestContent") : reason === "canvas_agent_busy" ? translate("canvasTools.canvasCloudAgentPanel.anotherAgentIsRunningOnThisCanvas") : translate("canvasTools.canvasCloudAgentPanel.messageWasNotSent");
+                const pauseDetail =
+                    reason === "agent_conversation_stale_parent"
+                        ? translate("canvasTools.canvasCloudAgentPanel.theConversationWasUpdatedElsewhereReviewTheLatestContent")
+                        : reason === "canvas_agent_busy"
+                          ? translate("canvasTools.canvasCloudAgentPanel.anotherAgentIsRunningOnThisCanvas")
+                          : translate("canvasTools.canvasCloudAgentPanel.messageWasNotSent");
                 const requeue = (item: AgentOutboxItem) => {
                     updateOutbox(scope, (current) => {
                         const listed = current.items.some((entry) => entry.id === item.id) ? current : enqueueAgentOutboxItem(current, item, { atHead: true, ignoreLimit: true });
@@ -1694,7 +1716,8 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
                     setConnectionEpoch((value) => value + 1);
                 }
             } catch (refreshError) {
-                if (accountIsCurrent() && currentScope.current === scope) setMessages((current) => appendAgentError(current, `undo-refresh-${key}`, refreshError, translate("canvasTools.canvasCloudAgentPanel.undoneButFailedToRefreshTheCanvasOrRunStatus")));
+                if (accountIsCurrent() && currentScope.current === scope)
+                    setMessages((current) => appendAgentError(current, `undo-refresh-${key}`, refreshError, translate("canvasTools.canvasCloudAgentPanel.undoneButFailedToRefreshTheCanvasOrRunStatus")));
             }
         } catch (cause) {
             if (accountIsCurrent() && currentScope.current === scope) setUndoStates((current) => ({ ...current, [key]: { status: "error", error: cause instanceof Error ? cause.message : String(cause) } }));
@@ -1732,7 +1755,13 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
 
     // 审批卡暂时不能提交的原因。卡片据此禁用按钮并说明，不再把它显示成“正在提交”：
     // 连接断开时没有请求在路上，转圈会让人以为审批卡死了。
-    const approvalBlockedReason = otherAgentRunning ? translate("canvasTools.canvasCloudAgentPanel.anotherAgentIsRunningOnThisCanvasWaitForIt") : connectionStatus === "disconnected" ? translate("canvasTools.canvasCloudAgentPanel.disconnectedReconnectBeforeConfirming") : connectionStatus !== "connected" ? translate("canvasTools.canvasCloudAgentPanel.connectingToTheServerYouCanConfirmOnceConnected") : undefined;
+    const approvalBlockedReason = otherAgentRunning
+        ? translate("canvasTools.canvasCloudAgentPanel.anotherAgentIsRunningOnThisCanvasWaitForIt")
+        : connectionStatus === "disconnected"
+          ? translate("canvasTools.canvasCloudAgentPanel.disconnectedReconnectBeforeConfirming")
+          : connectionStatus !== "connected"
+            ? translate("canvasTools.canvasCloudAgentPanel.connectingToTheServerYouCanConfirmOnceConnected")
+            : undefined;
 
     const submitApproval = async (decision: "approve" | "reject", mediaSettings?: AgentMediaSettings) => {
         if (!run || !approval || approvalBlockedReason || approvalRequestRef.current === approval.approvalId) return;
@@ -2167,7 +2196,11 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
                             </button>
                         }
                     >
-                        {selectionExcluded ? translate("canvasTools.canvasCloudAgentPanel.excludeSelectedNodesFromThisMessage2", { v0: String(selectionCount) }) : selectionCount > AGENT_FOCUS_NODE_LIMIT ? translate("canvasTools.canvasCloudAgentPanel.nodesSelectedTheFirstAreHighlighted", { v0: String(selectionCount), v1: String(AGENT_FOCUS_NODE_LIMIT) }) : translate("canvasTools.canvasCloudAgentPanel.nodesSelected", { v0: String(selectionCount) })}
+                        {selectionExcluded
+                            ? translate("canvasTools.canvasCloudAgentPanel.excludeSelectedNodesFromThisMessage2", { v0: String(selectionCount) })
+                            : selectionCount > AGENT_FOCUS_NODE_LIMIT
+                              ? translate("canvasTools.canvasCloudAgentPanel.nodesSelectedTheFirstAreHighlighted", { v0: String(selectionCount), v1: String(AGENT_FOCUS_NODE_LIMIT) })
+                              : translate("canvasTools.canvasCloudAgentPanel.nodesSelected", { v0: String(selectionCount) })}
                     </AgentContextChip>
                 ) : null}
                 {visionMissing ? (
@@ -2299,7 +2332,12 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
             return;
         }
         if (!enqueueOutboxItem(item)) {
-            void appMessage.warning(translate("canvasTools.canvasCloudAgentPanel.theQueueAlreadyHasItemsRemoveOneFirst2", { v0: String(AGENT_OUTBOX_MAX_ITEMS), v1: String(interjectable ? translate("canvasTools.canvasCloudAgentPanel.orUseToInterjectDirectly", { v0: String(modifierEnter) }) : "") }));
+            void appMessage.warning(
+                translate("canvasTools.canvasCloudAgentPanel.theQueueAlreadyHasItemsRemoveOneFirst2", {
+                    v0: String(AGENT_OUTBOX_MAX_ITEMS),
+                    v1: String(interjectable ? translate("canvasTools.canvasCloudAgentPanel.orUseToInterjectDirectly", { v0: String(modifierEnter) }) : ""),
+                }),
+            );
             return;
         }
         consumeDraft();
@@ -2352,7 +2390,13 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
     const outboxPrimaryAction = (item: AgentOutboxItem): AgentOutboxPrimaryAction => {
         if (agentRunAcceptsInterjection(run) || stopping) return { kind: "interject", label: translate("canvasTools.canvasCloudAgentPanel.interject"), disabledReason: agentOutboxInterjectBlocker(item, outboxInterjectContext()) };
         const kind = pendingQuestion ? "answer" : "send";
-        const label = pendingQuestion ? translate("canvasTools.canvasCloudAgentPanel.sendAsAnswer") : item.canvasId !== canvasId ? translate("canvasTools.canvasCloudAgentPanel.sendFromThisPage") : item.status === "failed" ? translate("common.retry") : translate("canvasTools.canvasCloudAgentPanel.sendNow");
+        const label = pendingQuestion
+            ? translate("canvasTools.canvasCloudAgentPanel.sendAsAnswer")
+            : item.canvasId !== canvasId
+              ? translate("canvasTools.canvasCloudAgentPanel.sendFromThisPage")
+              : item.status === "failed"
+                ? translate("common.retry")
+                : translate("canvasTools.canvasCloudAgentPanel.sendNow");
         const disabledReason = running
             ? translate("canvasTools.canvasCloudAgentPanel.thisTurnIsWrappingUpSendAfterItEnds")
             : busy || pendingNow?.request
@@ -2374,7 +2418,13 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
         if (item.canvasId !== canvasId) parts.push(item.canvasId ? translate("canvasTools.canvasCloudAgentPanel.queuedOnAnotherCanvas") : translate("canvasTools.canvasCloudAgentPanel.queuedOutsideACanvas"));
         if (item.settings.model && item.settings.model !== selectedModel) parts.push(translate("canvasTools.canvasCloudAgentPanel.model", { v0: String(modelDisplayName(config, item.settings.model)) }));
         if (item.settings.permissionMode !== permissionMode) parts.push(agentPermissionLabel(item.settings.permissionMode));
-        if (item.focusNodeIds.length && item.canvasId === canvasId) parts.push(translate("canvasTools.canvasCloudAgentPanel.includeSelectedNodes", { v0: String(item.focusNodeIds.length), v1: String(item.focusNodeOmittedCount ? translate("canvasTools.canvasCloudAgentPanel.moreExceedTheLimit", { v0: String(item.focusNodeOmittedCount) }) : "") }));
+        if (item.focusNodeIds.length && item.canvasId === canvasId)
+            parts.push(
+                translate("canvasTools.canvasCloudAgentPanel.includeSelectedNodes", {
+                    v0: String(item.focusNodeIds.length),
+                    v1: String(item.focusNodeOmittedCount ? translate("canvasTools.canvasCloudAgentPanel.moreExceedTheLimit", { v0: String(item.focusNodeOmittedCount) }) : ""),
+                }),
+            );
         return parts.join(" · ");
     };
 
@@ -2559,7 +2609,9 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
                                     />
                                     {cloudHistoryError || (canvasId && !cloudHistoryReady) ? (
                                         <div role="status" className="flex items-center justify-between gap-2 px-5 py-2 text-xs" style={{ color: theme.node.muted }}>
-                                            <span>{cloudHistoryError ? translate("canvasTools.canvasCloudAgentPanel.theCloudConversationHasNotSyncedYetYourLocalDraft") : translate("canvasTools.canvasCloudAgentPanel.syncingThisCanvasSCloudConversation")}</span>
+                                            <span>
+                                                {cloudHistoryError ? translate("canvasTools.canvasCloudAgentPanel.theCloudConversationHasNotSyncedYetYourLocalDraft") : translate("canvasTools.canvasCloudAgentPanel.syncingThisCanvasSCloudConversation")}
+                                            </span>
                                             {cloudHistoryError ? (
                                                 <Button size="small" loading={cloudHistoryLoading} onClick={() => setCloudRefreshEpoch((value) => value + 1)}>
                                                     {translate("canvasTools.canvasCloudAgentPanel.syncAgain")}
@@ -2569,7 +2621,11 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
                                     ) : null}
                                     {run && connectionStatus !== "connected" ? (
                                         <div role="status" className="flex items-center justify-between gap-2 px-5 py-2 text-xs" style={{ color: theme.node.muted }}>
-                                            <span>{connectionStatus === "disconnected" ? translate("canvasTools.canvasCloudAgentPanel.disconnectedServerTasksMayStillBeRunningRunRecordsAre") : translate("canvasTools.canvasCloudAgentPanel.connectingAndReconcilingRunStatus")}</span>
+                                            <span>
+                                                {connectionStatus === "disconnected"
+                                                    ? translate("canvasTools.canvasCloudAgentPanel.disconnectedServerTasksMayStillBeRunningRunRecordsAre")
+                                                    : translate("canvasTools.canvasCloudAgentPanel.connectingAndReconcilingRunStatus")}
+                                            </span>
                                             {connectionStatus === "disconnected" ? (
                                                 <Button size="small" onClick={() => setConnectionEpoch((value) => value + 1)}>
                                                     {translate("canvasTools.canvasCloudAgentPanel.reconnect")}
@@ -2619,7 +2675,13 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
                                     />
                                     {canvasCloudConversation && !canvasCloudConversationIsCurrent ? (
                                         <div role="status" className="flex items-center justify-between gap-2 px-5 py-2 text-xs" style={{ color: theme.node.muted }}>
-                                            <span>{translate("canvasTools.inline.canvasCloudAgentPanel.thisCanvasHasACloudConversationYouCanResume", { v0: String(prompt.trim() ? translate("canvasTools.canvasCloudAgentPanel.unsentContentStaysInItsOriginalConversation") : translate("canvasTools.canvasCloudAgentPanel.viewTheSameProgressOnYourPhoneAndComputer")) })}</span>
+                                            <span>
+                                                {translate("canvasTools.inline.canvasCloudAgentPanel.thisCanvasHasACloudConversationYouCanResume", {
+                                                    v0: String(
+                                                        prompt.trim() ? translate("canvasTools.canvasCloudAgentPanel.unsentContentStaysInItsOriginalConversation") : translate("canvasTools.canvasCloudAgentPanel.viewTheSameProgressOnYourPhoneAndComputer"),
+                                                    ),
+                                                })}
+                                            </span>
                                             <Button
                                                 size="small"
                                                 loading={cloudOpeningId === canvasCloudConversation.id}
@@ -2631,7 +2693,9 @@ export const CanvasCloudAgentPanel = memo(function CanvasCloudAgentPanel() {
                                         </div>
                                     ) : otherAgentRunning ? (
                                         <div role="status" className="px-5 py-2 text-xs" style={{ color: theme.node.muted }}>
-                                            {canvasAgent?.cleanupPending ? translate("canvasTools.canvasCloudAgentPanel.theAgentForThisCanvasIsFinishingYouCanUse") : translate("canvasTools.canvasCloudAgentPanel.thisCanvasHasARunningAgentTaskSyncingItsConversation")}
+                                            {canvasAgent?.cleanupPending
+                                                ? translate("canvasTools.canvasCloudAgentPanel.theAgentForThisCanvasIsFinishingYouCanUse")
+                                                : translate("canvasTools.canvasCloudAgentPanel.thisCanvasHasARunningAgentTaskSyncingItsConversation")}
                                         </div>
                                     ) : null}
                                     {planVisible ? (

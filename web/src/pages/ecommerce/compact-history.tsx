@@ -194,7 +194,7 @@ export function CompactEcommerceHistory({
                     if (!deleting) setDeleteTarget(null);
                 }}
             >
-                <p>{translate("ecommerce.compactHistory.deleteDescription", { name: deleteTarget?.name?.trim() || translate("ecommerce.compactHistory.untitledProduct")})}</p>
+                <p>{translate("ecommerce.compactHistory.deleteDescription", { name: deleteTarget?.name?.trim() || translate("ecommerce.compactHistory.untitledProduct") })}</p>
             </Modal>
         </div>
     );

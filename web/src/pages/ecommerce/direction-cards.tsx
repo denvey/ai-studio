@@ -52,8 +52,20 @@ function directionSpecs(direction: EcommerceCreativeDirection) {
 export function DirectionEditor({ index, value, className, onChange, onCancel, onSave }: { index: number; value: EcommerceStyleRewrite; className: string; onChange: (value: EcommerceStyleRewrite) => void; onCancel: () => void; onSave: () => void }) {
     return (
         <div className={className}>
-            <input aria-label={translate("ecommerce.directionCards.styleName", { v0: String(index + 1) })} value={value.name} maxLength={40} placeholder={translate("ecommerce.directionCards.styleNameEGElectronicParty")} onChange={(event) => onChange({ ...value, name: event.target.value })} />
-            <textarea aria-label={translate("ecommerce.directionCards.styleDescription", { v0: String(index + 1) })} value={value.description} maxLength={500} placeholder={translate("ecommerce.directionCards.describeTheSettingColorsLightingAndTypographyXiaoyeWillRedesign")} onChange={(event) => onChange({ ...value, description: event.target.value })} />
+            <input
+                aria-label={translate("ecommerce.directionCards.styleName", { v0: String(index + 1) })}
+                value={value.name}
+                maxLength={40}
+                placeholder={translate("ecommerce.directionCards.styleNameEGElectronicParty")}
+                onChange={(event) => onChange({ ...value, name: event.target.value })}
+            />
+            <textarea
+                aria-label={translate("ecommerce.directionCards.styleDescription", { v0: String(index + 1) })}
+                value={value.description}
+                maxLength={500}
+                placeholder={translate("ecommerce.directionCards.describeTheSettingColorsLightingAndTypographyXiaoyeWillRedesign")}
+                onChange={(event) => onChange({ ...value, description: event.target.value })}
+            />
             <div className="commerce-direction-edit-actions">
                 <button type="button" onClick={onCancel}>
                     <X size={14} />
@@ -148,7 +160,10 @@ export function CommerceDirectionCards({
         setEditing(undefined);
     };
     return (
-        <section className={`flylep-directions-stage commerce-direction-message${followup ? " is-followup" : ""}`} aria-label={followup ? translate("ecommerce.directionCards.recommendedForYou") : translate("ecommerce.directionCards.fourDesignDirectionsForYourProduct")}>
+        <section
+            className={`flylep-directions-stage commerce-direction-message${followup ? " is-followup" : ""}`}
+            aria-label={followup ? translate("ecommerce.directionCards.recommendedForYou") : translate("ecommerce.directionCards.fourDesignDirectionsForYourProduct")}
+        >
             <header className="commerce-direction-header">
                 <span className="commerce-direction-symbol">
                     <Sparkles size={18} aria-hidden="true" />
@@ -164,7 +179,14 @@ export function CommerceDirectionCards({
                     )}
                 </h2>
                 {onOpenLibrary ? (
-                    <button type="button" className="commerce-direction-library" aria-label={translate("ecommerce.directionCards.openStyleLibrary")} title={translate("ecommerce.directionCards.browseMoreStylesByCategoryOrDescribeYourOwn")} disabled={disabled || degraded || outdated} onClick={onOpenLibrary}>
+                    <button
+                        type="button"
+                        className="commerce-direction-library"
+                        aria-label={translate("ecommerce.directionCards.openStyleLibrary")}
+                        title={translate("ecommerce.directionCards.browseMoreStylesByCategoryOrDescribeYourOwn")}
+                        disabled={disabled || degraded || outdated}
+                        onClick={onOpenLibrary}
+                    >
                         <StyleLibraryIcon size={15} />
                         <span>{translate("ecommerce.directionCards.styleLibrary")}</span>
                         {libraryCount ? <span className="commerce-count-badge is-neutral">{libraryCount + items.length}</span> : null}

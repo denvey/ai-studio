@@ -4,7 +4,6 @@ import type { GenerationTask } from "@/services/api/task-center";
 import { observeGenerationTaskStatus, observeGenerationTaskStatuses } from "@/services/generation-completion-tracker";
 import { translate } from "@/i18n";
 
-
 export type WorkbenchKind = "image" | "video";
 
 export type WorkbenchPromptPreset = {

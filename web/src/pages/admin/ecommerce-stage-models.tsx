@@ -11,7 +11,6 @@ import { commerceStageChannelModelId, commerceStageModelConfig, commerceStageMod
 import "./ecommerce-stage-models.css";
 import { translate } from "@/i18n";
 
-
 // 只列真正执行的两个文本阶段；第三步出图用用户在电商页选的生图模型，这里只做说明。
 const stages = [
     { key: "vision", label: translate("adminPages.ecommerceStageModels.productRecognitionAndVisualDirection"), hint: translate("adminPages.ecommerceStageModels.readProductImagesIdentifyTheProductAndRecommend4Visual") },
@@ -183,10 +182,18 @@ export function EcommerceStageModels({ embedded = false, onSaved }: { embedded?:
                                     modelDisabledReason={(value) => (value === draft[stage.key].model ? translate("adminPages.ecommerceStageModels.alreadyThePrimaryModel") : visionReason(value))}
                                     onChange={(fallback) => update(stage.key, { fallback })}
                                 />
-                                {draft[stage.key].fallback ? <Button size="small" type="text" icon={<X size={14} />} aria-label={translate("adminPages.ecommerceStageModels.clearFallbackModel", { v0: String(stage.label) })} onClick={() => update(stage.key, { fallback: "" })} /> : null}
+                                {draft[stage.key].fallback ? (
+                                    <Button size="small" type="text" icon={<X size={14} />} aria-label={translate("adminPages.ecommerceStageModels.clearFallbackModel", { v0: String(stage.label) })} onClick={() => update(stage.key, { fallback: "" })} />
+                                ) : null}
                             </div>
                             <div className="ecommerce-stage-models-picker">
-                                <Select className="w-full" aria-label={translate("adminPages.ecommerceStageModels.thinkingLevel", { v0: String(stage.label) })} value={draft[stage.key].thinkingLevel} options={THINKING_REQUEST_OPTIONS} onChange={(thinkingLevel) => update(stage.key, { thinkingLevel })} />
+                                <Select
+                                    className="w-full"
+                                    aria-label={translate("adminPages.ecommerceStageModels.thinkingLevel", { v0: String(stage.label) })}
+                                    value={draft[stage.key].thinkingLevel}
+                                    options={THINKING_REQUEST_OPTIONS}
+                                    onChange={(thinkingLevel) => update(stage.key, { thinkingLevel })}
+                                />
                             </div>
                         </li>
                     ))}
@@ -203,7 +210,9 @@ export function EcommerceStageModels({ embedded = false, onSaved }: { embedded?:
                 <Button type="primary" loading={saving} disabled={!dirty || incomplete || Boolean(error)} onClick={() => void save()}>
                     {translate("adminPages.ecommerceStageModels.saveStageModels")}
                 </Button>
-                <Typography.Text type="secondary">{incomplete && draft ? translate("adminPages.ecommerceStageModels.bothStagesRequireAPrimaryModel") : dirty ? translate("adminPages.ecommerceStageModels.unsavedChanges") : translate("adminPages.ecommerceStageModels.saved")}</Typography.Text>
+                <Typography.Text type="secondary">
+                    {incomplete && draft ? translate("adminPages.ecommerceStageModels.bothStagesRequireAPrimaryModel") : dirty ? translate("adminPages.ecommerceStageModels.unsavedChanges") : translate("adminPages.ecommerceStageModels.saved")}
+                </Typography.Text>
             </footer>
         </section>
     );

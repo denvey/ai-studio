@@ -14,7 +14,6 @@ import { ArkAdminReviewsTab } from "./ark-assets/ark-admin-reviews-tab";
 import "./ark-assets/ark-admin.css";
 import { translate } from "@/i18n";
 
-
 type ArkSite = AdminArkPrivateAssetSetting["site"];
 type ArkTab = "groups" | "reviews" | "settings";
 
@@ -96,7 +95,12 @@ export default function ArkPrivateAssetsSettingsPage() {
         setSearchParams(params, { replace: true });
     };
     return (
-        <AdminPageFrame title={translate("settings.sections.ark-assets.label")} description={PAGE_DESCRIPTION} actions={<AdminSegmented<ArkTab> ariaLabel={translate("adminPages.settings.arkPrivateAssetsSettingsPage.arkAssetLibraryView")} value={tab} onChange={selectTab} options={ARK_TABS} />} scroll>
+        <AdminPageFrame
+            title={translate("settings.sections.ark-assets.label")}
+            description={PAGE_DESCRIPTION}
+            actions={<AdminSegmented<ArkTab> ariaLabel={translate("adminPages.settings.arkPrivateAssetsSettingsPage.arkAssetLibraryView")} value={tab} onChange={selectTab} options={ARK_TABS} />}
+            scroll
+        >
             <div className="admin-ark-tabs-body">
                 {tab === "groups" ? <ArkAdminGroupsTab onOpenReviews={() => selectTab("reviews")} /> : null}
                 {tab === "reviews" ? <ArkAdminReviewsTab /> : null}
@@ -372,10 +376,19 @@ function ArkPrivateAssetsSettingsForm() {
                         icon={<KeyRound className="size-4" aria-hidden="true" />}
                         title={translate("adminPages.settings.arkPrivateAssetsSettingsPage.item1ConfigureTheArkProjectAndIAMCredentials")}
                         description={translate("adminPages.settings.arkPrivateAssetsSettingsPage.credentialsAreStoredOnlyOnTheServerAndUsedTo")}
-                        status={<AdminStatusBadge label={prerequisitesReady ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.configured") : translate("account.settings.modelConfig.capabilities.pending")} tone={prerequisitesReady ? "success" : "neutral"} />}
+                        status={
+                            <AdminStatusBadge
+                                label={prerequisitesReady ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.configured") : translate("account.settings.modelConfig.capabilities.pending")}
+                                tone={prerequisitesReady ? "success" : "neutral"}
+                            />
+                        }
                     >
                         <div className="admin-ark-form-grid">
-                            <Form.Item name="site" label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.arkSite")} extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.inferenceChannelBaseURLReference", { v0: String(siteMeta.inference) })}>
+                            <Form.Item
+                                name="site"
+                                label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.arkSite")}
+                                extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.inferenceChannelBaseURLReference", { v0: String(siteMeta.inference) })}
+                            >
                                 <Select options={(Object.keys(ARK_SITE_META) as ArkSite[]).map((value) => ({ value, label: ARK_SITE_META[value].label }))} aria-label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.arkSite")} />
                             </Form.Item>
                             <Form.Item name="region" label="Region" extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.controlPlaneURLEnterARegionWithTheAssetLibrary", { v0: String(siteMeta.controlPlane(normalizedDraft.region)) })}>
@@ -387,8 +400,17 @@ function ArkPrivateAssetsSettingsForm() {
                             <Form.Item name="accessKeyId" label="IAM AccessKey">
                                 <Input autoComplete="off" prefix={<KeyRound className="size-4 text-foreground/35" />} placeholder={translate("adminPages.settings.arkPrivateAssetsSettingsPage.storedOnlyOnTheServer")} />
                             </Form.Item>
-                            <Form.Item name="accessKeySecret" label={setting.hasAccessKeySecret ? `IAM SecretKey（${configuredSecretText}）` : "IAM SecretKey"} extra={setting.hasAccessKeySecret ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.leaveBlankToRetainTheExistingSecretIfTheAccessKey") : undefined}>
-                                <Input.Password autoComplete="new-password" placeholder={setting.hasAccessKeySecret ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.leaveBlankToKeepTheCurrentKey") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.storedOnlyOnTheServer")} />
+                            <Form.Item
+                                name="accessKeySecret"
+                                label={setting.hasAccessKeySecret ? `IAM SecretKey（${configuredSecretText}）` : "IAM SecretKey"}
+                                extra={setting.hasAccessKeySecret ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.leaveBlankToRetainTheExistingSecretIfTheAccessKey") : undefined}
+                            >
+                                <Input.Password
+                                    autoComplete="new-password"
+                                    placeholder={
+                                        setting.hasAccessKeySecret ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.leaveBlankToKeepTheCurrentKey") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.storedOnlyOnTheServer")
+                                    }
+                                />
                             </Form.Item>
                         </div>
                     </SettingsSectionCard>
@@ -427,7 +449,12 @@ function ArkPrivateAssetsSettingsForm() {
                                 icon={<UsersRound className="size-4" aria-hidden="true" />}
                                 title={translate("adminPages.settings.arkPrivateAssetsSettingsPage.item3AllowUserAssetGroups")}
                                 description={translate("adminPages.settings.arkPrivateAssetsSettingsPage.usersCreateGroupsInSettingsArkAssetLibraryHumanGroups")}
-                                status={<AdminStatusBadge label={userGroupsOpen ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.available") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.unavailable")} tone={userGroupsOpen ? "success" : "neutral"} />}
+                                status={
+                                    <AdminStatusBadge
+                                        label={userGroupsOpen ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.available") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.unavailable")}
+                                        tone={userGroupsOpen ? "success" : "neutral"}
+                                    />
+                                }
                             >
                                 <div className="admin-ark-policy-control">
                                     <div className="admin-ark-policy-copy">
@@ -453,17 +480,36 @@ function ArkPrivateAssetsSettingsForm() {
                                         </Form.Item>
                                     </div>
                                 </div>
-                                <Form.Item name="callbackBaseUrl" label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.identityVerificationCallbackURL")} extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.publicSiteRootURLSuchAsHttpsCanvasExampleCom")} className="mt-4">
+                                <Form.Item
+                                    name="callbackBaseUrl"
+                                    label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.identityVerificationCallbackURL")}
+                                    extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.publicSiteRootURLSuchAsHttpsCanvasExampleCom")}
+                                    className="mt-4"
+                                >
                                     <Input autoComplete="off" placeholder="https://canvas.example.com" />
                                 </Form.Item>
                                 <div className="admin-ark-number-grid">
-                                    <Form.Item name="realGroupLimit" label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.humanAssetGroupsPerPerson")} extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.includesVerificationSessionsInProgress")} rules={[{ required: true, type: "number", min: 1, max: 200, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter1200") }]}>
+                                    <Form.Item
+                                        name="realGroupLimit"
+                                        label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.humanAssetGroupsPerPerson")}
+                                        extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.includesVerificationSessionsInProgress")}
+                                        rules={[{ required: true, type: "number", min: 1, max: 200, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter1200") }]}
+                                    >
                                         <InputNumber min={1} max={200} precision={0} className="w-full" />
                                     </Form.Item>
-                                    <Form.Item name="virtualGroupLimit" label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.virtualAssetGroupsPerPerson")} rules={[{ required: true, type: "number", min: 1, max: 200, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter1200") }]}>
+                                    <Form.Item
+                                        name="virtualGroupLimit"
+                                        label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.virtualAssetGroupsPerPerson")}
+                                        rules={[{ required: true, type: "number", min: 1, max: 200, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter1200") }]}
+                                    >
                                         <InputNumber min={1} max={200} precision={0} className="w-full" />
                                     </Form.Item>
-                                    <Form.Item name="realAuthorizationDays" label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.humanAuthorizationValidityDays")} extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.startsWhenVerificationCompletesUploadsAndGenerationAreDisabledAfter")} rules={[{ required: true, type: "number", min: 1, max: 3650, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter13650") }]}>
+                                    <Form.Item
+                                        name="realAuthorizationDays"
+                                        label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.humanAuthorizationValidityDays")}
+                                        extra={translate("adminPages.settings.arkPrivateAssetsSettingsPage.startsWhenVerificationCompletesUploadsAndGenerationAreDisabledAfter")}
+                                        rules={[{ required: true, type: "number", min: 1, max: 3650, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter13650") }]}
+                                    >
                                         <InputNumber min={1} max={3650} precision={0} className="w-full" />
                                     </Form.Item>
                                 </div>
@@ -491,7 +537,12 @@ function ArkPrivateAssetsSettingsForm() {
                                 icon={<Coins className="size-4" aria-hidden="true" />}
                                 title={translate("adminPages.settings.arkPrivateAssetsSettingsPage.item4AssetGroupFees")}
                                 description={translate("adminPages.settings.arkPrivateAssetsSettingsPage.aOneTimePlatformCreditFeePerGroupForHuman")}
-                                status={<AdminStatusBadge label={draftBillingEnabled ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.paid") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.free")} tone={draftBillingEnabled ? "info" : "neutral"} />}
+                                status={
+                                    <AdminStatusBadge
+                                        label={draftBillingEnabled ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.paid") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.free")}
+                                        tone={draftBillingEnabled ? "info" : "neutral"}
+                                    />
+                                }
                             >
                                 <div className="admin-ark-policy-control">
                                     <div className="admin-ark-policy-copy">
@@ -507,10 +558,18 @@ function ArkPrivateAssetsSettingsForm() {
                                 </div>
                                 {draftBillingEnabled ? (
                                     <div className="admin-ark-form-grid">
-                                        <Form.Item name="realGroupPrice" label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.humanAssetGroupCreditsGroup")} rules={[{ required: true, type: "number", min: 0, max: 1_000_000, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter01000000") }]}>
+                                        <Form.Item
+                                            name="realGroupPrice"
+                                            label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.humanAssetGroupCreditsGroup")}
+                                            rules={[{ required: true, type: "number", min: 0, max: 1_000_000, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter01000000") }]}
+                                        >
                                             <InputNumber min={0} max={1_000_000} precision={2} className="w-full" />
                                         </Form.Item>
-                                        <Form.Item name="virtualGroupPrice" label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.virtualAssetGroupCreditsGroup")} rules={[{ required: true, type: "number", min: 0, max: 1_000_000, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter01000000") }]}>
+                                        <Form.Item
+                                            name="virtualGroupPrice"
+                                            label={translate("adminPages.settings.arkPrivateAssetsSettingsPage.virtualAssetGroupCreditsGroup")}
+                                            rules={[{ required: true, type: "number", min: 0, max: 1_000_000, message: translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnter01000000") }]}
+                                        >
                                             <InputNumber min={0} max={1_000_000} precision={2} className="w-full" />
                                         </Form.Item>
                                     </div>
@@ -608,7 +667,10 @@ function validateArkPrivateAssetDraft(values: ArkPrivateAssetForm, setting: Admi
     if (!draft.region) return translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnterTheArkRegion");
     if (!draft.projectName) return translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnterTheArkProjectName");
     if (!draft.accessKeyId) return translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnterTheArkAssetLibraryIAMAccessKey");
-    if (!hasUsableSecret(draft, setting)) return draft.accessKeyId !== setting.accessKeyId ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.enterTheMatchingSecretKeyWhenChangingTheIAMAccessKey") : translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnterTheArkAssetLibraryIAMSecretKey");
+    if (!hasUsableSecret(draft, setting))
+        return draft.accessKeyId !== setting.accessKeyId
+            ? translate("adminPages.settings.arkPrivateAssetsSettingsPage.enterTheMatchingSecretKeyWhenChangingTheIAMAccessKey")
+            : translate("adminPages.settings.arkPrivateAssetsSettingsPage.pleaseEnterTheArkAssetLibraryIAMSecretKey");
     return "";
 }
 

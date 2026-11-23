@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export type MaskPoint = readonly [number, number];
 export type MaskStroke = { diameter: number; erase: boolean; points: MaskPoint[] };

@@ -3,7 +3,6 @@ import { consumeTaskTextStream, createTaskTextStreamParser } from "@/services/ap
 import { getActiveUserScope } from "@/lib/user-scope";
 import { translate } from "@/i18n";
 
-
 export type AgentPermissionMode = "read_only" | "auto" | "request_approval";
 export type AgentReasoningMode = import("@/lib/text-thinking").ThinkingRequest;
 export type AgentMediaSettings = {

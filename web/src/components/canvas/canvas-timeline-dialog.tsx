@@ -46,7 +46,12 @@ const BASE_PX_PER_SECOND = 96;
 const EXPORT_FPS = 30;
 
 type TimelineSourceKind = TimelineBuildScope | "saved";
-const SOURCE_LABELS: Record<TimelineSourceKind, string> = { current: translate("canvasTools.canvasTimelineDialog.currentVideo"), selection: translate("canvasTools.canvasTimelineDialog.selectedVideos2"), canvas: translate("canvasTools.canvasTimelineDialog.entireCanvas"), saved: translate("canvasTools.canvasTimelineDialog.savedTimeline") };
+const SOURCE_LABELS: Record<TimelineSourceKind, string> = {
+    current: translate("canvasTools.canvasTimelineDialog.currentVideo"),
+    selection: translate("canvasTools.canvasTimelineDialog.selectedVideos2"),
+    canvas: translate("canvasTools.canvasTimelineDialog.entireCanvas"),
+    saved: translate("canvasTools.canvasTimelineDialog.savedTimeline"),
+};
 
 type CanvasTimelineDialogProps = {
     node: CanvasNodeData;
@@ -761,7 +766,8 @@ export function CanvasTimelineDialog({
                 <div className="flex shrink-0 items-center gap-3 text-xs font-normal">
                     {source === "canvas" && referenceVideoCount ? (
                         <Checkbox size="sm" checked={includeReferenceVideos} onChange={(event) => void rebuildFromScope("canvas", event.target.checked)}>
-                            {translate("canvasTools.inline.canvasTimelineDialog.includesClayDepthReferences", { v0: String(referenceVideoCount) })}</Checkbox>
+                            {translate("canvasTools.inline.canvasTimelineDialog.includesClayDepthReferences", { v0: String(referenceVideoCount) })}
+                        </Checkbox>
                     ) : null}
                     <SegmentedControl
                         size="sm"
@@ -998,7 +1004,13 @@ export function CanvasTimelineDialog({
                             ) : null}
                         </div>
                         <div className="flex items-start gap-3">
-                            <Input.TextArea autoSize={{ minRows: 1, maxRows: 3 }} value={selectedSubtitleClip.text || ""} placeholder={translate("canvasTools.canvasTimelineDialog.subtitleText")} className="flex-1" onChange={(event) => updateClip(selectedSubtitleClip.id, { text: event.target.value })} />
+                            <Input.TextArea
+                                autoSize={{ minRows: 1, maxRows: 3 }}
+                                value={selectedSubtitleClip.text || ""}
+                                placeholder={translate("canvasTools.canvasTimelineDialog.subtitleText")}
+                                className="flex-1"
+                                onChange={(event) => updateClip(selectedSubtitleClip.id, { text: event.target.value })}
+                            />
                             <div className="flex shrink-0 items-center gap-2 text-xs">
                                 <InputNumber size="small" min={0} step={100} value={selectedSubtitleClip.startMs} onChange={(startMs) => updateClip(selectedSubtitleClip.id, { startMs: startMs ?? 0 })} className="w-28" />
                                 <span className="opacity-40">→</span>

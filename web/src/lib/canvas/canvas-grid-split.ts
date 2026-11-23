@@ -1,7 +1,6 @@
 import type { ImageSplitParams } from "@/lib/canvas/canvas-image-data";
 import { translate } from "@/i18n";
 
-
 export const CANVAS_GRID_SPLIT_MAX = 5;
 export const CANVAS_GRID_SPLIT_GAP = 48;
 

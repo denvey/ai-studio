@@ -1,7 +1,6 @@
 import { getActiveUserScope } from "@/lib/user-scope";
 import { translate } from "@/i18n";
 
-
 const MAX_ACTIVE_IMAGE_PREPARATIONS = 4;
 const IMAGE_PREPARATION_TIMEOUT_MS = 60_000;
 const MAX_CACHED_IMAGES = 48;

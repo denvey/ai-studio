@@ -343,7 +343,13 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
                                                 <span className="rgn-badge">{region.index}</span>
                                                 {active ? (
                                                     <>
-                                                        <button type="button" aria-label={translate("canvasTools.canvasNodeRegionEditDialog.delete", { v0: String(regionMentionLabel(region.index)) })} className="rgn-box-delete" onPointerDown={(event) => event.stopPropagation()} onClick={() => removeRegion(region.index)}>
+                                                        <button
+                                                            type="button"
+                                                            aria-label={translate("canvasTools.canvasNodeRegionEditDialog.delete", { v0: String(regionMentionLabel(region.index)) })}
+                                                            className="rgn-box-delete"
+                                                            onPointerDown={(event) => event.stopPropagation()}
+                                                            onClick={() => removeRegion(region.index)}
+                                                        >
                                                             <X className="size-3.5" strokeWidth={2.4} />
                                                         </button>
                                                         {CORNERS.map((corner) => (
@@ -414,7 +420,10 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
                     </header>
 
                     <div className="rgn-body">
-                        <div className="rgn-label">{translate("canvasTools.canvasNodeRegionEditDialog.region")}{regions.length ? <span className="rgn-label-count">{regions.length}</span> : null}</div>
+                        <div className="rgn-label">
+                            {translate("canvasTools.canvasNodeRegionEditDialog.region")}
+                            {regions.length ? <span className="rgn-label-count">{regions.length}</span> : null}
+                        </div>
                         {orderedRegions.length ? (
                             <div className="rgn-tiles">
                                 {orderedRegions.map((region) => {
@@ -422,7 +431,13 @@ function RegionEditor({ image, config, onClose, onConfirm }: RegionEditorProps) 
                                     const thumbnail = thumbnails.get(region.index);
                                     return (
                                         <div key={region.index} className="rgn-tile">
-                                            <button type="button" className="rgn-tile-select" aria-pressed={region.index === selected} aria-label={translate("canvasTools.canvasNodeRegionEditDialog.select", { v0: String(label) })} onClick={() => setSelected(region.index)}>
+                                            <button
+                                                type="button"
+                                                className="rgn-tile-select"
+                                                aria-pressed={region.index === selected}
+                                                aria-label={translate("canvasTools.canvasNodeRegionEditDialog.select", { v0: String(label) })}
+                                                onClick={() => setSelected(region.index)}
+                                            >
                                                 {thumbnail ? <img src={thumbnail} alt="" draggable={false} /> : null}
                                                 <span className="rgn-tile-badge">{region.index}</span>
                                             </button>

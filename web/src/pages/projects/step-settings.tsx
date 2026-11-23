@@ -78,7 +78,10 @@ export function DramaTextSteps({
                 </div>
                 <div className="drama-step-field">
                     <span className="drama-step-caption">{translate("drama.stepSettings.textModel")}</span>
-                    <small className="drama-step-note">{translate("drama.stepSettings.useProductionModel")}{models?.text?.label ? ` · ${models.text.label}` : ""}</small>
+                    <small className="drama-step-note">
+                        {translate("drama.stepSettings.useProductionModel")}
+                        {models?.text?.label ? ` · ${models.text.label}` : ""}
+                    </small>
                 </div>
                 <div className="drama-step-field">
                     <span className="drama-step-caption">{translate("nav.sidebar.skills")}</span>
@@ -105,7 +108,12 @@ export function DramaTextSteps({
                     </div>
                     <div className="drama-step-field">
                         <span className="drama-step-caption">{translate("drama.stepSettings.thinkingLevel")}</span>
-                        <Select aria-label={translate("drama.stepSettings.thinkingLevel2", { v0: String(item.label) })} value={textThinking[item.step] || "auto"} options={THINKING_REQUEST_OPTIONS} onChange={(value) => onThinkingChange(item.step, value)} />
+                        <Select
+                            aria-label={translate("drama.stepSettings.thinkingLevel2", { v0: String(item.label) })}
+                            value={textThinking[item.step] || "auto"}
+                            options={THINKING_REQUEST_OPTIONS}
+                            onChange={(value) => onThinkingChange(item.step, value)}
+                        />
                     </div>
                 </div>
             ))}
@@ -151,7 +159,8 @@ export function DramaAssetImageModels({
                             ) : tiers.length ? (
                                 <div className="drama-tabs drama-res-tabs" role="radiogroup" aria-label={translate("drama.stepSettings.referenceResolution", { v0: String(item.label) })}>
                                     <button type="button" role="radio" className="drama-tab" aria-checked={!value} disabled={!assets} onClick={() => assets && onAssetsChange({ ...assets, [item.resolution]: undefined })}>
-                                        {translate("canvasB.common.default")}{option.defaultImageResolution ? ` · ${tierLabel(option.defaultImageResolution)}` : ""}
+                                        {translate("canvasB.common.default")}
+                                        {option.defaultImageResolution ? ` · ${tierLabel(option.defaultImageResolution)}` : ""}
                                     </button>
                                     {tiers.map((tier) => (
                                         <button key={tier} type="button" role="radio" className="drama-tab" aria-checked={value === tier} disabled={!assets} onClick={() => assets && onAssetsChange({ ...assets, [item.resolution]: tier })}>
@@ -165,7 +174,8 @@ export function DramaAssetImageModels({
                             {value && option && !tiers.includes(value) ? (
                                 <p className="drama-step-warn" role="alert">
                                     <TriangleAlert className="size-3.5" />
-                                    {translate("drama.stepSettings.thisModelDoesNotSupport")} {tierLabel(value)}{translate("drama.stepSettings.savingWillBeRejectedChooseAnotherOption")}
+                                    {translate("drama.stepSettings.thisModelDoesNotSupport")} {tierLabel(value)}
+                                    {translate("drama.stepSettings.savingWillBeRejectedChooseAnotherOption")}
                                 </p>
                             ) : null}
                         </div>
@@ -181,7 +191,9 @@ export function VideoResolutionField({ option, value, onChange }: { option?: Dra
     if (!option) {
         return value ? (
             <div className="drama-step-model">
-                <small className="drama-step-note">{translate("drama.stepSettings.specified")} {formatVideoResolutionLabel(value)}</small>
+                <small className="drama-step-note">
+                    {translate("drama.stepSettings.specified")} {formatVideoResolutionLabel(value)}
+                </small>
                 <Button size="small" type="text" onClick={() => onChange(undefined)}>
                     {translate("drama.stepSettings.resetToDefault")}
                 </Button>
@@ -197,7 +209,8 @@ export function VideoResolutionField({ option, value, onChange }: { option?: Dra
         <div className="drama-step-field">
             <div className="drama-tabs drama-res-tabs" role="radiogroup" aria-label={translate("drama.stepSettings.videoResolution")}>
                 <button type="button" role="radio" className="drama-tab" aria-checked={!value} onClick={() => onChange(undefined)}>
-                    {translate("canvasB.common.default")}{option.defaultVideoResolution ? ` · ${formatVideoResolutionLabel(option.defaultVideoResolution)}` : ""}
+                    {translate("canvasB.common.default")}
+                    {option.defaultVideoResolution ? ` · ${formatVideoResolutionLabel(option.defaultVideoResolution)}` : ""}
                 </button>
                 {values.map((item) => (
                     <button key={item} type="button" role="radio" className="drama-tab" aria-checked={Boolean(value) && videoResolutionComparisonKey(value) === videoResolutionComparisonKey(item)} onClick={() => onChange(item)}>
@@ -208,7 +221,9 @@ export function VideoResolutionField({ option, value, onChange }: { option?: Dra
             {issue ? (
                 <p className="drama-step-warn" role="alert">
                     <TriangleAlert className="size-3.5" />
-                    {translate("drama.stepSettings.currentVideoModel")}{issue}{translate("drama.stepSettings.savingWillBeRejectedChooseAnotherOption")}
+                    {translate("drama.stepSettings.currentVideoModel")}
+                    {issue}
+                    {translate("drama.stepSettings.savingWillBeRejectedChooseAnotherOption")}
                 </p>
             ) : (
                 <small className="drama-step-note">{translate("drama.stepSettings.higherResolutionsAreClearerAndCostMorePerSegmentOrientation")}</small>

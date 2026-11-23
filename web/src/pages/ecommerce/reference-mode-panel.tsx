@@ -12,8 +12,16 @@ const modeOptions: Array<{ value: EcommerceReferenceMode; label: string; descrip
     { value: "style", label: translate("ecommerce.referenceModePanel.referenceStyleAndLayout"), description: translate("ecommerce.referenceModePanel.useTheColorsCompositionAndLayoutOfTheImagesBelow") },
     { value: "detail", label: translate("ecommerce.referenceModePanel.screenByScreenDetailPageReference"), description: translate("ecommerce.referenceModePanel.identifyContentLayoutAndVisualsOnEveryScreenOfThe") },
 ];
-const uploadLabels: Record<EcommerceReferenceMode, string> = { product: translate("ecommerce.referenceModePanel.productImages"), style: translate("ecommerce.referenceModePanel.styleAndLayoutReferences"), detail: translate("ecommerce.referenceModePanel.screenByScreenLongImageReference") };
-const fallbackNames: Record<EcommerceReferenceMode, string> = { product: translate("ecommerce.referenceModePanel.productReferenceImage"), style: translate("ecommerce.referenceModePanel.styleReferenceImage"), detail: translate("ecommerce.referenceModePanel.longDetailImage") };
+const uploadLabels: Record<EcommerceReferenceMode, string> = {
+    product: translate("ecommerce.referenceModePanel.productImages"),
+    style: translate("ecommerce.referenceModePanel.styleAndLayoutReferences"),
+    detail: translate("ecommerce.referenceModePanel.screenByScreenLongImageReference"),
+};
+const fallbackNames: Record<EcommerceReferenceMode, string> = {
+    product: translate("ecommerce.referenceModePanel.productReferenceImage"),
+    style: translate("ecommerce.referenceModePanel.styleReferenceImage"),
+    detail: translate("ecommerce.referenceModePanel.longDetailImage"),
+};
 
 function referenceName(reference: EcommerceReference, mode: EcommerceReferenceMode, index?: number) {
     const name = reference.name?.trim() || "";
@@ -121,11 +129,13 @@ export function ReferenceModePanel({
             }
             if (failed.length) {
                 lastUpload.current = { source: source.files.length ? { files: failed.flatMap((item) => item.files) } : source, mode: uploadMode };
-                setError(translate("ecommerce.referenceModePanel.imagesWereNotAdded", {
+                setError(
+                    translate("ecommerce.referenceModePanel.imagesWereNotAdded", {
                         v0: String(items.length - failed.length ? translate("ecommerce.referenceModePanel.addedImages", { v0: String(items.length - failed.length) }) : ""),
                         v1: String(failed.length),
                         v2: String(messages.join("；")),
-                    }));
+                    }),
+                );
             }
         } finally {
             lock.current = false;
@@ -137,7 +147,14 @@ export function ReferenceModePanel({
     };
     return (
         <section className="ecommerce-reference-mode" aria-label={translate("ecommerce.referenceModePanel.referenceModeSettings")}>
-            <Select<EcommerceReferenceMode> variant="filled" aria-label={translate("ecommerce.referenceModePanel.referenceMode")} value={mode.value} options={modeOptions.map(({ value, label }) => ({ value, label }))} onChange={chooseMode} disabled={busy} />
+            <Select<EcommerceReferenceMode>
+                variant="filled"
+                aria-label={translate("ecommerce.referenceModePanel.referenceMode")}
+                value={mode.value}
+                options={modeOptions.map(({ value, label }) => ({ value, label }))}
+                onChange={chooseMode}
+                disabled={busy}
+            />
             {mode.value === "product" ? (
                 <p className="ecommerce-reference-mode-description">{translate("ecommerce.referenceModePanel.useYourOwnProductImagesAboveToPlanSellingPoints")}</p>
             ) : (
@@ -192,7 +209,13 @@ export function ReferenceModePanel({
                                                 <small>{index + 1}</small>
                                                 {name}
                                             </span>
-                                            <button type="button" aria-label={translate("ecommerce.referenceModePanel.remove", { v0: String(name) })} title={translate("ecommerce.referenceModePanel.remove", { v0: String(name) })} disabled={busy} onClick={() => removeReference(index)}>
+                                            <button
+                                                type="button"
+                                                aria-label={translate("ecommerce.referenceModePanel.remove", { v0: String(name) })}
+                                                title={translate("ecommerce.referenceModePanel.remove", { v0: String(name) })}
+                                                disabled={busy}
+                                                onClick={() => removeReference(index)}
+                                            >
                                                 <X size={13} aria-hidden="true" />
                                             </button>
                                         </li>
@@ -204,7 +227,9 @@ export function ReferenceModePanel({
                             <Upload size={25} strokeWidth={1.5} aria-hidden="true" />
                             <span>
                                 <strong>{references.length ? translate("ecommerce.referenceModePanel.addMore", { v0: String(label) }) : translate("ecommerce.referenceModePanel.clickToUpload", { v0: String(label) })}</strong>
-                                <small>{busy ? translate("ecommerce.referenceModePanel.uploading") : dragging ? translate("ecommerce.referenceModePanel.dropToAddImages") : translate("ecommerce.referenceModePanel.multipleImagesSupportedDragOrPasteImagesToo")}</small>
+                                <small>
+                                    {busy ? translate("ecommerce.referenceModePanel.uploading") : dragging ? translate("ecommerce.referenceModePanel.dropToAddImages") : translate("ecommerce.referenceModePanel.multipleImagesSupportedDragOrPasteImagesToo")}
+                                </small>
                             </span>
                         </button>
                         <input
@@ -262,7 +287,7 @@ export function ReferenceScreenSummary({ screen }: { screen?: EcommerceReference
     if (!screen) return null;
     return (
         <div className="ecommerce-reference-screen-summary" aria-label={translate("ecommerce.referenceModePanel.originalLongImageScreenAnalysis", { v0: String(screen.screenIndex) })}>
-            <strong>{translate("ecommerce.referenceModePanel.originalScreen", { count: screen.screenIndex})}</strong>
+            <strong>{translate("ecommerce.referenceModePanel.originalScreen", { count: screen.screenIndex })}</strong>
             {screen.resourceId ? (
                 <CachedResourceImage
                     className="ecommerce-reference-screen-preview"

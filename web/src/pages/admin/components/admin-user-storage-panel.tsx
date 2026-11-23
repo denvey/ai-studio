@@ -98,7 +98,12 @@ export function AdminUserStoragePanel({ userId }: { userId: string }) {
                 <Form.Item name="storageGB" label={translate("admin.adminUserStoragePanel.capacityGB")} rules={[{ required: true }, { type: "integer", min: 1, max: 100_000, message: "1-100000 GB" }]}>
                     <InputNumber min={1} max={100_000} precision={0} />
                 </Form.Item>
-                <Form.Item name="durationDays" label={translate("admin.adminUserStoragePanel.validForDays")} tooltip={translate("admin.adminUserStoragePanel.item0MeansNoExpiration")} rules={[{ required: true }, { type: "integer", min: 0, max: 3650, message: translate("admin.adminUserStoragePanel.item03650Days") }]}>
+                <Form.Item
+                    name="durationDays"
+                    label={translate("admin.adminUserStoragePanel.validForDays")}
+                    tooltip={translate("admin.adminUserStoragePanel.item0MeansNoExpiration")}
+                    rules={[{ required: true }, { type: "integer", min: 0, max: 3650, message: translate("admin.adminUserStoragePanel.item03650Days") }]}
+                >
                     <InputNumber min={0} max={3650} precision={0} />
                 </Form.Item>
                 <Form.Item name="note" rules={[{ max: 500 }]}>
@@ -119,12 +124,27 @@ export function AdminUserStoragePanel({ userId }: { userId: string }) {
                         { title: translate("admin.adminUserStoragePanel.effectiveTime"), dataIndex: "startsAt", width: 150, render: (value) => formatStorageDate(value) },
                         { title: translate("canvasA.assetView.origin"), key: "source", width: 160, ellipsis: true, render: (_, item) => item.productName || (item.source === "admin" ? translate("account.wallet.topup.grantAdmin") : item.source) },
                         { title: translate("admin.adminUserStoragePanel.capacity"), dataIndex: "bytes", width: 100, align: "right", render: (value) => `+${formatStorageCapacity(value)}` },
-                        { title: translate("admin.adminUserStoragePanel.validity"), key: "duration", width: 170, render: (_, item) => (item.expiresAt ? translate("admin.adminUserStoragePanel.expires", { v0: String(formatStorageDuration(item.durationDays)), v1: String(formatStorageDate(item.expiresAt)) }) : translate("admin.adminUserStoragePanel.neverExpires")) },
+                        {
+                            title: translate("admin.adminUserStoragePanel.validity"),
+                            key: "duration",
+                            width: 170,
+                            render: (_, item) =>
+                                item.expiresAt
+                                    ? translate("admin.adminUserStoragePanel.expires", { v0: String(formatStorageDuration(item.durationDays)), v1: String(formatStorageDate(item.expiresAt)) })
+                                    : translate("admin.adminUserStoragePanel.neverExpires"),
+                        },
                         {
                             title: translate("library.tasks.detail.status"),
                             key: "status",
                             width: 90,
-                            render: (_, item) => (item.revokedAt ? <AdminStatusBadge label={translate("account.settings.memory.undone")} tone="neutral" /> : storageGrantActive(item) ? <AdminStatusBadge label={translate("admin.adminUserStoragePanel.active")} tone="success" /> : <AdminStatusBadge label={translate("admin.adminUserStoragePanel.expired")} tone="neutral" />),
+                            render: (_, item) =>
+                                item.revokedAt ? (
+                                    <AdminStatusBadge label={translate("account.settings.memory.undone")} tone="neutral" />
+                                ) : storageGrantActive(item) ? (
+                                    <AdminStatusBadge label={translate("admin.adminUserStoragePanel.active")} tone="success" />
+                                ) : (
+                                    <AdminStatusBadge label={translate("admin.adminUserStoragePanel.expired")} tone="neutral" />
+                                ),
                         },
                         { title: translate("library.assets.form.note"), key: "note", ellipsis: true, render: (_, item) => (item.revokeReason ? translate("admin.adminUserStoragePanel.revoked", { v0: String(item.revokeReason) }) : item.note || "--") },
                         {

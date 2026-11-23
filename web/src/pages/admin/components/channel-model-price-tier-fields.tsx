@@ -69,7 +69,13 @@ export function PriceTierFields({
                     <span className="admin-price-tier-card-index">{String(ordinal).padStart(2, "0")}</span>
                     <div className="admin-price-tier-card-heading-copy">
                         <div className="admin-price-tier-card-title">{matchMode === "default" ? translate("admin.channelModelPriceTierFields.defaultPrice") : translate("admin.channelModelPriceTierFields.specificationPrice", { v0: String(ordinal) })}</div>
-                        <div className="admin-price-tier-card-summary">{matchMode === "default" ? translate("admin.channelModelPriceTierFields.useTheSamePriceForAllRequests") : isVideo ? translate("admin.channelModelPriceTierFields.matchByGenerationModeAndResolution") : translate("admin.channelModelPriceTierFields.matchByGenerationModeQualityResolutionOrSize")}</div>
+                        <div className="admin-price-tier-card-summary">
+                            {matchMode === "default"
+                                ? translate("admin.channelModelPriceTierFields.useTheSamePriceForAllRequests")
+                                : isVideo
+                                  ? translate("admin.channelModelPriceTierFields.matchByGenerationModeAndResolution")
+                                  : translate("admin.channelModelPriceTierFields.matchByGenerationModeQualityResolutionOrSize")}
+                        </div>
                     </div>
                 </div>
                 <div className="admin-price-tier-card-actions">
@@ -119,16 +125,28 @@ export function PriceTierFields({
                                 </div>
                             </div>
                             <div className="admin-price-tier-match-grid">
-                                <Form.Item className="mb-0" name={[index, "operation"]} label={translate("admin.channelModelPriceTierFields.generationMode")} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.selectAGenerationMode") }]}>
+                                <Form.Item
+                                    className="mb-0"
+                                    name={[index, "operation"]}
+                                    label={translate("admin.channelModelPriceTierFields.generationMode")}
+                                    rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.selectAGenerationMode") }]}
+                                >
                                     <Select options={operationOptions(capability)} />
                                 </Form.Item>
                                 {isVideo ? (
                                     <Form.Item className="mb-0" name={[index, "resolution"]} label={translate("library.tasks.params.resolution")} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.selectAResolution") }]}>
-                                        <Select options={[{ label: translate("admin.channelModelPriceTierFields.anyResolution"), value: "*" }, ...resolutionOptions.map((value) => ({ label: value.toUpperCase(), value: normalizeTierResolution(value) }))]} />
+                                        <Select
+                                            options={[{ label: translate("admin.channelModelPriceTierFields.anyResolution"), value: "*" }, ...resolutionOptions.map((value) => ({ label: value.toUpperCase(), value: normalizeTierResolution(value) }))]}
+                                        />
                                     </Form.Item>
                                 ) : null}
                                 {isVideo && video?.processing ? (
-                                    <Form.Item className="mb-0" name={[index, "fpsBand"]} label={translate("admin.channelModelPriceTierFields.outputFrameRateTier")} tooltip={translate("admin.channelModelPriceTierFields.videoProcessingIsPricedByOutputFrameRateKeepingThe")}>
+                                    <Form.Item
+                                        className="mb-0"
+                                        name={[index, "fpsBand"]}
+                                        label={translate("admin.channelModelPriceTierFields.outputFrameRateTier")}
+                                        tooltip={translate("admin.channelModelPriceTierFields.videoProcessingIsPricedByOutputFrameRateKeepingThe")}
+                                    >
                                         <Select options={fpsBandOptions} />
                                     </Form.Item>
                                 ) : null}
@@ -142,7 +160,12 @@ export function PriceTierFields({
                                           ))
                                     : null}
                                 {isImage && !image?.parameters && (image?.resolution?.supported || (image && imageResolutionTiers(image).length > 0)) ? (
-                                    <Form.Item className="mb-0" name={[index, "imageResolution"]} label={translate("admin.channelModelPriceTierFields.upstreamResolution")} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.selectAnUpstreamResolution") }]}>
+                                    <Form.Item
+                                        className="mb-0"
+                                        name={[index, "imageResolution"]}
+                                        label={translate("admin.channelModelPriceTierFields.upstreamResolution")}
+                                        rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.selectAnUpstreamResolution") }]}
+                                    >
                                         <Select
                                             options={[
                                                 { label: translate("admin.channelModelPriceTierFields.anyResolution"), value: "*" },
@@ -171,7 +194,11 @@ export function PriceTierFields({
                         <div className="admin-price-tier-panel-heading">
                             <div>
                                 <h3>{translate("admin.channelModelPriceTierFields.sellingPrice")}</h3>
-                                <p>{priceCurrency !== "USD" && priceCurrency !== "CNY" ? translate("admin.channelModelPriceTierFields.setTheCreditsUsersSpendOnACompletedGeneration") : translate("admin.channelModelPriceTierFields.enterTheSellingPriceInChargesAreConvertedToCredits", { v0: String(priceUnit) })}</p>
+                                <p>
+                                    {priceCurrency !== "USD" && priceCurrency !== "CNY"
+                                        ? translate("admin.channelModelPriceTierFields.setTheCreditsUsersSpendOnACompletedGeneration")
+                                        : translate("admin.channelModelPriceTierFields.enterTheSellingPriceInChargesAreConvertedToCredits", { v0: String(priceUnit) })}
+                                </p>
                             </div>
                         </div>
                         <div className="admin-price-tier-billing-grid">
@@ -187,18 +214,38 @@ export function PriceTierFields({
                             </Form.Item>
                             {billingMode === "token" ? (
                                 isVideo ? (
-                                    <Form.Item className="admin-price-tier-unit-price mb-0" name={[index, "outputTokenPrice"]} label={translate("admin.channelModelPriceTierFields.millionVideoTokens", { v0: String(priceUnit) })} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheVideoTokenPrice") }]}>
+                                    <Form.Item
+                                        className="admin-price-tier-unit-price mb-0"
+                                        name={[index, "outputTokenPrice"]}
+                                        label={translate("admin.channelModelPriceTierFields.millionVideoTokens", { v0: String(priceUnit) })}
+                                        rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheVideoTokenPrice") }]}
+                                    >
                                         <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                                     </Form.Item>
                                 ) : (
                                     <div className="admin-price-tier-token-grid">
-                                        <Form.Item className="admin-price-tier-unit-price mb-0" name={[index, "inputTokenPrice"]} label={translate("admin.channelModelPriceTierFields.inputMillionTokens", { v0: String(priceUnit) })} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheInputTokenPrice") }]}>
+                                        <Form.Item
+                                            className="admin-price-tier-unit-price mb-0"
+                                            name={[index, "inputTokenPrice"]}
+                                            label={translate("admin.channelModelPriceTierFields.inputMillionTokens", { v0: String(priceUnit) })}
+                                            rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheInputTokenPrice") }]}
+                                        >
                                             <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                                         </Form.Item>
-                                        <Form.Item className="admin-price-tier-unit-price mb-0" name={[index, "outputTokenPrice"]} label={translate("admin.channelModelPriceTierFields.outputMillionTokens", { v0: String(priceUnit) })} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheOutputTokenPrice") }]}>
+                                        <Form.Item
+                                            className="admin-price-tier-unit-price mb-0"
+                                            name={[index, "outputTokenPrice"]}
+                                            label={translate("admin.channelModelPriceTierFields.outputMillionTokens", { v0: String(priceUnit) })}
+                                            rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheOutputTokenPrice") }]}
+                                        >
                                             <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                                         </Form.Item>
-                                        <Form.Item className="admin-price-tier-unit-price mb-0" name={[index, "cachedTokenPrice"]} label={translate("admin.channelModelPriceTierFields.cacheReadMillionTokens", { v0: String(priceUnit) })} rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheCacheReadPrice") }]}>
+                                        <Form.Item
+                                            className="admin-price-tier-unit-price mb-0"
+                                            name={[index, "cachedTokenPrice"]}
+                                            label={translate("admin.channelModelPriceTierFields.cacheReadMillionTokens", { v0: String(priceUnit) })}
+                                            rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheCacheReadPrice") }]}
+                                        >
                                             <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
                                         </Form.Item>
                                         <Form.Item
@@ -216,7 +263,11 @@ export function PriceTierFields({
                                 <Form.Item
                                     className="admin-price-tier-unit-price mb-0"
                                     name={[index, "unitPrice"]}
-                                    label={billingMode === "per_second" ? translate("admin.channelModelPriceTierFields.sellingPricePerSecond", { v0: String(priceUnit) }) : translate("admin.channelModelPriceTierFields.sellingPricePerRequest", { v0: String(priceUnit) })}
+                                    label={
+                                        billingMode === "per_second"
+                                            ? translate("admin.channelModelPriceTierFields.sellingPricePerSecond", { v0: String(priceUnit) })
+                                            : translate("admin.channelModelPriceTierFields.sellingPricePerRequest", { v0: String(priceUnit) })
+                                    }
                                     rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterTheSellingPrice") }]}
                                 >
                                     <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
@@ -228,8 +279,16 @@ export function PriceTierFields({
                                 <Form.Item
                                     className="admin-price-tier-unit-price mb-0"
                                     name={[index, billingMode === "token" ? "referenceVideoOutputTokenPrice" : "referenceVideoUnitPrice"]}
-                                    label={billingMode === "token" ? translate("admin.channelModelPriceTierFields.withReferenceVideoMillionVideoTokens", { v0: String(priceUnit) }) : translate("admin.channelModelPriceTierFields.pricePerSecondWithReferenceVideo", { v0: String(priceUnit) })}
-                                    tooltip={billingMode === "token" ? translate("admin.channelModelPriceTierFields.requestsWithReferenceVideosUseTokenUsageIncludingReferenceDuration") : translate("admin.channelModelPriceTierFields.requestsWithReferenceVideosUseGeneratedSecondsReferenceSecondsMeasured")}
+                                    label={
+                                        billingMode === "token"
+                                            ? translate("admin.channelModelPriceTierFields.withReferenceVideoMillionVideoTokens", { v0: String(priceUnit) })
+                                            : translate("admin.channelModelPriceTierFields.pricePerSecondWithReferenceVideo", { v0: String(priceUnit) })
+                                    }
+                                    tooltip={
+                                        billingMode === "token"
+                                            ? translate("admin.channelModelPriceTierFields.requestsWithReferenceVideosUseTokenUsageIncludingReferenceDuration")
+                                            : translate("admin.channelModelPriceTierFields.requestsWithReferenceVideosUseGeneratedSecondsReferenceSecondsMeasured")
+                                    }
                                     rules={[{ required: true, message: translate("admin.channelModelPriceTierFields.enterThePriceWithReferenceVideo") }]}
                                 >
                                     <InputNumber className="w-full" min={0} max={1_000_000} precision={6} step={0.1} />
@@ -240,7 +299,9 @@ export function PriceTierFields({
                             <div className="admin-price-tier-helper" role="note">
                                 <strong>{translate("admin.channelModelPriceTierFields.videoTokenBilling")}</strong>
                                 <span>
-                                    {referenceVideoBilling ? translate("admin.channelModelPriceTierFields.estimateWidthHeight24FpsOutputDurationReferenceVideoDuration") : translate("admin.channelModelPriceTierFields.estimateWidthHeight24FpsOutputDuration1024ReferenceVideos")}
+                                    {referenceVideoBilling
+                                        ? translate("admin.channelModelPriceTierFields.estimateWidthHeight24FpsOutputDurationReferenceVideoDuration")
+                                        : translate("admin.channelModelPriceTierFields.estimateWidthHeight24FpsOutputDuration1024ReferenceVideos")}
                                     {translate("admin.channelModelPriceTierFields.billingUsesValidUpstreamUsageWhenAvailableOtherwiseTheFormula")}
                                 </span>
                             </div>
@@ -278,7 +339,15 @@ function ImagePriceParameterInput({ field, value, onChange }: { field: import("@
     if (field.name === "imageResolution") {
         const standardChoices = ["1k", "1.5k", "2k", "4k"];
         const values = field.values?.length ? [...new Set([...field.values.map(String), "1.5k"])] : standardChoices;
-        return <Select allowClear placeholder={translate("admin.channelModelPriceTierFields.any")} value={value} options={[{ label: translate("admin.channelModelPriceTierFields.anyResolution"), value: "*" }, ...values.map((v) => ({ label: v.toUpperCase(), value: v }))]} onChange={onChange} />;
+        return (
+            <Select
+                allowClear
+                placeholder={translate("admin.channelModelPriceTierFields.any")}
+                value={value}
+                options={[{ label: translate("admin.channelModelPriceTierFields.anyResolution"), value: "*" }, ...values.map((v) => ({ label: v.toUpperCase(), value: v }))]}
+                onChange={onChange}
+            />
+        );
     }
     const typed = value === undefined || value === "" || value === "*" ? undefined : field.type === "boolean" ? value === "true" : field.type === "number" || field.type === "integer" ? Number(value) : value;
     if (field.type === "boolean")
@@ -307,7 +376,14 @@ const fpsBandOptions = [
 function operationOptions(capability: EditableCapability | undefined) {
     const options = [{ label: translate("admin.channelModelPriceTierFields.anyGenerationMode"), value: "*" }];
     if (capability === "image") return [...options, { label: translate("admin.channelModelPriceTierFields.textToImage"), value: "text_to_image" }, { label: translate("admin.channelModelPriceTierFields.imageToImage"), value: "image_to_image" }];
-    if (capability === "video") return [...options, { label: translate("admin.channelModelPriceTierFields.textToVideo"), value: "text_to_video" }, { label: translate("admin.channelModelPriceTierFields.imageToVideo"), value: "image_to_video" }, { label: translate("admin.channelModelPriceTierFields.videoToVideo"), value: "video_to_video" }, { label: translate("admin.channelModelPriceTierFields.qualityEnhancement"), value: "enhance" }];
+    if (capability === "video")
+        return [
+            ...options,
+            { label: translate("admin.channelModelPriceTierFields.textToVideo"), value: "text_to_video" },
+            { label: translate("admin.channelModelPriceTierFields.imageToVideo"), value: "image_to_video" },
+            { label: translate("admin.channelModelPriceTierFields.videoToVideo"), value: "video_to_video" },
+            { label: translate("admin.channelModelPriceTierFields.qualityEnhancement"), value: "enhance" },
+        ];
     if (capability === "text") return [...options, { label: translate("admin.channelModelPriceTierFields.textGeneration"), value: "text_generation" }];
     return options;
 }

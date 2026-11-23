@@ -1,7 +1,6 @@
 import type { CanvasNodeData } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 export const ART_CRITIQUE_SCHEMA_VERSION = 1 as const;
 export const ART_CRITIQUE_RUBRIC_VERSION = "2026-08-v1" as const;
 export const ART_CRITIQUE_PLUGIN_ID = "ai-art-critique" as const;

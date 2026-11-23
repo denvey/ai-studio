@@ -109,7 +109,16 @@ export function ChannelOrderDialog({ channelId, onSaved }: { channelId?: string;
                             setTargetPosition(items.findIndex((item) => item.id === id) + 1);
                         }}
                     />
-                    <InputNumber aria-label={translate("admin.channelOrderDialog.targetPosition")} placeholder={translate("admin.channelOrderDialog.position")} min={1} max={items.length || 1} precision={0} value={targetPosition} disabled={loading || saving || !targetId} onChange={setTargetPosition} />
+                    <InputNumber
+                        aria-label={translate("admin.channelOrderDialog.targetPosition")}
+                        placeholder={translate("admin.channelOrderDialog.position")}
+                        min={1}
+                        max={items.length || 1}
+                        precision={0}
+                        value={targetPosition}
+                        disabled={loading || saving || !targetId}
+                        onChange={setTargetPosition}
+                    />
                     <Button
                         disabled={loading || saving || !targetId || targetPosition === null || !Number.isInteger(targetPosition) || targetPosition < 1 || targetPosition > items.length}
                         onClick={() => {
@@ -153,7 +162,13 @@ export function ChannelOrderDialog({ channelId, onSaved }: { channelId?: string;
                                         {item.name}
                                         {!item.enabled && <span className="ml-2 text-xs text-foreground/45">{translate("admin.channelOrderDialog.disabled2")}</span>}
                                     </span>
-                                    <Button aria-label={translate("admin.channelOrderDialog.moveUp", { v0: String(item.name) })} title={translate("admin.channelOrderDialog.moveUp2")} icon={<ArrowUp className="size-4" />} disabled={saving || index === 0} onClick={() => setItems((current) => moveOrderItem(current, item.id, index - 1))} />
+                                    <Button
+                                        aria-label={translate("admin.channelOrderDialog.moveUp", { v0: String(item.name) })}
+                                        title={translate("admin.channelOrderDialog.moveUp2")}
+                                        icon={<ArrowUp className="size-4" />}
+                                        disabled={saving || index === 0}
+                                        onClick={() => setItems((current) => moveOrderItem(current, item.id, index - 1))}
+                                    />
                                     <Button
                                         aria-label={translate("admin.channelOrderDialog.moveDown", { v0: String(item.name) })}
                                         title={translate("admin.channelOrderDialog.moveDown2")}

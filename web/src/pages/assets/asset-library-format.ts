@@ -10,7 +10,6 @@ import { type Asset } from "@/stores/use-asset-store";
 import { type LucideIcon, FileText, Image as ImageIcon, Clapperboard, AudioLines, Box, UserRound, Mountain, Package, Layers, Shapes, ShieldCheck } from "lucide-react";
 import { currentLocale, translate } from "@/i18n";
 
-
 export type LibraryAsset = Asset;
 
 export const ASSET_GRID_DENSITY_KEY = "yingce:asset-grid-density";
@@ -76,7 +75,17 @@ export function assetProjectLabel(asset: LibraryAsset) {
 
 export function assetKindLabel(kind: AssetKind, category?: string) {
     if (kind === "entity" && (category === "environment" || category === "prop")) return translate("shared.assets.assetLibraryFormat.profile", { v0: String(assetCategoryLabel(category)) });
-    return kind === "image" ? translate("account.feedback.image") : kind === "video" ? translate("account.feedback.video") : kind === "audio" ? translate("account.settings.modelConfig.capabilities.audio") : kind === "model" ? translate("library.assets.kind.model") : kind === "entity" ? translate("account.welcome.chapters.world.label") : translate("account.settings.modelConfig.capabilities.text");
+    return kind === "image"
+        ? translate("account.feedback.image")
+        : kind === "video"
+          ? translate("account.feedback.video")
+          : kind === "audio"
+            ? translate("account.settings.modelConfig.capabilities.audio")
+            : kind === "model"
+              ? translate("library.assets.kind.model")
+              : kind === "entity"
+                ? translate("account.welcome.chapters.world.label")
+                : translate("account.settings.modelConfig.capabilities.text");
 }
 
 export function assetDownloadLabel(asset: LibraryAsset) {

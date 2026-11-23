@@ -85,7 +85,8 @@ export function EcommerceTaskQueue({ onView, activeCount = 0 }: { onView: (proje
                             {
                                 label: (
                                     <span className="commerce-queue-tab">
-                                        {translate("canvasB.mediaVersion.inProgress")}<span className="commerce-count-badge is-neutral">{active.length}</span>
+                                        {translate("canvasB.mediaVersion.inProgress")}
+                                        <span className="commerce-count-badge is-neutral">{active.length}</span>
                                     </span>
                                 ),
                                 value: "active",
@@ -93,7 +94,8 @@ export function EcommerceTaskQueue({ onView, activeCount = 0 }: { onView: (proje
                             {
                                 label: (
                                     <span className="commerce-queue-tab">
-                                        {translate("library.tasks.filter.succeeded")}<span className="commerce-count-badge is-neutral">{completed.length}</span>
+                                        {translate("library.tasks.filter.succeeded")}
+                                        <span className="commerce-count-badge is-neutral">{completed.length}</span>
                                     </span>
                                 ),
                                 value: "completed",
@@ -113,7 +115,11 @@ export function EcommerceTaskQueue({ onView, activeCount = 0 }: { onView: (proje
                                         <strong>
                                             {row.project.name || translate("ecommerce.taskQueue.ecommerceProject")} {translate("ecommerce.taskQueue.image")} {row.index + 1} {translate("canvasA.characterLibrary.pageItem")}
                                         </strong>
-                                        <span>{finished(row.task) ? translate("ecommerce.taskQueue.imageGeneratedSuccessfully") : row.task?.stage || (row.task?.status === "queued" ? translate("canvasPage.taskStatus.queued") : translate("canvasB.mediaVersion.generating"))}</span>
+                                        <span>
+                                            {finished(row.task)
+                                                ? translate("ecommerce.taskQueue.imageGeneratedSuccessfully")
+                                                : row.task?.stage || (row.task?.status === "queued" ? translate("canvasPage.taskStatus.queued") : translate("canvasB.mediaVersion.generating"))}
+                                        </span>
                                         {!finished(row.task) ? <Progress percent={Math.max(0, Math.min(100, Math.round(row.task?.progress || 0)))} size="small" showInfo={false} /> : null}
                                     </div>
                                     <Button

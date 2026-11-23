@@ -4,7 +4,6 @@ import { consumeJsonEvents } from "@/lib/json-event-stream";
 import type { ChatCompletionPayload, ChatCompletionStreamState, GeminiPart, GeminiPayload, GeminiStreamState, ImageApiResponse, ResponseApiPayload, ResponseStreamState, ResponseToolCall, ToolResponseResult } from "@/services/api/image-contracts";
 import { translate } from "@/i18n";
 
-
 type TextSink = (text: string) => void;
 type TextState = { text: string; reasoning: string };
 

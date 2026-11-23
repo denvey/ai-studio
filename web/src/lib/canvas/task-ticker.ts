@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 // One clock per canvas runtime, not one timer per loading node. No work while
 // hidden or when the final loading node unmounts.

@@ -11,7 +11,6 @@ import { EcommerceStageModels } from "./ecommerce-stage-models";
 import "./ecommerce-agent-config.css";
 import { translate } from "@/i18n";
 
-
 type ReadinessRow = { key: string; title: string; description: string; icon: ReactNode; ready: boolean; required: boolean; action: { label: string; run: () => void } };
 
 const stageModelsAnchor = "eac-stage-models";
@@ -71,7 +70,10 @@ export default function EcommerceAgentConfigPage() {
               {
                   key: "models",
                   title: translate("adminPages.ecommerceAgentConfigPage.stageModelsConfigured"),
-                  description: visionReady && planningReady ? translate("adminPages.ecommerceAgentConfigPage.imageCapableModelsAreAvailableForBothProductRecognitionAnd") : translate("adminPages.ecommerceAgentConfigPage.productRecognitionOrFullPlanningHasNoAvailableModelUsers"),
+                  description:
+                      visionReady && planningReady
+                          ? translate("adminPages.ecommerceAgentConfigPage.imageCapableModelsAreAvailableForBothProductRecognitionAnd")
+                          : translate("adminPages.ecommerceAgentConfigPage.productRecognitionOrFullPlanningHasNoAvailableModelUsers"),
                   icon: <Layers3 className="size-4" aria-hidden="true" />,
                   ready: visionReady && planningReady,
                   required: true,
@@ -99,10 +101,23 @@ export default function EcommerceAgentConfigPage() {
                     icon={<ListChecks className="size-4" aria-hidden="true" />}
                     title={translate("adminPages.ecommerceAgentConfigPage.launchChecklist")}
                     description={translate("adminPages.ecommerceAgentConfigPage.allRequiredItemsMustBeReadyForUsersToComplete")}
-                    status={features ? <AdminStatusBadge label={missing ? translate("adminPages.ecommerceAgentConfigPage.itemsRemaining", { v0: String(missing) }) : translate("adminPages.ecommerceAgentConfigPage.readyToUse")} tone={missing ? "warning" : "success"} /> : undefined}
+                    status={
+                        features ? (
+                            <AdminStatusBadge
+                                label={missing ? translate("adminPages.ecommerceAgentConfigPage.itemsRemaining", { v0: String(missing) }) : translate("adminPages.ecommerceAgentConfigPage.readyToUse")}
+                                tone={missing ? "warning" : "success"}
+                            />
+                        ) : undefined
+                    }
                     footer={
                         <>
-                            <span className="eac-save-state">{loadError ? translate("adminPages.ecommerceAgentConfigPage.failedToLoad", { v0: String(loadError) }) : features ? translate("adminPages.ecommerceAgentConfigPage.basedOnTheCurrentServerConfiguration") : translate("adminPages.ecommerceAgentConfigPage.loading")}</span>
+                            <span className="eac-save-state">
+                                {loadError
+                                    ? translate("adminPages.ecommerceAgentConfigPage.failedToLoad", { v0: String(loadError) })
+                                    : features
+                                      ? translate("adminPages.ecommerceAgentConfigPage.basedOnTheCurrentServerConfiguration")
+                                      : translate("adminPages.ecommerceAgentConfigPage.loading")}
+                            </span>
                             <div className="eac-save-actions">
                                 <Button icon={<RefreshCw className="size-4" />} loading={loading} onClick={() => void load()}>
                                     {translate("common.refresh")}
@@ -120,7 +135,10 @@ export default function EcommerceAgentConfigPage() {
                                     <span>{row.description}</span>
                                 </div>
                                 <div className="eac-readiness-actions">
-                                    <AdminStatusBadge label={row.ready ? translate("adminPages.ecommerceAgentConfigPage.ready") : row.required ? translate("adminPages.ecommerceAgentConfigPage.incomplete") : translate("adminPages.ecommerceAgentConfigPage.notEnabled")} tone={row.ready ? "success" : row.required ? "warning" : "neutral"} />
+                                    <AdminStatusBadge
+                                        label={row.ready ? translate("adminPages.ecommerceAgentConfigPage.ready") : row.required ? translate("adminPages.ecommerceAgentConfigPage.incomplete") : translate("adminPages.ecommerceAgentConfigPage.notEnabled")}
+                                        tone={row.ready ? "success" : row.required ? "warning" : "neutral"}
+                                    />
                                     {row.ready ? null : (
                                         <Button size="small" icon={<ArrowUpRight className="size-3.5" />} iconPlacement="end" onClick={row.action.run}>
                                             {row.action.label}
@@ -133,7 +151,13 @@ export default function EcommerceAgentConfigPage() {
                 </SettingsSectionCard>
 
                 <div id={stageModelsAnchor}>
-                    <SettingsSectionCard className="eac-section" layout="stacked" icon={<Layers3 className="size-4" aria-hidden="true" />} title={translate("adminPages.ecommerceAgentConfigPage.stageModels")} description={translate("adminPages.ecommerceAgentConfigPage.theECommercePageCallsModelsInThisOrderThese")}>
+                    <SettingsSectionCard
+                        className="eac-section"
+                        layout="stacked"
+                        icon={<Layers3 className="size-4" aria-hidden="true" />}
+                        title={translate("adminPages.ecommerceAgentConfigPage.stageModels")}
+                        description={translate("adminPages.ecommerceAgentConfigPage.theECommercePageCallsModelsInThisOrderThese")}
+                    >
                         <EcommerceStageModels embedded onSaved={() => void load()} />
                     </SettingsSectionCard>
                 </div>

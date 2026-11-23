@@ -103,7 +103,11 @@ export function AssetsEmptyState({ onNew, onImport, onGoCanvas }: { onNew: () =>
                     </figure>
                 ))}
                 <span className="assets-empty-banner-caption">
-                    <span>{brandName}{translate("canvasB.mention.assetLibrary")}</span>{translate("shared.assets.assetLibraryPanels.saveYourCreativeResultsAsReusableAssets")}
+                    <span>
+                        {brandName}
+                        {translate("canvasB.mention.assetLibrary")}
+                    </span>
+                    {translate("shared.assets.assetLibraryPanels.saveYourCreativeResultsAsReusableAssets")}
                 </span>
             </div>
             <div className="assets-empty-cards">
@@ -213,7 +217,11 @@ function CharacterArchive({ asset }: { asset: Extract<LibraryAsset, { kind: "ent
                 <CharacterAssetCover asset={asset} size="hero" />
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 px-5 pb-4">
                     <div className="text-[var(--fs-label)] font-medium uppercase tracking-[.24em] text-white/55">Character{asset.data.version ? ` · v${asset.data.version}` : ""}</div>
-                    {aliases.length ? <div className="mt-1 truncate text-xs text-white/70">{translate("shared.assets.assetLibraryPanels.alsoKnownAs")} {aliases.join("、")}</div> : null}
+                    {aliases.length ? (
+                        <div className="mt-1 truncate text-xs text-white/70">
+                            {translate("shared.assets.assetLibraryPanels.alsoKnownAs")} {aliases.join("、")}
+                        </div>
+                    ) : null}
                 </div>
             </div>
             <div className="flex items-center gap-3 rounded-[var(--r-lg)] bg-foreground/[.04] px-4 py-3">
@@ -228,7 +236,9 @@ function CharacterArchive({ asset }: { asset: Extract<LibraryAsset, { kind: "ent
                     <span className="block text-[var(--fs-label)] text-foreground/45">{translate("canvasA.characterStudio.tabVoice")}</span>
                     <span className="block truncate text-sm font-medium">{asset.data.voiceName || translate("shared.assets.assetLibraryPanels.noVoiceLinked")}</span>
                 </span>
-                <span className={`ml-auto shrink-0 text-xs ${asset.data.visualStatus === "ready" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground/45"}`}>{asset.data.visualStatus === "ready" ? translate("canvasA.characterLibrary.visualReady") : translate("canvasA.characterNode.visualPending")}</span>
+                <span className={`ml-auto shrink-0 text-xs ${asset.data.visualStatus === "ready" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground/45"}`}>
+                    {asset.data.visualStatus === "ready" ? translate("canvasA.characterLibrary.visualReady") : translate("canvasA.characterNode.visualPending")}
+                </span>
             </div>
             {rows.length ? (
                 <dl className="divide-y divide-border/60 border-y border-border/60">
@@ -522,7 +532,10 @@ export function assetArchiveFacts(asset: LibraryAsset, audioSampleRate?: number)
         const sampleRate = formatAudioSampleRate(audioSampleRate);
         // Apple 播客音频规范把 44.1 kHz 作为最低采样率；低于它的素材做配乐或成片时音质会受限。
         const belowRecommended = audioSampleRate && audioSampleRate < RECOMMENDED_MIN_AUDIO_SAMPLE_RATE;
-        facts.push({ label: translate("shared.assets.assetLibraryPanels.sampleRate"), value: sampleRate ? `${sampleRate}${belowRecommended ? translate("shared.assets.assetLibraryPanels.below441KHz") : ""}` : translate("shared.assets.assetLibraryPanels.unknown") });
+        facts.push({
+            label: translate("shared.assets.assetLibraryPanels.sampleRate"),
+            value: sampleRate ? `${sampleRate}${belowRecommended ? translate("shared.assets.assetLibraryPanels.below441KHz") : ""}` : translate("shared.assets.assetLibraryPanels.unknown"),
+        });
         const bitrate = audioAverageBitrateKbps(asset.data.bytes, asset.data.durationMs);
         if (bitrate) facts.push({ label: isLosslessAudioMimeType(asset.data.mimeType) ? translate("shared.assets.assetLibraryPanels.bitrateLossless") : translate("shared.assets.assetLibraryPanels.averageBitrate"), value: `${bitrate} kbps` });
     }

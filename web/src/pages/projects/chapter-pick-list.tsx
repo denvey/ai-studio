@@ -65,11 +65,21 @@ export function ChapterPickList({
         <div className={`drama-chapter-pick ${className}`}>
             <div className="drama-chapter-pick-bar">
                 <span className="drama-chapter-pick-count" aria-live="polite">
-                    {translate("drama.chapterPickList.selected")} <b>{formatCount(selected.size)}</b> / {formatCount(selectable.length)} {translate("drama.chapterPickList.chapters")} {formatCount(pickedWords)} {translate("drama.chapterPickList.characters")}
+                    {translate("drama.chapterPickList.selected")} <b>{formatCount(selected.size)}</b> / {formatCount(selectable.length)} {translate("drama.chapterPickList.chapters")} {formatCount(pickedWords)}{" "}
+                    {translate("drama.chapterPickList.characters")}
                 </span>
                 <span className="drama-chapter-pick-quick">
                     {quickLabel}
-                    <InputNumber size="small" min={1} max={Math.max(1, selectable.length)} precision={0} value={quickCount} onChange={(value) => setQuickCount(value || 1)} aria-label={translate("drama.chapterPickList.chapters2", { v0: String(quickLabel) })} />{translate("drama.chapterPickList.chapters3")}
+                    <InputNumber
+                        size="small"
+                        min={1}
+                        max={Math.max(1, selectable.length)}
+                        precision={0}
+                        value={quickCount}
+                        onChange={(value) => setQuickCount(value || 1)}
+                        aria-label={translate("drama.chapterPickList.chapters2", { v0: String(quickLabel) })}
+                    />
+                    {translate("drama.chapterPickList.chapters3")}
                     <Button size="small" disabled={!selectable.length} onClick={() => onChange(new Set(selectable.slice(0, quickCount)))}>
                         {translate("drama.chapterPickList.select")}
                     </Button>

@@ -19,7 +19,6 @@ import { InspirationEditorModal, type InspirationCategoryChoice } from "./inspir
 import "./inspirations.css";
 import { currentLocale, translate } from "@/i18n";
 
-
 type SourceFilter = "all" | InspirationSourceId;
 type ViewFilter = "all" | "favorites" | "hidden";
 type ModeFilter = "all" | CreationInspiration["mode"];
@@ -301,7 +300,9 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
             modal.confirm({
                 className: "workspace-modal workspace-modal-compact",
                 title: isCustom ? translate("shared.inspirations.deleteThisInspiration") : translate("shared.inspirations.hideThisInspirationFromTheLibrary"),
-                content: isCustom ? translate("shared.inspirations.willBeRemovedFromYourLocalInspirationLibraryThisAction", { v0: String(item.title) }) : translate("shared.inspirations.comesFromAnExternalCatalogAndCannotBeDeletedHide", { v0: String(item.title) }),
+                content: isCustom
+                    ? translate("shared.inspirations.willBeRemovedFromYourLocalInspirationLibraryThisAction", { v0: String(item.title) })
+                    : translate("shared.inspirations.comesFromAnExternalCatalogAndCannotBeDeletedHide", { v0: String(item.title) }),
                 okText: isCustom ? translate("common.delete") : translate("shared.inspirations.hide"),
                 okButtonProps: { danger: true },
                 cancelText: translate("create.page.deleteKeep"),
@@ -348,7 +349,13 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
         async (file: File) => {
             try {
                 const result = importPayload(await file.text());
-                message.success(translate("shared.inspirations.importCompleteAddedReplaced", { v0: String(result.created), v1: String(result.updated), v2: String(result.skipped ? translate("shared.inspirations.skippedInvalidEntries", { v0: String(result.skipped) }) : "") }));
+                message.success(
+                    translate("shared.inspirations.importCompleteAddedReplaced", {
+                        v0: String(result.created),
+                        v1: String(result.updated),
+                        v2: String(result.skipped ? translate("shared.inspirations.skippedInvalidEntries", { v0: String(result.skipped) }) : ""),
+                    }),
+                );
             } catch (error) {
                 message.error(error instanceof Error ? error.message : translate("shared.inspirations.importFailed"));
             }
@@ -406,13 +413,27 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
 
             <div className="inspiration-hall-toolbar">
                 <SegmentedControl options={modeOptions} value={modeFilter} onChange={(value) => setModeFilter(value as ModeFilter)} ariaLabel={translate("shared.inspirations.filterInspirationsByCreationType")} className="inspiration-hall-modes" />
-                <Input allowClear prefix={<Search className="size-4" />} placeholder={translate("shared.inspirations.searchTitlesDescriptionsOrTags")} aria-label={translate("shared.inspirations.searchInspirations")} value={search} onChange={(event) => setSearch(event.target.value)} className="inspiration-hall-search" />
+                <Input
+                    allowClear
+                    prefix={<Search className="size-4" />}
+                    placeholder={translate("shared.inspirations.searchTitlesDescriptionsOrTags")}
+                    aria-label={translate("shared.inspirations.searchInspirations")}
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    className="inspiration-hall-search"
+                />
                 <Button type="text" icon={<SlidersHorizontal className="size-4" />} aria-expanded={filtersOpen} aria-controls="inspiration-hall-filters" onClick={() => setFiltersOpen((open) => !open)} className="inspiration-hall-filter-toggle">
-                    {translate("shared.inspirations.moreFilters")}{advancedFilterCount ? ` · ${advancedFilterCount}` : ""}
+                    {translate("shared.inspirations.moreFilters")}
+                    {advancedFilterCount ? ` · ${advancedFilterCount}` : ""}
                     <ChevronDown className={filtersOpen ? "is-open" : undefined} aria-hidden="true" />
                 </Button>
                 <span className="inspiration-hall-count" role="status">
-                    {catalog && hydrated ? translate("shared.inspirations.itemsTotal", { v0: String(visible.length.toLocaleString(currentLocale())), v1: String(freshCount ? translate("shared.inspirations.newThisWeek", { v0: String(freshCount.toLocaleString(currentLocale())) }) : "") }) : ""}
+                    {catalog && hydrated
+                        ? translate("shared.inspirations.itemsTotal", {
+                              v0: String(visible.length.toLocaleString(currentLocale())),
+                              v1: String(freshCount ? translate("shared.inspirations.newThisWeek", { v0: String(freshCount.toLocaleString(currentLocale())) }) : ""),
+                          })
+                        : ""}
                 </span>
             </div>
 
@@ -506,7 +527,15 @@ export function InspirationHall({ onUse }: { onUse: (item: CreationInspiration) 
                     <WorkspaceState
                         icon="empty"
                         kind={hasFilters ? "no-results" : "first-use"}
-                        title={hasFilters && search.trim() ? translate("shared.inspirations.noInspirationsFoundFor", { v0: String(search.trim()) }) : view === "favorites" ? translate("shared.inspirations.noFavoritesYet") : view === "hidden" ? translate("shared.inspirations.noHiddenItems") : translate("shared.inspirations.noInspirationsMatchYourFilters")}
+                        title={
+                            hasFilters && search.trim()
+                                ? translate("shared.inspirations.noInspirationsFoundFor", { v0: String(search.trim()) })
+                                : view === "favorites"
+                                  ? translate("shared.inspirations.noFavoritesYet")
+                                  : view === "hidden"
+                                    ? translate("shared.inspirations.noHiddenItems")
+                                    : translate("shared.inspirations.noInspirationsMatchYourFilters")
+                        }
                         description={view === "favorites" ? translate("shared.inspirations.clickTheHeartAtTheTopRightOfACard") : translate("shared.inspirations.tryAnotherTypeCategoryOrKeyword")}
                         action={hasFilters ? <Button onClick={resetFilters}>{translate("account.layout.state.clearFilters")}</Button> : undefined}
                     />

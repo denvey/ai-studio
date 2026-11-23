@@ -2,7 +2,6 @@ import { apiBaseURL } from "@/services/api/request";
 import { isSystemProxyBaseUrl, type AiConfig, type ChannelHeader } from "@/stores/use-config-store";
 import { translate } from "@/i18n";
 
-
 type RelayConfig = Pick<AiConfig, "baseUrl" | "apiKey" | "apiFormat"> & { headers?: ChannelHeader[] };
 
 export type ChannelRequest = {

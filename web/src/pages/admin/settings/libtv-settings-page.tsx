@@ -11,7 +11,6 @@ import { AdminPageFrame } from "../components/admin-shell";
 import { AdminStatusBadge, configuredSecretText, SettingsSectionCard } from "../components/admin-ui";
 import { currentLocale, translate } from "@/i18n";
 
-
 type ConnectionTestStatus = "idle" | "testing" | "success" | "error";
 
 export default function LibTVSettingsPage() {
@@ -36,7 +35,15 @@ export default function LibTVSettingsPage() {
     const draftHasToken = Boolean(token.trim()) || Boolean(setting?.hasToken && !clearTokenDraft);
     const dirty = Boolean(setting && (enabled !== setting.enabled || Boolean(token.trim()) || clearTokenDraft));
     const enabledDirty = Boolean(setting && enabled !== setting.enabled);
-    const credentialDraftLabel = token.trim() ? (setting?.hasToken ? translate("adminPages.settings.libtvSettingsPage.pendingReplacement") : translate("adminPages.settings.libtvSettingsPage.pendingAddition")) : clearTokenDraft ? translate("adminPages.settings.libtvSettingsPage.pendingRemoval") : setting?.hasToken ? translate("adminPages.settings.libtvSettingsPage.configured") : translate("account.layout.oss.cdnAuthNone");
+    const credentialDraftLabel = token.trim()
+        ? setting?.hasToken
+            ? translate("adminPages.settings.libtvSettingsPage.pendingReplacement")
+            : translate("adminPages.settings.libtvSettingsPage.pendingAddition")
+        : clearTokenDraft
+          ? translate("adminPages.settings.libtvSettingsPage.pendingRemoval")
+          : setting?.hasToken
+            ? translate("adminPages.settings.libtvSettingsPage.configured")
+            : translate("account.layout.oss.cdnAuthNone");
 
     const load = useCallback(
         async (initial = false, announce = false) => {
@@ -289,7 +296,11 @@ export default function LibTVSettingsPage() {
                                 <strong>{dirty ? translate("adminPages.settings.libtvSettingsPage.thirdPartySettingsHaveUnsavedChanges") : translate("adminPages.settings.libtvSettingsPage.thirdPartySettingsAreSyncedWithTheServer")}</strong>
                                 <AdminStatusBadge label={dirty ? translate("adminPages.settings.libtvSettingsPage.notYetApplied") : translate("adminPages.settings.libtvSettingsPage.currentServerValue")} tone={dirty ? "warning" : "neutral"} />
                             </div>
-                            <p>{dirty ? translate("adminPages.settings.libtvSettingsPage.credentialsAndImportSettingsAreKeptAsDraftsOnThis") : translate("adminPages.settings.libtvSettingsPage.onlyLibTVIsCurrentlySupportedPlaintextCredentialsAreSubmittedTo")}</p>
+                            <p>
+                                {dirty
+                                    ? translate("adminPages.settings.libtvSettingsPage.credentialsAndImportSettingsAreKeptAsDraftsOnThis")
+                                    : translate("adminPages.settings.libtvSettingsPage.onlyLibTVIsCurrentlySupportedPlaintextCredentialsAreSubmittedTo")}
+                            </p>
                         </div>
                     </div>
                     <div className="admin-third-party-command-actions">
@@ -331,7 +342,10 @@ export default function LibTVSettingsPage() {
                             <div className="admin-third-party-provider-tags">
                                 <AdminStatusBadge label={translate("adminPages.settings.libtvSettingsPage.serverProxy")} tone="info" />
                                 <AdminStatusBadge label={translate("adminPages.settings.libtvSettingsPage.readOnlyExternalCanvasAccess")} tone="neutral" />
-                                <AdminStatusBadge label={draftHasToken ? translate("adminPages.settings.libtvSettingsPage.credentialsReady") : translate("adminPages.settings.libtvSettingsPage.credentialsMissing")} tone={draftHasToken ? "success" : "warning"} />
+                                <AdminStatusBadge
+                                    label={draftHasToken ? translate("adminPages.settings.libtvSettingsPage.credentialsReady") : translate("adminPages.settings.libtvSettingsPage.credentialsMissing")}
+                                    tone={draftHasToken ? "success" : "warning"}
+                                />
                             </div>
                         </div>
                         <div className="admin-third-party-credential-panel">
@@ -342,7 +356,13 @@ export default function LibTVSettingsPage() {
                                 id="admin-libtv-token"
                                 value={token}
                                 onChange={(event) => changeToken(event.target.value)}
-                                placeholder={setting.hasToken && !clearTokenDraft ? configuredSecretText : clearTokenDraft ? translate("adminPages.settings.libtvSettingsPage.markedForRemovalEnterANewTokenToReplaceIt") : translate("adminPages.settings.libtvSettingsPage.enterLibTVToken")}
+                                placeholder={
+                                    setting.hasToken && !clearTokenDraft
+                                        ? configuredSecretText
+                                        : clearTokenDraft
+                                          ? translate("adminPages.settings.libtvSettingsPage.markedForRemovalEnterANewTokenToReplaceIt")
+                                          : translate("adminPages.settings.libtvSettingsPage.enterLibTVToken")
+                                }
                                 disabled={saving || refreshing}
                                 autoComplete="new-password"
                                 aria-describedby="admin-libtv-token-help"
@@ -386,13 +406,30 @@ export default function LibTVSettingsPage() {
                             icon={<CloudDownload className="size-4" aria-hidden="true" />}
                             title={translate("adminPages.settings.libtvSettingsPage.item2AllowUsersToImportLibTVCanvases")}
                             description={translate("adminPages.settings.libtvSettingsPage.controlWhetherRegularUsersCanStartNewLibTVCanvasImports")}
-                            status={<AdminStatusBadge label={enabledDirty ? (enabled ? translate("adminPages.settings.libtvSettingsPage.pendingEnable") : translate("adminPages.settings.libtvSettingsPage.pendingDisable")) : enabled ? translate("adminPages.settings.libtvSettingsPage.entryEnabled") : translate("adminPages.settings.libtvSettingsPage.entryDisabled")} tone={enabledDirty ? "warning" : enabled ? "success" : "neutral"} />}
+                            status={
+                                <AdminStatusBadge
+                                    label={
+                                        enabledDirty
+                                            ? enabled
+                                                ? translate("adminPages.settings.libtvSettingsPage.pendingEnable")
+                                                : translate("adminPages.settings.libtvSettingsPage.pendingDisable")
+                                            : enabled
+                                              ? translate("adminPages.settings.libtvSettingsPage.entryEnabled")
+                                              : translate("adminPages.settings.libtvSettingsPage.entryDisabled")
+                                    }
+                                    tone={enabledDirty ? "warning" : enabled ? "success" : "neutral"}
+                                />
+                            }
                             footer={<ThirdPartySaveFooter setting={setting} dirty={dirty} saving={saving} refreshing={refreshing} onReset={resetDraft} onSave={submitSave} />}
                         >
                             <div className="admin-third-party-policy-control">
                                 <div>
                                     <strong>{enabled ? translate("adminPages.settings.libtvSettingsPage.allowNewLibTVImports") : translate("adminPages.settings.libtvSettingsPage.disableNewLibTVImports")}</strong>
-                                    <p>{enabled ? translate("adminPages.settings.libtvSettingsPage.afterSavingTheServerUsesTheSavedTokenToRead") : translate("adminPages.settings.libtvSettingsPage.existingImportedNodesAndConnectionsAreRetainedWithoutDeletionOr")}</p>
+                                    <p>
+                                        {enabled
+                                            ? translate("adminPages.settings.libtvSettingsPage.afterSavingTheServerUsesTheSavedTokenToRead")
+                                            : translate("adminPages.settings.libtvSettingsPage.existingImportedNodesAndConnectionsAreRetainedWithoutDeletionOr")}
+                                    </p>
                                 </div>
                                 <div className="admin-third-party-policy-switch">
                                     <span>{enabled ? translate("adminPages.settings.libtvSettingsPage.on") : translate("common.close")}</span>
@@ -404,7 +441,11 @@ export default function LibTVSettingsPage() {
                                 <span aria-hidden="true">→</span>
                                 <FlowStep icon={<Wifi className="size-4" />} label={translate("adminPages.settings.libtvSettingsPage.readCanvas")} detail={translate("adminPages.settings.libtvSettingsPage.requestByUUID")} />
                                 <span aria-hidden="true">→</span>
-                                <FlowStep icon={<CloudDownload className="size-4" />} label={translate("adminPages.settings.libtvSettingsPage.importInto", { v0: String(brandName) })} detail={translate("adminPages.settings.libtvSettingsPage.createNodesAndConnections")} />
+                                <FlowStep
+                                    icon={<CloudDownload className="size-4" />}
+                                    label={translate("adminPages.settings.libtvSettingsPage.importInto", { v0: String(brandName) })}
+                                    detail={translate("adminPages.settings.libtvSettingsPage.createNodesAndConnections")}
+                                />
                             </div>
                         </SettingsSectionCard>
                     </div>
@@ -465,7 +506,9 @@ function ThirdPartySaveFooter({ setting, dirty, saving, refreshing, onReset, onS
         <div className="admin-third-party-footer">
             <div className="admin-third-party-footer-note">
                 <ShieldCheck className="size-4" aria-hidden="true" />
-                <span>{formatSettingTime(setting.updatedAt, translate("adminPages.settings.libtvSettingsPage.libTVSettingsHaveNotBeenSaved"))} {translate("adminPages.settings.libtvSettingsPage.savingDoesNotReadExternalCanvases")}</span>
+                <span>
+                    {formatSettingTime(setting.updatedAt, translate("adminPages.settings.libtvSettingsPage.libTVSettingsHaveNotBeenSaved"))} {translate("adminPages.settings.libtvSettingsPage.savingDoesNotReadExternalCanvases")}
+                </span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
                 {dirty ? (

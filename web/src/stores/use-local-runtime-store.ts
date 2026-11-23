@@ -5,7 +5,6 @@ import { readLocalRuntimeStatus, type LocalRuntimeModuleDescriptor, type LocalRu
 import { LocalRuntimeClientError, LocalRuntimeSessionClient, type LocalRuntimeConnection } from "@/services/local-runtime-session";
 import { translate } from "@/i18n";
 
-
 export type LocalRuntimeConnectionState = "idle" | "connecting" | "connected" | "origin_not_trusted" | "unreachable" | "incompatible" | "runtime_error";
 
 type LocalRuntimeSessionTransport = LocalRuntimeTransport & {

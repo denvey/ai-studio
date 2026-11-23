@@ -2,7 +2,6 @@ import type { ArkCertification, ArkCertificationKind, Asset, AssetKind, AssetSta
 import { normalizeAssetCategory, parseAssetCategory } from "@/lib/asset-category";
 import { translate } from "@/i18n";
 
-
 const ASSET_KINDS: readonly AssetKind[] = ["text", "image", "video", "audio", "model", "entity"];
 const ASSET_STATUSES: readonly AssetStatus[] = ["draft", "review", "confirmed", "archived"];
 

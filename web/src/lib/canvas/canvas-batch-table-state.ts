@@ -12,7 +12,6 @@ import { createCanvasNode } from "./canvas-project-domain";
 import { buildGenerationConfig, resetGenerationTaskMetadata } from "./canvas-project-generation";
 import { translate } from "@/i18n";
 
-
 export type CanvasBatchGenerationTarget = Pick<CanvasGenerationBatchItem, "rowId" | "nodeId" | "inputSnapshot">;
 
 function sameIds(before: string[] | undefined, after: string[] | undefined) {

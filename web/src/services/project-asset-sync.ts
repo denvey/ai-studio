@@ -26,7 +26,6 @@ import { ASSET_STORE_KEY, flushAssetStorePersistence, generationAssetId, useAsse
 import type { CanvasNodeData } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 function throwIfAborted(signal?: AbortSignal) {
     if (signal?.aborted) throw new DOMException("The operation was aborted", "AbortError");
 }

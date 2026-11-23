@@ -14,7 +14,8 @@ export function normalizeReferenceDraft(draft: EcommerceDraft): EcommerceDraft {
     draft = normalizeEcommerceReferenceGroups(draft);
     if (!draft.referenceMode || draft.referenceMode === "product") return draft;
     const sources = commerceLayoutReferences(draft);
-    if (!sources.length || sources.some((source) => !source.resourceId) || new Set(sources.map((source) => source.resourceId)).size !== sources.length) throw new Error(translate("ecommerce.referencePlan.uploadValidInspirationImagesBelowTheSameImageCannotBe"));
+    if (!sources.length || sources.some((source) => !source.resourceId) || new Set(sources.map((source) => source.resourceId)).size !== sources.length)
+        throw new Error(translate("ecommerce.referencePlan.uploadValidInspirationImagesBelowTheSameImageCannotBe"));
     if (!draft.references.some((source) => source.role === "primary")) throw new Error(translate("ecommerce.referencePlan.uploadYourOwnMainProductImageAboveFirstInspirationImages"));
     return { ...draft, layoutReferenceId: sources[0].resourceId, ...(draft.referenceMode === "detail" ? { imageType: "detail" } : {}) };
 }
@@ -39,7 +40,8 @@ export function commerceReferenceInstruction(draft: EcommerceDraft): string {
 export function validateCommerceReferencePlan(plan: EcommercePlan, draft: EcommerceDraft) {
     if (!draft.referenceMode || draft.referenceMode === "product") return;
     const sources = commerceLayoutReferences(draft);
-    if (!sources.length || new Set(sources.map((source) => source.resourceId)).size !== sources.length || typeof plan.referenceSummary !== "string" || !plan.referenceSummary.trim()) throw new Error(translate("ecommerce.referencePlan.referenceAnalysisIsIncompleteReplan"));
+    if (!sources.length || new Set(sources.map((source) => source.resourceId)).size !== sources.length || typeof plan.referenceSummary !== "string" || !plan.referenceSummary.trim())
+        throw new Error(translate("ecommerce.referencePlan.referenceAnalysisIsIncompleteReplan"));
     if (draft.referenceMode !== "detail") return;
     if (!plan.images.length || plan.images.length > 30) throw new Error(translate("ecommerce.referencePlan.aLongDetailPageMustContain1To30Detected"));
     let bottom = 0;

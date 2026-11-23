@@ -37,11 +37,25 @@ export const CanvasDramaSidebar = memo(function CanvasDramaSidebar({ summary, ca
 
     if (collapsed) {
         return (
-            <aside className="canvas-project-sidebar is-collapsed relative z-[var(--z-panel)] hidden w-11 shrink-0 flex-col items-center border-r border-border bg-background/94 py-2 backdrop-blur-xl lg:flex" aria-label={translate("canvasTools.canvasDramaSidebar.dramaSidebar")}>
-                <button type="button" className="grid size-7 place-items-center rounded-md text-foreground/55 hover:bg-surface-hover" title={translate("canvasTools.canvasDramaSidebar.expandDramaSidebar")} aria-label={translate("canvasTools.canvasDramaSidebar.expandDramaSidebar")} onClick={() => setCollapsed(false)}>
+            <aside
+                className="canvas-project-sidebar is-collapsed relative z-[var(--z-panel)] hidden w-11 shrink-0 flex-col items-center border-r border-border bg-background/94 py-2 backdrop-blur-xl lg:flex"
+                aria-label={translate("canvasTools.canvasDramaSidebar.dramaSidebar")}
+            >
+                <button
+                    type="button"
+                    className="grid size-7 place-items-center rounded-md text-foreground/55 hover:bg-surface-hover"
+                    title={translate("canvasTools.canvasDramaSidebar.expandDramaSidebar")}
+                    aria-label={translate("canvasTools.canvasDramaSidebar.expandDramaSidebar")}
+                    onClick={() => setCollapsed(false)}
+                >
                     <ChevronRight className="size-4" />
                 </button>
-                <Link to={studioPath} className="canvas-project-sidebar-back-link mt-2 grid size-7 place-items-center rounded-md text-foreground/55 hover:bg-surface-hover" title={translate("canvasTools.canvasDramaSidebar.openDramaStudio")} aria-label={translate("canvasTools.canvasDramaSidebar.openDramaStudio")}>
+                <Link
+                    to={studioPath}
+                    className="canvas-project-sidebar-back-link mt-2 grid size-7 place-items-center rounded-md text-foreground/55 hover:bg-surface-hover"
+                    title={translate("canvasTools.canvasDramaSidebar.openDramaStudio")}
+                    aria-label={translate("canvasTools.canvasDramaSidebar.openDramaStudio")}
+                >
                     <Clapperboard className="size-4" />
                 </Link>
             </aside>
@@ -49,7 +63,10 @@ export const CanvasDramaSidebar = memo(function CanvasDramaSidebar({ summary, ca
     }
 
     return (
-        <aside className="canvas-project-sidebar canvas-drama-sidebar relative z-[var(--z-panel)] hidden w-[var(--canvas-sidebar-width)] shrink-0 flex-col border-r border-border bg-background/94 backdrop-blur-xl lg:flex" aria-label={translate("canvasTools.canvasDramaSidebar.dramaSidebar")}>
+        <aside
+            className="canvas-project-sidebar canvas-drama-sidebar relative z-[var(--z-panel)] hidden w-[var(--canvas-sidebar-width)] shrink-0 flex-col border-r border-border bg-background/94 backdrop-blur-xl lg:flex"
+            aria-label={translate("canvasTools.canvasDramaSidebar.dramaSidebar")}
+        >
             <header className="canvas-project-sidebar-header flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border px-2">
                 <Link to={studioPath} className="flex min-w-0 items-center gap-2 rounded-md px-1 py-1 text-xs font-semibold" title={translate("canvasTools.canvasDramaSidebar.openDramaStudio2", { v0: String(summary.project.name) })}>
                     <Clapperboard className="size-3.5 shrink-0" />
@@ -58,7 +75,13 @@ export const CanvasDramaSidebar = memo(function CanvasDramaSidebar({ summary, ca
                         <span className="block text-[var(--fs-micro)] font-normal text-foreground/42">{translate("canvasTools.inline.canvasDramaSidebar.canvasRefinement", { v0: String(DRAMA_STATUS_LABEL[production.status]) })}</span>
                     </span>
                 </Link>
-                <button type="button" className="grid size-7 shrink-0 place-items-center rounded-md text-foreground/45 hover:bg-surface-hover" title={translate("canvasTools.canvasDramaSidebar.collapseDramaSidebar")} aria-label={translate("canvasTools.canvasDramaSidebar.collapseDramaSidebar")} onClick={() => setCollapsed(true)}>
+                <button
+                    type="button"
+                    className="grid size-7 shrink-0 place-items-center rounded-md text-foreground/45 hover:bg-surface-hover"
+                    title={translate("canvasTools.canvasDramaSidebar.collapseDramaSidebar")}
+                    aria-label={translate("canvasTools.canvasDramaSidebar.collapseDramaSidebar")}
+                    onClick={() => setCollapsed(true)}
+                >
                     <ChevronLeft className="size-4" />
                 </button>
             </header>
@@ -82,7 +105,11 @@ export const CanvasDramaSidebar = memo(function CanvasDramaSidebar({ summary, ca
                                     className="canvas-project-sidebar-chapter-row group flex h-11 items-center gap-2 px-1 text-left text-xs"
                                     disabled={Boolean(busyKey)}
                                     onClick={() => onProjectCast(item.id)}
-                                    title={placed ? translate("canvasTools.canvasDramaSidebar.locateOnTheCanvas", { v0: String(dramaCastDisplayName(item)) }) : translate("canvasTools.canvasDramaSidebar.sendReferenceImagesForToTheCanvas", { v0: String(dramaCastDisplayName(item)) })}
+                                    title={
+                                        placed
+                                            ? translate("canvasTools.canvasDramaSidebar.locateOnTheCanvas", { v0: String(dramaCastDisplayName(item)) })
+                                            : translate("canvasTools.canvasDramaSidebar.sendReferenceImagesForToTheCanvas", { v0: String(dramaCastDisplayName(item)) })
+                                    }
                                 >
                                     <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-[var(--r-sm)] bg-foreground/[.05] text-foreground/30">
                                         {item.imageResourceId ? (
@@ -95,7 +122,7 @@ export const CanvasDramaSidebar = memo(function CanvasDramaSidebar({ summary, ca
                                         <span className="block truncate text-foreground/78">{dramaCastDisplayName(item)}</span>
                                         <span className="block truncate text-[var(--fs-micro)] text-foreground/38">
                                             {DRAMA_CAST_KIND_LABEL[item.kind]}
-                                            {item.imageResourceId ? "" : (" " + translate("canvasTools.canvasDramaSidebar.noReferenceImagesYet"))}
+                                            {item.imageResourceId ? "" : " " + translate("canvasTools.canvasDramaSidebar.noReferenceImagesYet")}
                                         </span>
                                     </span>
                                     <RowState placed={placed} stale={Boolean(presence.cast.get(item.id))} busy={busy} />
@@ -285,7 +312,15 @@ const SEGMENT_STATUS_TONE: Partial<Record<DramaSegment["videoStatus"], { color: 
 
 function SegmentStatusDot({ segment }: { segment: DramaSegment }) {
     const tone = SEGMENT_STATUS_TONE[segment.videoStatus];
-    return <span className="size-1.5 shrink-0 rounded-full" style={{ background: tone?.color || "color-mix(in srgb, var(--foreground) 18%, transparent)" }} role="img" aria-label={tone?.label || translate("canvasTools.canvasDramaSidebar.videoNotGenerated")} title={tone?.label || translate("canvasTools.canvasDramaSidebar.videoNotGenerated")} />;
+    return (
+        <span
+            className="size-1.5 shrink-0 rounded-full"
+            style={{ background: tone?.color || "color-mix(in srgb, var(--foreground) 18%, transparent)" }}
+            role="img"
+            aria-label={tone?.label || translate("canvasTools.canvasDramaSidebar.videoNotGenerated")}
+            title={tone?.label || translate("canvasTools.canvasDramaSidebar.videoNotGenerated")}
+        />
+    );
 }
 
 function RowState({ placed, stale, busy }: { placed: boolean; stale: boolean; busy: boolean }) {
@@ -303,7 +338,15 @@ function RowState({ placed, stale, busy }: { placed: boolean; stale: boolean; bu
 }
 
 function StaleDot() {
-    return <span className="size-1.5 shrink-0 rounded-full" style={{ background: "var(--status-warning)" }} role="img" aria-label={translate("canvasTools.canvasDramaSidebar.aNewerVersionIsAvailableInTheDramaStudio")} title={translate("canvasTools.canvasDramaSidebar.aNewerVersionIsAvailableInTheDramaStudioSync")} />;
+    return (
+        <span
+            className="size-1.5 shrink-0 rounded-full"
+            style={{ background: "var(--status-warning)" }}
+            role="img"
+            aria-label={translate("canvasTools.canvasDramaSidebar.aNewerVersionIsAvailableInTheDramaStudio")}
+            title={translate("canvasTools.canvasDramaSidebar.aNewerVersionIsAvailableInTheDramaStudioSync")}
+        />
+    );
 }
 
 function SidebarAction({ icon, label, title, busy, disabled, onClick }: { icon: ReactNode; label: string; title: string; busy: boolean; disabled: boolean; onClick: () => void }) {

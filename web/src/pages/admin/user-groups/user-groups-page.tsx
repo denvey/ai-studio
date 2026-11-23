@@ -12,7 +12,6 @@ import { UserGroupEditor } from "./user-group-editor";
 import { formatPoints } from "./user-group-form";
 import { translate } from "@/i18n";
 
-
 /** 用户分组：分组 -> 系统渠道 -> 模型的可见范围、统一折扣和货币兑换积分比例。 */
 export default function UserGroupsPage() {
     const { message } = App.useApp();
@@ -157,7 +156,11 @@ export default function UserGroupsPage() {
                                 icon: <Trash2 className="size-3.5" />,
                                 danger: true,
                                 disabled: group.isDefault || group.userCount > 0,
-                                confirm: { title: translate("adminPages.userGroups.userGroupsPage.deleteGroup2", { v0: String(group.name) }), description: translate("adminPages.userGroups.userGroupsPage.thisCannotBeUndoneTheGroupMustHaveNoUsers"), okText: translate("account.ui.delete.confirm") },
+                                confirm: {
+                                    title: translate("adminPages.userGroups.userGroupsPage.deleteGroup2", { v0: String(group.name) }),
+                                    description: translate("adminPages.userGroups.userGroupsPage.thisCannotBeUndoneTheGroupMustHaveNoUsers"),
+                                    okText: translate("account.ui.delete.confirm"),
+                                },
                                 onClick: () => remove(group),
                             },
                         ]}
@@ -196,7 +199,10 @@ export default function UserGroupsPage() {
                 empty={
                     loadError ? (
                         <div className="admin-inline-load-error" role="status">
-                            <span>{translate("adminPages.userGroups.userGroupsPage.groupDataIsTemporarilyUnavailable")}{loadError}</span>
+                            <span>
+                                {translate("adminPages.userGroups.userGroupsPage.groupDataIsTemporarilyUnavailable")}
+                                {loadError}
+                            </span>
                             <Button size="small" onClick={() => void load()}>
                                 {translate("common.retry")}
                             </Button>

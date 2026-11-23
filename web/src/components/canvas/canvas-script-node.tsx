@@ -176,12 +176,28 @@ export function CanvasScriptNodeContent({
     const canMerge = pipeline.successfulVideoNodeIds.length >= 2 && pipeline.final.success === 0;
     const allRowIds = pipeline.rows.map((item) => item.row.id);
     const moreMenuItems: MenuProps["items"] = [
-        { key: "generate-images", icon: <ImageIcon className="size-3.5" />, label: translate("canvasTools.canvasScriptNode.generateTheMissingStoryboardFrames"), disabled: pipelineDisabled || pipeline.images.incomplete === 0, onClick: () => onGenerateImages(allRowIds) },
-        { key: "generate-videos", icon: <Video className="size-3.5" />, label: translate("canvasTools.canvasScriptNode.generateTheMissingVideos"), disabled: pipelineDisabled || pipeline.videos.incomplete === 0, onClick: () => onGenerateVideos(allRowIds) },
+        {
+            key: "generate-images",
+            icon: <ImageIcon className="size-3.5" />,
+            label: translate("canvasTools.canvasScriptNode.generateTheMissingStoryboardFrames"),
+            disabled: pipelineDisabled || pipeline.images.incomplete === 0,
+            onClick: () => onGenerateImages(allRowIds),
+        },
+        {
+            key: "generate-videos",
+            icon: <Video className="size-3.5" />,
+            label: translate("canvasTools.canvasScriptNode.generateTheMissingVideos"),
+            disabled: pipelineDisabled || pipeline.videos.incomplete === 0,
+            onClick: () => onGenerateVideos(allRowIds),
+        },
         {
             key: "merge",
             icon: <Merge className="size-3.5" />,
-            label: pipeline.final.success ? translate("canvasTools.canvasScriptNode.theCutIsReady") : pipeline.successfulVideoNodeIds.length >= 2 ? translate("canvasTools.canvasScriptNode.mergeClips", { v0: String(pipeline.successfulVideoNodeIds.length) }) : translate("canvasTools.canvasScriptNode.mergeIntoACutNeedsAtLeast2Clips"),
+            label: pipeline.final.success
+                ? translate("canvasTools.canvasScriptNode.theCutIsReady")
+                : pipeline.successfulVideoNodeIds.length >= 2
+                  ? translate("canvasTools.canvasScriptNode.mergeClips", { v0: String(pipeline.successfulVideoNodeIds.length) })
+                  : translate("canvasTools.canvasScriptNode.mergeIntoACutNeedsAtLeast2Clips"),
             disabled: !canMerge,
             onClick: () => onMergeVideos(),
         },
@@ -191,15 +207,37 @@ export function CanvasScriptNodeContent({
             icon: <Film className="size-3.5" />,
             label: translate("canvasTools.canvasScriptNode.videoInputMode"),
             children: [
-                { key: "video-input-direct", icon: videoInputMode === "direct" ? <Check className="size-3.5" /> : <span aria-hidden="true" className="inline-block size-3.5" />, label: translate("canvasTools.canvasScriptNode.generateDirectly"), onClick: () => onVideoInputModeChange("direct") },
-                { key: "video-input-keyframe", icon: videoInputMode === "keyframe" ? <Check className="size-3.5" /> : <span aria-hidden="true" className="inline-block size-3.5" />, label: translate("canvasTools.canvasScriptNode.firstFrameFirst"), onClick: () => onVideoInputModeChange("keyframe") },
+                {
+                    key: "video-input-direct",
+                    icon: videoInputMode === "direct" ? <Check className="size-3.5" /> : <span aria-hidden="true" className="inline-block size-3.5" />,
+                    label: translate("canvasTools.canvasScriptNode.generateDirectly"),
+                    onClick: () => onVideoInputModeChange("direct"),
+                },
+                {
+                    key: "video-input-keyframe",
+                    icon: videoInputMode === "keyframe" ? <Check className="size-3.5" /> : <span aria-hidden="true" className="inline-block size-3.5" />,
+                    label: translate("canvasTools.canvasScriptNode.firstFrameFirst"),
+                    onClick: () => onVideoInputModeChange("keyframe"),
+                },
             ],
         },
         ...(!simpleMode
             ? [
                   { type: "divider" as const },
-                  { key: "create-image-nodes", icon: <Grid3X3 className="size-3.5" />, label: missingImages ? translate("canvasTools.canvasScriptNode.createImageNodes", { v0: String(missingImages) }) : translate("canvasTools.canvasScriptNode.imageNodeCreated"), disabled: pipelineDisabled || missingImages === 0, onClick: () => onCreateImageNodes() },
-                  { key: "create-video-nodes", icon: <Film className="size-3.5" />, label: missingVideos ? translate("canvasTools.canvasScriptNode.createVideoNodes", { v0: String(missingVideos) }) : translate("canvasTools.canvasScriptNode.videoNodeCreated"), disabled: pipelineDisabled || missingVideos === 0, onClick: () => onCreateVideoNodes() },
+                  {
+                      key: "create-image-nodes",
+                      icon: <Grid3X3 className="size-3.5" />,
+                      label: missingImages ? translate("canvasTools.canvasScriptNode.createImageNodes", { v0: String(missingImages) }) : translate("canvasTools.canvasScriptNode.imageNodeCreated"),
+                      disabled: pipelineDisabled || missingImages === 0,
+                      onClick: () => onCreateImageNodes(),
+                  },
+                  {
+                      key: "create-video-nodes",
+                      icon: <Film className="size-3.5" />,
+                      label: missingVideos ? translate("canvasTools.canvasScriptNode.createVideoNodes", { v0: String(missingVideos) }) : translate("canvasTools.canvasScriptNode.videoNodeCreated"),
+                      disabled: pipelineDisabled || missingVideos === 0,
+                      onClick: () => onCreateVideoNodes(),
+                  },
                   { key: "action-boards", icon: <Grid3X3 className="size-3.5" />, label: translate("canvasTools.canvasScriptNode.generateA12PanelActionBreakdown"), disabled: !rows.length || hasActiveBatchItems, onClick: () => onCreateActionBoards() },
               ]
             : []),
@@ -244,7 +282,8 @@ export function CanvasScriptNodeContent({
                     </span>
                 ) : null}
                 <span className="text-[var(--fs-caption)] font-semibold tabular-nums" style={{ color: theme.node.muted }}>
-                    {translate("canvasTools.inline.canvasScriptNode.shotsS", { v0: String(rows.length), v1: String(totalDuration) })}</span>
+                    {translate("canvasTools.inline.canvasScriptNode.shotsS", { v0: String(rows.length), v1: String(totalDuration) })}
+                </span>
                 <Tooltip title={translate("canvasTools.canvasScriptNode.fullScreenEditing")}>
                     <button
                         type="button"
@@ -316,7 +355,10 @@ export function CanvasScriptNodeContent({
                             <div className="flex flex-col items-center justify-center gap-0.5 border-r tabular-nums" style={{ color: theme.node.muted, borderColor: theme.node.stroke }}>
                                 <div className="flex items-center gap-0.5">
                                     <span className="text-sm">{row.shotNumber}</span>
-                                    <Dropdown trigger={["click"]} menu={{ items: [{ key: "delete", label: translate("canvasTools.canvasScriptNode.deleteShot"), icon: <Trash2 className="size-3.5" />, danger: true, disabled: rows.length <= 1, onClick: () => onRemoveRow(row.id) }] }}>
+                                    <Dropdown
+                                        trigger={["click"]}
+                                        menu={{ items: [{ key: "delete", label: translate("canvasTools.canvasScriptNode.deleteShot"), icon: <Trash2 className="size-3.5" />, danger: true, disabled: rows.length <= 1, onClick: () => onRemoveRow(row.id) }] }}
+                                    >
                                         <button
                                             type="button"
                                             className="grid size-5 place-items-center rounded outline-none opacity-45 transition hover:bg-black/5 hover:opacity-100 focus-visible:ring-2 dark:hover:bg-white/10"
@@ -336,7 +378,12 @@ export function CanvasScriptNodeContent({
                                 ) : null}
                             </div>
                             <CompactDurationInput value={row.durationSeconds} borderColor={theme.node.stroke} onChange={(durationSeconds) => onUpdateRow(row.id, { durationSeconds })} />
-                            <CompactInput value={row.videoMotionPrompt} placeholder={translate("canvasTools.canvasScriptNode.describeVideoMotionCameraMovementAndActions")} onChange={(value) => onUpdateRow(row.id, { videoMotionPrompt: value })} borderColor={theme.node.stroke} />
+                            <CompactInput
+                                value={row.videoMotionPrompt}
+                                placeholder={translate("canvasTools.canvasScriptNode.describeVideoMotionCameraMovementAndActions")}
+                                onChange={(value) => onUpdateRow(row.id, { videoMotionPrompt: value })}
+                                borderColor={theme.node.stroke}
+                            />
                             <CompactInput value={row.dialogue} placeholder={translate("canvasTools.canvasScriptNode.dialogueOrVoiceOver")} onChange={(value) => onUpdateRow(row.id, { dialogue: value })} borderColor={theme.node.stroke} />
                             <div className="flex h-full min-w-0 items-center px-3">
                                 <StoryboardAssetsCell bindings={row.assetBindings || []} nodes={nodes} onEdit={() => onEditAssets(row.id)} disabled={node.metadata?.locked} />
@@ -429,7 +476,10 @@ export function CanvasScriptNodeContent({
                             size="small"
                             value={shotCount}
                             disabled={node.metadata?.status === "loading"}
-                            options={[{ value: "auto", label: translate("canvasTools.canvasScriptNode.autoSplit") }, ...Array.from({ length: 10 }, (_, index) => ({ value: String(index + 1) as StoryboardShotCount, label: translate("canvasTools.canvasScriptNode.shots2", { v0: String(index + 1) }) }))]}
+                            options={[
+                                { value: "auto", label: translate("canvasTools.canvasScriptNode.autoSplit") },
+                                ...Array.from({ length: 10 }, (_, index) => ({ value: String(index + 1) as StoryboardShotCount, label: translate("canvasTools.canvasScriptNode.shots2", { v0: String(index + 1) }) })),
+                            ]}
                             popupMatchSelectWidth={false}
                             onChange={onShotCountChange}
                         />
@@ -461,7 +511,15 @@ export function CanvasScriptNodeContent({
                         onClick={submitPrompt}
                     />
                 </div>
-                <RowHandle side="left" top={composerHeight / 2} scale={scale} tone="idle" theme={theme} title={translate("canvasTools.canvasScriptNode.connectATextNodeAsTheProjectSetup")} onPointerDown={(event) => onConnectStart(event, "context", "target")} />
+                <RowHandle
+                    side="left"
+                    top={composerHeight / 2}
+                    scale={scale}
+                    tone="idle"
+                    theme={theme}
+                    title={translate("canvasTools.canvasScriptNode.connectATextNodeAsTheProjectSetup")}
+                    onPointerDown={(event) => onConnectStart(event, "context", "target")}
+                />
             </div>
             {rows.map((row, index) => {
                 const top = STORYBOARD_HEADER_HEIGHT + index * STORYBOARD_ROW_HEIGHT + STORYBOARD_ROW_HEIGHT / 2 - scrollTop;

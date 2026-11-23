@@ -6,7 +6,6 @@ import { http } from "@/services/api/request";
 import { buildApiUrl, type AiConfig, type ModelChannel } from "@/stores/use-config-store";
 import { translate } from "@/i18n";
 
-
 const defaultGeminiConfig: Pick<AiConfig, "baseUrl" | "apiKey" | "apiFormat" | "model" | "systemPrompt"> = {
     baseUrl: "https://generativelanguage.googleapis.com",
     apiKey: "",

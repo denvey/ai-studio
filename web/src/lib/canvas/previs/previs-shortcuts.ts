@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 /**
  * 预演台键盘快捷键解析。

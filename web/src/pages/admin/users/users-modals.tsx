@@ -7,7 +7,6 @@ import { createAdminUser, updateAdminUser, type AdminUser, type LocalUser } from
 import { DEFAULT_USER_GROUP_CODE, formatRatioBasisPoints, userGroupCode, type UserGroup } from "@/services/api/user-groups";
 import { translate } from "@/i18n";
 
-
 type UserFormValues = Pick<LocalUser, "displayName" | "email" | "role" | "status"> & { password?: string; isPromoter: boolean; userGroup: string };
 
 function userGroupOptions(groups: UserGroup[]) {
@@ -103,10 +102,20 @@ export function AdminUserEditModal({ user, actorId, groups, onClose, onSaved }: 
                 <Form.Item name="email" label={translate("auth.verification.email")} rules={[{ type: "email", message: translate("adminPages.users.usersModals.enterAValidEmail") }]}>
                     <Input placeholder="name@example.com" />
                 </Form.Item>
-                <Form.Item className="is-wide" name="password" label={translate("auth.recovery.submit")} extra={translate("adminPages.users.usersModals.leaveBlankToKeepThePasswordSavingInvalidatesThisUser")} rules={[{ min: 8, message: translate("adminPages.users.usersModals.passwordMustBeAtLeast8Characters") }]}>
+                <Form.Item
+                    className="is-wide"
+                    name="password"
+                    label={translate("auth.recovery.submit")}
+                    extra={translate("adminPages.users.usersModals.leaveBlankToKeepThePasswordSavingInvalidatesThisUser")}
+                    rules={[{ min: 8, message: translate("adminPages.users.usersModals.passwordMustBeAtLeast8Characters") }]}
+                >
                     <Input.Password placeholder={translate("adminPages.users.usersModals.enterANewPasswordToResetManually")} autoComplete="new-password" />
                 </Form.Item>
-                <Form.Item name="role" label={translate("account.welcome.chapters.world.label")} extra={editingSelf ? translate("adminPages.users.usersModals.youCannotChangeYourOwnAdminRoleHere") : translate("adminPages.users.usersModals.roleChangesTakeEffectOnAdminAccessImmediately")}>
+                <Form.Item
+                    name="role"
+                    label={translate("account.welcome.chapters.world.label")}
+                    extra={editingSelf ? translate("adminPages.users.usersModals.youCannotChangeYourOwnAdminRoleHere") : translate("adminPages.users.usersModals.roleChangesTakeEffectOnAdminAccessImmediately")}
+                >
                     <Select
                         disabled={editingSelf}
                         options={[
@@ -115,7 +124,11 @@ export function AdminUserEditModal({ user, actorId, groups, onClose, onSaved }: 
                         ]}
                     />
                 </Form.Item>
-                <Form.Item name="status" label={translate("adminPages.users.usersModals.accountStatus")} extra={editingSelf ? translate("adminPages.users.usersModals.youCannotDeactivateTheAccountYouAreSignedInWith") : translate("adminPages.users.usersModals.deactivatingClearsTheSignInSessionButKeepsTheIdentity")}>
+                <Form.Item
+                    name="status"
+                    label={translate("adminPages.users.usersModals.accountStatus")}
+                    extra={editingSelf ? translate("adminPages.users.usersModals.youCannotDeactivateTheAccountYouAreSignedInWith") : translate("adminPages.users.usersModals.deactivatingClearsTheSignInSessionButKeepsTheIdentity")}
+                >
                     <Select
                         disabled={editingSelf}
                         options={[

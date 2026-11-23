@@ -14,7 +14,6 @@ import { CUSTOM_ID_PREFIX, isCustomInspiration, type InspirationOverride } from 
 import { localForageStorageForScope } from "@/lib/localforage-storage";
 import { translate } from "@/i18n";
 
-
 export const INSPIRATION_STORE_KEY = "open_ai_canvas:inspirations";
 /** 导入导出文件的格式版本，字段变化时递增并在这里做迁移。 */
 export const INSPIRATION_PAYLOAD_VERSION = 1;

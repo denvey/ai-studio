@@ -3,7 +3,6 @@ import { createCanvasProjectWithRemoteSync, loadAssetsForUse, localSavedRemotePe
 import { useCanvasStore } from "@/stores/canvas/use-canvas-store";
 import { translate } from "@/i18n";
 
-
 // 短剧 ↔ 精修画布的副作用：找到或新建作品的精修画布、拼跳转地址、为投送的媒体登记素材记录。
 
 export const DRAMA_CANVAS_PARAM = "drama";

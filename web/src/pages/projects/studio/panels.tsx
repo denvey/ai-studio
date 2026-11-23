@@ -40,7 +40,6 @@ import { CastLooks } from "./cast-looks";
 import { translate } from "@/i18n";
 import { dramaStyleDisplayName } from "../style-copy";
 
-
 // 制作台的三个整页视图：设定（角色 / 道具 / 场景）、待处理、制作设置。都在主区域内展示，不使用抽屉遮挡。
 
 // ===== 设定 =====
@@ -272,7 +271,12 @@ function CastEditor({ projectId, cast, looks, ratios, onChanged, onOpenCanvas, c
     const [libraryOpen, setLibraryOpen] = useState(false);
     const imageAdopted = (result: Awaited<ReturnType<typeof setDramaCastImage>>) => {
         if (result.unchanged) message.info(translate("drama.studio.panels.thisImageIsAlreadyInUse"));
-        else message.success(result.affectedSegments ? translate("drama.studio.panels.appearanceReplacedAndLockedSegmentVideosNeedRegeneration", { v0: String(result.affectedSegments) }) : translate("drama.studio.panels.appearanceReplacedAndLockedFutureSegmentVideosWillUseThis"));
+        else
+            message.success(
+                result.affectedSegments
+                    ? translate("drama.studio.panels.appearanceReplacedAndLockedSegmentVideosNeedRegeneration", { v0: String(result.affectedSegments) })
+                    : translate("drama.studio.panels.appearanceReplacedAndLockedFutureSegmentVideosWillUseThis"),
+            );
         onChanged();
     };
     const upload = useMutation({
@@ -293,7 +297,13 @@ function CastEditor({ projectId, cast, looks, ratios, onChanged, onOpenCanvas, c
             <div className="drama-cast-hero" style={castRatio(cast.kind, ratios).style}>
                 {cast.imageResourceId ? <MediaThumb resourceId={cast.imageResourceId} alt={cast.name} loading={castImageLoading} failed={castImageFailed} /> : null}
                 {cast.imageResourceId ? (
-                    <button type="button" className="drama-cast-hero-zoom" aria-label={translate("drama.studio.panels.enlargeTheReferenceImageFor", { v0: String(cast.name) })} title={translate("drama.studio.panels.clickToEnlarge")} onClick={() => setPreviewing(true)}>
+                    <button
+                        type="button"
+                        className="drama-cast-hero-zoom"
+                        aria-label={translate("drama.studio.panels.enlargeTheReferenceImageFor", { v0: String(cast.name) })}
+                        title={translate("drama.studio.panels.clickToEnlarge")}
+                        onClick={() => setPreviewing(true)}
+                    >
                         <span className="drama-cast-hero-zoom-hint" aria-hidden="true">
                             <Maximize2 className="size-3.5" />
                         </span>
@@ -315,7 +325,10 @@ function CastEditor({ projectId, cast, looks, ratios, onChanged, onOpenCanvas, c
                 ) : null}
             </div>
             <div className="drama-editor-row">
-                <span className="drama-eyebrow">{kindLabel}{translate("drama.studio.panels.designs")}</span>
+                <span className="drama-eyebrow">
+                    {kindLabel}
+                    {translate("drama.studio.panels.designs")}
+                </span>
                 <label className="drama-switch-label">
                     <Lock className="size-3.5" />
                     {translate("drama.studio.panels.lockAppearance")}
@@ -327,7 +340,17 @@ function CastEditor({ projectId, cast, looks, ratios, onChanged, onOpenCanvas, c
             </Field>
             {isCharacter ? (
                 <Field label={translate("drama.studio.panels.aliasesAndFormsOfAddress")} hint={translate("drama.studio.panels.theseNamesInTheScriptAllReferToThisCharacter")}>
-                    <Select mode="tags" className="w-full" value={aliases} onChange={setAliases} tokenSeparators={[",", "，", "、"]} placeholder={translate("library.assets.batch.tagsPlaceholder")} open={false} suffixIcon={null} aria-label={translate("drama.studio.panels.aliasesAndFormsOfAddress")} />
+                    <Select
+                        mode="tags"
+                        className="w-full"
+                        value={aliases}
+                        onChange={setAliases}
+                        tokenSeparators={[",", "，", "、"]}
+                        placeholder={translate("library.assets.batch.tagsPlaceholder")}
+                        open={false}
+                        suffixIcon={null}
+                        aria-label={translate("drama.studio.panels.aliasesAndFormsOfAddress")}
+                    />
                 </Field>
             ) : null}
             <Field label={APPEARANCE_LABEL[cast.kind]} hint={translate("drama.studio.panels.usedForReferencesAndSegmentVideoPrompts")}>
@@ -335,7 +358,12 @@ function CastEditor({ projectId, cast, looks, ratios, onChanged, onOpenCanvas, c
             </Field>
             {isCharacter ? (
                 <Field label={translate("drama.studio.panels.voice")} hint={translate("drama.studio.panels.includedInVideoPromptsToGuideTheVideoModelS")}>
-                    <Input value={voiceInstructions} placeholder={translate("drama.studio.panels.youngDeterminedVoiceWithAFairlyFastPace")} onChange={(event) => setVoiceInstructions(event.target.value)} aria-label={translate("drama.studio.panels.voice")} />
+                    <Input
+                        value={voiceInstructions}
+                        placeholder={translate("drama.studio.panels.youngDeterminedVoiceWithAFairlyFastPace")}
+                        onChange={(event) => setVoiceInstructions(event.target.value)}
+                        aria-label={translate("drama.studio.panels.voice")}
+                    />
                 </Field>
             ) : null}
             {isCharacter ? (
@@ -387,7 +415,13 @@ function CastEditor({ projectId, cast, looks, ratios, onChanged, onOpenCanvas, c
                     }}
                 />
                 <Button type="primary" className="drama-editor-wide" icon={<RefreshCw className="size-4" />} disabled={cast.locked || mediaBusy(cast.imageStatus)} loading={regenerate.isPending} onClick={() => regenerate.mutate()}>
-                    {cast.imageResourceId ? (dirty ? translate("drama.studio.panels.saveAndRegenerate") : translate("drama.studio.panels.regenerate")) : dirty ? translate("drama.studio.panels.saveAndGenerateReference") : translate("drama.studio.panels.generateReferenceImage")}
+                    {cast.imageResourceId
+                        ? dirty
+                            ? translate("drama.studio.panels.saveAndRegenerate")
+                            : translate("drama.studio.panels.regenerate")
+                        : dirty
+                          ? translate("drama.studio.panels.saveAndGenerateReference")
+                          : translate("drama.studio.panels.generateReferenceImage")}
                 </Button>
                 <Button className="drama-editor-wide" icon={<Brush className="size-4" />} loading={canvasOpening} onClick={onOpenCanvas}>
                     {translate("drama.studio.panels.refineOnCanvas")}
@@ -395,7 +429,9 @@ function CastEditor({ projectId, cast, looks, ratios, onChanged, onOpenCanvas, c
             </div>
             <p className="drama-editor-note">{translate("drama.studio.panels.previousVersionsRemainInVersionHistoryLockedReferenceImagesWill")}</p>
             <DramaTakeList projectId={projectId} ownerId={cast.id} kind="cast" />
-            {previewing && cast.imageResourceId ? <CanvasImagePreview storageKey={`resource:${cast.imageResourceId}`} alt={translate("drama.studio.panels.referenceImage", { v0: String(cast.name), v1: String(kindLabel) })} onClose={() => setPreviewing(false)} /> : null}
+            {previewing && cast.imageResourceId ? (
+                <CanvasImagePreview storageKey={`resource:${cast.imageResourceId}`} alt={translate("drama.studio.panels.referenceImage", { v0: String(cast.name), v1: String(kindLabel) })} onClose={() => setPreviewing(false)} />
+            ) : null}
         </div>
     );
 }
@@ -512,7 +548,9 @@ export function InboxPanel({
                                     {reviews} {translate("drama.studio.panels.episodesAwaitingReview")}
                                 </span>
                             ) : null}
-                            <span>{translate("drama.studio.panels.total")} {groups.length} {translate("drama.studio.panels.categories")}</span>
+                            <span>
+                                {translate("drama.studio.panels.total")} {groups.length} {translate("drama.studio.panels.categories")}
+                            </span>
                         </div>
                     ) : null}
                     {failures ? (
@@ -553,7 +591,8 @@ export function InboxPanel({
                                                 ) : null}
                                                 {retryable ? (
                                                     <Button size="small" icon={<RotateCcw className="size-3.5" />} loading={retryingGroup === group.key} onClick={() => onRetryGroup(group.key, group.items)}>
-                                                        {translate("common.retry")}{group.items.length > 1 ? translate("drama.studio.panels.items2", { v0: String(group.items.length) }) : ""}
+                                                        {translate("common.retry")}
+                                                        {group.items.length > 1 ? translate("drama.studio.panels.items2", { v0: String(group.items.length) }) : ""}
                                                     </Button>
                                                 ) : null}
                                                 {group.items.length === 1 && group.kind !== "paused" && group.kind !== "media_ready" ? (
@@ -575,7 +614,11 @@ export function InboxPanel({
                                                 {group.items.slice(0, CHIP_LIMIT).map((item) => (
                                                     <InboxChip key={item.id} item={item} cast={item.castId ? castById.get(item.castId) : undefined} onOpen={onOpen} />
                                                 ))}
-                                                {group.items.length > CHIP_LIMIT ? <span className="drama-inbox-more">{translate("drama.studio.panels.also")} {group.items.length - CHIP_LIMIT} {translate("library.picker.itemUnit")}</span> : null}
+                                                {group.items.length > CHIP_LIMIT ? (
+                                                    <span className="drama-inbox-more">
+                                                        {translate("drama.studio.panels.also")} {group.items.length - CHIP_LIMIT} {translate("library.picker.itemUnit")}
+                                                    </span>
+                                                ) : null}
                                             </div>
                                         ) : null}
                                     </article>
@@ -607,7 +650,8 @@ function InboxChip({ item, cast, onOpen }: { item: DramaInboxItem; cast?: DramaC
     } else if (item.kind === "segment_failed") {
         content = (
             <>
-                {item.media ? MEDIA_ICON[item.media] : null}{translate("drama.sentences.episodeSegment", { episode: item.episodeNumber, segment: item.segmentIndex + 1 })}
+                {item.media ? MEDIA_ICON[item.media] : null}
+                {translate("drama.sentences.episodeSegment", { episode: item.episodeNumber, segment: item.segmentIndex + 1 })}
             </>
         );
     } else if (item.kind === "review") {
@@ -663,7 +707,14 @@ export function SettingsPanel({ projectId, summary, cast, onChanged }: { project
     const regenerateAll = useMutation({
         mutationFn: (kind: DramaCastKind) => regenerateDramaCasts(projectId, kind, restyleSegments),
         onSuccess: (result, kind) => {
-            message.success(translate("drama.studio.panels.recreatedReferenceImagesWithTheCurrentScheme", { v0: String(result.queued), v1: String(CAST_KIND_LABEL[kind]), v2: String(result.skipped ? translate("drama.studio.panels.areLockedOrAlreadyGenerating", { v0: String(result.skipped) }) : ""), v3: String(result.affectedSegments ? translate("drama.studio.panels.segmentsNeedRegeneration", { v0: String(result.affectedSegments) }) : "") }));
+            message.success(
+                translate("drama.studio.panels.recreatedReferenceImagesWithTheCurrentScheme", {
+                    v0: String(result.queued),
+                    v1: String(CAST_KIND_LABEL[kind]),
+                    v2: String(result.skipped ? translate("drama.studio.panels.areLockedOrAlreadyGenerating", { v0: String(result.skipped) }) : ""),
+                    v3: String(result.affectedSegments ? translate("drama.studio.panels.segmentsNeedRegeneration", { v0: String(result.affectedSegments) }) : ""),
+                }),
+            );
             onChanged();
         },
         onError: (error) => message.error(error instanceof Error ? error.message : translate("library.tasks.page.actionFailed")),
@@ -745,7 +796,9 @@ export function SettingsPanel({ projectId, summary, cast, onChanged }: { project
                                     <div>
                                         <strong>{translate("drama.studio.panels.recreateExistingReferencesWithTheCurrentScheme")}</strong>
                                         <span>
-                                            {CAST_KINDS.map((kind) => translate("drama.sentences.referenceTypeCount", { count: countOf(kind), kind: CAST_KIND_LABEL[kind] })).join(" · ")}{translate("drama.studio.panels.lockedDesignsWillStayUnchanged")}{dirty ? translate("drama.studio.panels.saveTheSettingsFirst") : ""}
+                                            {CAST_KINDS.map((kind) => translate("drama.sentences.referenceTypeCount", { count: countOf(kind), kind: CAST_KIND_LABEL[kind] })).join(" · ")}
+                                            {translate("drama.studio.panels.lockedDesignsWillStayUnchanged")}
+                                            {dirty ? translate("drama.studio.panels.saveTheSettingsFirst") : ""}
                                         </span>
                                     </div>
                                     <Checkbox checked={restyleSegments} onChange={(event) => setRestyleSegments(event.target.checked)}>
@@ -759,7 +812,9 @@ export function SettingsPanel({ projectId, summary, cast, onChanged }: { project
                                             onClick={() =>
                                                 modal.confirm({
                                                     title: translate("drama.studio.panels.recreateReferenceImagesWithTheCurrentScheme", { v0: String(countOf(kind)), v1: String(CAST_KIND_LABEL[kind]) }),
-                                                    content: translate("drama.studio.panels.everyReferenceImageWillBeRegeneratedAndChargedPreviousVersions", { v0: String(restyleSegments ? translate("drama.studio.panels.andCompletedSegmentVideosReferencingThemWillNeedRegeneration") : "") }),
+                                                    content: translate("drama.studio.panels.everyReferenceImageWillBeRegeneratedAndChargedPreviousVersions", {
+                                                        v0: String(restyleSegments ? translate("drama.studio.panels.andCompletedSegmentVideosReferencingThemWillNeedRegeneration") : ""),
+                                                    }),
                                                     okText: translate("drama.studio.panels.recreate"),
                                                     cancelText: translate("common.cancel"),
                                                     centered: true,
@@ -767,7 +822,8 @@ export function SettingsPanel({ projectId, summary, cast, onChanged }: { project
                                                 })
                                             }
                                         >
-                                            {translate("drama.studio.panels.redo")}{CAST_KIND_LABEL[kind]}
+                                            {translate("drama.studio.panels.redo")}
+                                            {CAST_KIND_LABEL[kind]}
                                         </Button>
                                     ))}
                                 </div>
@@ -831,7 +887,10 @@ export function SettingsPanel({ projectId, summary, cast, onChanged }: { project
                                 />
                             </section>
                             <section className="drama-cfg-card">
-                                <SettingsTitle title={translate("drama.studio.panels.generationMode")} detail={settings.mediaMode === "manual" ? translate("drama.studio.panels.episodesAwaitingVideoGeneration", { v0: String(summary.episodes.filter((episode) => episode.awaitingMedia).length) }) : undefined} />
+                                <SettingsTitle
+                                    title={translate("drama.studio.panels.generationMode")}
+                                    detail={settings.mediaMode === "manual" ? translate("drama.studio.panels.episodesAwaitingVideoGeneration", { v0: String(summary.episodes.filter((episode) => episode.awaitingMedia).length) }) : undefined}
+                                />
                                 <CompactRadios
                                     label={translate("drama.studio.panels.generationMode")}
                                     value={settings.mediaMode}
@@ -863,7 +922,16 @@ export function SettingsPanel({ projectId, summary, cast, onChanged }: { project
                             </section>
                             <section className="drama-cfg-card">
                                 <SettingsTitle title={translate("drama.studio.panels.maximumReferencesPerSegment")} detail={translate("drama.studio.panels.limitForAutomaticReferenceSelectionPrioritizingCharacters0UsesThe")} />
-                                <InputNumber className="!w-full" min={0} max={20} precision={0} value={settings.referenceLimit || 0} onChange={(value) => setSettings({ ...settings, referenceLimit: value || 0 })} suffix={translate("canvasA.characterLibrary.pageItem")} aria-label={translate("drama.studio.panels.maximumReferencesPerSegment")} />
+                                <InputNumber
+                                    className="!w-full"
+                                    min={0}
+                                    max={20}
+                                    precision={0}
+                                    value={settings.referenceLimit || 0}
+                                    onChange={(value) => setSettings({ ...settings, referenceLimit: value || 0 })}
+                                    suffix={translate("canvasA.characterLibrary.pageItem")}
+                                    aria-label={translate("drama.studio.panels.maximumReferencesPerSegment")}
+                                />
                                 <p className="drama-cfg-note">{translate("drama.studio.panels.designsBeyondThisLimitUseTextDescriptionsWithoutImagesTo")}</p>
                             </section>
                             <section className="drama-cfg-card">
@@ -876,12 +944,13 @@ export function SettingsPanel({ projectId, summary, cast, onChanged }: { project
                                     <span>
                                         {translate("drama.studio.panels.spent")} <b>{formatCredits(spent)}</b>
                                         {held > 0 ? translate("drama.studio.panels.reserved", { v0: String(formatCredits(held)) }) : ""}
-                                        {budgetMicro ? ` / ${formatCredits(budgetMicro)}` : (" " + translate("drama.studio.panels.unlimitedBudget"))}
+                                        {budgetMicro ? ` / ${formatCredits(budgetMicro)}` : " " + translate("drama.studio.panels.unlimitedBudget")}
                                     </span>
                                 </div>
                                 {summary.production.canvasSpentMicrocredits > 0 ? (
                                     <p className="drama-cfg-note">
-                                        {translate("drama.studio.panels.ofWhichPipeline")} {formatCredits(Math.max(0, spent - summary.production.canvasSpentMicrocredits))}{translate("drama.studio.panels.refinementCanvas")} {formatCredits(summary.production.canvasSpentMicrocredits)}。
+                                        {translate("drama.studio.panels.ofWhichPipeline")} {formatCredits(Math.max(0, spent - summary.production.canvasSpentMicrocredits))}
+                                        {translate("drama.studio.panels.refinementCanvas")} {formatCredits(summary.production.canvasSpentMicrocredits)}。
                                     </p>
                                 ) : null}
                             </section>
@@ -908,13 +977,30 @@ function EpisodeModeCard({ summary, settings, onChange }: { summary: DramaSummar
     const editable = novel && !production.planDone;
     const mode = settings.episodeMode || (production.planDone ? undefined : "auto");
     const perEpisode = settings.chaptersPerEpisode || 1;
-    const current = !novel ? translate("drama.studio.panels.oneChapterPerEpisodeScriptsAndStoryboardsUseHeadings") : settings.episodeMode === "chapter" ? (perEpisode > 1 ? translate("drama.studio.panels.chapterBasedChaptersPerEpisode", { v0: String(perEpisode) }) : translate("drama.studio.panels.chapterBasedOneChapterPerEpisode")) : settings.episodeMode === "auto" ? translate("drama.studio.panels.automaticEpisodeSplitting") : translate("drama.studio.panels.episodesPlanned");
+    const current = !novel
+        ? translate("drama.studio.panels.oneChapterPerEpisodeScriptsAndStoryboardsUseHeadings")
+        : settings.episodeMode === "chapter"
+          ? perEpisode > 1
+              ? translate("drama.studio.panels.chapterBasedChaptersPerEpisode", { v0: String(perEpisode) })
+              : translate("drama.studio.panels.chapterBasedOneChapterPerEpisode")
+          : settings.episodeMode === "auto"
+            ? translate("drama.studio.panels.automaticEpisodeSplitting")
+            : translate("drama.studio.panels.episodesPlanned");
     return (
         <section className="drama-cfg-card">
-            <SettingsTitle title={translate("drama.studio.panels.episodeGrouping")} detail={editable ? translate("drama.studio.panels.onlyAffectsUnplannedChaptersAppliesOnTheNextSchedulingCycle") : translate("drama.studio.panels.episodePlanningIsCompleteAndCannotChangeAddNewEpisodes")} icon={<Film className="size-4" />} />
+            <SettingsTitle
+                title={translate("drama.studio.panels.episodeGrouping")}
+                detail={editable ? translate("drama.studio.panels.onlyAffectsUnplannedChaptersAppliesOnTheNextSchedulingCycle") : translate("drama.studio.panels.episodePlanningIsCompleteAndCannotChangeAddNewEpisodes")}
+                icon={<Film className="size-4" />}
+            />
             {editable ? (
                 <div className="grid gap-3">
-                    <CompactRadios label={translate("drama.studio.panels.episodeGrouping")} value={mode || "auto"} options={EPISODE_MODE_OPTIONS} onChange={(value) => onChange({ episodeMode: value, chaptersPerEpisode: value === "chapter" ? perEpisode : undefined })} />
+                    <CompactRadios
+                        label={translate("drama.studio.panels.episodeGrouping")}
+                        value={mode || "auto"}
+                        options={EPISODE_MODE_OPTIONS}
+                        onChange={(value) => onChange({ episodeMode: value, chaptersPerEpisode: value === "chapter" ? perEpisode : undefined })}
+                    />
                     {mode === "chapter" ? <EpisodeGroupField value={perEpisode} onChange={(value) => onChange({ episodeMode: "chapter", chaptersPerEpisode: value })} chapterCount={Math.max(0, production.chapterCount - production.planCursor)} /> : null}
                     {production.planCursor > 0 ? (
                         <p className="drama-cfg-note">

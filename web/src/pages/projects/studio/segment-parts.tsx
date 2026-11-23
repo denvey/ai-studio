@@ -25,7 +25,8 @@ export function segmentState(segment: DramaSegment): { tone: SegmentTone; label:
     const writing = segment.promptStatus === "queued" || segment.promptStatus === "running";
     if (segment.promptStatus === "failed") return { tone: "failed", label: translate("drama.studio.segmentParts.promptWritingFailed") };
     // 视频已入库但尾帧等后处理失败：视频本身可看，重试只重新处理已有视频。
-    if (segment.videoStatus === "failed") return segment.videoReprocessable ? { tone: "failed", label: translate("drama.studio.segmentParts.videoPostProcessingFailed") } : { tone: "failed", label: translate("drama.studio.segmentParts.videoGenerationFailed") };
+    if (segment.videoStatus === "failed")
+        return segment.videoReprocessable ? { tone: "failed", label: translate("drama.studio.segmentParts.videoPostProcessingFailed") } : { tone: "failed", label: translate("drama.studio.segmentParts.videoGenerationFailed") };
     // 撰写作业已排队但还没提交（同时生成数或账号上限已满）：显示真实原因，不冒充“撰写中”。
     if (writing && segment.promptJob?.status === "queued" && segment.promptJob.wait) return { tone: "blocked", label: videoWaitLabel(segment.promptJob.wait), detail: segment.promptJob.wait };
     if (writing) return { tone: "busy", label: translate("drama.studio.segmentParts.writingPrompt") };
@@ -79,7 +80,9 @@ export function SegmentVideo({ segment, aspectRatio, className = "" }: { segment
                 <span className={`drama-sg-video-empty ${state.tone === "busy" ? "is-busy" : ""}`}>
                     <Film className="size-5" aria-hidden />
                     <span>{state.label}</span>
-                    <small>{secondsLabel(segment.durationMs)} {translate("drama.studio.segmentParts.dialogueAndSoundEffectsAreGeneratedByTheVideoModel")}</small>
+                    <small>
+                        {secondsLabel(segment.durationMs)} {translate("drama.studio.segmentParts.dialogueAndSoundEffectsAreGeneratedByTheVideoModel")}
+                    </small>
                 </span>
             )}
         </div>
@@ -106,16 +109,37 @@ export function SegmentInputs({ segment, castById, compact = false, frameOnly = 
     const first = segment.index === 0 && !request.firstFrameResourceId && !request.firstFramePending;
     return (
         <div className={`drama-sg-inputs ${compact ? "is-compact" : ""}`}>
-            <Tooltip title={translate("drama.studio.segmentParts.firstFrame", { v0: String(first ? translate("drama.studio.segmentParts.openingSegmentGeneratedFromPromptAndReferences") : request.firstFrameResourceId ? translate("drama.studio.segmentParts.lastFrameOfSegmentVideo", { v0: String(segment.index) }) : translate("drama.studio.segmentParts.useTheLastFrameOnceSegmentVideoIsReady", { v0: String(segment.index) })) })} mouseEnterDelay={0.3}>
+            <Tooltip
+                title={translate("drama.studio.segmentParts.firstFrame", {
+                    v0: String(
+                        first
+                            ? translate("drama.studio.segmentParts.openingSegmentGeneratedFromPromptAndReferences")
+                            : request.firstFrameResourceId
+                              ? translate("drama.studio.segmentParts.lastFrameOfSegmentVideo", { v0: String(segment.index) })
+                              : translate("drama.studio.segmentParts.useTheLastFrameOnceSegmentVideoIsReady", { v0: String(segment.index) }),
+                    ),
+                })}
+                mouseEnterDelay={0.3}
+            >
                 <div className="drama-sg-input is-frame">
                     <span className="drama-sg-thumb is-frame">
-                        {request.firstFrameResourceId ? <MediaThumb resourceId={request.firstFrameResourceId} alt={translate("drama.studio.segmentParts.lastFrameOfPreviousSegment")} /> : <span className="drama-sg-thumb-empty">{first ? translate("drama.studio.segmentParts.opening") : translate("drama.studio.segmentParts.waiting")}</span>}
+                        {request.firstFrameResourceId ? (
+                            <MediaThumb resourceId={request.firstFrameResourceId} alt={translate("drama.studio.segmentParts.lastFrameOfPreviousSegment")} />
+                        ) : (
+                            <span className="drama-sg-thumb-empty">{first ? translate("drama.studio.segmentParts.opening") : translate("drama.studio.segmentParts.waiting")}</span>
+                        )}
                         <em>{translate("canvasC.videoPromptTools.startFrame")}</em>
                     </span>
                     {compact ? null : (
                         <span className="drama-sg-input-text">
                             <b>{translate("canvasC.videoPromptTools.startFrame")}</b>
-                            <small>{first ? translate("drama.studio.segmentParts.openingSegmentGeneratedFromThePrompt") : request.firstFrameResourceId ? translate("drama.studio.segmentParts.lastFrameOfSegment", { v0: String(segment.index) }) : translate("drama.studio.segmentParts.waitingForSegmentVideo", { v0: String(segment.index) })}</small>
+                            <small>
+                                {first
+                                    ? translate("drama.studio.segmentParts.openingSegmentGeneratedFromThePrompt")
+                                    : request.firstFrameResourceId
+                                      ? translate("drama.studio.segmentParts.lastFrameOfSegment", { v0: String(segment.index) })
+                                      : translate("drama.studio.segmentParts.waitingForSegmentVideo", { v0: String(segment.index) })}
+                            </small>
                         </span>
                     )}
                 </div>
@@ -140,7 +164,11 @@ export function SegmentInputs({ segment, castById, compact = false, frameOnly = 
                     </>
                 );
                 return (
-                    <Tooltip key={ref.castId || ref.resourceId} title={`${ref.label} · ${CAST_KIND_LABEL[ref.kind]} · ${ref.name}${ref.sent ? "" : translate("drama.studio.segmentParts.imageNotAttachedGeneratedFromTextDesign", { v0: String(reason) })}`} mouseEnterDelay={0.3}>
+                    <Tooltip
+                        key={ref.castId || ref.resourceId}
+                        title={`${ref.label} · ${CAST_KIND_LABEL[ref.kind]} · ${ref.name}${ref.sent ? "" : translate("drama.studio.segmentParts.imageNotAttachedGeneratedFromTextDesign", { v0: String(reason) })}`}
+                        mouseEnterDelay={0.3}
+                    >
                         {onOpenCast && ref.castId ? (
                             <button type="button" className={`drama-sg-input ${ref.sent ? "" : "is-missing"}`} onClick={() => onOpenCast(ref.castId)}>
                                 {body}

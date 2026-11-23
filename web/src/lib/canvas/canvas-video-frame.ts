@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 const VIDEO_FRAME_TIMEOUT_MS = 20_000;
 const LAST_FRAME_EPSILON_MS = 1;

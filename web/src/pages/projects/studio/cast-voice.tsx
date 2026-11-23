@@ -66,7 +66,11 @@ export function CastVoicePreview({ resourceId, name }: { resourceId?: string; na
             type="button"
             className="drama-voice-preview"
             disabled={!resourceId}
-            aria-label={resourceId ? translate("drama.studio.castVoice.audioFor", { v0: String(player.playing ? translate("canvasA.outbox.pause") : translate("settings.preferences.previewSound")), v1: String(name) }) : translate("drama.studio.castVoice.hasNoAudio", { v0: String(name) })}
+            aria-label={
+                resourceId
+                    ? translate("drama.studio.castVoice.audioFor", { v0: String(player.playing ? translate("canvasA.outbox.pause") : translate("settings.preferences.previewSound")), v1: String(name) })
+                    : translate("drama.studio.castVoice.hasNoAudio", { v0: String(name) })
+            }
             onClick={(event) => {
                 event.stopPropagation();
                 void player.toggle();
@@ -143,11 +147,23 @@ export function CastVoiceField({ projectId, cast, restyle, onChanged }: { projec
     return (
         <div className="drama-voice">
             <div className="drama-voice-current">
-                <button type="button" className="drama-voice-play" disabled={!sampleId} aria-label={sampleId ? translate("drama.studio.castVoice.voiceFor", { v0: String(player.playing ? translate("canvasA.outbox.pause") : translate("settings.preferences.previewSound")), v1: String(cast.name) }) : translate("drama.studio.castVoice.noVoiceSampleSelected")} onClick={() => void player.toggle()}>
+                <button
+                    type="button"
+                    className="drama-voice-play"
+                    disabled={!sampleId}
+                    aria-label={
+                        sampleId
+                            ? translate("drama.studio.castVoice.voiceFor", { v0: String(player.playing ? translate("canvasA.outbox.pause") : translate("settings.preferences.previewSound")), v1: String(cast.name) })
+                            : translate("drama.studio.castVoice.noVoiceSampleSelected")
+                    }
+                    onClick={() => void player.toggle()}
+                >
                     {player.playing ? <Pause className="size-3.5" /> : sampleId ? <Play className="size-3.5" /> : <Mic className="size-3.5" />}
                 </button>
                 <span className="min-w-0 flex-1 truncate">{sampleId ? current?.name || translate("drama.studio.castVoice.voiceSampleSelected") : translate("drama.studio.castVoice.noVoiceSampleSelectedGenerateFromTheVoiceDescription")}</span>
-                {sampleId ? <Button size="small" type="text" icon={<X className="size-3.5" />} loading={clear.isPending} disabled={busy && !clear.isPending} aria-label={translate("drama.studio.castVoice.clearCharacterVoice")} onClick={() => clear.mutate()} /> : null}
+                {sampleId ? (
+                    <Button size="small" type="text" icon={<X className="size-3.5" />} loading={clear.isPending} disabled={busy && !clear.isPending} aria-label={translate("drama.studio.castVoice.clearCharacterVoice")} onClick={() => clear.mutate()} />
+                ) : null}
             </div>
             {recording ? (
                 <div className="drama-voice-recording" role="status">
@@ -167,7 +183,13 @@ export function CastVoiceField({ projectId, cast, restyle, onChanged }: { projec
                         size="small"
                         className="min-w-0 flex-1"
                         value={current?.id ?? null}
-                        placeholder={profilesQuery.isLoading ? translate("drama.studio.castVoice.loadingVoiceLibrary") : profiles.length ? translate("drama.studio.castVoice.chooseFromVoiceLibrary") : translate("drama.studio.castVoice.noSamplesInTheVoiceLibraryYet")}
+                        placeholder={
+                            profilesQuery.isLoading
+                                ? translate("drama.studio.castVoice.loadingVoiceLibrary")
+                                : profiles.length
+                                  ? translate("drama.studio.castVoice.chooseFromVoiceLibrary")
+                                  : translate("drama.studio.castVoice.noSamplesInTheVoiceLibraryYet")
+                        }
                         options={profiles.map((profile) => ({ value: profile.id, label: profile.name }))}
                         disabled={busy || !profiles.length}
                         showSearch

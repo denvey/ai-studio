@@ -233,7 +233,11 @@ export default function EmailSettingsPanel() {
                         <MailCheck className="size-4" aria-hidden="true" />
                     </span>
                     <div>
-                        <strong>{dirty ? translate("admin.emailSettingsPanel.unsavedEmailChanges") : translate("admin.emailSettingsPanel.accountEmails", { v0: String(setting.enabled ? translate("account.layout.oss.enabled") : translate("account.layout.oss.notEnabled")) })}</strong>
+                        <strong>
+                            {dirty
+                                ? translate("admin.emailSettingsPanel.unsavedEmailChanges")
+                                : translate("admin.emailSettingsPanel.accountEmails", { v0: String(setting.enabled ? translate("account.layout.oss.enabled") : translate("account.layout.oss.notEnabled")) })}
+                        </strong>
                         <p>{dirty ? translate("admin.emailSettingsPanel.completeTheConfigurationAndSaveToApplyIt") : formatSettingTime(setting.updatedAt, translate("admin.emailSettingsPanel.useSystemDefault"))}</p>
                     </div>
                 </div>
@@ -246,7 +250,10 @@ export default function EmailSettingsPanel() {
                     <Link to="/admin/email-logs">
                         <Button icon={<ScrollText className="size-4" />}>{translate("admin.emailSettingsPanel.deliveryHistory")}</Button>
                     </Link>
-                    <TestEmailButton disabled={dirty || saving || !smtpReady} disabledReason={dirty ? translate("admin.emailSettingsPanel.saveYourCurrentChangesFirst") : !smtpReady ? translate("admin.emailSettingsPanel.saveTheSMTPHostPortAndSenderEmailFirst") : ""} />
+                    <TestEmailButton
+                        disabled={dirty || saving || !smtpReady}
+                        disabledReason={dirty ? translate("admin.emailSettingsPanel.saveYourCurrentChangesFirst") : !smtpReady ? translate("admin.emailSettingsPanel.saveTheSMTPHostPortAndSenderEmailFirst") : ""}
+                    />
                     <Button icon={<RefreshCw className="size-4" />} loading={refreshing} disabled={saving} onClick={requestRefresh}>
                         {translate("library.ark.asset.refresh")}
                     </Button>
@@ -266,7 +273,20 @@ export default function EmailSettingsPanel() {
                     icon={<Send className="size-4" aria-hidden="true" />}
                     title={translate("admin.emailSettingsPanel.item1SendAccountSecurityEmails")}
                     description={translate("admin.emailSettingsPanel.thisControlsRegistrationVerificationAndPasswordRecoveryEmailsSMTPConfiguration")}
-                    status={<AdminStatusBadge label={draftEnabled ? (dirty && !setting.enabled ? translate("admin.emailSettingsPanel.pendingEnablement") : translate("account.layout.oss.enabled")) : dirty && setting.enabled ? translate("admin.emailSettingsPanel.pendingDisablement") : translate("account.layout.oss.notEnabled")} tone={dirty ? "warning" : draftEnabled ? "success" : "neutral"} />}
+                    status={
+                        <AdminStatusBadge
+                            label={
+                                draftEnabled
+                                    ? dirty && !setting.enabled
+                                        ? translate("admin.emailSettingsPanel.pendingEnablement")
+                                        : translate("account.layout.oss.enabled")
+                                    : dirty && setting.enabled
+                                      ? translate("admin.emailSettingsPanel.pendingDisablement")
+                                      : translate("account.layout.oss.notEnabled")
+                            }
+                            tone={dirty ? "warning" : draftEnabled ? "success" : "neutral"}
+                        />
+                    }
                     footer={
                         !draftEnabled ? (
                             <>
@@ -329,7 +349,12 @@ export default function EmailSettingsPanel() {
                             icon={<Server className="size-4" aria-hidden="true" />}
                             title={translate("admin.emailSettingsPanel.item2ConfigureSMTPConnectionAndSenderIdentity")}
                             description={translate("admin.emailSettingsPanel.enterMailServerAuthenticationAndSenderDetailsAfterSavingUse")}
-                            status={<AdminStatusBadge label={dirty ? translate("admin.emailSettingsPanel.unsaved") : smtpReady ? translate("admin.emailSettingsPanel.configured") : translate("account.settings.modelConfig.capabilities.pending")} tone={dirty ? "warning" : smtpReady ? "success" : "neutral"} />}
+                            status={
+                                <AdminStatusBadge
+                                    label={dirty ? translate("admin.emailSettingsPanel.unsaved") : smtpReady ? translate("admin.emailSettingsPanel.configured") : translate("account.settings.modelConfig.capabilities.pending")}
+                                    tone={dirty ? "warning" : smtpReady ? "success" : "neutral"}
+                                />
+                            }
                             footer={
                                 <>
                                     <div className="admin-email-footer-note">
@@ -350,7 +375,11 @@ export default function EmailSettingsPanel() {
                             }
                         >
                             <div className="admin-email-form-section">
-                                <FormSectionTitle icon={<Server className="size-4" />} title={translate("admin.emailSettingsPanel.serverConnection")} description={translate("admin.emailSettingsPanel.enterTheSMTPHostPortAndTransportEncryptionSTARTTLSTypically")} />
+                                <FormSectionTitle
+                                    icon={<Server className="size-4" />}
+                                    title={translate("admin.emailSettingsPanel.serverConnection")}
+                                    description={translate("admin.emailSettingsPanel.enterTheSMTPHostPortAndTransportEncryptionSTARTTLSTypically")}
+                                />
                                 <div className="admin-email-form-grid is-connection">
                                     <Form.Item name="host" label={translate("admin.emailSettingsPanel.sMTPHost")} extra={translate("admin.emailSettingsPanel.enterOnlyTheHostnameOrIPAddressWithoutProtocolOr")}>
                                         <Input autoComplete="off" placeholder="smtp.example.com" />
@@ -360,7 +389,8 @@ export default function EmailSettingsPanel() {
                                         label={translate("admin.emailSettingsPanel.sMTPPort")}
                                         rules={[
                                             {
-                                                validator: (_, value: number | null | undefined) => (!draftEnabled || (Number(value) >= 1 && Number(value) <= 65535) ? Promise.resolve() : Promise.reject(new Error(translate("admin.emailSettingsPanel.enterAPortFrom1To65535")))),
+                                                validator: (_, value: number | null | undefined) =>
+                                                    !draftEnabled || (Number(value) >= 1 && Number(value) <= 65535) ? Promise.resolve() : Promise.reject(new Error(translate("admin.emailSettingsPanel.enterAPortFrom1To65535"))),
                                             },
                                         ]}
                                     >
@@ -379,13 +409,24 @@ export default function EmailSettingsPanel() {
                             </div>
 
                             <div className="admin-email-form-section">
-                                <FormSectionTitle icon={<KeyRound className="size-4" />} title={translate("admin.emailSettingsPanel.sMTPAuthentication")} description={translate("admin.emailSettingsPanel.enterCredentialsIfTheServerRequiresAuthenticationLeaveThePassword")} />
+                                <FormSectionTitle
+                                    icon={<KeyRound className="size-4" />}
+                                    title={translate("admin.emailSettingsPanel.sMTPAuthentication")}
+                                    description={translate("admin.emailSettingsPanel.enterCredentialsIfTheServerRequiresAuthenticationLeaveThePassword")}
+                                />
                                 <div className="admin-email-form-grid">
                                     <Form.Item name="username" label={translate("admin.emailSettingsPanel.sMTPUsername")} extra={translate("admin.emailSettingsPanel.usuallyTheFullEmailAddressLeaveBlankForServersThat")}>
                                         <Input autoComplete="off" placeholder="mailer@example.com" />
                                     </Form.Item>
-                                    <Form.Item name="password" label={setting.hasPassword ? translate("admin.emailSettingsPanel.sMTPPassword", { v0: String(configuredSecretText) }) : translate("admin.emailSettingsPanel.sMTPPassword2")} extra={translate("admin.emailSettingsPanel.enterAPasswordOnlyToAddOrReplaceIt")}>
-                                        <Input.Password autoComplete="new-password" placeholder={setting.hasPassword ? translate("admin.emailSettingsPanel.leaveBlankToKeepTheCurrentPassword") : translate("admin.emailSettingsPanel.sMTPPasswordOrProviderAuthorizationCode")} />
+                                    <Form.Item
+                                        name="password"
+                                        label={setting.hasPassword ? translate("admin.emailSettingsPanel.sMTPPassword", { v0: String(configuredSecretText) }) : translate("admin.emailSettingsPanel.sMTPPassword2")}
+                                        extra={translate("admin.emailSettingsPanel.enterAPasswordOnlyToAddOrReplaceIt")}
+                                    >
+                                        <Input.Password
+                                            autoComplete="new-password"
+                                            placeholder={setting.hasPassword ? translate("admin.emailSettingsPanel.leaveBlankToKeepTheCurrentPassword") : translate("admin.emailSettingsPanel.sMTPPasswordOrProviderAuthorizationCode")}
+                                        />
                                     </Form.Item>
                                 </div>
                             </div>
@@ -398,7 +439,8 @@ export default function EmailSettingsPanel() {
                                         label={translate("admin.emailSettingsPanel.senderEmail")}
                                         rules={[
                                             {
-                                                validator: (_, value: string | undefined) => (!draftEnabled || !value || isValidEmail(value.trim()) ? Promise.resolve() : Promise.reject(new Error(translate("admin.emailSettingsPanel.enterAValidSenderEmail")))),
+                                                validator: (_, value: string | undefined) =>
+                                                    !draftEnabled || !value || isValidEmail(value.trim()) ? Promise.resolve() : Promise.reject(new Error(translate("admin.emailSettingsPanel.enterAValidSenderEmail"))),
                                             },
                                         ]}
                                         extra={translate("admin.emailSettingsPanel.usuallyMustMatchTheSMTPAccountOrADomainVerified")}
@@ -410,7 +452,8 @@ export default function EmailSettingsPanel() {
                                         label={translate("admin.emailSettingsPanel.senderName")}
                                         rules={[
                                             {
-                                                validator: (_, value: string | undefined) => (!draftEnabled || !value || !/[\r\n]/.test(value) ? Promise.resolve() : Promise.reject(new Error(translate("admin.emailSettingsPanel.theSenderNameCannotContainLineBreaks")))),
+                                                validator: (_, value: string | undefined) =>
+                                                    !draftEnabled || !value || !/[\r\n]/.test(value) ? Promise.resolve() : Promise.reject(new Error(translate("admin.emailSettingsPanel.theSenderNameCannotContainLineBreaks"))),
                                             },
                                         ]}
                                         extra={translate("admin.emailSettingsPanel.leaveBlankToUseTheCurrentSiteNameItUpdates", { v0: String(brandName) })}
@@ -429,7 +472,12 @@ export default function EmailSettingsPanel() {
                         icon={<MailCheck className="size-4" aria-hidden="true" />}
                         title={translate("admin.emailSettingsPanel.item3AllowedEmailDomains")}
                         description={translate("admin.emailSettingsPanel.enterOnePermittedEmailDomainPerLineEmailAddressesOutside")}
-                        status={<AdminStatusBadge label={currentValues.registrationAllowedDomains.length > 0 ? translate("admin.emailSettingsPanel.restricted") : translate("admin.emailSettingsPanel.allProvidersAllowed")} tone={currentValues.registrationAllowedDomains.length > 0 ? "info" : "neutral"} />}
+                        status={
+                            <AdminStatusBadge
+                                label={currentValues.registrationAllowedDomains.length > 0 ? translate("admin.emailSettingsPanel.restricted") : translate("admin.emailSettingsPanel.allProvidersAllowed")}
+                                tone={currentValues.registrationAllowedDomains.length > 0 ? "info" : "neutral"}
+                            />
+                        }
                         footer={
                             <>
                                 <div className="admin-email-footer-note">
@@ -450,7 +498,12 @@ export default function EmailSettingsPanel() {
                         }
                     >
                         <div className="admin-email-form-section">
-                            <Form.Item name="registrationAllowedDomains" label={translate("admin.emailSettingsPanel.allowedEmailDomains")} extra={translate("admin.emailSettingsPanel.oneDomainPerLineSaveAnEmptyValueToAllow")} rules={[{ validator: (_, value: string | undefined) => validateDomainList(value) }]}>
+                            <Form.Item
+                                name="registrationAllowedDomains"
+                                label={translate("admin.emailSettingsPanel.allowedEmailDomains")}
+                                extra={translate("admin.emailSettingsPanel.oneDomainPerLineSaveAnEmptyValueToAllow")}
+                                rules={[{ validator: (_, value: string | undefined) => validateDomainList(value) }]}
+                            >
                                 <Input.TextArea
                                     autoSize={{ minRows: 9, maxRows: 16 }}
                                     placeholder="gmail.com&#10;163.com&#10;126.com&#10;qq.com"
@@ -508,7 +561,15 @@ function TestEmailButton({ disabled, disabledReason }: { disabled: boolean; disa
                 <div className="admin-email-test-popover" role="dialog" aria-label={translate("admin.emailSettingsPanel.sendTestEmail")}>
                     <strong>{translate("admin.emailSettingsPanel.sendTestEmail")}</strong>
                     <p>{translate("admin.emailSettingsPanel.sendAVerificationStyleTestEmailUsingTheSavedSMTP")}</p>
-                    <Input value={recipient} onChange={(event) => setRecipient(event.target.value)} onPressEnter={() => void send()} placeholder={translate("admin.emailSettingsPanel.recipientEmail")} inputMode="email" autoComplete="email" aria-label={translate("admin.emailSettingsPanel.testRecipientEmail")} />
+                    <Input
+                        value={recipient}
+                        onChange={(event) => setRecipient(event.target.value)}
+                        onPressEnter={() => void send()}
+                        placeholder={translate("admin.emailSettingsPanel.recipientEmail")}
+                        inputMode="email"
+                        autoComplete="email"
+                        aria-label={translate("admin.emailSettingsPanel.testRecipientEmail")}
+                    />
                     {result ? (
                         <div className={cn("admin-email-test-result", result.ok ? "is-ok" : "is-error")} role="status">
                             {result.text}

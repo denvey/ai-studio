@@ -72,10 +72,21 @@ export function PrevisCanvasDock(props: PrevisCanvasDockProps) {
 
     const currentView = PREVIS_VIEW_MODES.find((item) => item.mode === props.viewMode) ?? PREVIS_VIEW_MODES[0];
     const currentAspect = previsAspectOption(props.aspectRatio);
-    const trajectoryLabel = props.trajectoryDrawing ? translate("canvasTools.previs.previsCanvasDock.finishDrawingPath") : props.trajectoryKind === "camera" ? translate("canvasTools.previs.previsCanvasDock.drawCameraPath") : translate("canvasTools.previs.previsCanvasDock.drawBlockingPath");
+    const trajectoryLabel = props.trajectoryDrawing
+        ? translate("canvasTools.previs.previsCanvasDock.finishDrawingPath")
+        : props.trajectoryKind === "camera"
+          ? translate("canvasTools.previs.previsCanvasDock.drawCameraPath")
+          : translate("canvasTools.previs.previsCanvasDock.drawBlockingPath");
 
     const items: FloatingDockEntry[] = [
-        { id: "previs-scene-panel", label: props.scenePanelOpen ? translate("canvasTools.previs.previsCanvasDock.collapseScenePanel") : translate("canvasTools.previs.previsCanvasDock.openScenePanel"), icon: <PanelLeft />, active: props.scenePanelOpen, expands: true, onClick: props.onToggleScenePanel },
+        {
+            id: "previs-scene-panel",
+            label: props.scenePanelOpen ? translate("canvasTools.previs.previsCanvasDock.collapseScenePanel") : translate("canvasTools.previs.previsCanvasDock.openScenePanel"),
+            icon: <PanelLeft />,
+            active: props.scenePanelOpen,
+            expands: true,
+            onClick: props.onToggleScenePanel,
+        },
         { kind: "separator", id: "previs-sep-scene" },
         {
             kind: "switch",
@@ -123,7 +134,14 @@ export function PrevisCanvasDock(props: PrevisCanvasDockProps) {
         { id: "previs-zoom-in", label: translate("canvasTools.previs.previsCanvasDock.zoomIn"), icon: <Plus />, onClick: () => props.onZoom(0.72) },
         { kind: "separator", id: "previs-sep-panels" },
         { id: "previs-timeline", label: translate("canvasTools.previs.previsCanvasDock.animationTimeline"), icon: <ChartGantt />, active: props.timelineOpen, onClick: props.onOpenTimeline },
-        { id: "previs-inspector", label: props.inspectorOpen ? translate("canvasTools.previs.previsCanvasDock.collapsePropertiesPanel") : translate("canvasTools.previs.previsCanvasDock.openPropertiesPanel"), icon: <SlidersHorizontal />, active: props.inspectorOpen, expands: true, onClick: props.onToggleInspector },
+        {
+            id: "previs-inspector",
+            label: props.inspectorOpen ? translate("canvasTools.previs.previsCanvasDock.collapsePropertiesPanel") : translate("canvasTools.previs.previsCanvasDock.openPropertiesPanel"),
+            icon: <SlidersHorizontal />,
+            active: props.inspectorOpen,
+            expands: true,
+            onClick: props.onToggleInspector,
+        },
         { id: "previs-shortcuts", label: translate("canvasTools.previs.previsCanvasDock.shortcuts"), icon: <Keyboard />, active: props.shortcutHelpOpen, onClick: props.onToggleShortcutHelp },
     ];
 

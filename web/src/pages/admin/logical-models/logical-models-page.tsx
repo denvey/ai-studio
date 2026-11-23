@@ -43,7 +43,6 @@ import {
 } from "./model-routing-capabilities";
 import { translate } from "@/i18n";
 
-
 type RouteRuleRow = { channelModelId: string; enabled: boolean; priority: number; weight: number };
 type LogicalModelFormValues = {
     code: string;
@@ -69,7 +68,13 @@ export default function LogicalModelsPage() {
     const dirtyRef = useRef(false);
     const closeEditor = () => {
         if (saving) return;
-        if (dirtyRef.current) modal.confirm({ title: translate("adminPages.logicalModels.logicalModelsPage.discardUnsavedChanges"), okText: translate("adminPages.logicalModels.logicalModelsPage.discardChanges"), cancelText: translate("account.settings.prompts.switchCancel"), onOk: () => setEditingModel(undefined) });
+        if (dirtyRef.current)
+            modal.confirm({
+                title: translate("adminPages.logicalModels.logicalModelsPage.discardUnsavedChanges"),
+                okText: translate("adminPages.logicalModels.logicalModelsPage.discardChanges"),
+                cancelText: translate("account.settings.prompts.switchCancel"),
+                onOk: () => setEditingModel(undefined),
+            });
         else setEditingModel(undefined);
     };
     const [keyword, setKeyword] = useState("");
@@ -267,8 +272,12 @@ export default function LogicalModelsPage() {
             width: 110,
             render: (_, item) => (
                 <div className="text-xs">
-                    <div>{(item.routes || []).filter((route) => route.enabled && route.available).length} {translate("adminPages.logicalModels.logicalModelsPage.available")}</div>
-                    <div className="text-foreground/45">{translate("adminPages.logicalModels.logicalModelsPage.total")} {(item.routes || []).length} {translate("account.layout.pagination.item")}</div>
+                    <div>
+                        {(item.routes || []).filter((route) => route.enabled && route.available).length} {translate("adminPages.logicalModels.logicalModelsPage.available")}
+                    </div>
+                    <div className="text-foreground/45">
+                        {translate("adminPages.logicalModels.logicalModelsPage.total")} {(item.routes || []).length} {translate("account.layout.pagination.item")}
+                    </div>
                 </div>
             ),
         },
@@ -403,7 +412,11 @@ export default function LogicalModelsPage() {
                                         className="mb-4"
                                         type="warning"
                                         showIcon
-                                        message={editingModel.configurationError ? translate("adminPages.logicalModels.logicalModelsPage.theCurrentProviderRoutesDoNotCoverAllCreationCapabilities") : translate("adminPages.logicalModels.logicalModelsPage.theCurrentProviderRoutesCannotBeBilledYet")}
+                                        message={
+                                            editingModel.configurationError
+                                                ? translate("adminPages.logicalModels.logicalModelsPage.theCurrentProviderRoutesDoNotCoverAllCreationCapabilities")
+                                                : translate("adminPages.logicalModels.logicalModelsPage.theCurrentProviderRoutesCannotBeBilledYet")
+                                        }
                                         description={editingModel.configurationError || editingModel.availabilityError}
                                     />
                                 ) : null}
@@ -536,7 +549,9 @@ export default function LogicalModelsPage() {
                                 <div className="mb-3 flex items-center justify-between">
                                     <h2 className="text-sm font-semibold">{translate("adminPages.logicalModels.logicalModelsPage.matchingResult")}</h2>
                                     <Tag variant="filled" color={simulationResult.productMatch.matched ? "success" : "error"}>
-                                        {simulationResult.productMatch.matched ? translate("adminPages.logicalModels.logicalModelsPage.requestedCapabilitiesSupported") : translate("adminPages.logicalModels.logicalModelsPage.requestedCapabilitiesDoNotMatch")}
+                                        {simulationResult.productMatch.matched
+                                            ? translate("adminPages.logicalModels.logicalModelsPage.requestedCapabilitiesSupported")
+                                            : translate("adminPages.logicalModels.logicalModelsPage.requestedCapabilitiesDoNotMatch")}
                                     </Tag>
                                 </div>
                                 {simulationResult.productMatch.reasons?.length ? <p className="mb-4 text-sm text-error">{simulationResult.productMatch.reasons.join("；")}</p> : null}
@@ -604,7 +619,9 @@ function RouteFields({
                 return (
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs text-foreground/50">{translate("adminPages.logicalModels.logicalModelsPage.total")} {fields.length} {translate("adminPages.logicalModels.logicalModelsPage.providerRoutes2")}</span>
+                            <span className="text-xs text-foreground/50">
+                                {translate("adminPages.logicalModels.logicalModelsPage.total")} {fields.length} {translate("adminPages.logicalModels.logicalModelsPage.providerRoutes2")}
+                            </span>
                             <Button size="small" icon={<Plus className="size-3.5" />} disabled={!canAdd} onClick={() => add({ channelModelId: "", enabled: true, priority: 100, weight: 100 })}>
                                 {translate("adminPages.logicalModels.logicalModelsPage.addProviderRoute")}
                             </Button>
@@ -620,8 +637,12 @@ function RouteFields({
                                         <div key={field.key} className="rounded-lg border border-border bg-muted/5 p-4">
                                             <div className="mb-2 flex items-center justify-between gap-2">
                                                 <div className="min-w-0">
-                                                    <div className="text-xs font-semibold">{translate("adminPages.logicalModels.logicalModelsPage.providerRoutes")} {fields.indexOf(field) + 1}</div>
-                                                    <div className="mt-0.5 truncate text-xs text-foreground/50">{selected ? `${channelNames[selected.channelId]} / ${selected.displayName || selected.modelKey}` : translate("adminPages.logicalModels.logicalModelsPage.selectAChannelModelThatCanHandleRequests")}</div>
+                                                    <div className="text-xs font-semibold">
+                                                        {translate("adminPages.logicalModels.logicalModelsPage.providerRoutes")} {fields.indexOf(field) + 1}
+                                                    </div>
+                                                    <div className="mt-0.5 truncate text-xs text-foreground/50">
+                                                        {selected ? `${channelNames[selected.channelId]} / ${selected.displayName || selected.modelKey}` : translate("adminPages.logicalModels.logicalModelsPage.selectAChannelModelThatCanHandleRequests")}
+                                                    </div>
                                                 </div>
                                                 <Button type="text" size="small" danger onClick={() => remove(field.name)}>
                                                     {translate("canvasB.common.remove")}
@@ -698,7 +719,11 @@ function PricingFields() {
 function logicalPriceLabel(item: AdminLogicalModel) {
     const priceTiers = item.priceTiers || [];
     if (!priceTiers.length) return <span className="text-xs text-foreground/45">{translate("adminPages.logicalModels.logicalModelsPage.systemSpecificationPricesNeedConfiguration")}</span>;
-    return <span className="text-xs">{priceTiers.length} {translate("adminPages.logicalModels.logicalModelsPage.systemSpecificationTiers")}</span>;
+    return (
+        <span className="text-xs">
+            {priceTiers.length} {translate("adminPages.logicalModels.logicalModelsPage.systemSpecificationTiers")}
+        </span>
+    );
 }
 
 function logicalModelToForm(item: AdminLogicalModel): LogicalModelFormValues {
@@ -761,7 +786,13 @@ function simulationColumns(): ColumnsType<RouteSimulationResult["candidates"][nu
             width: 110,
             render: (_, candidate) => (
                 <Tag variant="filled" color={candidate.inPool ? "success" : candidate.blocked ? "warning" : "default"}>
-                    {candidate.inPool ? translate("adminPages.logicalModels.logicalModelsPage.includedInTheCandidatePool") : candidate.blocked ? translate("adminPages.logicalModels.logicalModelsPage.coolingDown") : candidate.matched ? translate("adminPages.logicalModels.logicalModelsPage.lowerPriority") : translate("adminPages.logicalModels.logicalModelsPage.noMatch")}
+                    {candidate.inPool
+                        ? translate("adminPages.logicalModels.logicalModelsPage.includedInTheCandidatePool")
+                        : candidate.blocked
+                          ? translate("adminPages.logicalModels.logicalModelsPage.coolingDown")
+                          : candidate.matched
+                            ? translate("adminPages.logicalModels.logicalModelsPage.lowerPriority")
+                            : translate("adminPages.logicalModels.logicalModelsPage.noMatch")}
                 </Tag>
             ),
         },

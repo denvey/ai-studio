@@ -87,7 +87,19 @@ export function ChannelModelRepriceDialog({ channelId, channelName, items, onClo
                 <div className="admin-model-reprice-controls">
                     <div className="admin-model-reprice-field">
                         <label htmlFor="reprice-margin">{translate("admin.channelModelRepriceDialog.markup")}</label>
-                        <InputNumber id="reprice-margin" aria-label={translate("admin.channelModelRepriceDialog.markup")} size="large" value={margin} onChange={(value) => recalculate(value, decimalPlaces)} min={0} max={1000} step={5} suffix="%" placeholder={translate("admin.channelModelRepriceDialog.enterAPercentage")} disabled={saving} />
+                        <InputNumber
+                            id="reprice-margin"
+                            aria-label={translate("admin.channelModelRepriceDialog.markup")}
+                            size="large"
+                            value={margin}
+                            onChange={(value) => recalculate(value, decimalPlaces)}
+                            min={0}
+                            max={1000}
+                            step={5}
+                            suffix="%"
+                            placeholder={translate("admin.channelModelRepriceDialog.enterAPercentage")}
+                            disabled={saving}
+                        />
                     </div>
                     <div className="admin-model-reprice-field">
                         <label htmlFor="reprice-decimals">{translate("admin.channelModelRepriceDialog.decimalPlaces")}</label>
@@ -193,11 +205,18 @@ export function ChannelModelRepriceTable({
                                         <div className="admin-model-reprice-identity">
                                             <span>{specificationLabel(row.tier)}</span>
                                             {row.field.label && <small>{row.field.label}</small>}
-                                            {row.tier.providerModelKey && row.tier.providerModelKey !== (model.providerModelKey || model.modelKey) && <small className="admin-monospace">{translate("admin.channelModelRepriceDialog.upstream")}{row.tier.providerModelKey}</small>}
+                                            {row.tier.providerModelKey && row.tier.providerModelKey !== (model.providerModelKey || model.modelKey) && (
+                                                <small className="admin-monospace">
+                                                    {translate("admin.channelModelRepriceDialog.upstream")}
+                                                    {row.tier.providerModelKey}
+                                                </small>
+                                            )}
                                         </div>
                                         <div className="admin-model-reprice-identity">
                                             <span>{cost === undefined ? translate("admin.channelModelRepriceDialog.costNotConfigured") : formatModelPrice(cost)}</span>
-                                            <small>{translate("admin.channelModelRepriceDialog.credits")} {row.field.unit}</small>
+                                            <small>
+                                                {translate("admin.channelModelRepriceDialog.credits")} {row.field.unit}
+                                            </small>
                                         </div>
                                         <div className="admin-model-reprice-sale">
                                             <InputNumber<string>
@@ -212,7 +231,8 @@ export function ChannelModelRepriceTable({
                                                 onChange={(value) => onSaleChange(row.key, value)}
                                             />
                                             <small>
-                                                {row.manual ? (translate("admin.channelModelRepriceDialog.manuallyEdited") + " ") : ""}{translate("admin.channelModelRepriceDialog.markup2")} {formatModelMarkup(cost, sale)}
+                                                {row.manual ? translate("admin.channelModelRepriceDialog.manuallyEdited") + " " : ""}
+                                                {translate("admin.channelModelRepriceDialog.markup2")} {formatModelMarkup(cost, sale)}
                                             </small>
                                         </div>
                                     </div>

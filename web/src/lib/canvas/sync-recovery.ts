@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export class CanvasSyncPendingError extends Error {
     readonly retryable = true;

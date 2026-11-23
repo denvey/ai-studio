@@ -1,7 +1,6 @@
 import type { CanvasFolderTheme } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 export const CANVAS_FOLDER_THEME_OPTIONS: ReadonlyArray<{
     key: CanvasFolderTheme;
     label: string;

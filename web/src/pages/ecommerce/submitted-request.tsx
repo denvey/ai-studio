@@ -25,7 +25,8 @@ export function CommerceSubmittedRequest({ draft }: { draft: EcommerceDraft | nu
     return (
         <div className="commerce-request-message" aria-label={translate("ecommerce.submittedRequest.submittedProductRequirements")}>
             <small>
-                {translate("ecommerce.submittedRequest.specialRateChannel")} {displayLabelOf(languages, draft.language)} · {displayLabelOf(platforms, draft.platform)} · {modelOptionName(draft.imageModel)} · {draft.resolution.toUpperCase()} · {commerceUiText(imageSizeLabel(draft.ratio))} · {count} {translate("canvasA.characterLibrary.pageItem")}
+                {translate("ecommerce.submittedRequest.specialRateChannel")} {displayLabelOf(languages, draft.language)} · {displayLabelOf(platforms, draft.platform)} · {modelOptionName(draft.imageModel)} · {draft.resolution.toUpperCase()} ·{" "}
+                {commerceUiText(imageSizeLabel(draft.ratio))} · {count} {translate("canvasA.characterLibrary.pageItem")}
             </small>
             {draft.instruction ? <div className="commerce-request-bubble">{draft.instruction}</div> : null}
             {references.length ? (
@@ -38,7 +39,13 @@ export function CommerceSubmittedRequest({ draft }: { draft: EcommerceDraft | nu
                             loading="lazy"
                             decoding="async"
                             draggable
-                            onDragStart={(event) => writeCommerceImageTransfer(event.dataTransfer, { resourceId: ref.resourceId, name: ref.name || translate("ecommerce.submittedRequest.productReferenceImage2", { v0: String(index + 1) }), url: resourceFileUrl(ref.resourceId) })}
+                            onDragStart={(event) =>
+                                writeCommerceImageTransfer(event.dataTransfer, {
+                                    resourceId: ref.resourceId,
+                                    name: ref.name || translate("ecommerce.submittedRequest.productReferenceImage2", { v0: String(index + 1) }),
+                                    url: resourceFileUrl(ref.resourceId),
+                                })
+                            }
                         />
                     ))}
                 </div>

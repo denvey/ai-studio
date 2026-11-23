@@ -131,7 +131,8 @@ export function EcommerceOutputGallery({
                 <div className="commerce-output-title">
                     <h2>{translate("ecommerce.outputGallery.plansAndWorks")}</h2>
                     <span>
-                        {counts.done} {translate("ecommerce.outputGallery.imagesComplete")}{counts.active ? translate("ecommerce.outputGallery.imagesInProgress", { v0: String(counts.active) }) : ""}
+                        {counts.done} {translate("ecommerce.outputGallery.imagesComplete")}
+                        {counts.active ? translate("ecommerce.outputGallery.imagesInProgress", { v0: String(counts.active) }) : ""}
                         {counts.failed ? translate("ecommerce.outputGallery.imagesFailed", { v0: String(counts.failed) }) : ""}
                     </span>
                 </div>
@@ -153,14 +154,18 @@ export function EcommerceOutputGallery({
                     ) : null}
                     {onExport ? (
                         <Button size="small" icon={<ArrowDownToLine size={14} />} disabled={!exportCount || exportDisabled} onClick={onExport} aria-label={translate("ecommerce.outputGallery.exportImages", { v0: String(exportCount) })}>
-                            {selected.size ? translate("ecommerce.outputGallery.exportSelected", { v0: String(exportCount) }) : exportCount > 1 ? translate("ecommerce.outputGallery.exportAll", { v0: String(exportCount) }) : translate("ecommerce.outputGallery.export")}
+                            {selected.size
+                                ? translate("ecommerce.outputGallery.exportSelected", { v0: String(exportCount) })
+                                : exportCount > 1
+                                  ? translate("ecommerce.outputGallery.exportAll", { v0: String(exportCount) })
+                                  : translate("ecommerce.outputGallery.export")}
                         </Button>
                     ) : null}
                 </div>
             </header>
             {progress}
             <div className="commerce-output-scroll" data-canvas-wheel-scroll>
-                {stageActive ? <div className="ecs-stage">{commerceUiText(stage)}</div> : null}
+                {stageActive ? <div className="ecs-stage">{typeof stage === "string" ? commerceUiText(stage) : stage}</div> : null}
                 {!images.length ? (
                     stageActive ? null : (
                         <div className="commerce-output-empty" role="status">
@@ -177,7 +182,9 @@ export function EcommerceOutputGallery({
                             <section className="commerce-output-batch" aria-label={translate("ecommerce.outputGallery.currentCreationBatch")}>
                                 <header>
                                     <strong>{plan!.images.length > 1 ? translate("ecommerce.outputGallery.thisRoundSWorks") : translate("ecommerce.outputGallery.thisCreation")}</strong>
-                                    <span>{plan!.images.length} {translate("canvasA.characterLibrary.pageItem")}</span>
+                                    <span>
+                                        {plan!.images.length} {translate("canvasA.characterLibrary.pageItem")}
+                                    </span>
                                 </header>
                                 <div className="commerce-output-grid">{current.map(({ image, index }) => card(image, index, generationPending))}</div>
                             </section>
@@ -186,12 +193,14 @@ export function EcommerceOutputGallery({
                             <section className="commerce-output-batch" aria-label={translate("ecommerce.outputGallery.previousProductWorks")}>
                                 <header>
                                     <strong>{translate("ecommerce.outputGallery.previousWorks")}</strong>
-                                    <span>{plan!.previousImages!.length} {translate("canvasA.characterLibrary.pageItem")}</span>
+                                    <span>
+                                        {plan!.previousImages!.length} {translate("canvasA.characterLibrary.pageItem")}
+                                    </span>
                                 </header>
                                 <div className="commerce-output-grid">{previous.map(({ image, index }) => card(image, index, false))}</div>
                             </section>
                         ) : null}
-                        {!current.length && !previous.length ? <p className="commerce-output-filter-empty">{translate("ecommerce.outputGallery.noMatchingWorks", { status: filters.find(([value]) => value === filter)?.[1]})}</p> : null}
+                        {!current.length && !previous.length ? <p className="commerce-output-filter-empty">{translate("ecommerce.outputGallery.noMatchingWorks", { status: filters.find(([value]) => value === filter)?.[1] })}</p> : null}
                     </div>
                 )}
             </div>
@@ -296,7 +305,13 @@ function OutputCard({
     return (
         <article className={`commerce-output-card${selected ? " is-selected" : ""}`} data-ecommerce-image-id={image.id} data-status={failed ? "failed" : working ? "working" : status === translate("library.tasks.filter.succeeded") ? "done" : "idle"}>
             <div className="commerce-output-card-frame">
-                <button type="button" className="commerce-output-card-media" disabled={!src} onClick={() => src && onPreview({ image, index, src, assetId, resourceId })} aria-label={translate("ecommerce.outputGallery.previewImage", { v0: String(index + 1) })}>
+                <button
+                    type="button"
+                    className="commerce-output-card-media"
+                    disabled={!src}
+                    onClick={() => src && onPreview({ image, index, src, assetId, resourceId })}
+                    aria-label={translate("ecommerce.outputGallery.previewImage", { v0: String(index + 1) })}
+                >
                     {src ? (
                         <CommerceResultImage ratio={commerceCanvasAspect(image.ratio)} src={src} alt={translate("ecommerce.outputGallery.generationResult", { v0: String(displayLabelOf(imageTypes, image.imageType)) })} loading="lazy" />
                     ) : working ? (
@@ -317,7 +332,12 @@ function OutputCard({
                 <span className="commerce-output-status">{status}</span>
             </div>
             {image.copy ? <p className="commerce-output-card-copy">{image.copy}</p> : null}
-            {issues?.length ? <p className="commerce-output-issue">{translate("ecommerce.outputGallery.reviewNeeded")}{issues.join("；")}</p> : null}
+            {issues?.length ? (
+                <p className="commerce-output-issue">
+                    {translate("ecommerce.outputGallery.reviewNeeded")}
+                    {issues.join("；")}
+                </p>
+            ) : null}
             <footer>
                 {failed ? (
                     <Button size="small" onClick={onRetry}>
@@ -332,7 +352,9 @@ function OutputCard({
                         {translate("ecommerce.outputGallery.makeAVideo")}
                     </Button>
                 ) : null}
-                {assetId && resourceId ? <Button size="small" type="text" icon={<ArrowDownToLine size={14} />} aria-label={translate("ecommerce.outputGallery.downloadImage", { v0: String(index + 1) })} onClick={() => onDownload({ image, index, assetId, resourceId })} /> : null}
+                {assetId && resourceId ? (
+                    <Button size="small" type="text" icon={<ArrowDownToLine size={14} />} aria-label={translate("ecommerce.outputGallery.downloadImage", { v0: String(index + 1) })} onClick={() => onDownload({ image, index, assetId, resourceId })} />
+                ) : null}
                 <Button size="small" type="text" icon={<Trash2 size={14} />} aria-label={translate("ecommerce.outputGallery.removeImageFromThisRound", { v0: String(index + 1) })} onClick={onRemove} />
             </footer>
         </article>

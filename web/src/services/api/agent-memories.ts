@@ -1,7 +1,6 @@
 import { http, compactApiParams } from "./request";
 import { translate } from "@/i18n";
 
-
 export type AgentMemoryStep = { tool: string; action: string; note?: string };
 
 export type AgentMemoryStatus = "pending" | "approved" | "rejected" | "expired" | string;

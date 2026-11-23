@@ -10,7 +10,6 @@ import { canvasThemes } from "@/lib/canvas-theme";
 import { useActiveTheme } from "@/stores/canvas/use-canvas-theme-store";
 import { translate } from "@/i18n";
 
-
 type VoiceRecordingButtonProps = {
     /** 转写完成回调，返回转写文本 */
     onTranscribed: (text: string) => void;

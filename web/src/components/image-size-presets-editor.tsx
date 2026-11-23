@@ -9,7 +9,6 @@ import { validateImageSize } from "@/services/api/image-validation";
 import type { ImageResolutionTier } from "@/lib/image-resolution-tiers";
 import { translate } from "@/i18n";
 
-
 export function ImageSizePresetsEditor({
     profile,
     disabled,
@@ -102,13 +101,26 @@ export function ImageSizePresetsEditor({
                 const items = presets.filter((preset) => preset.tier === tier);
                 const ratios = [...new Set([...(allowedRatios ?? IMAGE_RATIOS), ...items.map((item) => item.ratio)])];
                 return (
-                    <section key={tier} className={`image-size-preset-group${grouped ? "" : " is-ungrouped"}`} aria-label={grouped ? undefined : translate("shared.imageSizePresetsEditor.aspectRatioSettings")} aria-labelledby={grouped ? `${id}-${tier}-title` : undefined}>
+                    <section
+                        key={tier}
+                        className={`image-size-preset-group${grouped ? "" : " is-ungrouped"}`}
+                        aria-label={grouped ? undefined : translate("shared.imageSizePresetsEditor.aspectRatioSettings")}
+                        aria-labelledby={grouped ? `${id}-${tier}-title` : undefined}
+                    >
                         {grouped ? (
                             <header className="image-size-preset-heading">
                                 <div className="image-size-preset-heading-label">
                                     <strong id={`${id}-${tier}-title`}>{tier.toUpperCase()}</strong>
                                     <span>{items.length ? translate("shared.imageSizePresetsEditor.aspectRatios", { v0: String(items.length) }) : translate("account.layout.oss.notEnabled")}</span>
-                                    {!profile.parameters ? <Switch size="sm" checked={items.length > 0} disabled={disabled} aria-label={translate("shared.imageSizePresetsEditor.enableSpecifications", { v0: String(tier.toUpperCase()) })} onChange={(enabled) => toggleTier(tier, ratios, enabled)} /> : null}
+                                    {!profile.parameters ? (
+                                        <Switch
+                                            size="sm"
+                                            checked={items.length > 0}
+                                            disabled={disabled}
+                                            aria-label={translate("shared.imageSizePresetsEditor.enableSpecifications", { v0: String(tier.toUpperCase()) })}
+                                            onChange={(enabled) => toggleTier(tier, ratios, enabled)}
+                                        />
+                                    ) : null}
                                 </div>
                                 {!items.length && DEFAULT_IMAGE_RATIOS.some((ratio) => ratios.includes(ratio)) ? (
                                     <Button
@@ -133,7 +145,11 @@ export function ImageSizePresetsEditor({
                                 </p>
                             ) : null}
                             {imageResolutionUsesQuality(profile) && !imageTierAvailable(profile, tier) ? <p className="image-size-hint">{translate("shared.imageSizePresetsEditor.configureTheQualityValueForThisResolutionBeforeMakingIt")}</p> : null}
-                            <div className="image-size-preset-options" role="group" aria-label={grouped ? translate("shared.imageSizePresetsEditor.aspectRatiosSupportedBy", { v0: String(tier.toUpperCase()) }) : translate("shared.imageSizePresetsEditor.supportedAspectRatios")}>
+                            <div
+                                className="image-size-preset-options"
+                                role="group"
+                                aria-label={grouped ? translate("shared.imageSizePresetsEditor.aspectRatiosSupportedBy", { v0: String(tier.toUpperCase()) }) : translate("shared.imageSizePresetsEditor.supportedAspectRatios")}
+                            >
                                 {ratios.map((ratio) => {
                                     const selected = items.find((item) => item.ratio === ratio);
                                     const dimensions = selected || candidate(tier, ratio);
@@ -145,7 +161,7 @@ export function ImageSizePresetsEditor({
                                                 aria-pressed={Boolean(selected)}
                                                 aria-label={grouped ? `${tier.toUpperCase()} ${ratio}` : ratio}
                                                 className="image-size-preset-option"
-                                                title={`${ratio}${dimensions.width && dimensions.height ? ` · ${dimensions.width} × ${dimensions.height} px` : ""}${selected ? (" " + translate("shared.imageSizePresetsEditor.clickToRemove")) : (" " + translate("shared.imageSizePresetsEditor.clickToAdd"))}`}
+                                                title={`${ratio}${dimensions.width && dimensions.height ? ` · ${dimensions.width} × ${dimensions.height} px` : ""}${selected ? " " + translate("shared.imageSizePresetsEditor.clickToRemove") : " " + translate("shared.imageSizePresetsEditor.clickToAdd")}`}
                                                 onClick={() => update(tier, selected ? items.filter((item) => item.ratio !== ratio).map((item) => item.ratio) : [...items.map((item) => item.ratio), ratio])}
                                             >
                                                 <span className="image-size-preset-option-label">
@@ -230,7 +246,15 @@ export function ImageSizePresetsEditor({
                         const preset = presets.find((item) => (profile.size.parameter === "aspect_ratio" ? item.ratio === value : item.size === value));
                         const label = value === "auto" ? translate("account.layout.oss.auto") : preset && profile.size.parameter === "size" ? `${grouped ? preset.tier.toUpperCase() + " · " : ""}${preset.ratio}` : value;
                         return (
-                            <button key={value} type="button" disabled={disabled} aria-pressed={profile.size.default === value} title={value} aria-label={translate("shared.imageSizePresetsEditor.defaultOutput2", { v0: String(label), v1: String(value) })} onClick={() => onChange({ ...profile.size, default: value })}>
+                            <button
+                                key={value}
+                                type="button"
+                                disabled={disabled}
+                                aria-pressed={profile.size.default === value}
+                                title={value}
+                                aria-label={translate("shared.imageSizePresetsEditor.defaultOutput2", { v0: String(label), v1: String(value) })}
+                                onClick={() => onChange({ ...profile.size, default: value })}
+                            >
                                 {label}
                             </button>
                         );

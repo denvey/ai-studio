@@ -5,7 +5,6 @@ import type { CreationInspiration } from "@/lib/inspirations/catalog";
 import { normalizeDraft, type InspirationDraft } from "@/stores/use-inspiration-store";
 import { translate } from "@/i18n";
 
-
 export type InspirationCategoryChoice = { label: string; value: string };
 
 /** 编辑器只收集用户能填的字段；id、来源、署名由本地库自己管。 */

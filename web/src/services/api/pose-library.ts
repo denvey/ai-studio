@@ -2,7 +2,6 @@ import { apiBaseURL, compactApiParams, http } from "./request";
 import type { RemoteResource } from "./resources";
 import { translate } from "@/i18n";
 
-
 /** 一次插入画布的姿势图上限，与后端 poselibrary.MaxUseItems 一致。 */
 export const POSE_LIBRARY_MAX_USE = 16;
 /** ai-pose-gallery-zh 线上演示站，同步图片时的默认来源根地址。 */
@@ -182,7 +181,13 @@ export function previewPoseLibraryPack(text: string): PoseLibraryPackPreview {
     if (Array.isArray(data)) {
         const rows = data as Record<string, unknown>[];
         if (!rows.length || typeof rows[0]?.id !== "string" || typeof rows[0]?.["姿势名称"] !== "string") throw new Error(translate("shared.api.poseLibrary.notDataPoseZhJsonFromAiPoseGalleryZh"));
-        return { format: "ai-pose-gallery-zh", sourceName: translate("shared.api.poseLibrary.aIPoseReferenceGalleryAiPoseGalleryZh"), baseUrl: POSE_LIBRARY_DEFAULT_BASE_URL, total: rows.length, systems: count(rows.map((row) => String(row["体系"] || "").trim())) };
+        return {
+            format: "ai-pose-gallery-zh",
+            sourceName: translate("shared.api.poseLibrary.aIPoseReferenceGalleryAiPoseGalleryZh"),
+            baseUrl: POSE_LIBRARY_DEFAULT_BASE_URL,
+            total: rows.length,
+            systems: count(rows.map((row) => String(row["体系"] || "").trim())),
+        };
     }
     const pack = data as { format?: unknown; source?: { name?: unknown; key?: unknown; baseUrl?: unknown }; items?: unknown };
     if (pack && pack.format === "yingce-pose-library" && Array.isArray(pack.items)) {

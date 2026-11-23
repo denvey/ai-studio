@@ -1,4 +1,3 @@
-
 import { currentLocale, translate } from "@/i18n";
 export type AgentContextUsage = {
     runId: string;
@@ -97,7 +96,12 @@ export function reduceAgentContextUsage(current: AgentContextUsage, event: Agent
         const compactionId = payloadString(payload, "compactionId");
         if (scoped.compactionId && compactionId && scoped.compactionId !== compactionId) return scoped;
         const aborted = payload.cancelled === true || payload.aborted === true;
-        const message = typeof payload.errorMessage === "string" ? payload.errorMessage : aborted ? translate("shared.canvas.agentContextUsage.contextCompactionCancelledConversationHistoryWasPreserved") : translate("shared.canvas.agentContextUsage.contextCompactionFailedConversationHistoryWasPreserved");
+        const message =
+            typeof payload.errorMessage === "string"
+                ? payload.errorMessage
+                : aborted
+                  ? translate("shared.canvas.agentContextUsage.contextCompactionCancelledConversationHistoryWasPreserved")
+                  : translate("shared.canvas.agentContextUsage.contextCompactionFailedConversationHistoryWasPreserved");
         return { ...scoped, compactionPending: null, compactionSeq: seq, compactionId: compactionId ?? scoped.compactionId, compactionError: message };
     }
     return scoped;
@@ -193,7 +197,13 @@ export function presentAgentContextUsage(usage: AgentContextUsage): AgentContext
     }
     if (!reading) return base;
     if (usage.readingStale) {
-        return { ...base, phase: "stale", ring: ratio === undefined ? 0 : Math.min(1, ratio), label: translate("shared.canvas.agentContextUsage.justCompacted"), detail: translate("shared.canvas.agentContextUsage.thePreviousReadingWasTakenBeforeCompactionTheNextModel") };
+        return {
+            ...base,
+            phase: "stale",
+            ring: ratio === undefined ? 0 : Math.min(1, ratio),
+            label: translate("shared.canvas.agentContextUsage.justCompacted"),
+            detail: translate("shared.canvas.agentContextUsage.thePreviousReadingWasTakenBeforeCompactionTheNextModel"),
+        };
     }
     if (ratio === undefined || usableTokens === undefined || usableTokens <= 0) {
         const measured = inputTokens === undefined ? translate("shared.canvas.agentContextUsage.unknownWindowSize") : translate("shared.canvas.agentContextUsage.aboutTokens", { v0: String(formatContextTokens(inputTokens)) });
@@ -209,11 +219,33 @@ export function presentAgentContextUsage(usage: AgentContextUsage): AgentContext
             phase: "compress",
             ring,
             label: `${percent}%`,
-            detail: translate("shared.canvas.agentContextUsage.compactionThresholdReachedOfTheModelWindowBeforeTheNext", { v0: String(Math.round(line * 100)), v1: String(formatContextTokens(inputTokens)), v2: String(formatContextTokens(usableTokens)), v3: String(source) }),
+            detail: translate("shared.canvas.agentContextUsage.compactionThresholdReachedOfTheModelWindowBeforeTheNext", {
+                v0: String(Math.round(line * 100)),
+                v1: String(formatContextTokens(inputTokens)),
+                v2: String(formatContextTokens(usableTokens)),
+                v3: String(source),
+            }),
         };
     }
     if (ring >= 0.72) {
-        return { ...base, phase: "watch", ring, label: `${percent}%`, detail: translate("shared.canvas.agentContextUsage.approachingCompactionCurrentUsageCompactionStartsAt", { v0: String(formatContextTokens(inputTokens)), v1: String(formatContextTokens(usableTokens)), v2: String(source), v3: String(formatContextTokens(compactAtTokens)) }) };
+        return {
+            ...base,
+            phase: "watch",
+            ring,
+            label: `${percent}%`,
+            detail: translate("shared.canvas.agentContextUsage.approachingCompactionCurrentUsageCompactionStartsAt", {
+                v0: String(formatContextTokens(inputTokens)),
+                v1: String(formatContextTokens(usableTokens)),
+                v2: String(source),
+                v3: String(formatContextTokens(compactAtTokens)),
+            }),
+        };
     }
-    return { ...base, phase: "ok", ring, label: `${percent}%`, detail: translate("shared.canvas.agentContextUsage.currentUsageTheMarkerShowsTheAutomaticCompactionThreshold", { v0: String(formatContextTokens(inputTokens)), v1: String(formatContextTokens(usableTokens)), v2: String(source) }) };
+    return {
+        ...base,
+        phase: "ok",
+        ring,
+        label: `${percent}%`,
+        detail: translate("shared.canvas.agentContextUsage.currentUsageTheMarkerShowsTheAutomaticCompactionThreshold", { v0: String(formatContextTokens(inputTokens)), v1: String(formatContextTokens(usableTokens)), v2: String(source) }),
+    };
 }

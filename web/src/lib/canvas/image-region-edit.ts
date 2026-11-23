@@ -1,7 +1,6 @@
 import type { PixelSize } from "@/lib/canvas/image-operation-plan";
 import { translate } from "@/i18n";
 
-
 /** 区域框使用原图像素坐标；index 创建后不再变化，删除区域不会重排已写进提示词的 @区域N。 */
 export type ImageEditRegion = { index: number; x: number; y: number; width: number; height: number };
 export type RegionPoint = { x: number; y: number };

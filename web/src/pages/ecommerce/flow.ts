@@ -52,10 +52,12 @@ function stepDetail(key: CommerceFlowStepKey, input: CommerceFlowInput): string 
             return translate(input.directionsLoading ? "ecommerce.flow.recommending" : input.directionsReady ? "ecommerce.flow.chooseDirection" : "ecommerce.flow.startPlanning");
         case "plan":
             if (input.planningPending) return translate(input.directionChosen ? "ecommerce.flow.writingThenGenerate" : "ecommerce.flow.writingThenReview");
-            return input.planReady ? translate("ecommerce.flow.reviewCount", { count:input.planCount}) : translate("ecommerce.flow.planDirection");
+            return input.planReady ? translate("ecommerce.flow.reviewCount", { count: input.planCount }) : translate("ecommerce.flow.planDirection");
         case "generate":
             if (!input.submitted) return translate(input.direct ? "ecommerce.flow.startDirect" : "ecommerce.flow.confirmThenGenerate");
-            return input.failed ? translate("ecommerce.flow.progressWithFailures", { completed: input.completed, total: input.planCount, failed:input.failed}) : translate("ecommerce.flow.progress", { completed: input.completed, total: input.planCount });
+            return input.failed
+                ? translate("ecommerce.flow.progressWithFailures", { completed: input.completed, total: input.planCount, failed: input.failed })
+                : translate("ecommerce.flow.progress", { completed: input.completed, total: input.planCount });
         case "deliver":
             return translate("ecommerce.flow.complete");
     }

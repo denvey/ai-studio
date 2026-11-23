@@ -7,7 +7,6 @@ import { writeCanvasNodePrompt } from "@/lib/canvas/canvas-node-prompt";
 import { CanvasNodeType, type CanvasConnection, type CanvasNodeData, type StoryboardAssetBinding, type StoryboardRow } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 export function storyboardRowReferenceNodeIds(scriptNode: CanvasNodeData, row: StoryboardRow, nodes: CanvasNodeData[], connections: CanvasConnection[], includeFirstFrame: boolean, targetNodeId?: string) {
     const characterAssetIds = new Set((row.characters || []).map((character) => character.characterAssetId).filter((assetId): assetId is string => Boolean(assetId)));
     const boundNodeIds = new Set((row.assetBindings || []).map((binding) => binding.nodeId));

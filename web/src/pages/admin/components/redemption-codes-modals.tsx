@@ -98,7 +98,9 @@ export function CreateRedeemBatchDrawer({
                                         validator: (_, value) => {
                                             const numberValue = Number(value);
                                             const microcredits = Math.round(numberValue * MICRO_CREDITS_PER_CREDIT);
-                                            return Number.isFinite(numberValue) && numberValue > 0 && Number.isSafeInteger(microcredits) && microcredits > 0 ? Promise.resolve() : Promise.reject(new Error(translate("admin.redemptionCodesModals.enterASafelySupportedCreditAmountGreaterThan0")));
+                                            return Number.isFinite(numberValue) && numberValue > 0 && Number.isSafeInteger(microcredits) && microcredits > 0
+                                                ? Promise.resolve()
+                                                : Promise.reject(new Error(translate("admin.redemptionCodesModals.enterASafelySupportedCreditAmountGreaterThan0")));
                                         },
                                     },
                                 ]}
@@ -111,7 +113,8 @@ export function CreateRedeemBatchDrawer({
                                 rules={[
                                     { required: true, message: translate("admin.redemptionCodesModals.enterHowManyToGenerate") },
                                     {
-                                        validator: (_, value) => (Number.isInteger(Number(value)) && Number(value) >= 1 && Number(value) <= 5000 ? Promise.resolve() : Promise.reject(new Error(translate("admin.redemptionCodesModals.enterAnIntegerFrom1To5000")))),
+                                        validator: (_, value) =>
+                                            Number.isInteger(Number(value)) && Number(value) >= 1 && Number(value) <= 5000 ? Promise.resolve() : Promise.reject(new Error(translate("admin.redemptionCodesModals.enterAnIntegerFrom1To5000"))),
                                     },
                                 ]}
                             >
@@ -180,7 +183,9 @@ export function CreateRedeemBatchDrawer({
                             </div>
                             <div>
                                 <dt>{translate("library.tasks.params.count")}</dt>
-                                <dd>{pending.count} {translate("admin.redemptionCodesModals.items2")}</dd>
+                                <dd>
+                                    {pending.count} {translate("admin.redemptionCodesModals.items2")}
+                                </dd>
                             </div>
                             <div>
                                 <dt>{translate("admin.redemptionCodesModals.totalBatchValue")}</dt>
@@ -204,7 +209,10 @@ export function CreateRedeemBatchDrawer({
 
 export function BatchStatusDistribution({ batch }: { batch: RedeemBatch }) {
     return (
-        <div className="admin-redemption-status-distribution" aria-label={translate("admin.redemptionCodesModals.availableRedeemedExpiredDisabled", { v0: String(batch.availableCount ?? 0), v1: String(batch.redeemedCount ?? 0), v2: String(batch.expiredCount ?? 0), v3: String(batch.disabledCount ?? 0) })}>
+        <div
+            className="admin-redemption-status-distribution"
+            aria-label={translate("admin.redemptionCodesModals.availableRedeemedExpiredDisabled", { v0: String(batch.availableCount ?? 0), v1: String(batch.redeemedCount ?? 0), v2: String(batch.expiredCount ?? 0), v3: String(batch.disabledCount ?? 0) })}
+        >
             <AdminStatusBadge label={translate("admin.redemptionCodesModals.available", { v0: String(batch.availableCount ?? 0) })} tone="success" />
             <AdminStatusBadge label={translate("admin.redemptionCodesModals.redeemed", { v0: String(batch.redeemedCount ?? 0) })} tone="info" />
             <AdminStatusBadge label={translate("admin.redemptionCodesModals.expired", { v0: String(batch.expiredCount ?? 0) })} tone="warning" />
@@ -252,7 +260,8 @@ export function GeneratedCodesModal({ codes, batchId, onClose }: { codes: string
             </div>
             {codes.length > GENERATED_PREVIEW_LIMIT ? (
                 <p className="admin-generated-codes-preview-note">
-                    {translate("admin.redemptionCodesModals.toKeepThePageResponsiveOnlyTheFirst")} {GENERATED_PREVIEW_LIMIT} {translate("admin.redemptionCodesModals.codesArePreviewedCopyingAndDownloadingIncludeAll")} {codes.length} {translate("admin.redemptionCodesModals.redemptionCodes")}
+                    {translate("admin.redemptionCodesModals.toKeepThePageResponsiveOnlyTheFirst")} {GENERATED_PREVIEW_LIMIT} {translate("admin.redemptionCodesModals.codesArePreviewedCopyingAndDownloadingIncludeAll")} {codes.length}{" "}
+                    {translate("admin.redemptionCodesModals.redemptionCodes")}
                 </p>
             ) : null}
             <Input.TextArea aria-label={translate("admin.redemptionCodesModals.newRedemptionCodePreview")} value={previewContent} readOnly autoSize={{ minRows: 10, maxRows: 18 }} className="font-mono text-xs" />
@@ -362,7 +371,14 @@ export function RedeemBatchCodesModal({ batch, onClose, onBatchChanged }: { batc
             render: (_, item) => (
                 <div className="flex items-center gap-2">
                     <code className="min-w-0 flex-1 truncate text-xs">{item.code || translate("admin.redemptionCodesModals.plaintextCannotBeRecovered", { v0: String(item.codeSuffix) })}</code>
-                    <Button type="text" size="small" aria-label={translate("admin.redemptionCodesModals.copyRedemptionCode")} icon={<Copy className="size-3.5" />} disabled={!item.code || loading || detailsMutating} onClick={() => void copyCode(item.code)} />
+                    <Button
+                        type="text"
+                        size="small"
+                        aria-label={translate("admin.redemptionCodesModals.copyRedemptionCode")}
+                        icon={<Copy className="size-3.5" />}
+                        disabled={!item.code || loading || detailsMutating}
+                        onClick={() => void copyCode(item.code)}
+                    />
                 </div>
             ),
         },
@@ -396,7 +412,15 @@ export function RedeemBatchCodesModal({ batch, onClose, onBatchChanged }: { batc
                         okButtonProps={{ danger: true }}
                         onConfirm={() => disableCode(item)}
                     >
-                        <Button type="text" size="small" danger disabled={detailsMutating && !disablingCodeIds.has(item.id)} loading={disablingCodeIds.has(item.id)} icon={<Ban className="size-3.5" />} aria-label={translate("admin.redemptionCodesModals.disableRedemptionCode")} />
+                        <Button
+                            type="text"
+                            size="small"
+                            danger
+                            disabled={detailsMutating && !disablingCodeIds.has(item.id)}
+                            loading={disablingCodeIds.has(item.id)}
+                            icon={<Ban className="size-3.5" />}
+                            aria-label={translate("admin.redemptionCodesModals.disableRedemptionCode")}
+                        />
                     </Popconfirm>
                 ) : (
                     <span className="text-xs text-foreground/35">--</span>
@@ -430,11 +454,19 @@ export function RedeemBatchCodesModal({ batch, onClose, onBatchChanged }: { batc
             {!plaintextAvailable ? <div className="admin-redemption-sensitive-notice is-warning">{translate("admin.redemptionCodesModals.thisBatchPredatesEncryptedPlaybackSoOnlyHashesWereStored")}</div> : null}
             <div className="admin-redemption-detail-summary">
                 <BatchStatusDistribution batch={batchSummary || batch || emptyBatchSummary} />
-                <span>{translate("admin.redemptionCodesModals.perCode")} {formatCredits(batchSummary?.amountMicrocredits ?? batch?.amountMicrocredits ?? 0)} {translate("shell.credits")}</span>
-                <span>{translate("admin.redemptionCodesModals.total")} {batchSummary?.count ?? batch?.count ?? 0}</span>
+                <span>
+                    {translate("admin.redemptionCodesModals.perCode")} {formatCredits(batchSummary?.amountMicrocredits ?? batch?.amountMicrocredits ?? 0)} {translate("shell.credits")}
+                </span>
+                <span>
+                    {translate("admin.redemptionCodesModals.total")} {batchSummary?.count ?? batch?.count ?? 0}
+                </span>
                 <span>{batchSummary?.expiresAt || batch?.expiresAt ? translate("admin.redemptionCodesModals.expires", { v0: String(formatTime(batchSummary?.expiresAt || batch?.expiresAt)) }) : translate("admin.redemptionCodesModals.neverExpires")}</span>
-                <span>{translate("admin.redemptionCodesModals.created")} {formatTime(batchSummary?.createdAt || batch?.createdAt)}</span>
-                <code>{translate("admin.redemptionCodesModals.batch")} {String(batchSummary?.id || batch?.id || "").slice(0, 8)}</code>
+                <span>
+                    {translate("admin.redemptionCodesModals.created")} {formatTime(batchSummary?.createdAt || batch?.createdAt)}
+                </span>
+                <code>
+                    {translate("admin.redemptionCodesModals.batch")} {String(batchSummary?.id || batch?.id || "").slice(0, 8)}
+                </code>
             </div>
             <div className={`admin-modal-data-table-shell${detailsMutating ? " is-mutating" : ""}`}>
                 <AdminDataTable
@@ -458,7 +490,13 @@ export function RedeemBatchCodesModal({ batch, onClose, onBatchChanged }: { batc
                         setPage(1);
                     }}
                     table={{ className: "app-data-table", rowKey: "id", size: "small", loading, columns, dataSource: codes, pagination: false, scroll: { x: 960 } }}
-                    empty={<AdminTableEmpty filtered={status !== "all"} title={detailError ? translate("admin.redemptionCodesModals.failedToLoadDetails") : status === "all" ? translate("admin.redemptionCodesModals.noRedemptionCodes") : undefined} description={detailError || undefined} />}
+                    empty={
+                        <AdminTableEmpty
+                            filtered={status !== "all"}
+                            title={detailError ? translate("admin.redemptionCodesModals.failedToLoadDetails") : status === "all" ? translate("admin.redemptionCodesModals.noRedemptionCodes") : undefined}
+                            description={detailError || undefined}
+                        />
+                    }
                     footer={
                         <PaginationBar
                             alwaysShow

@@ -92,7 +92,10 @@ export function CastLibraryPicker({ open, cast, onClose, onPick, segment = false
             eyebrow={translate("drama.studio.castLibraryPicker.dramaDesigns")}
             confirmLabel={() => (segment ? translate("drama.studio.castLibraryPicker.addToSegmentReferences") : translate("drama.studio.castLibraryPicker.useAsReferenceAndLock"))}
             emptyDescription={character ? translate("drama.studio.castLibraryPicker.addImagesOrCharacterCardsToTheAssetLibraryFirst") : translate("drama.studio.castLibraryPicker.addImagesToTheAssetLibraryFirst")}
-            footerNote={externalAssetSources.error || (segment ? translate("drama.studio.castLibraryPicker.addingAnImageOnlyAffectsThisSegmentRemovingAReference") : translate("drama.studio.castLibraryPicker.theSelectedImageReplacesTheCurrentReferenceAndIsLocked"))}
+            footerNote={
+                externalAssetSources.error ||
+                (segment ? translate("drama.studio.castLibraryPicker.addingAnImageOnlyAffectsThisSegmentRemovingAReference") : translate("drama.studio.castLibraryPicker.theSelectedImageReplacesTheCurrentReferenceAndIsLocked"))
+            }
             onClose={onClose}
             onConfirm={async (ids, pickedItems) => {
                 const pool = new Map([...items, ...(pickedItems || [])].map((item) => [item.id, item]));

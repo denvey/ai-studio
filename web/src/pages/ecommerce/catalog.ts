@@ -154,7 +154,7 @@ export const styles = [
     ["minimal", "极简留白"],
 ] as const;
 
-export const options = (items: readonly (readonly [string, string])[]) => items.map(([value, label]) => ({ value, label : commerceUiText(label) }));
+export const options = (items: readonly (readonly [string, string])[]) => items.map(([value, label]) => ({ value, label: commerceUiText(label) }));
 export const labelOf = (items: readonly (readonly [string, string])[], value: string) => items.find(([id]) => id === value)?.[1] || value;
 export const displayLabelOf = (items: readonly (readonly [string, string])[], value: string) => commerceUiText(labelOf(items, value));
 export const formatCommerceCredits = (value: number) => new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 6 }).format(value);

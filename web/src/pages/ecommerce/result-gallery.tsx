@@ -103,7 +103,13 @@ export function SingleImageEditor({
             <p>{translate("ecommerce.resultGallery.describeTheVisualsTextOrLayoutYouWantToAdjust")}</p>
             <label className="ecommerce-field">
                 <span>{translate("ecommerce.resultGallery.editInstructions")}</span>
-                <Input.TextArea aria-label={translate("ecommerce.resultGallery.imageEditInstructions")} placeholder={translate("ecommerce.resultGallery.eGSplitTheHeadingIntoTwoLinesAddMore")} autoSize={{ minRows: 4, maxRows: 8 }} value={request} onChange={(event) => setRequest(event.target.value)} />
+                <Input.TextArea
+                    aria-label={translate("ecommerce.resultGallery.imageEditInstructions")}
+                    placeholder={translate("ecommerce.resultGallery.eGSplitTheHeadingIntoTwoLinesAddMore")}
+                    autoSize={{ minRows: 4, maxRows: 8 }}
+                    value={request}
+                    onChange={(event) => setRequest(event.target.value)}
+                />
             </label>
             <label className="ecommerce-field">
                 <span>{translate("ecommerce.resultGallery.imageModel")}</span>
@@ -124,7 +130,12 @@ export function SingleImageEditor({
             <div className="ecommerce-image-editor-parameters">
                 <label className="ecommerce-field">
                     <span>{translate("ecommerce.resultGallery.imageAspectRatio")}</span>
-                    <Select aria-label={translate("ecommerce.resultGallery.singleImageAspectRatio")} value={edited.ratio} options={profile?.size.values.map((value) => ({ value, label: commerceUiText(imageSizeLabel(value)) }))} onChange={(ratio) => setEdited({ ...edited, ratio })} />
+                    <Select
+                        aria-label={translate("ecommerce.resultGallery.singleImageAspectRatio")}
+                        value={edited.ratio}
+                        options={profile?.size.values.map((value) => ({ value, label: commerceUiText(imageSizeLabel(value)) }))}
+                        onChange={(ratio) => setEdited({ ...edited, ratio })}
+                    />
                 </label>
                 <label className="ecommerce-field">
                     <span>{translate("ecommerce.resultGallery.resolutionQuality")}</span>
@@ -327,7 +338,15 @@ export function EcommerceResultGallery({
                                         </div>
                                         {working ? <CommerceGeneratingArtwork queued={!image.taskId || task?.status === "queued"} label={`${String(index + 1).padStart(2, "0")} · ${displayLabelOf(imageTypes, image.imageType)}`} /> : <Images size={27} />}
                                         {!working ? (
-                                            <strong>{task?.status === "failed" && task.canRecoverMedia ? translate("ecommerce.resultGallery.generatedButNotFullySaved") : task?.status === "failed" ? translate("canvasPage.batches.generationFailed") : task?.status === "cancelled" ? translate("canvasPage.taskStatus.canceled") : translate("ecommerce.resultGallery.waitingForGenerationApproval")}</strong>
+                                            <strong>
+                                                {task?.status === "failed" && task.canRecoverMedia
+                                                    ? translate("ecommerce.resultGallery.generatedButNotFullySaved")
+                                                    : task?.status === "failed"
+                                                      ? translate("canvasPage.batches.generationFailed")
+                                                      : task?.status === "cancelled"
+                                                        ? translate("canvasPage.taskStatus.canceled")
+                                                        : translate("ecommerce.resultGallery.waitingForGenerationApproval")}
+                                            </strong>
                                         ) : null}
                                         {!working ? (
                                             <span>
@@ -377,7 +396,8 @@ export function EcommerceResultGallery({
                                     </button>
                                     <div className="commerce-selected-tools" role="group" aria-label={translate("ecommerce.resultGallery.imageEditingFeatures")} data-canvas-no-zoom>
                                         <div className="commerce-selected-tools-cost">
-                                            {translate("ecommerce.resultGallery.imageEditing")}<small>{translate("ecommerce.resultGallery.featureComingSoon")}</small>
+                                            {translate("ecommerce.resultGallery.imageEditing")}
+                                            <small>{translate("ecommerce.resultGallery.featureComingSoon")}</small>
                                         </div>
                                         {pendingImageTools.map(({ label, icon: Icon }) => (
                                             <button type="button" key={label} disabled title={translate("ecommerce.resultGallery.willBeAvailableOnceTheAPIIsConnected", { v0: String(label) })}>
@@ -387,7 +407,12 @@ export function EcommerceResultGallery({
                                             </button>
                                         ))}
                                         <div className="commerce-selected-tools-divider" />
-                                        <button type="button" disabled={!assetId} title={rotations[image.id] ? translate("ecommerce.resultGallery.downloadTheOriginalImageRotationOnlyAffectsThePreview") : translate("ecommerce.resultGallery.downloadThisImage")} onClick={() => assetId && onDownload({ image, index, assetId })}>
+                                        <button
+                                            type="button"
+                                            disabled={!assetId}
+                                            title={rotations[image.id] ? translate("ecommerce.resultGallery.downloadTheOriginalImageRotationOnlyAffectsThePreview") : translate("ecommerce.resultGallery.downloadThisImage")}
+                                            onClick={() => assetId && onDownload({ image, index, assetId })}
+                                        >
                                             <ArrowDownToLine size={15} />
                                             <span>{translate("ecommerce.resultGallery.downloadOriginalImage")}</span>
                                         </button>
@@ -418,7 +443,11 @@ export function EcommerceResultGallery({
                                                 <span>{translate("ecommerce.resultGallery.regenerate")}</span>
                                             </button>
                                         </Popover>
-                                        <Popconfirm title={translate("ecommerce.resultGallery.removeThisImageFromResults")} description={translate("ecommerce.resultGallery.theOriginalImageRemainsInTheAssetLibraryAndTask")} onConfirm={() => onRemove(image)}>
+                                        <Popconfirm
+                                            title={translate("ecommerce.resultGallery.removeThisImageFromResults")}
+                                            description={translate("ecommerce.resultGallery.theOriginalImageRemainsInTheAssetLibraryAndTask")}
+                                            onConfirm={() => onRemove(image)}
+                                        >
                                             <button type="button">
                                                 <Trash2 size={15} />
                                                 <span>{translate("ecommerce.resultGallery.removeImage")}</span>
@@ -436,7 +465,8 @@ export function EcommerceResultGallery({
                             ) : null}
                             {assetId && qualityIssues?.[assetId]?.length ? (
                                 <div className="ecommerce-quality-warning" role="status" title={qualityIssues[assetId].join("；")}>
-                                    {translate("ecommerce.resultGallery.technicalQualityCheck")}{qualityIssues[assetId].join("；")}
+                                    {translate("ecommerce.resultGallery.technicalQualityCheck")}
+                                    {qualityIssues[assetId].join("；")}
                                 </div>
                             ) : null}
                         </article>

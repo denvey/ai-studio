@@ -21,14 +21,20 @@ export function CreditCostFields({
     const fields =
         billingMode === "token"
             ? isVideo
-                ? [["costOutputTokenPrice", translate("admin.creditCostFields.creditsMillionVideoTokens")], ...(referenceVideoCost ? [["costReferenceVideoOutputTokenPrice", translate("admin.creditCostFields.withReferenceVideoCreditsMillionVideoTokens")]] : [])]
+                ? [
+                      ["costOutputTokenPrice", translate("admin.creditCostFields.creditsMillionVideoTokens")],
+                      ...(referenceVideoCost ? [["costReferenceVideoOutputTokenPrice", translate("admin.creditCostFields.withReferenceVideoCreditsMillionVideoTokens")]] : []),
+                  ]
                 : [
                       ["costInputTokenPrice", translate("admin.creditCostFields.inputMillionTokens")],
                       ["costOutputTokenPrice", translate("admin.creditCostFields.outputMillionTokens")],
                       ["costCachedTokenPrice", translate("admin.creditCostFields.cacheReadMillionTokens")],
                       ["costCacheWriteTokenPrice", translate("admin.creditCostFields.cacheWriteMillionTokens")],
                   ]
-            : [["costUnitPrice", billingMode === "per_second" ? translate("admin.creditCostFields.creditsSecond") : translate("admin.creditCostFields.creditsRequest")], ...(referenceVideoCost ? [["costReferenceVideoUnitPrice", translate("admin.creditCostFields.withReferenceVideoCreditsSecond")]] : [])];
+            : [
+                  ["costUnitPrice", billingMode === "per_second" ? translate("admin.creditCostFields.creditsSecond") : translate("admin.creditCostFields.creditsRequest")],
+                  ...(referenceVideoCost ? [["costReferenceVideoUnitPrice", translate("admin.creditCostFields.withReferenceVideoCreditsSecond")]] : []),
+              ];
     return (
         <section className="admin-price-tier-cost-panel" aria-label={translate("admin.creditCostFields.creditCostSettings")}>
             <header className="admin-price-tier-cost-header">

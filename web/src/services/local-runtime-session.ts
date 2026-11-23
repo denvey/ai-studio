@@ -2,7 +2,6 @@ import { openDB } from "idb";
 import { canonicalize } from "json-canonicalize";
 import { translate } from "@/i18n";
 
-
 const configuredRuntimeEndpoint = typeof import.meta.env === "object" ? import.meta.env.VITE_FRAMEFIELD_LOCAL_RUNTIME_ENDPOINT : undefined;
 export const LOCAL_RUNTIME_ENDPOINT = resolveLocalRuntimeEndpoint(configuredRuntimeEndpoint);
 const KEY_DATABASE = "framefield-local-runtime";

@@ -1,7 +1,6 @@
 import type { CanvasFaceBox } from "./canvas-emotion";
 import { translate } from "@/i18n";
 
-
 type DetectFaceResponse = {
     id: number;
     faces?: CanvasFaceBox[];

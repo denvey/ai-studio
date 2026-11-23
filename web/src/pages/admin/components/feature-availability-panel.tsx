@@ -284,7 +284,11 @@ export default function FeatureAvailabilityPanel() {
             setDraftFeatures(value);
             setGlobalFeatures(value);
             const title = key === "frontendModelsEnabled" ? translate("admin.featureAvailabilityPanel.modelSource") : featureByKey.get(key)?.title || translate("admin.featureAvailabilityPanel.features");
-            message.success(key === "frontendModelsEnabled" ? translate("admin.featureAvailabilityPanel.switchedTo", { v0: String(title), v1: String(enabled ? translate("admin.featureAvailabilityPanel.publicModelCatalog") : translate("admin.featureAvailabilityPanel.systemChannel")) }) : translate("admin.featureAvailabilityPanel.isNowTheChangeTakesEffectImmediatelyForUsers", { v0: String(title), v1: String(enabled ? translate("admin.featureAvailabilityPanel.on") : translate("common.close")) }));
+            message.success(
+                key === "frontendModelsEnabled"
+                    ? translate("admin.featureAvailabilityPanel.switchedTo", { v0: String(title), v1: String(enabled ? translate("admin.featureAvailabilityPanel.publicModelCatalog") : translate("admin.featureAvailabilityPanel.systemChannel")) })
+                    : translate("admin.featureAvailabilityPanel.isNowTheChangeTakesEffectImmediatelyForUsers", { v0: String(title), v1: String(enabled ? translate("admin.featureAvailabilityPanel.on") : translate("common.close")) }),
+            );
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : translate("admin.featureAvailabilityPanel.failedToSaveFeatureAvailabilitySettings");
             setDraftFeatures(previous);
@@ -455,7 +459,8 @@ function FeatureRowView({ row, draft, savingKey, onChange, nested = false }: { r
                                 <button type="button" className="afp-dep-link" onClick={() => focusFeatureRow(requirement.key)}>
                                     {featureByKey.get(requirement.key)?.title}
                                 </button>
-                                {translate("admin.featureAvailabilityPanel.disabled")}{requirement.effect}
+                                {translate("admin.featureAvailabilityPanel.disabled")}
+                                {requirement.effect}
                             </span>
                         </p>
                     ))}

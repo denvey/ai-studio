@@ -127,7 +127,9 @@ export function AllChannelModelsPanel({
                 }
                 return true;
             })
-            .sort((left, right) => (left.displayName || left.modelKey).localeCompare(right.displayName || right.modelKey, currentLocale()) || left.modelKey.localeCompare(right.modelKey) || left.channelName.localeCompare(right.channelName, currentLocale()));
+            .sort(
+                (left, right) => (left.displayName || left.modelKey).localeCompare(right.displayName || right.modelKey, currentLocale()) || left.modelKey.localeCompare(right.modelKey) || left.channelName.localeCompare(right.channelName, currentLocale()),
+            );
     }, [capability, channelFilter, health, items, keyword, status]);
 
     const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -197,13 +199,32 @@ export function AllChannelModelsPanel({
                 </div>
             ),
         },
-        { title: translate("admin.channels.allChannelModelsPanel.capability"), dataIndex: "capability", width: 72, render: (value: string) => capabilityOptions.find((option) => option.value === value)?.label || translate("account.settings.modelConfig.capabilities.pending") },
-        { title: translate("admin.channels.allChannelModelsPanel.reliability24h"), key: "health", width: 150, render: (_, item) => <ChannelModelHealthCell health={health.get(channelModelHealthKey(item.channelId, item.modelKey))} loading={healthLoading} /> },
+        {
+            title: translate("admin.channels.allChannelModelsPanel.capability"),
+            dataIndex: "capability",
+            width: 72,
+            render: (value: string) => capabilityOptions.find((option) => option.value === value)?.label || translate("account.settings.modelConfig.capabilities.pending"),
+        },
+        {
+            title: translate("admin.channels.allChannelModelsPanel.reliability24h"),
+            key: "health",
+            width: 150,
+            render: (_, item) => <ChannelModelHealthCell health={health.get(channelModelHealthKey(item.channelId, item.modelKey))} loading={healthLoading} />,
+        },
         { title: translate("admin.channels.allChannelModelsPanel.tierCostSellingPriceMarkup"), width: 300, render: (_, item) => <ChannelModelCostSummary item={item} /> },
         {
             title: translate("library.tasks.detail.status"),
             width: 90,
-            render: (_, item) => (item.enabled ? item.channelEnabled ? <AdminStatusBadge label={translate("account.layout.oss.switchOn")} tone="success" /> : <AdminStatusBadge label={translate("admin.channels.allChannelModelsPanel.channelDisabled2")} tone="warning" /> : <AdminStatusBadge label={translate("account.layout.oss.switchOff")} tone="neutral" />),
+            render: (_, item) =>
+                item.enabled ? (
+                    item.channelEnabled ? (
+                        <AdminStatusBadge label={translate("account.layout.oss.switchOn")} tone="success" />
+                    ) : (
+                        <AdminStatusBadge label={translate("admin.channels.allChannelModelsPanel.channelDisabled2")} tone="warning" />
+                    )
+                ) : (
+                    <AdminStatusBadge label={translate("account.layout.oss.switchOff")} tone="neutral" />
+                ),
         },
         {
             title: translate("account.settings.runninghub.actions"),
@@ -267,7 +288,11 @@ export function AllChannelModelsPanel({
                 }
                 toolbarActive={hasFilters}
                 onReset={() => updateFilter({ q: "", capability: "", modelStatus: "", modelChannel: "" })}
-                trailing={<span className="text-xs text-foreground/50 tabular-nums">{loading ? translate("admin.channels.allChannelModelsPanel.loading") : translate("admin.channels.allChannelModelsPanel.modelsAvailable", { v0: String(filtered.length), v1: String(enabledCount) })}</span>}
+                trailing={
+                    <span className="text-xs text-foreground/50 tabular-nums">
+                        {loading ? translate("admin.channels.allChannelModelsPanel.loading") : translate("admin.channels.allChannelModelsPanel.modelsAvailable", { v0: String(filtered.length), v1: String(enabledCount) })}
+                    </span>
+                }
                 batchActions={
                     <AdminBatchBar count={selectedIds.length} onClear={() => setSelectedIds([])}>
                         <Button size="small" disabled={loading || Boolean(loadError)} onClick={() => setRepriceItems(items.filter((item) => selectedIds.includes(item.id)))}>
@@ -300,7 +325,10 @@ export function AllChannelModelsPanel({
                 empty={
                     loadError ? (
                         <div className="admin-inline-load-error" role="status">
-                            <span>{translate("admin.channels.allChannelModelsPanel.modelListTemporarilyUnavailable")}{loadError}</span>
+                            <span>
+                                {translate("admin.channels.allChannelModelsPanel.modelListTemporarilyUnavailable")}
+                                {loadError}
+                            </span>
                             <Button size="small" onClick={() => setRetry((value) => value + 1)}>
                                 {translate("common.retry")}
                             </Button>

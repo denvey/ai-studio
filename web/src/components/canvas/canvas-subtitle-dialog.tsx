@@ -201,7 +201,11 @@ export function CanvasSubtitleDialog({ node, open, projectId, config, onClose, o
             const autoSegmented = style.autoResegment ? resegmentSrtEntries(parsed, style.maxCharsPerEntry || DEFAULT_MAX_CHARS_PER_ENTRY) : parsed;
             setEntries(renumber(autoSegmented));
             setHighlights([]);
-            message.success(autoSegmented.length > parsed.length ? translate("canvasTools.canvasSubtitleDialog.importedSubtitlesAndSplitThemIntoUsingThePerLine", { v0: String(parsed.length), v1: String(autoSegmented.length) }) : translate("canvasTools.canvasSubtitleDialog.importedSubtitles", { v0: String(parsed.length) }));
+            message.success(
+                autoSegmented.length > parsed.length
+                    ? translate("canvasTools.canvasSubtitleDialog.importedSubtitlesAndSplitThemIntoUsingThePerLine", { v0: String(parsed.length), v1: String(autoSegmented.length) })
+                    : translate("canvasTools.canvasSubtitleDialog.importedSubtitles", { v0: String(parsed.length) }),
+            );
         };
         reader.readAsText(file);
     };
@@ -228,7 +232,11 @@ export function CanvasSubtitleDialog({ node, open, projectId, config, onClose, o
             }));
             setEntries(entries);
             setHighlights([]);
-            message.success(durationMs && durationMs > 0 ? translate("canvasTools.canvasSubtitleDialog.importedSubtitlesSpreadEvenlyAcrossTheVideo", { v0: String(entries.length), v1: String(formatDurationMs(durationMs)) }) : translate("canvasTools.canvasSubtitleDialog.importedSubtitlesVideoDurationUnknownEstimatedAt4sEach", { v0: String(entries.length) }));
+            message.success(
+                durationMs && durationMs > 0
+                    ? translate("canvasTools.canvasSubtitleDialog.importedSubtitlesSpreadEvenlyAcrossTheVideo", { v0: String(entries.length), v1: String(formatDurationMs(durationMs)) })
+                    : translate("canvasTools.canvasSubtitleDialog.importedSubtitlesVideoDurationUnknownEstimatedAt4sEach", { v0: String(entries.length) }),
+            );
         };
         reader.readAsText(file);
     };
@@ -330,7 +338,9 @@ export function CanvasSubtitleDialog({ node, open, projectId, config, onClose, o
                         ) : null}
                     </div>
                 ) : (
-                    <div className="grid h-40 w-full max-w-[640px] place-items-center px-4 text-center text-xs opacity-60">{videoError ? translate("canvasTools.canvasSubtitleDialog.couldNotLoadTheVideoPreviewCheckThatTheAsset") : translate("canvasTools.canvasSubtitleDialog.noVideoToPreviewUploadOrGenerateOneOnA")}</div>
+                    <div className="grid h-40 w-full max-w-[640px] place-items-center px-4 text-center text-xs opacity-60">
+                        {videoError ? translate("canvasTools.canvasSubtitleDialog.couldNotLoadTheVideoPreviewCheckThatTheAsset") : translate("canvasTools.canvasSubtitleDialog.noVideoToPreviewUploadOrGenerateOneOnA")}
+                    </div>
                 )}
             </div>
             <div className="shrink-0 text-center text-xs opacity-40">{translate("canvasTools.canvasSubtitleDialog.clickASubtitleToJumpThePreviewThere")}</div>
@@ -427,9 +437,25 @@ export function CanvasSubtitleDialog({ node, open, projectId, config, onClose, o
                                 <span className="grid size-6 shrink-0 place-items-center rounded-md text-xs font-semibold" style={{ background: theme.accent.primarySoft, color: theme.accent.primary }}>
                                     {idx + 1}
                                 </span>
-                                <InputNumber size="small" min={0} step={100} value={entry.startMs} onChange={(startMs) => updateEntry(idx, { startMs: startMs ?? 0 })} className="w-32" aria-label={translate("canvasTools.canvasSubtitleDialog.startTimeOfSubtitleMs", { v0: String(idx + 1) })} />
+                                <InputNumber
+                                    size="small"
+                                    min={0}
+                                    step={100}
+                                    value={entry.startMs}
+                                    onChange={(startMs) => updateEntry(idx, { startMs: startMs ?? 0 })}
+                                    className="w-32"
+                                    aria-label={translate("canvasTools.canvasSubtitleDialog.startTimeOfSubtitleMs", { v0: String(idx + 1) })}
+                                />
                                 <span className="text-xs opacity-40">→</span>
-                                <InputNumber size="small" min={0} step={100} value={entry.endMs} onChange={(endMs) => updateEntry(idx, { endMs: endMs ?? 0 })} className="w-32" aria-label={translate("canvasTools.canvasSubtitleDialog.endTimeOfSubtitleMs", { v0: String(idx + 1) })} />
+                                <InputNumber
+                                    size="small"
+                                    min={0}
+                                    step={100}
+                                    value={entry.endMs}
+                                    onChange={(endMs) => updateEntry(idx, { endMs: endMs ?? 0 })}
+                                    className="w-32"
+                                    aria-label={translate("canvasTools.canvasSubtitleDialog.endTimeOfSubtitleMs", { v0: String(idx + 1) })}
+                                />
                                 <button
                                     type="button"
                                     title={translate("canvasTools.canvasSubtitleDialog.splitThisSubtitle")}
@@ -451,7 +477,13 @@ export function CanvasSubtitleDialog({ node, open, projectId, config, onClose, o
                                     <Trash2 className="size-3.5" />
                                 </button>
                             </div>
-                            <Input.TextArea value={entry.text} autoSize={{ minRows: 1, maxRows: 3 }} placeholder={translate("canvasTools.canvasSubtitleDialog.subtitleText")} className="mt-2" onChange={(event) => updateEntry(idx, { text: event.target.value })} />
+                            <Input.TextArea
+                                value={entry.text}
+                                autoSize={{ minRows: 1, maxRows: 3 }}
+                                placeholder={translate("canvasTools.canvasSubtitleDialog.subtitleText")}
+                                className="mt-2"
+                                onChange={(event) => updateEntry(idx, { text: event.target.value })}
+                            />
                             {highlight ? (
                                 <div className="mt-2 text-xs" style={{ color: theme.accent.primary }}>
                                     {translate("canvasTools.inline.canvasSubtitleDialog.focus", { v0: String(highlight.highlightText) })}
@@ -566,7 +598,11 @@ export function CanvasSubtitleDialog({ node, open, projectId, config, onClose, o
 
                 {progress && running ? (
                     <div className="border-b px-4 py-2" style={{ borderColor: theme.toolbar.border }}>
-                        <Progress percent={progress.percent} size="small" format={() => translate("canvasTools.canvasSubtitleDialog.batch", { v0: String(progress.processedEntries), v1: String(progress.totalEntries), v2: String(progress.batchIndex), v3: String(progress.batchTotal) })} />
+                        <Progress
+                            percent={progress.percent}
+                            size="small"
+                            format={() => translate("canvasTools.canvasSubtitleDialog.batch", { v0: String(progress.processedEntries), v1: String(progress.totalEntries), v2: String(progress.batchIndex), v3: String(progress.batchTotal) })}
+                        />
                     </div>
                 ) : null}
 
@@ -582,9 +618,7 @@ export function CanvasSubtitleDialog({ node, open, projectId, config, onClose, o
                 </div>
 
                 <div className="flex items-center justify-between gap-3 border-t px-4 py-3" style={{ borderColor: theme.toolbar.border, background: theme.toolbar.panel }}>
-                    <div className="text-xs opacity-45">
-                        {translate("canvasTools.inline.canvasSubtitleDialog.subtitlesCharactersPerLine", { v0: String(entries.length), v1: String(style.maxCharsPerEntry || DEFAULT_MAX_CHARS_PER_ENTRY) })}
-                    </div>
+                    <div className="text-xs opacity-45">{translate("canvasTools.inline.canvasSubtitleDialog.subtitlesCharactersPerLine", { v0: String(entries.length), v1: String(style.maxCharsPerEntry || DEFAULT_MAX_CHARS_PER_ENTRY) })}</div>
                     <div className="flex items-center gap-2">
                         <Button disabled={running} onClick={onClose}>
                             {translate("common.cancel")}

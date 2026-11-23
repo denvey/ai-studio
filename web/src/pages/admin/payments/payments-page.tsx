@@ -48,7 +48,6 @@ import "./payments-page.css";
 import { Select } from "@/components/ui/base/select";
 import { translate } from "@/i18n";
 
-
 type ProviderFormValues = {
     enabled: boolean;
     closeAfterMinutes: number;
@@ -378,7 +377,10 @@ export default function AdminPaymentsPage() {
     const saveUsdCnyRate = () => {
         const rate = rateDraft.trim();
         if (rate === usdCnyRate) return;
-        void savePaymentSettings({ defaultCurrency, usdCnyRate: rate }, rate ? translate("adminPages.payments.paymentsPage.exchangeRateUpdatedTo1USDCNY", { v0: String(rate) }) : translate("adminPages.payments.paymentsPage.exchangeRateClearedCrossCurrencyChannelsCannotAcceptOrders"));
+        void savePaymentSettings(
+            { defaultCurrency, usdCnyRate: rate },
+            rate ? translate("adminPages.payments.paymentsPage.exchangeRateUpdatedTo1USDCNY", { v0: String(rate) }) : translate("adminPages.payments.paymentsPage.exchangeRateClearedCrossCurrencyChannelsCannotAcceptOrders"),
+        );
     };
 
     const queryOrder = async (order: PaymentOrder) => {
@@ -424,7 +426,11 @@ export default function AdminPaymentsPage() {
             if (result.run.status === "running") {
                 message.info(translate("adminPages.payments.paymentsPage.reconciliationForThisProviderAndBillingDateIsAlreadyRunning"));
             } else {
-                message.success(result.run.recoveredItems ? translate("adminPages.payments.paymentsPage.reconciliationCompleteMissingPaymentsCreditedAutomatically", { v0: String(result.run.recoveredItems) }) : translate("adminPages.payments.paymentsPage.reconciliationComplete"));
+                message.success(
+                    result.run.recoveredItems
+                        ? translate("adminPages.payments.paymentsPage.reconciliationCompleteMissingPaymentsCreditedAutomatically", { v0: String(result.run.recoveredItems) })
+                        : translate("adminPages.payments.paymentsPage.reconciliationComplete"),
+                );
             }
             await loadRuns(1, runPageSize);
         } catch (error) {
@@ -475,7 +481,13 @@ export default function AdminPaymentsPage() {
                 </div>
             ),
         },
-        { title: translate("account.wallet.topup.paymentMethod"), dataIndex: "checkoutMode", width: 120, align: "center", render: (value) => (value === "qr_code" ? translate("account.payment.scanTitle") : translate("adminPages.payments.paymentsPage.websiteRedirect")) },
+        {
+            title: translate("account.wallet.topup.paymentMethod"),
+            dataIndex: "checkoutMode",
+            width: 120,
+            align: "center",
+            render: (value) => (value === "qr_code" ? translate("account.payment.scanTitle") : translate("adminPages.payments.paymentsPage.websiteRedirect")),
+        },
         {
             title: translate("library.tasks.detail.status"),
             key: "status",
@@ -485,12 +497,21 @@ export default function AdminPaymentsPage() {
                 <div className="flex flex-col items-center gap-2">
                     <AdminStatusBadge label={provider.enabled ? translate("account.settings.channels.ready") : translate("adminPages.payments.paymentsPage.unavailable")} tone={provider.enabled ? "success" : "neutral"} />
                     <span className="text-xs text-foreground/45">
-                        {translate("adminPages.payments.paymentsPage.pluginConfigurationStatus", { plugin: provider.pluginEnabled ? translate("adminPages.payments.paymentsPage.available") : translate("adminPages.payments.paymentsPage.disabled2"), configuration: provider.configEnabled ? translate("account.layout.oss.enabled") : translate("adminPages.payments.paymentsPage.disabled2") })}
+                        {translate("adminPages.payments.paymentsPage.pluginConfigurationStatus", {
+                            plugin: provider.pluginEnabled ? translate("adminPages.payments.paymentsPage.available") : translate("adminPages.payments.paymentsPage.disabled2"),
+                            configuration: provider.configEnabled ? translate("account.layout.oss.enabled") : translate("adminPages.payments.paymentsPage.disabled2"),
+                        })}
                     </span>
                 </div>
             ),
         },
-        { title: translate("adminPages.payments.paymentsPage.automaticallyCloseUnpaidOrders"), dataIndex: "closeAfterMinutes", width: 150, align: "center", render: (value) => translate("adminPages.payments.paymentsPage.minutes", { v0: String(value || 30) }) },
+        {
+            title: translate("adminPages.payments.paymentsPage.automaticallyCloseUnpaidOrders"),
+            dataIndex: "closeAfterMinutes",
+            width: 150,
+            align: "center",
+            render: (value) => translate("adminPages.payments.paymentsPage.minutes", { v0: String(value || 30) }),
+        },
         { title: translate("adminPages.payments.paymentsPage.configurationVersion"), dataIndex: "version", width: 105, align: "center", render: (value) => (value ? `v${value}` : translate("account.layout.oss.cdnAuthNone")) },
         {
             title: translate("account.settings.runninghub.actions"),
@@ -523,7 +544,11 @@ export default function AdminPaymentsPage() {
             width: 180,
             align: "right",
             render: (_, product) => (
-                <span className="tabular-nums">{product.kind === "storage" ? `+${formatStorageCapacity(product.storageBytes)} · ${formatStorageDuration(product.storageDurationDays)}` : translate("adminPages.payments.paymentsPage.credits", { v0: String(formatCredits(product.creditsMicrocredits)) })}</span>
+                <span className="tabular-nums">
+                    {product.kind === "storage"
+                        ? `+${formatStorageCapacity(product.storageBytes)} · ${formatStorageDuration(product.storageDurationDays)}`
+                        : translate("adminPages.payments.paymentsPage.credits", { v0: String(formatCredits(product.creditsMicrocredits)) })}
+                </span>
             ),
         },
         { title: translate("adminPages.payments.paymentsPage.order"), dataIndex: "sortOrder", width: 90, align: "center" },
@@ -551,7 +576,15 @@ export default function AdminPaymentsPage() {
             align: "center",
             render: (value, product) => {
                 const status = product.saleStatus;
-                const label = !value ? translate("adminPages.payments.paymentsPage.disabled2") : status === "upcoming" ? translate("adminPages.payments.paymentsPage.notYetOnSale") : status === "ended" ? translate("account.wallet.topup.ended") : status === "sold_out" ? translate("account.wallet.topup.soldOut") : translate("adminPages.payments.paymentsPage.onSale");
+                const label = !value
+                    ? translate("adminPages.payments.paymentsPage.disabled2")
+                    : status === "upcoming"
+                      ? translate("adminPages.payments.paymentsPage.notYetOnSale")
+                      : status === "ended"
+                        ? translate("account.wallet.topup.ended")
+                        : status === "sold_out"
+                          ? translate("account.wallet.topup.soldOut")
+                          : translate("adminPages.payments.paymentsPage.onSale");
                 const tone = !value || status === "upcoming" ? "neutral" : status === "sold_out" || status === "ended" ? "warning" : "success";
                 return <AdminStatusBadge label={label} tone={tone} />;
             },
@@ -657,7 +690,9 @@ export default function AdminPaymentsPage() {
                 <AdminRowActions
                     primary={{ label: translate("account.layout.banner.details"), icon: <Eye className="size-3.5" />, onClick: () => setSelectedOrder(order) }}
                     actions={[
-                        ...(!["credited", "closed"].includes(order.status) ? [{ key: "sync", label: translate("adminPages.payments.paymentsPage.syncStatus"), icon: <RefreshCw className="size-3.5" />, disabled: Boolean(orderActionId), onClick: () => queryOrder(order) }] : []),
+                        ...(!["credited", "closed"].includes(order.status)
+                            ? [{ key: "sync", label: translate("adminPages.payments.paymentsPage.syncStatus"), icon: <RefreshCw className="size-3.5" />, disabled: Boolean(orderActionId), onClick: () => queryOrder(order) }]
+                            : []),
                         ...(["created", "pending", "create_failed", "closing"].includes(order.status)
                             ? [{ key: "close", label: translate("common.close"), icon: <XCircle className="size-3.5" />, danger: true, disabled: Boolean(orderActionId), onClick: () => closeOrder(order) }]
                             : []),
@@ -685,7 +720,12 @@ export default function AdminPaymentsPage() {
             dataIndex: "status",
             width: 110,
             align: "center",
-            render: (value) => <AdminStatusBadge label={value === "completed" ? translate("library.tasks.filter.succeeded") : value === "running" ? translate("adminPages.payments.paymentsPage.running") : translate("library.assets.batch.failed")} tone={value === "completed" ? "success" : value === "running" ? "info" : "error"} />,
+            render: (value) => (
+                <AdminStatusBadge
+                    label={value === "completed" ? translate("library.tasks.filter.succeeded") : value === "running" ? translate("adminPages.payments.paymentsPage.running") : translate("library.assets.batch.failed")}
+                    tone={value === "completed" ? "success" : value === "running" ? "info" : "error"}
+                />
+            ),
         },
         { title: translate("adminPages.payments.paymentsPage.matched"), dataIndex: "matchItems", width: 80, align: "right" },
         { title: translate("adminPages.payments.paymentsPage.automaticCreditRecovery"), dataIndex: "recoveredItems", width: 100, align: "right", render: (value) => <span className={value ? "font-medium text-status-success" : ""}>{value}</span> },
@@ -733,7 +773,12 @@ export default function AdminPaymentsPage() {
                     {
                         key: "providers",
                         label: translate("adminPages.payments.paymentsPage.paymentProvider"),
-                        children: <AdminDataTable table={{ rowKey: "id", loading, columns: providerColumns, dataSource: providers, pagination: false, scroll: { x: 980 } }} empty={<AdminTableEmpty title={translate("adminPages.payments.paymentsPage.noPaymentProviderPluginsFound")} />} />,
+                        children: (
+                            <AdminDataTable
+                                table={{ rowKey: "id", loading, columns: providerColumns, dataSource: providers, pagination: false, scroll: { x: 980 } }}
+                                empty={<AdminTableEmpty title={translate("adminPages.payments.paymentsPage.noPaymentProviderPluginsFound")} />}
+                            />
+                        ),
                     },
                     {
                         key: "products",
@@ -977,7 +1022,11 @@ export default function AdminPaymentsPage() {
                                 ),
                             },
                             { key: "product", label: translate("adminPages.payments.paymentsPage.product"), children: selectedOrder.productName },
-                            { key: "channel", label: translate("adminPages.payments.paymentsPage.paymentProvider"), children: `${providerNames[selectedOrder.providerId] || selectedOrder.providerId}${selectedOrder.paymentMethod ? ` · ${selectedOrder.paymentMethod}` : ""}` },
+                            {
+                                key: "channel",
+                                label: translate("adminPages.payments.paymentsPage.paymentProvider"),
+                                children: `${providerNames[selectedOrder.providerId] || selectedOrder.providerId}${selectedOrder.paymentMethod ? ` · ${selectedOrder.paymentMethod}` : ""}`,
+                            },
                             { key: "amount", label: translate("adminPages.payments.paymentsPage.amountBenefits"), children: `${formatPaymentAmount(selectedOrder.amountFen, selectedOrder.currency)} / ${paymentOrderGrantLabel(selectedOrder)}` },
                             {
                                 key: "charge",
@@ -1017,7 +1066,11 @@ export default function AdminPaymentsPage() {
                         <Callout
                             className="mb-4"
                             tone={providerDrawer.pluginEnabled ? "info" : "warning"}
-                            title={providerDrawer.pluginEnabled ? translate("adminPages.payments.paymentsPage.secretsAreStoredEncryptedExistingOrdersContinueToUseThe") : translate("adminPages.payments.paymentsPage.thisHostPluginIsDisabledInPluginManagementAfterSaving")}
+                            title={
+                                providerDrawer.pluginEnabled
+                                    ? translate("adminPages.payments.paymentsPage.secretsAreStoredEncryptedExistingOrdersContinueToUseThe")
+                                    : translate("adminPages.payments.paymentsPage.thisHostPluginIsDisabledInPluginManagementAfterSaving")
+                            }
                         />
                         <Form.Item name="enabled" label={translate("adminPages.payments.paymentsPage.enableProviderConfiguration")} valuePropName="checked">
                             <Switch />
@@ -1090,7 +1143,12 @@ export default function AdminPaymentsPage() {
                     <Form.Item name="description" label={translate("adminPages.payments.paymentsPage.productDescription")} rules={[{ max: 500 }]}>
                         <Input.TextArea rows={3} />
                     </Form.Item>
-                    <Form.Item name="kind" label={translate("adminPages.payments.paymentsPage.productType")} rules={[{ required: true }]} extra={productDrawer ? translate("adminPages.payments.paymentsPage.productTypeCannotBeChangedAfterCreationCreateANew") : translate("adminPages.payments.paymentsPage.storageProductsRemainAvailableForPurchaseWhenCreditsAreDisabled")}>
+                    <Form.Item
+                        name="kind"
+                        label={translate("adminPages.payments.paymentsPage.productType")}
+                        rules={[{ required: true }]}
+                        extra={productDrawer ? translate("adminPages.payments.paymentsPage.productTypeCannotBeChangedAfterCreationCreateANew") : translate("adminPages.payments.paymentsPage.storageProductsRemainAvailableForPurchaseWhenCreditsAreDisabled")}
+                    >
                         <Select
                             disabled={Boolean(productDrawer)}
                             options={[
@@ -1099,7 +1157,12 @@ export default function AdminPaymentsPage() {
                             ]}
                         />
                     </Form.Item>
-                    <Form.Item name="currency" label={translate("adminPages.payments.paymentsPage.saleCurrency")} rules={[{ required: true }]} extra={translate("adminPages.payments.paymentsPage.thePaymentChannelMustSupportTheSelectedCurrencyDomesticPayment")}>
+                    <Form.Item
+                        name="currency"
+                        label={translate("adminPages.payments.paymentsPage.saleCurrency")}
+                        rules={[{ required: true }]}
+                        extra={translate("adminPages.payments.paymentsPage.thePaymentChannelMustSupportTheSelectedCurrencyDomesticPayment")}
+                    >
                         <Select
                             options={[
                                 { value: "CNY", label: translate("adminPages.payments.paymentsPage.cNYChineseYuan") },
@@ -1108,11 +1171,19 @@ export default function AdminPaymentsPage() {
                         />
                     </Form.Item>
                     <div className="grid grid-cols-2 gap-3">
-                        <Form.Item name="amountYuan" label={selectedProductCurrency === "USD" ? translate("adminPages.payments.paymentsPage.salePriceUSD") : translate("adminPages.payments.paymentsPage.salePriceCNY")} rules={[{ required: true }, { type: "number", min: 0.01, max: 1_000_000 }]}>
+                        <Form.Item
+                            name="amountYuan"
+                            label={selectedProductCurrency === "USD" ? translate("adminPages.payments.paymentsPage.salePriceUSD") : translate("adminPages.payments.paymentsPage.salePriceCNY")}
+                            rules={[{ required: true }, { type: "number", min: 0.01, max: 1_000_000 }]}
+                        >
                             <InputNumber min={0.01} max={1_000_000} precision={2} className="w-full" />
                         </Form.Item>
                         {selectedProductKind === "storage" ? (
-                            <Form.Item name="storageGB" label={translate("adminPages.payments.paymentsPage.additionalCapacityGB")} rules={[{ required: true }, { type: "integer", min: 1, max: 100_000, message: translate("adminPages.payments.paymentsPage.enterAnIntegerFrom1To100000GB") }]}>
+                            <Form.Item
+                                name="storageGB"
+                                label={translate("adminPages.payments.paymentsPage.additionalCapacityGB")}
+                                rules={[{ required: true }, { type: "integer", min: 1, max: 100_000, message: translate("adminPages.payments.paymentsPage.enterAnIntegerFrom1To100000GB") }]}
+                            >
                                 <InputNumber min={1} max={100_000} precision={0} className="w-full" />
                             </Form.Item>
                         ) : (
@@ -1125,7 +1196,9 @@ export default function AdminPaymentsPage() {
                                         validator: (_, value) => {
                                             const credits = Number(value);
                                             const microcredits = Math.round(credits * 1_000_000);
-                                            return Number.isFinite(credits) && credits > 0 && credits <= 1_000_000_000 && Number.isSafeInteger(microcredits) ? Promise.resolve() : Promise.reject(new Error(translate("adminPages.payments.paymentsPage.enterASafelyRepresentableCreditAmountFrom0000001To")));
+                                            return Number.isFinite(credits) && credits > 0 && credits <= 1_000_000_000 && Number.isSafeInteger(microcredits)
+                                                ? Promise.resolve()
+                                                : Promise.reject(new Error(translate("adminPages.payments.paymentsPage.enterASafelyRepresentableCreditAmountFrom0000001To")));
                                         },
                                     },
                                 ]}
@@ -1145,7 +1218,12 @@ export default function AdminPaymentsPage() {
                                 />
                             </Form.Item>
                             {selectedStorageDurationMode === "days" ? (
-                                <Form.Item name="storageDurationDays" label={translate("adminPages.payments.paymentsPage.validForDays")} extra={translate("adminPages.payments.paymentsPage.startsWhenPaymentIsConfirmedCommonDurationsAre3090")} rules={[{ required: true }, { type: "integer", min: 1, max: 3650, message: translate("adminPages.payments.paymentsPage.enter13650Days") }]}>
+                                <Form.Item
+                                    name="storageDurationDays"
+                                    label={translate("adminPages.payments.paymentsPage.validForDays")}
+                                    extra={translate("adminPages.payments.paymentsPage.startsWhenPaymentIsConfirmedCommonDurationsAre3090")}
+                                    rules={[{ required: true }, { type: "integer", min: 1, max: 3650, message: translate("adminPages.payments.paymentsPage.enter13650Days") }]}
+                                >
                                     <InputNumber min={1} max={3650} precision={0} className="w-full" />
                                 </Form.Item>
                             ) : null}
@@ -1172,7 +1250,12 @@ export default function AdminPaymentsPage() {
                         </div>
                     ) : null}
                     {selectedProductStrategy === "inventory" ? (
-                        <Form.Item name="stockTotal" label={translate("adminPages.payments.paymentsPage.totalPlatformStock")} extra={translate("adminPages.payments.paymentsPage.stockCannotBeReducedBelowTheNumberAlreadySoldUnpaid")} rules={[{ required: true }, { type: "number", min: 1, max: 9_000_000_000 }]}>
+                        <Form.Item
+                            name="stockTotal"
+                            label={translate("adminPages.payments.paymentsPage.totalPlatformStock")}
+                            extra={translate("adminPages.payments.paymentsPage.stockCannotBeReducedBelowTheNumberAlreadySoldUnpaid")}
+                            rules={[{ required: true }, { type: "number", min: 1, max: 9_000_000_000 }]}
+                        >
                             <InputNumber min={1} max={9_000_000_000} precision={0} className="w-full" />
                         </Form.Item>
                     ) : null}
@@ -1196,7 +1279,11 @@ export default function AdminPaymentsPage() {
             </AdminDrawer>
 
             <AdminDrawer
-                title={detailRun ? translate("adminPages.payments.paymentsPage.reconciliationDetails", { v0: String(providerNames[detailRun.providerId] || detailRun.providerId), v1: String(detailRun.billDate) }) : translate("adminPages.payments.paymentsPage.reconciliationDetails2")}
+                title={
+                    detailRun
+                        ? translate("adminPages.payments.paymentsPage.reconciliationDetails", { v0: String(providerNames[detailRun.providerId] || detailRun.providerId), v1: String(detailRun.billDate) })
+                        : translate("adminPages.payments.paymentsPage.reconciliationDetails2")
+                }
                 width="min(1080px, 94vw)"
                 open={Boolean(detailRun)}
                 destroyOnHidden
@@ -1222,7 +1309,11 @@ export default function AdminPaymentsPage() {
                                 setDetailResult(value);
                                 if (detailRun) void openRunDetails(detailRun, 1, detailPageSize, value);
                             }}
-                            options={[{ value: "all", label: translate("adminPages.payments.paymentsPage.allResults") }, { value: "abnormal", label: translate("adminPages.payments.paymentsPage.exceptionsOnly") }, ...Object.entries(reconciliationResult).map(([value, item]) => ({ value, label: item.label }))]}
+                            options={[
+                                { value: "all", label: translate("adminPages.payments.paymentsPage.allResults") },
+                                { value: "abnormal", label: translate("adminPages.payments.paymentsPage.exceptionsOnly") },
+                                ...Object.entries(reconciliationResult).map(([value, item]) => ({ value, label: item.label })),
+                            ]}
                         />
                     }
                     trailing={
@@ -1230,7 +1321,13 @@ export default function AdminPaymentsPage() {
                             <Button loading={detailLoading} onClick={() => detailRun && void openRunDetails(detailRun)}>
                                 {translate("common.refresh")}
                             </Button>
-                            <span title={detailRun?.status === "running" ? translate("adminPages.payments.paymentsPage.reconciliationIsRunningExportIsAvailableWhenItFinishes") : translate("adminPages.payments.paymentsPage.exportAllDetailsForTheCurrentBillAndResultFilters")}>
+                            <span
+                                title={
+                                    detailRun?.status === "running"
+                                        ? translate("adminPages.payments.paymentsPage.reconciliationIsRunningExportIsAvailableWhenItFinishes")
+                                        : translate("adminPages.payments.paymentsPage.exportAllDetailsForTheCurrentBillAndResultFilters")
+                                }
+                            >
                                 <AdminExportButton
                                     label={translate("adminPages.payments.paymentsPage.exportDetailsCSV")}
                                     disabled={!detailReady || detailLoading || runningBill || detailRun?.status !== "completed" || detailTotal === 0}

@@ -12,7 +12,6 @@ import { EditorAiAssistant } from "./editor-ai-assistant";
 import "./editor-shell.css";
 import { translate } from "@/i18n";
 
-
 export const EDITOR_SHELL_PLUGIN_ID = "editor-shell";
 
 const manifest: PluginManifestV2 = {

@@ -2,7 +2,6 @@ import { currentMediaVersion, listMediaVersions } from "@/lib/canvas/canvas-medi
 import { CanvasNodeType, type CanvasNodeData } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 /** 资产视图的固定分类；顺序即左侧目录顺序。 */
 export const CANVAS_ASSET_KINDS = ["txt", "markdown", "image", "video", "audio"] as const;
 export type CanvasAssetKind = (typeof CANVAS_ASSET_KINDS)[number];

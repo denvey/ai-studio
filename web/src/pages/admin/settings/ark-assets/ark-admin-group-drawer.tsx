@@ -14,7 +14,6 @@ import { ARK_KIND_LABEL, ARK_SOURCE_LABEL, ArkAssetStatusBadge, ArkExpiryBadge, 
 import { ArkGrantUsersField } from "./ark-grant-users-field";
 import { translate } from "@/i18n";
 
-
 type Draft = { name: string; description: string; grantAll: boolean; grantUserIds: string[]; expiresAt: Dayjs | null };
 
 function draftFrom(group: ArkPortraitGroup): Draft {
@@ -212,7 +211,10 @@ export function ArkAdminGroupDrawer({ groupId, onClose, onChanged }: { groupId: 
 
                     <section className="admin-ark-detail-section">
                         <div className="flex items-center justify-between gap-2">
-                            <h3>{translate("adminPages.settings.arkAssets.arkAdminGroupDrawer.assetsInGroup")}{group.assets.length}）</h3>
+                            <h3>
+                                {translate("adminPages.settings.arkAssets.arkAdminGroupDrawer.assetsInGroup")}
+                                {group.assets.length}）
+                            </h3>
                             {group.scope === "platform" && group.available ? (
                                 <Button icon={<ImagePlus className="size-4" />} loading={working === "upload"} onClick={() => fileInput.current?.click()}>
                                     {translate("account.settings.profile.upload")}
@@ -248,7 +250,14 @@ export function ArkAdminGroupDrawer({ groupId, onClose, onChanged }: { groupId: 
                                             ) : null}
                                             {asset.error ? <span className="is-error">{asset.error}</span> : null}
                                         </div>
-                                        <Button type="text" size="small" danger icon={<Trash2 className="size-3.5" />} aria-label={translate("adminPages.settings.arkAssets.arkAdminGroupDrawer.deleteAsset2", { v0: String(asset.name) })} onClick={() => confirmDeleteAsset(asset.id, asset.name)} />
+                                        <Button
+                                            type="text"
+                                            size="small"
+                                            danger
+                                            icon={<Trash2 className="size-3.5" />}
+                                            aria-label={translate("adminPages.settings.arkAssets.arkAdminGroupDrawer.deleteAsset2", { v0: String(asset.name) })}
+                                            onClick={() => confirmDeleteAsset(asset.id, asset.name)}
+                                        />
                                     </li>
                                 ))}
                             </ul>

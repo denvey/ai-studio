@@ -2,7 +2,6 @@ import { resourceFileUrl, resourceStorageKey, uploadResourceFile } from "@/servi
 import type { ReferenceImage } from "@/types/image";
 import { translate } from "@/i18n";
 
-
 /** 调色参数，单位与 CSS filter 一致（百分比 / 度） */
 export type CanvasColorGrade = {
     brightness: number;

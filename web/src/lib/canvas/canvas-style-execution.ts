@@ -4,7 +4,6 @@ import type { CanvasNodeData } from "@/types/canvas";
 import { parseToolMentionTokens } from "@/lib/canvas/canvas-resource-references";
 import { translate } from "@/i18n";
 
-
 export type CanvasStyleExecutionRuntime = {
     profile: StyleProfileSnapshot;
     profileJson: string;

@@ -4,7 +4,6 @@ import { getActiveUserScope } from "@/lib/user-scope";
 import { getResourceBlob, resourceIdFromStorageKey } from "@/services/api/resources";
 import { translate } from "@/i18n";
 
-
 type ResourceCacheMeta = {
     key: string;
     userScope: string;

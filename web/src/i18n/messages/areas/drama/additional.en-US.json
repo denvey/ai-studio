@@ -1440,11 +1440,7 @@
         "live-ceo": {
             "name": "Powerful CEO Romance",
             "description": "Cool, refined offices and mansions, strong rim lighting, and an imposing presence.",
-            "tags": [
-                "CEO",
-                "Wealthy families",
-                "Angsty romance"
-            ],
+            "tags": ["CEO", "Wealthy families", "Angsty romance"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Modern urban high society: glass office towers, penthouse offices, private mansions, and luxury cars",
@@ -1456,11 +1452,7 @@
         "live-sweet": {
             "name": "Sweet Romance",
             "description": "Cream and peach tones, soft backlighting, and romantic sparks in every frame.",
-            "tags": [
-                "Sweet romance",
-                "Romantic sparks",
-                "Urban"
-            ],
+            "tags": ["Sweet romance", "Romantic sparks", "Urban"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Everyday city settings: cafés, apartments, street corners, amusement parks, and the seaside",
@@ -1472,11 +1464,7 @@
         "live-flash": {
             "name": "Marriage Before Love",
             "description": "Marriage registries, newlywed homes, and family dinners in a warm, golden romance.",
-            "tags": [
-                "Whirlwind marriage",
-                "Contract marriage",
-                "Sweet and angsty"
-            ],
+            "tags": ["Whirlwind marriage", "Contract marriage", "Sweet and angsty"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Marriage and relationship settings: marriage registries, newlywed homes, family banquets, offices, and apartments",
@@ -1488,11 +1476,7 @@
         "live-heiress": {
             "name": "The Real and Fake Heiress",
             "description": "Lavish family banquets and conflicts, with glamorous, high-contrast visuals.",
-            "tags": [
-                "Wealthy families",
-                "Hidden identity",
-                "Comeuppance"
-            ],
+            "tags": ["Wealthy families", "Hidden identity", "Comeuppance"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Wealthy family settings: mansion halls, banquet rooms, jewelry stores, and society afternoon teas",
@@ -1504,11 +1488,7 @@
         "live-rebirth": {
             "name": "Rebirth and Revenge",
             "description": "Strong warm-cool contrast, intense emotional close-ups, and a driving pace.",
-            "tags": [
-                "Rebirth",
-                "Revenge",
-                "Wish fulfillment"
-            ],
+            "tags": ["Rebirth", "Revenge", "Wish fulfillment"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Family banquets, mansion living rooms, hospitals, and rainy city streets at night",
@@ -1520,11 +1500,7 @@
         "live-warlord": {
             "name": "The Warrior Son-in-Law",
             "description": "Muted, rugged colors, hard high-contrast light, and a commanding presence.",
-            "tags": [
-                "Warrior hero",
-                "Live-in son-in-law",
-                "Comeuppance"
-            ],
+            "tags": ["Warrior hero", "Live-in son-in-law", "Comeuppance"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Wealthy family estates, banquet halls, military camps, and street confrontations",
@@ -1536,11 +1512,7 @@
         "live-doctor": {
             "name": "The Mountain Healer",
             "description": "A gifted healer moves between city and mountain settings, with silver needles and herbal medicine.",
-            "tags": [
-                "Master healer",
-                "Urban",
-                "Rise to success"
-            ],
+            "tags": ["Master healer", "Urban", "Rise to success"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Remote mountain temples, city hospitals, private hospital rooms for wealthy patients, and traditional Chinese medicine clinics",
@@ -1552,11 +1524,7 @@
         "live-baby": {
             "name": "Little Matchmaker",
             "description": "Bright, cozy family colors and a child’s-eye view.",
-            "tags": [
-                "Adorable kids",
-                "Parenting",
-                "Sweet romance"
-            ],
+            "tags": ["Adorable kids", "Parenting", "Sweet romance"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Cozy apartments, kindergartens, playgrounds, and a CEO’s office",
@@ -1568,11 +1536,7 @@
         "live-palace": {
             "name": "Imperial Palace Drama",
             "description": "Gold and red palace walls, brocade robes, and warm candlelight: stately and lavish.",
-            "tags": [
-                "Palace intrigue",
-                "Power struggles",
-                "Imperial harem"
-            ],
+            "tags": ["Palace intrigue", "Power struggles", "Imperial harem"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Ancient imperial palaces: vermilion walls, glazed roof tiles, carved and painted halls, drapes, and candle stands",
@@ -1584,11 +1548,7 @@
         "live-xianxia": {
             "name": "Immortal Fantasy",
             "description": "Immortal mountains above a sea of clouds, flowing gauze robes, and restrained magical light.",
-            "tags": [
-                "Immortal cultivation",
-                "Fantasy",
-                "Angsty romance"
-            ],
+            "tags": ["Immortal cultivation", "Fantasy", "Angsty romance"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Immortal mountains above clouds, floating palaces, bamboo forests and waterfalls, and cultivation sect halls",
@@ -1600,11 +1560,7 @@
         "live-wuxia": {
             "name": "Wuxia Adventure",
             "description": "Desert inns and bamboo groves in grounded martial-arts action.",
-            "tags": [
-                "Wuxia",
-                "Martial world",
-                "Free-spirited"
-            ],
+            "tags": ["Wuxia", "Martial world", "Free-spirited"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Inns, bamboo groves, deserts, ferry crossings, and mountain sect gates",
@@ -1616,11 +1572,7 @@
         "live-farm": {
             "name": "Time-Travel Farming",
             "description": "Ancient villages and pastoral scenery in a warm, comforting slice of life.",
-            "tags": [
-                "Time travel",
-                "Farming",
-                "Family life"
-            ],
+            "tags": ["Time travel", "Farming", "Family life"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Ancient villages, farmhouse courtyards, field paths, markets, and mountain streams",
@@ -1632,11 +1584,7 @@
         "live-republic": {
             "name": "Republican-Era Espionage",
             "description": "Faded vintage film, qipao dresses, long gowns, and old Shanghai.",
-            "tags": [
-                "Republican era",
-                "Espionage",
-                "Period drama"
-            ],
+            "tags": ["Republican era", "Espionage", "Period drama"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Old Shanghai lanes, Western-style houses, dance halls, newspaper offices, and railway stations",
@@ -1648,11 +1596,7 @@
         "live-era": {
             "name": "Nostalgic Family Drama",
             "description": "Small towns and residential compounds of the 1970s and 1980s, with nostalgic warm-yellow coloring.",
-            "tags": [
-                "1980s",
-                "Sent-down youth",
-                "Family"
-            ],
+            "tags": ["1980s", "Sent-down youth", "Family"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Work-unit residential compounds, shared-corridor apartment blocks, supply cooperatives, fields, and small-town streets",
@@ -1664,11 +1608,7 @@
         "live-suspense": {
             "name": "Crime and Suspense",
             "description": "Low-key cyan lighting, rainy nights, neon, and oppressive framing.",
-            "tags": [
-                "Suspense",
-                "Crime investigation",
-                "Twists"
-            ],
+            "tags": ["Suspense", "Crime investigation", "Twists"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Rainy nighttime streets and alleys, interrogation rooms, crime scenes, and old building corridors",
@@ -1680,11 +1620,7 @@
         "live-horror": {
             "name": "Supernatural Folk Horror",
             "description": "Eerie green light and thick fog in Chinese folk horror.",
-            "tags": [
-                "Supernatural",
-                "Thriller",
-                "Folklore"
-            ],
+            "tags": ["Supernatural", "Thriller", "Folklore"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Old houses, ancestral halls, deserted villages, hospitals at night, and ancient mountain paths",
@@ -1696,11 +1632,7 @@
         "live-apocalypse": {
             "name": "Apocalypse Survival",
             "description": "Dusty yellow-gray ruins, volumetric light through dust, and gritty realism.",
-            "tags": [
-                "Apocalypse",
-                "Zombies",
-                "Game system"
-            ],
+            "tags": ["Apocalypse", "Zombies", "Game system"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Collapsed cities, abandoned malls, makeshift camps, and underground warehouses",
@@ -1712,11 +1644,7 @@
         "live-campus": {
             "name": "Youth on Campus",
             "description": "Clear daylight, fresh greens, and soft-focus film.",
-            "tags": [
-                "Campus",
-                "First love",
-                "Coming of age"
-            ],
+            "tags": ["Campus", "First love", "Coming of age"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Classrooms, sports fields, rooftops, tree-lined paths, and convenience stores",
@@ -1728,11 +1656,7 @@
         "live-workplace": {
             "name": "Workplace Comeback",
             "description": "Cool-white modern offices with a sharp, professional business-drama look.",
-            "tags": [
-                "Workplace",
-                "Strong female lead",
-                "Business rivalry"
-            ],
+            "tags": ["Workplace", "Strong female lead", "Business rivalry"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Open-plan offices, meeting rooms, press conferences, and upscale hotels",
@@ -1744,11 +1668,7 @@
         "live-hk": {
             "name": "Retro Hong Kong",
             "description": "Hong Kong cinema neon, warm red film tones, and pronounced grain.",
-            "tags": [
-                "Hong Kong style",
-                "1990s",
-                "Martial world"
-            ],
+            "tags": ["Hong Kong style", "1990s", "Martial world"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Neon streets, Hong Kong cafés, old apartments, and docks",
@@ -1760,11 +1680,7 @@
         "live-cyber": {
             "name": "Cyberpunk",
             "description": "A neon city on a rainy night, with clashing cyan-purple colors and holographic light.",
-            "tags": [
-                "Cyberpunk",
-                "Future",
-                "Neon"
-            ],
+            "tags": ["Cyberpunk", "Future", "Neon"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Neon-lit megastructures, rainy night markets, holographic advertisements, and underground clinics",
@@ -1776,11 +1692,7 @@
         "live-scifi": {
             "name": "Interstellar Science Fiction",
             "description": "Cool-white spacecraft interiors and deep space with a hard-science industrial look.",
-            "tags": [
-                "Interstellar",
-                "Space",
-                "Hard science fiction"
-            ],
+            "tags": ["Interstellar", "Space", "Hard science fiction"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Spacecraft interiors, command bridges, alien surfaces, and space stations",
@@ -1792,11 +1704,7 @@
         "live-food": {
             "name": "Comfort Food",
             "description": "Warm orange everyday life, with tempting close-ups of food.",
-            "tags": [
-                "Food",
-                "Local eateries",
-                "Heartwarming"
-            ],
+            "tags": ["Food", "Local eateries", "Heartwarming"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Late-night diners, neighborhood eateries, restaurant kitchens, and food markets",
@@ -1808,11 +1716,7 @@
         "live-rural": {
             "name": "Rural Revitalization",
             "description": "Green hills, clear waters, and renewed villages in a bright, optimistic setting.",
-            "tags": [
-                "Countryside",
-                "Returning home",
-                "Entrepreneurship"
-            ],
+            "tags": ["Countryside", "Returning home", "Entrepreneurship"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Mountain villages, terraced fields, orchards, livestream studios, and village committee offices",
@@ -1824,11 +1728,7 @@
         "live-tearjerker": {
             "name": "Heartbreaking Romance",
             "description": "Rainy nights, hospitals, and farewell stations, with muted cool tones and emotional close-ups.",
-            "tags": [
-                "Angsty romance",
-                "Winning her back",
-                "Tearjerker"
-            ],
+            "tags": ["Angsty romance", "Winning her back", "Tearjerker"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Rainy nighttime streets, hospital corridors, empty apartments, railway stations, and airports",
@@ -1840,11 +1740,7 @@
         "live-neo-chinese": {
             "name": "Modern Chinese Elegance",
             "description": "Tea rooms and classical gardens meet modern spaces in an elegant, mellow atmosphere.",
-            "tags": [
-                "Modern Chinese style",
-                "Living heritage",
-                "Chinese cultural trends"
-            ],
+            "tags": ["Modern Chinese style", "Living heritage", "Chinese cultural trends"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Modern Chinese tea rooms, Suzhou-style gardens, traditional craft workshops, and modern art museums",
@@ -1856,11 +1752,7 @@
         "live-family": {
             "name": "Everyday Family Life",
             "description": "Older neighborhoods, food markets, and family tables with an authentic everyday feel.",
-            "tags": [
-                "Family",
-                "In-law relationships",
-                "Realism"
-            ],
+            "tags": ["Family", "In-law relationships", "Realism"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Older urban neighborhoods, kitchen dining tables, food markets, hospitals, and school entrances",
@@ -1872,11 +1764,7 @@
         "live-western-fantasy": {
             "name": "Epic Western Fantasy",
             "description": "Castles, misty forests, and throne rooms in epic live-action fantasy.",
-            "tags": [
-                "Western fantasy",
-                "Kingdoms",
-                "Knights"
-            ],
+            "tags": ["Western fantasy", "Kingdoms", "Knights"],
             "detail": {
                 "medium": "Live-action short drama with cinematic lighting, realistic skin texture and pores, natural depth of field, a prominent subject in a vertical composition, clearly readable faces and natural, expressive performances",
                 "world": "Medieval castles, throne halls, misty forests, and mountain-top fortresses",
@@ -1888,11 +1776,7 @@
         "3d-guoman": {
             "name": "3D Chinese Immortal Fantasy",
             "description": "Chinese 3D animation with detailed models and dazzling magical effects.",
-            "tags": [
-                "Immortal cultivation",
-                "Fantasy",
-                "Chinese animation"
-            ],
+            "tags": ["Immortal cultivation", "Fantasy", "Chinese animation"],
             "detail": {
                 "medium": "High-quality Chinese 3D animation CG with next-generation models, refined faces with an Eastern aesthetic, and subsurface scattering in skin and fabrics",
                 "world": "Immortal mountains above clouds, sect palaces, and ancient forests in secret realms",
@@ -1904,11 +1788,7 @@
         "3d-xuanhuan": {
             "name": "3D Fantasy Action",
             "description": "Explosive battle energy and soul power, with high-impact combat effects.",
-            "tags": [
-                "Chinese fantasy",
-                "High-energy action",
-                "Leveling up"
-            ],
+            "tags": ["Chinese fantasy", "High-energy action", "Leveling up"],
             "detail": {
                 "medium": "Chinese 3D animation CG with intense combat and exaggerated, powerful action",
                 "world": "Sect plazas, monster-filled mountains, sky arenas, and ancient ruins",
@@ -1920,11 +1800,7 @@
         "3d-myth": {
             "name": "3D Eastern Mythology",
             "description": "An epic of gods and demons, with golden-red auspicious clouds and grand scenes.",
-            "tags": [
-                "Mythology",
-                "Investiture of the Gods",
-                "Chinese cultural trends"
-            ],
+            "tags": ["Mythology", "Investiture of the Gods", "Chinese cultural trends"],
             "detail": {
                 "medium": "Cinematic Chinese 3D animation with epic compositions",
                 "world": "The heavenly court, dragon palaces, sacred mountains, and battlefields",
@@ -1936,11 +1812,7 @@
         "3d-cg-real": {
             "name": "Realistic 3D CG",
             "description": "Cinematic, realistic CG with the look of an AAA game cutscene.",
-            "tags": [
-                "Realistic",
-                "Epic",
-                "Action"
-            ],
+            "tags": ["Realistic", "Epic", "Action"],
             "detail": {
                 "medium": "Cinematic realistic 3D CG, similar to AAA game cutscenes, with physically accurate lighting and materials and detailed hair and fabric",
                 "world": "Realistic settings suited to the story",
@@ -1952,11 +1824,7 @@
         "3d-pixar": {
             "name": "Pixar-Style Animation",
             "description": "Rounded, adorable American-style 3D animation with a bright, warm feel.",
-            "tags": [
-                "Family-friendly",
-                "Comedy",
-                "Comforting"
-            ],
+            "tags": ["Family-friendly", "Comedy", "Comforting"],
             "detail": {
                 "medium": "American 3D animated-film style, with large eyes, rounded forms, cute exaggerated proportions, and soft, smooth materials",
                 "world": "Town and family settings filled with playful details",
@@ -1968,11 +1836,7 @@
         "3d-chibi": {
             "name": "3D Chibi",
             "description": "Cute characters two to three heads tall, with candy colors and a toy-like texture.",
-            "tags": [
-                "Chibi",
-                "Cute",
-                "Comedy"
-            ],
+            "tags": ["Chibi", "Cute", "Comedy"],
             "detail": {
                 "medium": "Cute 3D chibi style, with characters two to three heads tall, exaggerated adorable expressions, and soft vinyl-toy materials",
                 "world": "Simple, cute settings",
@@ -1984,11 +1848,7 @@
         "3d-clay": {
             "name": "Clay Stop Motion",
             "description": "Hand-shaped clay textures with the tiny stutters of stop motion.",
-            "tags": [
-                "Clay",
-                "Stop motion",
-                "Handcrafted"
-            ],
+            "tags": ["Clay", "Stop motion", "Handcrafted"],
             "detail": {
                 "medium": "Clay stop-motion animation with handmade clay characters and sets, visible fingerprints, and slight surface irregularities",
                 "world": "Miniature model sets",
@@ -2000,11 +1860,7 @@
         "3d-toon": {
             "name": "3D Anime",
             "description": "Toon-shaded 3D with the look of Japanese animation.",
-            "tags": [
-                "Anime",
-                "Toon shading",
-                "Campus"
-            ],
+            "tags": ["Anime", "Toon shading", "Campus"],
             "detail": {
                 "medium": "Toon-shaded 3D with outlines and stepped shadows, combining 3D camera movement with a Japanese anime look",
                 "world": "City streets, campuses, and fantasy settings",
@@ -2016,11 +1872,7 @@
         "3d-pet": {
             "name": "Anthropomorphic Pets",
             "description": "Fluffy animal leads with expressive faces.",
-            "tags": [
-                "Adorable pets",
-                "Anthropomorphic",
-                "Comedy"
-            ],
+            "tags": ["Adorable pets", "Anthropomorphic", "Comedy"],
             "detail": {
                 "medium": "3D animated-film style with anthropomorphic animal characters, detailed fluffy fur, and expressive faces",
                 "world": "City and home settings viewed at an animal’s scale",
@@ -2032,11 +1884,7 @@
         "3d-mecha": {
             "name": "3D Mecha Science Fiction",
             "description": "Hard-surface mecha, metallic reflections, and an industrial feel.",
-            "tags": [
-                "Mecha",
-                "Science fiction",
-                "Combat"
-            ],
+            "tags": ["Mecha", "Science fiction", "Combat"],
             "detail": {
                 "medium": "High-precision 3D hard-surface rendering with metallic mecha materials and detailed wear",
                 "world": "Hangars, ruined cities, and space battlefields",
@@ -2048,11 +1896,7 @@
         "3d-wuxia-game": {
             "name": "3D Wuxia Game Style",
             "description": "A martial world with next-generation game CG and flowing robes.",
-            "tags": [
-                "Wuxia",
-                "Martial world",
-                "Game aesthetic"
-            ],
+            "tags": ["Wuxia", "Martial world", "Game aesthetic"],
             "detail": {
                 "medium": "Next-generation wuxia game CG in 3D, with detailed fabric and hair simulation",
                 "world": "Bamboo groves, inns, ancient cliffside paths, and mountain sect gates",
@@ -2064,11 +1908,7 @@
         "2d-guofeng": {
             "name": "Chinese-Style Animated Drama",
             "description": "Chinese 2D animation with fine gongbi lines and classical colors.",
-            "tags": [
-                "Historical Chinese style",
-                "Immortal fantasy",
-                "Palace intrigue"
-            ],
+            "tags": ["Historical Chinese style", "Immortal fantasy", "Palace intrigue"],
             "detail": {
                 "medium": "Chinese-style 2D animated drama with fluid linework, refined cel coloring, and touches of gongbi painting and ink-wash blending",
                 "world": "Hand-drawn ancient Chinese architecture and landscapes",
@@ -2080,11 +1920,7 @@
         "2d-anime": {
             "name": "Japanese Anime",
             "description": "Japanese TV-anime cel shading with distinct light and shadow.",
-            "tags": [
-                "High-energy action",
-                "Fantasy",
-                "Otherworld adventure"
-            ],
+            "tags": ["High-energy action", "Fantasy", "Otherworld adventure"],
             "detail": {
                 "medium": "Japanese TV-anime style with two or three levels of hard cel shading, large eyes with highlights, and clearly grouped hair strands",
                 "world": "Detailed hand-painted animation backgrounds",
@@ -2096,11 +1932,7 @@
         "2d-webtoon": {
             "name": "Korean Webtoon",
             "description": "Elegant Korean webtoon characters with soft gradient coloring.",
-            "tags": [
-                "Romance",
-                "Powerful CEO",
-                "Rise to success"
-            ],
+            "tags": ["Romance", "Powerful CEO", "Rise to success"],
             "detail": {
                 "medium": "Korean webtoon style with tall, elegant characters, refined facial features, delicate linework, and soft gradient coloring",
                 "world": "Urban settings with simple backgrounds and frequent blurred light spots",
@@ -2112,11 +1944,7 @@
         "2d-manhua": {
             "name": "Urban Chinese Manhua",
             "description": "Chinese urban comics with crisp lines and high contrast.",
-            "tags": [
-                "Urban",
-                "Game system",
-                "Wish fulfillment"
-            ],
+            "tags": ["Urban", "Game system", "Wish fulfillment"],
             "detail": {
                 "medium": "Chinese urban comic animation with crisp lines, clearly defined shadow shapes, and attractive characters",
                 "world": "Modern cities, companies, campuses, and streets",
@@ -2128,11 +1956,7 @@
         "2d-ancient-sweet": {
             "name": "Historical Romance Comic",
             "description": "A sweet historical romance in pastel pinks and a soft glow.",
-            "tags": [
-                "Historical Chinese style",
-                "Sweet romance",
-                "Princes"
-            ],
+            "tags": ["Historical Chinese style", "Sweet romance", "Princes"],
             "detail": {
                 "medium": "Sweet historical 2D animated drama with graceful lines and delicate, luminous pastel coloring",
                 "world": "Princely courtyards, gardens, markets, and private chambers",
@@ -2144,11 +1968,7 @@
         "2d-healing": {
             "name": "Gentle Japanese Hand-Drawn Animation",
             "description": "Soft watercolor backgrounds and warm sunshine with a hand-drawn feel.",
-            "tags": [
-                "Comforting",
-                "Everyday life",
-                "Pastoral"
-            ],
+            "tags": ["Comforting", "Everyday life", "Pastoral"],
             "detail": {
                 "medium": "Japanese hand-drawn animated-film style with soft watercolor backgrounds and gentle character lines",
                 "world": "Blue skies, white clouds, lush vegetation, small towns, and the countryside",
@@ -2160,11 +1980,7 @@
         "2d-shoujo": {
             "name": "Shoujo Manga",
             "description": "Dreamlike pinks and purples, sparkling petals, large eyes, and fine lines.",
-            "tags": [
-                "Shoujo",
-                "Romance",
-                "Dreamlike"
-            ],
+            "tags": ["Shoujo", "Romance", "Dreamlike"],
             "detail": {
                 "medium": "Shoujo manga animation with large eyes containing layered starry highlights and delicate, elongated linework",
                 "world": "Campuses, castles, and gardens",
@@ -2176,11 +1992,7 @@
         "2d-comic": {
             "name": "American Comics",
             "description": "Bold black outlines, halftone dots, and high-contrast flat colors.",
-            "tags": [
-                "Heroes",
-                "Action",
-                "High-energy"
-            ],
+            "tags": ["Heroes", "Action", "High-energy"],
             "detail": {
                 "medium": "American comic-book style with bold black outlines, strong light and shadow shapes, halftone textures, and flat primary colors",
                 "world": "City skylines and streets",
@@ -2192,11 +2004,7 @@
         "2d-painterly": {
             "name": "Painterly Illustration",
             "description": "Game concept art with thick brushwork and a strong sense of volume.",
-            "tags": [
-                "Fantasy",
-                "Epic",
-                "Concept art"
-            ],
+            "tags": ["Fantasy", "Epic", "Concept art"],
             "detail": {
                 "medium": "Game-quality painterly concept illustration with heavy brushstrokes and color masses, strong volume, and sculpted light and shadow",
                 "world": "Epic fantasy settings",
@@ -2208,11 +2016,7 @@
         "2d-dark": {
             "name": "Dark Gothic",
             "description": "Gothic dark reds and blacks, gloomy and ornate.",
-            "tags": [
-                "Dark",
-                "Vampires",
-                "Revenge"
-            ],
+            "tags": ["Dark", "Vampires", "Revenge"],
             "detail": {
                 "medium": "Dark Gothic 2D animation with sharp lines and heavy shadows",
                 "world": "Castles, churches, and moonlit cemeteries",
@@ -2224,11 +2028,7 @@
         "2d-cyber-anime": {
             "name": "Cyberpunk Anime",
             "description": "Futuristic city animation with clashing neon colors and intense glow.",
-            "tags": [
-                "Cyberpunk",
-                "Future",
-                "Mecha"
-            ],
+            "tags": ["Cyberpunk", "Future", "Mecha"],
             "detail": {
                 "medium": "Cyberpunk animation with Japanese anime linework and contrasting neon colors",
                 "world": "Rainy nighttime cities and holographic interfaces",
@@ -2240,11 +2040,7 @@
         "2d-flat": {
             "name": "Flat Illustration",
             "description": "Simple geometric illustration with clean blocks of color.",
-            "tags": [
-                "Flat design",
-                "Educational",
-                "Light comedy"
-            ],
+            "tags": ["Flat design", "Educational", "Light comedy"],
             "detail": {
                 "medium": "Modern flat illustration animation with geometric shapes, no outlines or thin outlines, and solid color areas",
                 "world": "Simplified city and interior settings",
@@ -2256,11 +2052,7 @@
         "2d-fantasy-adventure": {
             "name": "Fantasy Adventure Comic",
             "description": "Dragons, floating islands, and magic in a grand, bright animated adventure.",
-            "tags": [
-                "Fantasy",
-                "Dragons",
-                "Adventure"
-            ],
+            "tags": ["Fantasy", "Dragons", "Adventure"],
             "detail": {
                 "medium": "High-quality 2D animated drama with clean, fluid linework, neat coloring, and consistent facial features",
                 "world": "Floating islands, dragon nests, magic academies, and royal capitals in other worlds",
@@ -2272,11 +2064,7 @@
         "2d-watercolor": {
             "name": "Gentle Watercolor",
             "description": "Transparent watercolor washes and soft open space for heartwarming stories.",
-            "tags": [
-                "Watercolor",
-                "Comforting",
-                "Arthouse"
-            ],
+            "tags": ["Watercolor", "Comforting", "Arthouse"],
             "detail": {
                 "medium": "Hand-painted watercolor animation with transparent washes, paper texture, and gentle linework",
                 "world": "Small-town streets, gardens, the seaside, and attic studies",
@@ -2288,11 +2076,7 @@
         "2d-chibi": {
             "name": "Chibi Comedy",
             "description": "Big heads, tiny bodies, exaggerated expressions, and comic symbols at a lively pace.",
-            "tags": [
-                "Chibi",
-                "Absurd comedy",
-                "Humor"
-            ],
+            "tags": ["Chibi", "Absurd comedy", "Humor"],
             "detail": {
                 "medium": "2D chibi comedy animation with characters two to three heads tall, thick outlines, exaggerated expressions, and comic symbols",
                 "world": "Simplified campus, office, and home settings",
@@ -2304,11 +2088,7 @@
         "art-ink": {
             "name": "Ink-Wash Atmosphere",
             "description": "Black-and-white ink washes and open space with expressive Eastern aesthetics.",
-            "tags": [
-                "Chinese style",
-                "Wuxia",
-                "Atmosphere"
-            ],
+            "tags": ["Chinese style", "Wuxia", "Atmosphere"],
             "detail": {
                 "medium": "Chinese ink-wash painting with variations in ink density and wetness, washes, dry-brush strokes, and rice-paper texture",
                 "world": "Landscapes, bamboo groves, and ancient pavilions",
@@ -2320,11 +2100,7 @@
         "art-gongbi": {
             "name": "Gongbi Mineral Painting",
             "description": "Fine outlines and rich mineral colors, ornate and elegant.",
-            "tags": [
-                "Gongbi",
-                "Imperial court",
-                "Chinese cultural trends"
-            ],
+            "tags": ["Gongbi", "Imperial court", "Chinese cultural trends"],
             "detail": {
                 "medium": "Chinese gongbi painting with fine outlines, layers of rich mineral pigments, and a silk surface texture",
                 "world": "Palace gardens, flowers and birds, and pavilions",
@@ -2336,11 +2112,7 @@
         "art-papercut": {
             "name": "Paper Cutting and Shadow Puppets",
             "description": "Red cut-paper patterns and profile figures inspired by shadow puppetry.",
-            "tags": [
-                "Folklore",
-                "Mythology",
-                "Chinese cultural trends"
-            ],
+            "tags": ["Folklore", "Mythology", "Chinese cultural trends"],
             "detail": {
                 "medium": "Chinese paper-cutting and shadow-puppet style with profile silhouettes, cutout patterns, and layered paper creating depth",
                 "world": "Folklore and mythological settings",
@@ -2352,11 +2124,7 @@
         "art-noir": {
             "name": "Black-and-White Cinema",
             "description": "High-contrast monochrome photography with sharply divided light and grain.",
-            "tags": [
-                "Retro",
-                "Suspense",
-                "Arthouse"
-            ],
+            "tags": ["Retro", "Suspense", "Arthouse"],
             "detail": {
                 "medium": "Black-and-white cinema with high-contrast monochrome imagery and pronounced film grain",
                 "world": "Streets and alleys, interiors, and rainy nights",
@@ -2368,11 +2136,7 @@
         "art-film": {
             "name": "Vintage Film",
             "description": "Warm Kodak-like colors, grain, and light leaks.",
-            "tags": [
-                "Arthouse",
-                "Nostalgia",
-                "Romance"
-            ],
+            "tags": ["Arthouse", "Nostalgia", "Romance"],
             "detail": {
                 "medium": "Vintage film photography with a live-action feel and soft highlight roll-off",
                 "world": "Streets, the seaside, and old homes",
@@ -2384,11 +2148,7 @@
         "art-wes": {
             "name": "Symmetry and Candy Colors",
             "description": "Strictly symmetrical compositions and macaron colors.",
-            "tags": [
-                "Comedy",
-                "Arthouse",
-                "Absurdist"
-            ],
+            "tags": ["Comedy", "Arthouse", "Absurdist"],
             "detail": {
                 "medium": "Live-action cinematic texture, strict central symmetry, lateral tracking shots, and frontal framing",
                 "world": "Vintage hotels, trains, and small towns",
@@ -2400,11 +2160,7 @@
         "art-dream": {
             "name": "Surreal Dreamscape",
             "description": "Impossible spaces, softly lit mist, and pink-purple and indigo tones.",
-            "tags": [
-                "Fantasy",
-                "Psychological",
-                "Suspense"
-            ],
+            "tags": ["Fantasy", "Psychological", "Suspense"],
             "detail": {
                 "medium": "Surreal dream imagery with real elements combined in impossible ways and distorted spatial scales",
                 "world": "Floating buildings, endless staircases, and mirror-like seas",
@@ -2416,11 +2172,7 @@
         "art-storybook": {
             "name": "Fairy-Tale Picture Book",
             "description": "Warm watercolor storybook art, paper texture, and soft brushwork.",
-            "tags": [
-                "Fairy tales",
-                "Children",
-                "Comforting"
-            ],
+            "tags": ["Fairy tales", "Children", "Comforting"],
             "detail": {
                 "medium": "Children’s picture-book illustration with watercolor and colored-pencil textures, visible paper grain, and rounded shapes",
                 "world": "Forests, cottages, fairy-tale towns, and small animals",
@@ -2432,11 +2184,7 @@
         "art-oil": {
             "name": "Classical Oil Painting",
             "description": "Rembrandt lighting and rich oil paint, classical and solemn.",
-            "tags": [
-                "Epic",
-                "European",
-                "Imperial court"
-            ],
+            "tags": ["Epic", "European", "Imperial court"],
             "detail": {
                 "medium": "Classical European oil painting with thick oil paint, delicate glazing, and canvas texture",
                 "world": "Palaces, churches, and estates",
@@ -2448,11 +2196,7 @@
         "art-pixel": {
             "name": "Retro Pixel Art",
             "description": "16-bit pixel art with a limited palette.",
-            "tags": [
-                "Games",
-                "Retro",
-                "Comedy"
-            ],
+            "tags": ["Games", "Retro", "Comedy"],
             "detail": {
                 "medium": "Retro 16-bit pixel art with crisp square pixels and dithered gradients",
                 "world": "Classic side-scrolling game settings",
@@ -2464,11 +2208,7 @@
         "art-ukiyoe": {
             "name": "Ukiyo-e",
             "description": "Woodblock lines and flat colors with traditional Japanese composition.",
-            "tags": [
-                "Japanese",
-                "Classical",
-                "Printmaking"
-            ],
+            "tags": ["Japanese", "Classical", "Printmaking"],
             "detail": {
                 "medium": "Japanese ukiyo-e woodblock-print style, with varying contour-line weights, flat color areas, and paper texture",
                 "world": "Edo-period streets, waves, mountain scenery, and traditional townhouses",
@@ -2480,11 +2220,7 @@
         "art-woodcut": {
             "name": "Black-and-White Prints",
             "description": "Carved lines and stark black-and-white contrast for fables and dark stories.",
-            "tags": [
-                "Printmaking",
-                "Rugged",
-                "Fables"
-            ],
+            "tags": ["Printmaking", "Rugged", "Fables"],
             "detail": {
                 "medium": "Woodcut or linocut style, with carved lines, hatched shading, and strong black-and-white contrast",
                 "world": "Wilderness, villages, towns, and symbolic settings",
@@ -2496,11 +2232,7 @@
         "art-guochao-landscape": {
             "name": "Blue-Green Landscape",
             "description": "Rich blue-green landscapes and drifting clouds, suited to immortal fantasy and mythology.",
-            "tags": [
-                "Chinese style",
-                "Landscapes",
-                "Immortal realms"
-            ],
+            "tags": ["Chinese style", "Landscapes", "Immortal realms"],
             "detail": {
                 "medium": "Chinese blue-green landscape painting with rich azurite and malachite pigments, precise outlines, and layered washes",
                 "world": "Immortal mountains, seas of clouds, waterfalls, pavilions, and towers",
@@ -2512,11 +2244,7 @@
         "art-tech": {
             "name": "Future Technology",
             "description": "Minimal futuristic surfaces, cool whites, and luminous lines.",
-            "tags": [
-                "Technology",
-                "Concept",
-                "Advertising"
-            ],
+            "tags": ["Technology", "Concept", "Advertising"],
             "detail": {
                 "medium": "Futuristic technology concept art with minimal, clean spaces and metal and glass materials",
                 "world": "Laboratories, exhibition halls, and data spaces",

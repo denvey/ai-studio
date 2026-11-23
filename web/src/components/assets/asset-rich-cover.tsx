@@ -5,7 +5,6 @@ import { getResourceAccess, resolveResourceAccessURL } from "@/services/api/reso
 import type { AudioAsset, EntityAsset } from "@/stores/use-asset-store";
 import { translate } from "@/i18n";
 
-
 function initial(name: string) {
     return Array.from(name.trim())[0] || translate("canvasA.characterNode.initialFallback");
 }
@@ -70,7 +69,10 @@ export function CharacterAssetCover({ asset, size = "card" }: { asset: EntityAss
 export function characterAssetSummary(asset: EntityAsset) {
     const role = typeof asset.data.definition.role === "string" ? asset.data.definition.role.trim() : "";
     const appearance = typeof asset.data.definition.appearance === "string" ? asset.data.definition.appearance.trim() : "";
-    const states = [asset.data.visualStatus === "ready" ? translate("canvasA.characterLibrary.visualReady") : translate("canvasA.characterNode.visualPending"), asset.data.voiceName ? translate("shared.assets.assetRichCover.voice", { v0: String(asset.data.voiceName) }) : translate("shared.assets.assetLibraryPanels.noVoiceLinked")];
+    const states = [
+        asset.data.visualStatus === "ready" ? translate("canvasA.characterLibrary.visualReady") : translate("canvasA.characterNode.visualPending"),
+        asset.data.voiceName ? translate("shared.assets.assetRichCover.voice", { v0: String(asset.data.voiceName) }) : translate("shared.assets.assetLibraryPanels.noVoiceLinked"),
+    ];
     return [role || appearance, ...states].filter(Boolean).join(" · ");
 }
 

@@ -27,7 +27,15 @@ export function MarketingMaterialPicker({ draft, ratios, onChange, onClose }: { 
                 {marketingCategories.map((name) => {
                     const selectedCount = selections.filter((entry) => marketingMaterialById.get(entry.id)?.category === name).reduce((sum, entry) => sum + entry.count, 0);
                     return (
-                        <CommerceHint key={name} text={category === name ? translate("ecommerce.marketingMaterialPicker.configuringSelectUpTo15Images", { v0: commerceUiText(name) }) : translate("ecommerce.marketingMaterialPicker.switchToCurrentCategorySelectionsWillBeCleared", { v0: commerceUiText(name) })} placement="right">
+                        <CommerceHint
+                            key={name}
+                            text={
+                                category === name
+                                    ? translate("ecommerce.marketingMaterialPicker.configuringSelectUpTo15Images", { v0: commerceUiText(name) })
+                                    : translate("ecommerce.marketingMaterialPicker.switchToCurrentCategorySelectionsWillBeCleared", { v0: commerceUiText(name) })
+                            }
+                            placement="right"
+                        >
                             <button
                                 type="button"
                                 aria-current={category === name ? "true" : undefined}
@@ -81,7 +89,15 @@ export function MarketingMaterialPicker({ draft, ratios, onChange, onClose }: { 
                             const visibleRatio = commerceUiText(imageSizeLabel(choice?.ratio || autoSelection.ratio));
                             return (
                                 <div key={item.id} className={`commerce-material-tile${active ? " is-selected" : ""}`}>
-                                    <CommerceHint text={active ? translate("ecommerce.marketingMaterialPicker.deselectToRemoveAllImagesOfThisMaterial", { v0: commerceUiText(item.name) }) : count >= 15 ? translate("ecommerce.marketingMaterialPicker.the15ImageLimitIsReachedReduceOtherMaterialsFirst") : translate("ecommerce.marketingMaterialPicker.selectToGenerateOneImageByDefaultWithAnAspect", { v0: commerceUiText(item.name) })}>
+                                    <CommerceHint
+                                        text={
+                                            active
+                                                ? translate("ecommerce.marketingMaterialPicker.deselectToRemoveAllImagesOfThisMaterial", { v0: commerceUiText(item.name) })
+                                                : count >= 15
+                                                  ? translate("ecommerce.marketingMaterialPicker.the15ImageLimitIsReachedReduceOtherMaterialsFirst")
+                                                  : translate("ecommerce.marketingMaterialPicker.selectToGenerateOneImageByDefaultWithAnAspect", { v0: commerceUiText(item.name) })
+                                        }
+                                    >
                                         <button
                                             type="button"
                                             className="commerce-material-select"
@@ -97,13 +113,23 @@ export function MarketingMaterialPicker({ draft, ratios, onChange, onClose }: { 
                                     {active ? (
                                         <div className="commerce-material-controls">
                                             <CommerceHint text={translate("ecommerce.marketingMaterialPicker.reduceToImages", { v0: commerceUiText(item.name), v1: String(Math.max(1, choice!.count - 1)) })}>
-                                                <button type="button" aria-label={translate("ecommerce.marketingMaterialPicker.removeOne", { v0: commerceUiText(item.name) })} disabled={choice!.count <= 1} onClick={() => update(item.id, (entry) => (entry && entry.count > 1 ? { ...entry, count: entry.count - 1 } : entry))}>
+                                                <button
+                                                    type="button"
+                                                    aria-label={translate("ecommerce.marketingMaterialPicker.removeOne", { v0: commerceUiText(item.name) })}
+                                                    disabled={choice!.count <= 1}
+                                                    onClick={() => update(item.id, (entry) => (entry && entry.count > 1 ? { ...entry, count: entry.count - 1 } : entry))}
+                                                >
                                                     <Minus size={13} />
                                                 </button>
                                             </CommerceHint>
                                             <span>{choice!.count}</span>
                                             <CommerceHint text={count >= 15 ? translate("ecommerce.marketingMaterialPicker.the15ImageLimitIsReached") : translate("ecommerce.marketingMaterialPicker.addOneImage", { v0: commerceUiText(item.name) })}>
-                                                <button type="button" aria-label={translate("ecommerce.marketingMaterialPicker.addOne", { v0: commerceUiText(item.name) })} disabled={count >= 15} onClick={() => update(item.id, (entry) => (entry ? { ...entry, count: entry.count + 1 } : undefined))}>
+                                                <button
+                                                    type="button"
+                                                    aria-label={translate("ecommerce.marketingMaterialPicker.addOne", { v0: commerceUiText(item.name) })}
+                                                    disabled={count >= 15}
+                                                    onClick={() => update(item.id, (entry) => (entry ? { ...entry, count: entry.count + 1 } : undefined))}
+                                                >
                                                     <Plus size={13} />
                                                 </button>
                                             </CommerceHint>

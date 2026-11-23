@@ -5,7 +5,6 @@ import { resolvePrevisShotFov } from "@/lib/canvas/previs/previs-optics";
 import type { PrevisCamera, PrevisScene, PrevisShot, PrevisTransform, PrevisVec3 } from "@/types/previs";
 import { translate } from "@/i18n";
 
-
 /**
  * 视口取景模式（3D / CAM / 五个正交轴向：俯视、正视、背视、左视、右视）。
  *

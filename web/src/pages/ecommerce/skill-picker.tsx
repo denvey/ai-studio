@@ -262,7 +262,9 @@ export function EcommerceSkillPicker({ selected, onChange, disabled }: Props) {
                                 )}
                             </div>
                         ))}
-                        {!filtered.length && !loading ? <p className="ecommerce-skill-empty">{tab === "mine" ? translate("ecommerce.skillPicker.noMatchingSkillsInYourLibraryAddSomeFromPublic") : translate("ecommerce.skillPicker.noMatchingPublicSkills")}</p> : null}
+                        {!filtered.length && !loading ? (
+                            <p className="ecommerce-skill-empty">{tab === "mine" ? translate("ecommerce.skillPicker.noMatchingSkillsInYourLibraryAddSomeFromPublic") : translate("ecommerce.skillPicker.noMatchingPublicSkills")}</p>
+                        ) : null}
                     </div>
                 </div>
                 {tab === "public" && hasMore ? (
@@ -270,7 +272,9 @@ export function EcommerceSkillPicker({ selected, onChange, disabled }: Props) {
                         {translate("canvasA.toolPicker.loadMore")}
                     </Button>
                 ) : null}
-                <p className="ecommerce-skill-count">{translate("ecommerce.skillPicker.usedThisRound")} {selected.length} {translate("ecommerce.skillPicker.item8Skills")}</p>
+                <p className="ecommerce-skill-count">
+                    {translate("ecommerce.skillPicker.usedThisRound")} {selected.length} {translate("ecommerce.skillPicker.item8Skills")}
+                </p>
             </Modal>
         </div>
     );

@@ -2,7 +2,6 @@ import { http } from "./request";
 import { invalidateAuthSessionCache, type LocalUser } from "./auth";
 import { translate } from "@/i18n";
 
-
 export type VerificationPolicy = {
     smsLogin: boolean;
     emailLogin: boolean;

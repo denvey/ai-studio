@@ -14,7 +14,6 @@ import { ArkAdminGroupDrawer } from "./ark-admin-group-drawer";
 import { ARK_KIND_LABEL, ARK_SOURCE_LABEL, ArkExpiryBadge, arkGrantSummary, formatArkAdminDate } from "./ark-admin-shared";
 import { translate } from "@/i18n";
 
-
 type ExpiryFilter = Exclude<ArkExpiryStatus, "none">;
 
 export const adminArkGroupsQueryKey = ["admin-ark-groups"] as const;
@@ -73,7 +72,13 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
                                 <span className="truncate font-medium" title={group.name}>
                                     {group.name}
                                 </span>
-                                {group.available === false ? <AdminStatusBadge label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.unavailable")} tone="error" title={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.theAdministratorChangedTheSiteRegionOrProjectThisAsset")} /> : null}
+                                {group.available === false ? (
+                                    <AdminStatusBadge
+                                        label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.unavailable")}
+                                        tone="error"
+                                        title={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.theAdministratorChangedTheSiteRegionOrProjectThisAsset")}
+                                    />
+                                ) : null}
                             </div>
                             <div className="admin-ark-group-id" title={group.groupId}>
                                 {group.groupId}
@@ -95,9 +100,15 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
             width: 190,
             render: (_, group) =>
                 group.scope === "platform" ? (
-                    <ArkStackedCell primary={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.platformAssetGroup")} secondary={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.authorization2", { v0: String(arkGrantSummary(group)) })} />
+                    <ArkStackedCell
+                        primary={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.platformAssetGroup")}
+                        secondary={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.authorization2", { v0: String(arkGrantSummary(group)) })}
+                    />
                 ) : (
-                    <ArkStackedCell primary={group.owner?.displayName || group.owner?.username || "-"} secondary={group.owner?.displayName && group.owner.username ? group.owner.username : translate("adminPages.settings.arkAssets.arkAdminGroupsTab.userCreated")} />
+                    <ArkStackedCell
+                        primary={group.owner?.displayName || group.owner?.username || "-"}
+                        secondary={group.owner?.displayName && group.owner.username ? group.owner.username : translate("adminPages.settings.arkAssets.arkAdminGroupsTab.userCreated")}
+                    />
                 ),
         },
         {
@@ -131,7 +142,11 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
                             key: "delete",
                             label: translate("common.delete"),
                             danger: true,
-                            confirm: { title: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.deleteAssetGroup", { v0: String(group.name) }), description: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.theArkAssetGroupAndAllItsAssetsWillAlso"), okText: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.deleteAssetGroup2") },
+                            confirm: {
+                                title: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.deleteAssetGroup", { v0: String(group.name) }),
+                                description: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.theArkAssetGroupAndAllItsAssetsWillAlso"),
+                                okText: translate("adminPages.settings.arkAssets.arkAdminGroupsTab.deleteAssetGroup2"),
+                            },
                             onClick: async () => {
                                 try {
                                     await deleteAdminArkGroup(group.id);
@@ -151,9 +166,17 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
     const expiryDetail = stats ? (
         stats.expiring || stats.expired ? (
             <>
-                {stats.expiring ? <span className="is-warning">{stats.expiring} {translate("adminPages.settings.arkAssets.arkAdminGroupsTab.expiringWithin30Days")}</span> : null}
+                {stats.expiring ? (
+                    <span className="is-warning">
+                        {stats.expiring} {translate("adminPages.settings.arkAssets.arkAdminGroupsTab.expiringWithin30Days")}
+                    </span>
+                ) : null}
                 {stats.expiring && stats.expired ? " · " : null}
-                {stats.expired ? <span className="is-error">{stats.expired} {translate("adminPages.settings.arkAssets.arkAdminGroupsTab.expired")}</span> : null}
+                {stats.expired ? (
+                    <span className="is-error">
+                        {stats.expired} {translate("adminPages.settings.arkAssets.arkAdminGroupsTab.expired")}
+                    </span>
+                ) : null}
             </>
         ) : (
             translate("adminPages.settings.arkAssets.arkAdminGroupsTab.allAuthorizationsAreValid")
@@ -164,8 +187,22 @@ export function ArkAdminGroupsTab({ onOpenReviews }: { onOpenReviews: () => void
         <div className="admin-ark-groups">
             <div className="admin-ark-stats" role="group" aria-label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.assetGroupOverviewClickATypeCardToFilter")}>
                 <ArkStatCard icon={UserRound} label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.humanAssetGroups")} value={stats?.real} detail={expiryDetail} active={kind === "real"} onClick={() => toggleKind("real")} />
-                <ArkStatCard icon={Sparkles} label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.virtualAssetGroups")} value={stats?.virtual} detail={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.aIGeneratedOrDrawnVirtualCharacters")} active={kind === "virtual"} onClick={() => toggleKind("virtual")} />
-                <ArkStatCard icon={Copyright} label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.copyrightedIPAssetGroups")} value={stats?.ip} detail={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.createdAndAuthorizedByAdminsOnly")} active={kind === "ip"} onClick={() => toggleKind("ip")} />
+                <ArkStatCard
+                    icon={Sparkles}
+                    label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.virtualAssetGroups")}
+                    value={stats?.virtual}
+                    detail={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.aIGeneratedOrDrawnVirtualCharacters")}
+                    active={kind === "virtual"}
+                    onClick={() => toggleKind("virtual")}
+                />
+                <ArkStatCard
+                    icon={Copyright}
+                    label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.copyrightedIPAssetGroups")}
+                    value={stats?.ip}
+                    detail={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.createdAndAuthorizedByAdminsOnly")}
+                    active={kind === "ip"}
+                    onClick={() => toggleKind("ip")}
+                />
                 <ArkStatCard
                     icon={ClipboardCheck}
                     label={translate("adminPages.settings.arkAssets.arkAdminGroupsTab.uploadsAwaitingReview")}

@@ -2,7 +2,6 @@ import type { PluginManifest, PluginManifestV2 } from "@/lib/plugins/plugin-type
 import { ART_CRITIQUE_PLUGIN_ID } from "@/lib/art-critique/contracts";
 import { translate } from "@/i18n";
 
-
 const permissionLabels: Record<string, string> = {
     "canvas.read": translate("shared.plugins.readCanvas"),
     "canvas.write": translate("shared.plugins.editCanvas"),

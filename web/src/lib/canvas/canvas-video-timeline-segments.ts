@@ -3,7 +3,6 @@ import type { CanvasConnection, CanvasNodeData } from "@/types/canvas";
 import type { TimelineClip, TimelineProject } from "@/types/timeline";
 import { translate } from "@/i18n";
 
-
 export type CanvasTimelineSegmentItem = {
     id: string;
     startMs: number;

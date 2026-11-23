@@ -4,7 +4,6 @@ import { normalizeAssetCategory } from "@/lib/asset-category";
 import { sameCanvasContent } from "@/lib/canvas/canvas-content";
 import { translate } from "@/i18n";
 
-
 export type CanvasStorageTombstones = {
     projects: Record<string, number>;
     nodes: Record<string, Record<string, number>>;

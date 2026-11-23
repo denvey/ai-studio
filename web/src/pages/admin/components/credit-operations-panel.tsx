@@ -335,7 +335,11 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                     await reload(page, pageSize);
                     return;
                 }
-                message.success(resolutionTarget.action === "settle" ? translate("admin.creditOperationsPanel.settledOrders", { v0: String(result.resolvedCount) }) : translate("admin.creditOperationsPanel.releasedPreauthorizedCreditsForOrders", { v0: String(result.resolvedCount) }));
+                message.success(
+                    resolutionTarget.action === "settle"
+                        ? translate("admin.creditOperationsPanel.settledOrders", { v0: String(result.resolvedCount) })
+                        : translate("admin.creditOperationsPanel.releasedPreauthorizedCreditsForOrders", { v0: String(result.resolvedCount) }),
+                );
             }
             setResolutionTarget(null);
             resolutionForm.resetFields();
@@ -397,13 +401,20 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             render: (_, order) =>
                 order.billingMode === "token" ? (
                     <div className="text-xs leading-5">
-                        <div className="font-medium tabular-nums">{order.status === "settled" ? translate("admin.creditOperationsPanel.credits", { v0: String(formatCredits(order.actualAmountMicrocredits)) }) : translate("admin.creditOperationsPanel.awaitingUsageSettlement")}</div>
+                        <div className="font-medium tabular-nums">
+                            {order.status === "settled" ? translate("admin.creditOperationsPanel.credits", { v0: String(formatCredits(order.actualAmountMicrocredits)) }) : translate("admin.creditOperationsPanel.awaitingUsageSettlement")}
+                        </div>
                         <div className="text-foreground/50">
                             {order.usageSource === "video_formula"
                                 ? translate("admin.creditOperationsPanel.formulaSettlementVideoTokens", { v0: String(order.outputTokens.toLocaleString()) })
                                 : order.capability === "video"
                                   ? translate("admin.creditOperationsPanel.upstreamUsageVideoTokens", { v0: String(order.outputTokens.toLocaleString()) })
-                                  : translate("admin.creditOperationsPanel.inputOutputCacheRead", { v0: String(order.inputTokens), v1: String(order.outputTokens), v2: String(order.cachedTokens), v3: String(order.cacheWriteTokens ? translate("admin.creditOperationsPanel.cacheWrite", { v0: String(order.cacheWriteTokens) }) : "") })}
+                                  : translate("admin.creditOperationsPanel.inputOutputCacheRead", {
+                                        v0: String(order.inputTokens),
+                                        v1: String(order.outputTokens),
+                                        v2: String(order.cachedTokens),
+                                        v3: String(order.cacheWriteTokens ? translate("admin.creditOperationsPanel.cacheWrite", { v0: String(order.cacheWriteTokens) }) : ""),
+                                    })}
                         </div>
                     </div>
                 ) : (
@@ -429,7 +440,10 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                     <span className="text-xs text-foreground/45">{translate("canvasPage.upload.processDone")}</span>
                 ) : (
                     <div className="flex justify-center">
-                        <AdminRowActions primary={{ label: translate("admin.creditOperationsPanel.confirmSettlement"), onClick: () => openSingleResolution(order, "settle") }} actions={[{ key: "refund", label: translate("admin.creditOperationsPanel.releasePreauthorization"), danger: true, onClick: () => openSingleResolution(order, "refund") }]} />
+                        <AdminRowActions
+                            primary={{ label: translate("admin.creditOperationsPanel.confirmSettlement"), onClick: () => openSingleResolution(order, "settle") }}
+                            actions={[{ key: "refund", label: translate("admin.creditOperationsPanel.releasePreauthorization"), danger: true, onClick: () => openSingleResolution(order, "refund") }]}
+                        />
                     </div>
                 ),
         },
@@ -438,7 +452,15 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
     const hasFilters = Boolean(keyword || orderStatus !== "review");
     const resolutionOrders = resolutionTarget?.kind === "batch" ? resolutionTarget.orders : resolutionTarget ? [resolutionTarget.order] : [];
     const resolutionReservedTotal = resolutionOrders.reduce((sum, order) => sum + getReservedAmount(order), 0);
-    const resolutionTitle = resolutionTarget ? (resolutionTarget.action === "settle" ? (resolutionTarget.kind === "batch" ? translate("admin.creditOperationsPanel.confirmSettlementsInBulk") : translate("admin.creditOperationsPanel.confirmBillingOrderSettlement")) : resolutionTarget.kind === "batch" ? translate("admin.creditOperationsPanel.releasePreauthorizedCreditsInBulk") : translate("admin.creditOperationsPanel.confirmPreauthorizedCreditRelease")) : "";
+    const resolutionTitle = resolutionTarget
+        ? resolutionTarget.action === "settle"
+            ? resolutionTarget.kind === "batch"
+                ? translate("admin.creditOperationsPanel.confirmSettlementsInBulk")
+                : translate("admin.creditOperationsPanel.confirmBillingOrderSettlement")
+            : resolutionTarget.kind === "batch"
+              ? translate("admin.creditOperationsPanel.releasePreauthorizedCreditsInBulk")
+              : translate("admin.creditOperationsPanel.confirmPreauthorizedCreditRelease")
+        : "";
     const signupGrantForecast = pendingPolicy ? toMicrocredits(pendingPolicy.signupBonus) * 1_000 : 0;
     const checkinGrantForecast = pendingPolicy ? toMicrocredits(pendingPolicy.checkinBonus) * 1_000 : 0;
     const totalGrantForecast = signupGrantForecast + checkinGrantForecast;
@@ -454,9 +476,15 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                         {policyLoaded && policy ? (
                             <>
                                 <p className="mt-1 text-sm text-foreground/75">
-                                    {translate("admin.creditOperationsPanel.registrationBonus")} <strong className="tabular-nums">{formatCredits(policy.signupBonusMicrocredits)} {translate("admin.creditOperationsPanel.creditsNewUser")}</strong>
+                                    {translate("admin.creditOperationsPanel.registrationBonus")}{" "}
+                                    <strong className="tabular-nums">
+                                        {formatCredits(policy.signupBonusMicrocredits)} {translate("admin.creditOperationsPanel.creditsNewUser")}
+                                    </strong>
                                     <span className="mx-2 text-foreground/35">·</span>
-                                    {translate("admin.creditOperationsPanel.dailyCheckIn")} <strong className="tabular-nums">{formatCredits(policy.checkinBonusMicrocredits)} {translate("admin.creditOperationsPanel.creditsUserPerDay")}</strong>
+                                    {translate("admin.creditOperationsPanel.dailyCheckIn")}{" "}
+                                    <strong className="tabular-nums">
+                                        {formatCredits(policy.checkinBonusMicrocredits)} {translate("admin.creditOperationsPanel.creditsUserPerDay")}
+                                    </strong>
                                 </p>
                                 <p className="mt-1 text-xs leading-5 text-foreground/60">
                                     {policy.signupBonusMicrocredits > 0 || policy.checkinBonusMicrocredits > 0
@@ -484,7 +512,9 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                         disabled={!policyLoaded || loadingPolicy || !policy || savingPolicy || (policy.signupBonusMicrocredits === 0 && policy.checkinBonusMicrocredits === 0)}
                         onClick={() => void stopGiftsNow()}
                     >
-                        {policyLoaded && policy?.signupBonusMicrocredits === 0 && policy?.checkinBonusMicrocredits === 0 ? translate("admin.creditOperationsPanel.registrationAndCheckInBonusesDisabled") : translate("admin.creditOperationsPanel.disableRegistrationAndCheckInBonuses")}
+                        {policyLoaded && policy?.signupBonusMicrocredits === 0 && policy?.checkinBonusMicrocredits === 0
+                            ? translate("admin.creditOperationsPanel.registrationAndCheckInBonusesDisabled")
+                            : translate("admin.creditOperationsPanel.disableRegistrationAndCheckInBonuses")}
                     </Button>
                 </div>
             </section>
@@ -567,7 +597,13 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                         },
                         scroll: { x: 1510 },
                     }}
-                    empty={<AdminTableEmpty filtered={hasFilters} title={!hasFilters ? translate("admin.creditOperationsPanel.noOrdersAwaitingReview") : undefined} description={!hasFilters ? translate("admin.creditOperationsPanel.newBillingExceptionsAppearHereAutomatically") : undefined} />}
+                    empty={
+                        <AdminTableEmpty
+                            filtered={hasFilters}
+                            title={!hasFilters ? translate("admin.creditOperationsPanel.noOrdersAwaitingReview") : undefined}
+                            description={!hasFilters ? translate("admin.creditOperationsPanel.newBillingExceptionsAppearHereAutomatically") : undefined}
+                        />
+                    }
                     footer={
                         <PaginationBar
                             alwaysShow
@@ -605,11 +641,17 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                         <p className="text-sm leading-6 text-foreground/70">{translate("admin.creditOperationsPanel.thisPolicyIncludesPositiveBonusesTheAmountsBelowIllustrateGrants")}</p>
                         <dl className="grid grid-cols-2 gap-2 border-y border-border/60 py-3 text-sm">
                             <dt className="text-foreground/60">{translate("admin.creditOperationsPanel.item1000NewAccounts")}</dt>
-                            <dd className="text-right tabular-nums">{formatCredits(signupGrantForecast)} {translate("shell.credits")}</dd>
+                            <dd className="text-right tabular-nums">
+                                {formatCredits(signupGrantForecast)} {translate("shell.credits")}
+                            </dd>
                             <dt className="text-foreground/60">{translate("admin.creditOperationsPanel.item1000CheckIns")}</dt>
-                            <dd className="text-right tabular-nums">{formatCredits(checkinGrantForecast)} {translate("shell.credits")}</dd>
+                            <dd className="text-right tabular-nums">
+                                {formatCredits(checkinGrantForecast)} {translate("shell.credits")}
+                            </dd>
                             <dt className="font-semibold">{translate("admin.creditOperationsPanel.totalCreditsGranted")}</dt>
-                            <dd className="text-right font-semibold tabular-nums">{formatCredits(totalGrantForecast)} {translate("shell.credits")}</dd>
+                            <dd className="text-right font-semibold tabular-nums">
+                                {formatCredits(totalGrantForecast)} {translate("shell.credits")}
+                            </dd>
                         </dl>
                         <p className="text-xs leading-5 text-foreground/55">{translate("admin.creditOperationsPanel.setABonusTo0ToDisableItThisPolicy")}</p>
                     </div>
@@ -721,7 +763,14 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
                                                         >
                                                             <InputNumber aria-label={translate("admin.creditOperationsPanel.rowMultiplier", { v0: String(index + 1) })} className="w-full" min={0.0001} max={100} precision={4} />
                                                         </Form.Item>
-                                                        <Button type="text" danger className="admin-credit-multiplier-remove" icon={<Trash2 className="size-4" />} aria-label={translate("admin.creditOperationsPanel.deleteModelMultiplierRule", { v0: String(index + 1) })} onClick={() => remove(field.name)} />
+                                                        <Button
+                                                            type="text"
+                                                            danger
+                                                            className="admin-credit-multiplier-remove"
+                                                            icon={<Trash2 className="size-4" />}
+                                                            aria-label={translate("admin.creditOperationsPanel.deleteModelMultiplierRule", { v0: String(index + 1) })}
+                                                            onClick={() => remove(field.name)}
+                                                        />
                                                     </div>
                                                 ))}
                                             </div>
@@ -870,15 +919,23 @@ export default function CreditOperationsPanel({ users, activeOperation, onOperat
             >
                 {resolutionTarget ? (
                     <div className="admin-operation-confirmation">
-                        <p className="admin-operation-confirmation-copy">{resolutionTarget.action === "settle" ? translate("admin.creditOperationsPanel.settlementDeterminesTheActualCostUsingTheOrderSBilling") : translate("admin.creditOperationsPanel.releasingOnlyReturnsPreauthorizedCreditsForUnsettledOrders")}</p>
+                        <p className="admin-operation-confirmation-copy">
+                            {resolutionTarget.action === "settle"
+                                ? translate("admin.creditOperationsPanel.settlementDeterminesTheActualCostUsingTheOrderSBilling")
+                                : translate("admin.creditOperationsPanel.releasingOnlyReturnsPreauthorizedCreditsForUnsettledOrders")}
+                        </p>
                         <dl className="admin-operation-confirmation-grid">
                             <div>
                                 <dt>{translate("admin.creditOperationsPanel.orderCount")}</dt>
-                                <dd>{resolutionOrders.length} {translate("account.layout.pagination.item")}</dd>
+                                <dd>
+                                    {resolutionOrders.length} {translate("account.layout.pagination.item")}
+                                </dd>
                             </div>
                             <div>
                                 <dt>{translate("admin.creditOperationsPanel.totalPreauthorized")}</dt>
-                                <dd>{formatCredits(resolutionReservedTotal)} {translate("shell.credits")}</dd>
+                                <dd>
+                                    {formatCredits(resolutionReservedTotal)} {translate("shell.credits")}
+                                </dd>
                             </div>
                             {resolutionTarget.kind === "single" ? (
                                 <>

@@ -52,14 +52,14 @@ test("输入框运行中同时给出「发送（插话）」与「停止」", as
     // 请求进行中只拦「发送」，排队和保存不受影响；附件上传中、超出字数时（blockedReason）都不能提交。
     expect(composer).toContain('const canSubmit = !disabled && !submitDisabled && !blockedReason && !(sending && submitMode === "send") && Boolean(prompt.trim() || attachments.length);');
     expect(composer).not.toContain("const canStop = Boolean(sending && onStop);");
-    expect(composer).toContain('aria-label="停止本轮"');
+    expect(composer).toContain('aria-label={translate("canvasTools.canvasCloudAgentComposer.stopThisRun")}');
     // 插话/未送达要有可见标记
     expect(composer).toContain("interjection?: CloudAgentInterjectionState;");
-    expect(composer).toContain('return "插话未送达";');
-    expect(composer).toContain("作为下一轮发送");
+    expect(composer).toContain('return translate("canvasTools.canvasCloudAgentChatUi.interjectionNotDelivered");');
+    expect(composer).toContain('translate("canvasTools.canvasCloudAgentChatUi.sendAsNextRun")');
     // 撤回插话是独立入口，只在等待送达时出现；停止按钮不能是唯一的"取消"手段。
     expect(composer).toContain('item.interjection === "sent" && onWithdrawInterjection');
-    expect(composer).toContain('aria-label="撤回这句插话"');
+    expect(composer).toContain('aria-label={translate("canvasTools.canvasCloudAgentChatUi.withdrawThisInterjection")}');
 });
 
 test("撤回插话走独立接口，不停止本轮", async () => {

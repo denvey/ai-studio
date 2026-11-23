@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import { isSkinButtonFill, type SkinDefinition } from "@/lib/skin-themes";
 import { translate } from "@/i18n";
 
-
 export type DraftFiles = Record<AppearanceAssetSlot, File | null>;
 
 export type ResetState = Record<AppearanceAssetSlot, boolean>;
@@ -51,7 +50,13 @@ export function AssetPicker({
             <span className="admin-appearance-asset-copy">
                 <strong>{title}</strong>
                 <small>{description}</small>
-                <em>{file ? `${file.name} · ${formatBytes(file.size)}` : configured ? translate("adminPages.settings.appearanceSettingsParts.customFileConfigured") : emptyLabel || translate("adminPages.settings.appearanceSettingsParts.usingOriginalProjectFile")}</em>
+                <em>
+                    {file
+                        ? `${file.name} · ${formatBytes(file.size)}`
+                        : configured
+                          ? translate("adminPages.settings.appearanceSettingsParts.customFileConfigured")
+                          : emptyLabel || translate("adminPages.settings.appearanceSettingsParts.usingOriginalProjectFile")}
+                </em>
             </span>
             <span className="admin-appearance-asset-actions">
                 <input ref={inputRef} type="file" accept={rule.accept} onChange={(event) => onSelect(slot, event.target.files?.[0])} />
@@ -148,8 +153,10 @@ export function validateSkinDrafts(themes: SkinDefinition[], selectedID: string)
         if (Array.from(theme.description.trim()).length > 100) return translate("adminPages.settings.appearanceSettingsParts.themeDescriptionsCannotExceed100Characters");
         const invalidColor = [...Object.values(theme.tokens.light), ...Object.values(theme.tokens.dark)].some((color) => !/^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(color));
         if (invalidColor) return translate("adminPages.settings.appearanceSettingsParts.themeContainsAnInvalidColorUse6Or8Digit", { v0: String(theme.name) });
-        if (!isSkinButtonFill(theme.tokens.buttons.light) || !isSkinButtonFill(theme.tokens.buttons.dark)) return translate("adminPages.settings.appearanceSettingsParts.themeHasInvalidPrimaryButtonSettingsCheckColorsAndGradient", { v0: String(theme.name) });
-        if (theme.tokens.components.controlHeightSmall > theme.tokens.components.controlHeight || theme.tokens.components.controlHeight > theme.tokens.components.controlHeightLarge) return translate("adminPages.settings.appearanceSettingsParts.themeHasAnInvalidControlHeightOrder", { v0: String(theme.name) });
+        if (!isSkinButtonFill(theme.tokens.buttons.light) || !isSkinButtonFill(theme.tokens.buttons.dark))
+            return translate("adminPages.settings.appearanceSettingsParts.themeHasInvalidPrimaryButtonSettingsCheckColorsAndGradient", { v0: String(theme.name) });
+        if (theme.tokens.components.controlHeightSmall > theme.tokens.components.controlHeight || theme.tokens.components.controlHeight > theme.tokens.components.controlHeightLarge)
+            return translate("adminPages.settings.appearanceSettingsParts.themeHasAnInvalidControlHeightOrder", { v0: String(theme.name) });
         if (theme.tokens.components.motionFast > theme.tokens.components.motionNormal) return translate("adminPages.settings.appearanceSettingsParts.themeFastAnimationsCannotBeSlowerThanRegularAnimations", { v0: String(theme.name) });
     }
     if (!ids.has("classic") || !ids.has(selectedID)) return translate("adminPages.settings.appearanceSettingsParts.theDefaultOrCurrentlyActiveThemeDoesNotExist");

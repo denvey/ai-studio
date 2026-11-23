@@ -6,7 +6,6 @@ import { getActiveUserScope } from "@/lib/user-scope";
 import { EMPTY_AGENT_OUTBOX, parseAgentOutbox, type AgentOutbox } from "@/lib/canvas/agent-outbox";
 import { translate } from "@/i18n";
 
-
 const OUTBOX_KEY_PREFIX = "cloud-agent-conversations-v2:outbox:";
 
 function outboxStorageKey(conversationId: string) {

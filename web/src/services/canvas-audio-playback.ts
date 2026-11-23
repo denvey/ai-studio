@@ -1,7 +1,6 @@
 import { getResourceAccess, resolveResourceAccessURL, resourceIdFromStorageKey } from "@/services/api/resources";
 import { translate } from "@/i18n";
 
-
 export type CanvasAudioSource = {
     nodeId: string;
     content: string;

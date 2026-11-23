@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export async function prepareRasterSource(source: string, readBlob?: () => Promise<Blob | null>): Promise<{ url: string; release: () => void }> {
     if (!source.trim()) throw new Error(translate("shared.imageRaster.theImageURLIsEmpty"));

@@ -3,7 +3,6 @@ import { batchOutputResultPending } from "@/lib/canvas/canvas-batch-references";
 import { CanvasNodeType, type CanvasNodeData, type CanvasNodeMetadata } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 export type ImageQuarterTurns = 0 | 1 | 2 | 3;
 export type ImageRotationDirection = -1 | 0 | 1;
 export type CanvasImageRotation = NonNullable<CanvasNodeMetadata["imageRotation"]>;

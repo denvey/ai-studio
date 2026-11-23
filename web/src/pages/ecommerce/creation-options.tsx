@@ -19,11 +19,16 @@ export function CreationOptions({ draft, onChange, className = "ecommerce-field"
                             allowClear
                             placeholder={translate("ecommerce.creationOptions.plannedByTheAgentFromYourMaterials")}
                             value={draft.typeOptions?.[item.key] || undefined}
-                            options={item.choices.map((value) => ({ value, label: commerceUiText(value ) }))}
+                            options={item.choices.map((value) => ({ value, label: commerceUiText(value) }))}
                             onChange={(value) => onChange({ ...draft.typeOptions, [item.key]: value || "" })}
                         />
                     ) : (
-                        <Input.TextArea rows={2} value={draft.typeOptions?.[item.key] || ""} placeholder={item.placeholder? commerceUiText(item.placeholder) : undefined} onChange={(event) => onChange({ ...draft.typeOptions, [item.key]: event.target.value })} />
+                        <Input.TextArea
+                            rows={2}
+                            value={draft.typeOptions?.[item.key] || ""}
+                            placeholder={item.placeholder ? commerceUiText(item.placeholder) : undefined}
+                            onChange={(event) => onChange({ ...draft.typeOptions, [item.key]: event.target.value })}
+                        />
                     )}
                 </label>
             ))}

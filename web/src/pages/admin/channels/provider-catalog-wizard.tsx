@@ -20,7 +20,12 @@ import { currentLocale, translate } from "@/i18n";
 
 type Step = "pick" | "connect" | "pricing";
 
-const capabilityLabels: Record<ProviderCatalogModel["capability"], string> = { text: translate("account.settings.modelConfig.capabilities.text"), image: translate("account.feedback.image"), video: translate("account.feedback.video"), audio: translate("account.settings.modelConfig.capabilities.audio") };
+const capabilityLabels: Record<ProviderCatalogModel["capability"], string> = {
+    text: translate("account.settings.modelConfig.capabilities.text"),
+    image: translate("account.feedback.image"),
+    video: translate("account.feedback.video"),
+    audio: translate("account.settings.modelConfig.capabilities.audio"),
+};
 const stepLabels: Array<{ key: Step; label: string }> = [
     { key: "pick", label: translate("admin.channels.providerCatalogWizard.chooseAProvider") },
     { key: "connect", label: translate("admin.channels.providerCatalogWizard.enterAPIKey") },
@@ -139,7 +144,13 @@ export function ProviderCatalogWizard({ open, onClose, onCustom, onInstalled }: 
                 // 跳过验证时先停用，避免未确认可用的渠道进入线上路由。
                 enabled: verified !== null,
             });
-            message.success(translate("admin.channels.providerCatalogWizard.connectedWithModels", { v0: String(provider.name), v1: String(chosenModels.length), v2: String(verified ? translate("admin.channels.providerCatalogWizard.areAvailable") : translate("admin.channels.providerCatalogWizard.createdChannelDisabledByDefault")) }));
+            message.success(
+                translate("admin.channels.providerCatalogWizard.connectedWithModels", {
+                    v0: String(provider.name),
+                    v1: String(chosenModels.length),
+                    v2: String(verified ? translate("admin.channels.providerCatalogWizard.areAvailable") : translate("admin.channels.providerCatalogWizard.createdChannelDisabledByDefault")),
+                }),
+            );
             await onInstalled(channel);
         } catch (error) {
             message.error(error instanceof Error ? error.message : translate("admin.channels.providerCatalogWizard.failedToConnectTheProvider"));
@@ -155,7 +166,16 @@ export function ProviderCatalogWizard({ open, onClose, onCustom, onInstalled }: 
             <div className="pcw">
                 <header className="pcw-header">
                     <div className="pcw-title-row">
-                        {step !== "pick" ? <Button type="text" size="small" aria-label={translate("canvasC.previsOnboarding.back")} icon={<ArrowLeft className="size-4" />} disabled={installing || verifying} onClick={() => setStep(step === "pricing" ? "connect" : "pick")} /> : null}
+                        {step !== "pick" ? (
+                            <Button
+                                type="text"
+                                size="small"
+                                aria-label={translate("canvasC.previsOnboarding.back")}
+                                icon={<ArrowLeft className="size-4" />}
+                                disabled={installing || verifying}
+                                onClick={() => setStep(step === "pricing" ? "connect" : "pick")}
+                            />
+                        ) : null}
                         <h2 className="pcw-title">{translate("admin.channels.providerCatalogWizard.addSystemChannel")}</h2>
                     </div>
                     <ol className="pcw-steps" aria-label={translate("admin.channels.providerCatalogWizard.connectionSteps")}>
@@ -175,7 +195,14 @@ export function ProviderCatalogWizard({ open, onClose, onCustom, onInstalled }: 
     );
 
     function renderPick() {
-        const sourceText = catalog?.source === "cache" ? translate("admin.channels.providerCatalogWizard.offlineCatalog") : catalog?.source === "unavailable" ? translate("admin.channels.providerCatalogWizard.catalogTemporarilyUnavailable") : catalog?.source === "disabled" ? translate("admin.channels.providerCatalogWizard.catalogDisabled") : translate("admin.channels.providerCatalogWizard.catalog");
+        const sourceText =
+            catalog?.source === "cache"
+                ? translate("admin.channels.providerCatalogWizard.offlineCatalog")
+                : catalog?.source === "unavailable"
+                  ? translate("admin.channels.providerCatalogWizard.catalogTemporarilyUnavailable")
+                  : catalog?.source === "disabled"
+                    ? translate("admin.channels.providerCatalogWizard.catalogDisabled")
+                    : translate("admin.channels.providerCatalogWizard.catalog");
         return (
             <div className="pcw-body">
                 <div className="pcw-toolbar">
@@ -213,7 +240,9 @@ export function ProviderCatalogWizard({ open, onClose, onCustom, onInstalled }: 
                             <TriangleAlert className="size-4" /> {loadError}
                         </p>
                     ) : null}
-                    {catalog && (catalog.source === "unavailable" || catalog.source === "disabled") ? <p className="pcw-notice">{catalog.notice || translate("admin.channels.providerCatalogWizard.recommendedProvidersAreTemporarilyUnavailableYouCanAddOneManually")}</p> : null}
+                    {catalog && (catalog.source === "unavailable" || catalog.source === "disabled") ? (
+                        <p className="pcw-notice">{catalog.notice || translate("admin.channels.providerCatalogWizard.recommendedProvidersAreTemporarilyUnavailableYouCanAddOneManually")}</p>
+                    ) : null}
                     <div className="pcw-grid">
                         <button type="button" className="pcw-card pcw-card-custom" onClick={onCustom}>
                             <span className="pcw-logo pcw-logo-custom">
@@ -241,7 +270,9 @@ export function ProviderCatalogWizard({ open, onClose, onCustom, onInstalled }: 
                                     ))}
                                 </span>
                                 <span className="pcw-card-meta">
-                                    <span>{item.models.length} {translate("admin.channels.providerCatalogWizard.recommendedModels")}</span>
+                                    <span>
+                                        {item.models.length} {translate("admin.channels.providerCatalogWizard.recommendedModels")}
+                                    </span>
                                     {item.installedCount ? (
                                         <span className="pcw-installed">
                                             <Check className="size-3" /> {translate("admin.channels.providerCatalogWizard.connected")} {item.installedCount}
@@ -249,7 +280,8 @@ export function ProviderCatalogWizard({ open, onClose, onCustom, onInstalled }: 
                                     ) : null}
                                 </span>
                                 <span className="pcw-card-summary" title={item.models.map((model) => model.providerModelKey).join("、")}>
-                                    {translate("admin.channels.providerCatalogWizard.recommended")}{item.models.map((model) => (model.displayName === model.providerModelKey ? model.displayName : `${model.displayName} / ${model.providerModelKey}`)).join("、")}
+                                    {translate("admin.channels.providerCatalogWizard.recommended")}
+                                    {item.models.map((model) => (model.displayName === model.providerModelKey ? model.displayName : `${model.displayName} / ${model.providerModelKey}`)).join("、")}
                                 </span>
                                 <span className="pcw-card-window">
                                     <span>{item.permanent ? formatWindow(item) : translate("admin.channels.providerCatalogWizard.promotion", { v0: String(formatWindow(item)) })}</span>
@@ -367,12 +399,23 @@ export function ProviderCatalogWizard({ open, onClose, onCustom, onInstalled }: 
                 <div className="pcw-pricing-bar">
                     <label className="pcw-markup">
                         <span>{translate("admin.channels.providerCatalogWizard.bulkMarkup")}</span>
-                        <InputNumber aria-label={translate("admin.channels.providerCatalogWizard.defaultMarkupRate")} value={markup} min={0} max={1000} step={5} precision={2} suffix="%" status={validMarkup(markup) ? undefined : "error"} onChange={(value) => setMarkup(value)} />
+                        <InputNumber
+                            aria-label={translate("admin.channels.providerCatalogWizard.defaultMarkupRate")}
+                            value={markup}
+                            min={0}
+                            max={1000}
+                            step={5}
+                            precision={2}
+                            suffix="%"
+                            status={validMarkup(markup) ? undefined : "error"}
+                            onChange={(value) => setMarkup(value)}
+                        />
                     </label>
                     <span className="pcw-formula">{translate("admin.channels.providerCatalogWizard.sellingPriceCost1MarkupRateCNY11Credit")}</span>
                     {verified ? (
                         <span className="pcw-verified">
-                            <Check className="size-3.5" /> {translate("admin.channels.providerCatalogWizard.connectedUpstreamAvailable")} {verified.availableModels.length}/{current.models.length} {translate("admin.channels.providerCatalogWizard.recommendedModels")}
+                            <Check className="size-3.5" /> {translate("admin.channels.providerCatalogWizard.connectedUpstreamAvailable")} {verified.availableModels.length}/{current.models.length}{" "}
+                            {translate("admin.channels.providerCatalogWizard.recommendedModels")}
                         </span>
                     ) : (
                         <span className="pcw-unverified">{translate("admin.channels.providerCatalogWizard.notVerifiedChannelWillStartDisabled")}</span>
@@ -382,7 +425,11 @@ export function ProviderCatalogWizard({ open, onClose, onCustom, onInstalled }: 
                     <ul className="pcw-models">
                         {current.models.map((item) => {
                             const missing = verified?.missingModels.includes(item.modelKey);
-                            const disabledReason = !item.supported ? item.unsupportedReason || translate("admin.channels.providerCatalogWizard.notSupportedInThisVersion") : missing ? translate("admin.channels.providerCatalogWizard.modelNotReturnedByUpstream") : "";
+                            const disabledReason = !item.supported
+                                ? item.unsupportedReason || translate("admin.channels.providerCatalogWizard.notSupportedInThisVersion")
+                                : missing
+                                  ? translate("admin.channels.providerCatalogWizard.modelNotReturnedByUpstream")
+                                  : "";
                             const override = overrides[item.modelKey];
                             const effective = override ?? markup ?? 0;
                             const checked = Boolean(selected[item.modelKey]);
@@ -447,7 +494,8 @@ export function ProviderCatalogWizard({ open, onClose, onCustom, onInstalled }: 
                 </div>
                 <footer className="pcw-footer">
                     <span>
-                        {translate("admin.channels.providerCatalogWizard.willCreate1Channel")} {chosenModels.length} {translate("admin.channels.providerCatalogWizard.models")} {totalTiers} {translate("admin.channels.providerCatalogWizard.specificationTiers")}
+                        {translate("admin.channels.providerCatalogWizard.willCreate1Channel")} {chosenModels.length} {translate("admin.channels.providerCatalogWizard.models")} {totalTiers}{" "}
+                        {translate("admin.channels.providerCatalogWizard.specificationTiers")}
                     </span>
                     <div className="pcw-actions">
                         <Button disabled={installing} onClick={() => setStep("connect")}>

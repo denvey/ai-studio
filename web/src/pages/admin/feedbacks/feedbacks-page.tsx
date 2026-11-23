@@ -10,7 +10,6 @@ import { AdminPageFrame } from "../components/admin-shell";
 import { cn } from "@/lib/utils";
 import { currentLocale, translate } from "@/i18n";
 
-
 export default function AdminFeedbacksPage() {
     const { message } = App.useApp();
 
@@ -159,7 +158,9 @@ export default function AdminFeedbacksPage() {
                             {attCount > 0 ? (
                                 <Tag className="text-[var(--fs-label)] px-1 m-0 flex items-center gap-0.5 border-dashed">
                                     <Paperclip className="size-2.5" />
-                                    <span>{attCount} {translate("adminPages.feedbacks.feedbacksPage.attachments")}</span>
+                                    <span>
+                                        {attCount} {translate("adminPages.feedbacks.feedbacksPage.attachments")}
+                                    </span>
                                 </Tag>
                             ) : null}
                             {record.adminReply ? (
@@ -416,16 +417,20 @@ export default function AdminFeedbacksPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-muted-foreground pt-1 border-t border-border/40 text-[var(--fs-label)]">
                                 <div>
-                                    {translate("adminPages.feedbacks.feedbacksPage.submittedBy2")}<span className="text-foreground">{selectedItem.userName}</span>
+                                    {translate("adminPages.feedbacks.feedbacksPage.submittedBy2")}
+                                    <span className="text-foreground">{selectedItem.userName}</span>
                                 </div>
                                 <div>
-                                    {translate("adminPages.feedbacks.feedbacksPage.contact")}<span className="text-foreground">{selectedItem.contact || translate("adminPages.feedbacks.feedbacksPage.notFilledIn")}</span>
+                                    {translate("adminPages.feedbacks.feedbacksPage.contact")}
+                                    <span className="text-foreground">{selectedItem.contact || translate("adminPages.feedbacks.feedbacksPage.notFilledIn")}</span>
                                 </div>
                                 <div>
-                                    {translate("adminPages.feedbacks.feedbacksPage.feedbackType")}<span className="text-foreground">{typeConfig[selectedItem.type]?.label || selectedItem.type}</span>
+                                    {translate("adminPages.feedbacks.feedbacksPage.feedbackType")}
+                                    <span className="text-foreground">{typeConfig[selectedItem.type]?.label || selectedItem.type}</span>
                                 </div>
                                 <div>
-                                    {translate("adminPages.feedbacks.feedbacksPage.submittedAt2")}<span className="text-foreground">{new Date(selectedItem.createdAt).toLocaleString(currentLocale())}</span>
+                                    {translate("adminPages.feedbacks.feedbacksPage.submittedAt2")}
+                                    <span className="text-foreground">{new Date(selectedItem.createdAt).toLocaleString(currentLocale())}</span>
                                 </div>
                             </div>
                         </div>
@@ -439,7 +444,10 @@ export default function AdminFeedbacksPage() {
                         {/* Attachments */}
                         {selectedAttachments.length > 0 ? (
                             <div>
-                                <label className="block text-xs font-semibold text-foreground mb-2">{translate("adminPages.feedbacks.feedbacksPage.attachments2")}{selectedAttachments.length})</label>
+                                <label className="block text-xs font-semibold text-foreground mb-2">
+                                    {translate("adminPages.feedbacks.feedbacksPage.attachments2")}
+                                    {selectedAttachments.length})
+                                </label>
                                 <div className="grid grid-cols-2 gap-2">
                                     {selectedAttachments.map((att) => {
                                         // att.url 是提交者本人的 /api/resources/:id/file，管理员会被资源归属校验拒绝，后台改走管理员资源接口。

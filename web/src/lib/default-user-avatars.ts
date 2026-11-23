@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export const DEFAULT_USER_AVATARS = [
     { id: "person", label: translate("shared.defaultUserAvatars.defaultPortrait") },

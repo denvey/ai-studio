@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 // 来源：火山引擎《音色列表》中的「豆包语音合成模型1.0」。
 // seed-audio-1.0 对应资源 seed-tts-1.0，只能使用这一代音色，不能混入 2.0。
@@ -63,7 +62,12 @@ export const doubaoAudioVoiceOptions: DoubaoAudioVoiceOption[] = [
     { scene: translate("shared.doubaoAudioVoices.regionalAccents"), value: "zh_male_guozhoudege_moon_bigtts", label: translate("shared.doubaoAudioVoices.guangzhouDege"), language: translate("shared.doubaoAudioVoices.guangdongAccent") },
     { scene: translate("shared.doubaoAudioVoices.regionalAccents"), value: "zh_male_haoyuxiaoge_moon_bigtts", label: translate("shared.doubaoAudioVoices.youngHaoyu"), language: translate("shared.doubaoAudioVoices.qingdaoAccent") },
     { scene: translate("shared.doubaoAudioVoices.regionalAccents"), value: "zh_male_beijingxiaoye_moon_bigtts", label: translate("shared.doubaoAudioVoices.beijingYoungMan"), language: translate("shared.doubaoAudioVoices.beijingAccent") },
-    { scene: translate("shared.doubaoAudioVoices.regionalAccents"), value: "zh_male_jingqiangkanye_moon_bigtts", label: translate("shared.doubaoAudioVoices.beijingStoryteller"), language: translate("shared.doubaoAudioVoices.beijingAccentAmericanEnglish") },
+    {
+        scene: translate("shared.doubaoAudioVoices.regionalAccents"),
+        value: "zh_male_jingqiangkanye_moon_bigtts",
+        label: translate("shared.doubaoAudioVoices.beijingStoryteller"),
+        language: translate("shared.doubaoAudioVoices.beijingAccentAmericanEnglish"),
+    },
     { scene: translate("shared.doubaoAudioVoices.regionalAccents"), value: "zh_female_meituojieer_moon_bigtts", label: translate("shared.doubaoAudioVoices.changshaJieer"), language: translate("shared.doubaoAudioVoices.changshaAccent") },
     { scene: translate("shared.doubaoAudioVoices.roleplay"), value: "zh_male_naiqimengwa_mars_bigtts", label: translate("shared.doubaoAudioVoices.adorableToddler"), language: translate("shared.doubaoAudioVoices.chinese") },
     { scene: translate("shared.doubaoAudioVoices.roleplay"), value: "zh_female_popo_mars_bigtts", label: translate("shared.doubaoAudioVoices.grandma"), language: translate("shared.doubaoAudioVoices.chinese") },

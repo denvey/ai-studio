@@ -257,7 +257,14 @@ export function CanvasPoseLibraryModal({ open, onClose, onInsert }: { open: bool
                         <div className="pose-dock-tray" aria-label={translate("canvasTools.canvasPoseLibraryModal.selectedPoses")}>
                             {selection.length ? (
                                 selection.map(({ item, pose }) => (
-                                    <button key={item.id} type="button" className="pose-dock-item" title={translate("canvasTools.canvasPoseLibraryModal.remove", { v0: String(pose.name), v1: String(item.angle) })} aria-label={translate("canvasTools.canvasPoseLibraryModal.remove2", { v0: String(pose.name), v1: String(item.angle) })} onClick={() => toggle(pose, item)}>
+                                    <button
+                                        key={item.id}
+                                        type="button"
+                                        className="pose-dock-item"
+                                        title={translate("canvasTools.canvasPoseLibraryModal.remove", { v0: String(pose.name), v1: String(item.angle) })}
+                                        aria-label={translate("canvasTools.canvasPoseLibraryModal.remove2", { v0: String(pose.name), v1: String(item.angle) })}
+                                        onClick={() => toggle(pose, item)}
+                                    >
                                         <PoseImage src={poseLibraryFileUrl(item)} alt="" />
                                         <span className="pose-dock-remove">
                                             <X className="size-3" strokeWidth={2.5} />
@@ -372,14 +379,26 @@ function PoseCard({
     return (
         <article className="pose-card" data-selected={selected || undefined}>
             <div className="pose-card-media">
-                <button type="button" className="pose-card-hit" aria-pressed={selected} aria-label={`${selected ? translate("canvasTools.canvasPoseLibraryModal.clearSelection") : translate("canvasTools.canvasPoseLibraryModal.select")} ${pose.name} ${item.angle}`} onClick={() => onToggle(pose, item)}>
+                <button
+                    type="button"
+                    className="pose-card-hit"
+                    aria-pressed={selected}
+                    aria-label={`${selected ? translate("canvasTools.canvasPoseLibraryModal.clearSelection") : translate("canvasTools.canvasPoseLibraryModal.select")} ${pose.name} ${item.angle}`}
+                    onClick={() => onToggle(pose, item)}
+                >
                     <PoseImage src={poseLibraryFileUrl(item)} alt={`${pose.name}（${item.angle}）`} />
                 </button>
                 {pose.code ? <span className="pose-card-code">{pose.code}</span> : null}
                 <span className="pose-card-check" aria-hidden>
                     <Check className="size-3.5" strokeWidth={3} />
                 </span>
-                <button type="button" className="pose-card-zoom" aria-label={translate("canvasTools.canvasPoseLibraryModal.viewFullSize", { v0: String(pose.name) })} title={translate("canvasTools.canvasPoseLibraryModal.viewFullSize2")} onClick={() => onPreview(item)}>
+                <button
+                    type="button"
+                    className="pose-card-zoom"
+                    aria-label={translate("canvasTools.canvasPoseLibraryModal.viewFullSize", { v0: String(pose.name) })}
+                    title={translate("canvasTools.canvasPoseLibraryModal.viewFullSize2")}
+                    onClick={() => onPreview(item)}
+                >
                     <Maximize2 className="size-3.5" />
                 </button>
             </div>

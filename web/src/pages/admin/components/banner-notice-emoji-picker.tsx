@@ -61,7 +61,11 @@ export function BannerNoticeEmojiPanel({ onPick }: { onPick: (emoji: string) => 
                         </div>
                     ))
                 ) : (
-                    <p className="admin-banner-icon-picker-empty">{translate("admin.bannerNoticeEmojiPicker.noAssetsMatching")}{keyword.trim()}{translate("admin.bannerNoticeEmojiPicker.assets2")}</p>
+                    <p className="admin-banner-icon-picker-empty">
+                        {translate("admin.bannerNoticeEmojiPicker.noAssetsMatching")}
+                        {keyword.trim()}
+                        {translate("admin.bannerNoticeEmojiPicker.assets2")}
+                    </p>
                 )}
             </div>
         </div>

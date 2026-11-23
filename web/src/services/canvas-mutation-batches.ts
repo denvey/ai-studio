@@ -1,7 +1,6 @@
 import type { CanvasOperation, CanvasOperationsRequest, RemoteUserDataSummary } from "@/services/api/user-data";
 import { translate } from "@/i18n";
 
-
 // ApplyUserCanvasOperations accepts at most 500 operations per transaction.
 const batchLimit = 500;
 export type CanvasMutationBatchState = {

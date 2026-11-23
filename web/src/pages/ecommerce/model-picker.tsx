@@ -71,7 +71,13 @@ export function EcommerceModelPicker({ enabled, references, primaryId, uploading
                                 />
                                 <div>
                                     <strong>{ref.name || commerceModelById(ref.catalogId)?.name || translate("ecommerce.modelPicker.customModel")}</strong>
-                                    <Button type="text" size="small" aria-label={translate("ecommerce.modelPicker.remove", { v0: String(ref.name || translate("ecommerce.modelPicker.model")) })} icon={<Trash2 size={13} />} onClick={() => onRemove(ref.resourceId)} />
+                                    <Button
+                                        type="text"
+                                        size="small"
+                                        aria-label={translate("ecommerce.modelPicker.remove", { v0: String(ref.name || translate("ecommerce.modelPicker.model")) })}
+                                        icon={<Trash2 size={13} />}
+                                        onClick={() => onRemove(ref.resourceId)}
+                                    />
                                 </div>
                                 <Select
                                     size="small"
@@ -107,7 +113,14 @@ export function EcommerceModelPicker({ enabled, references, primaryId, uploading
             ) : (
                 <p className="ecommerce-model-hint">{translate("ecommerce.modelPicker.whenDisabledModelReferencesAreUsedInNeitherPlanningNor")}</p>
             )}
-            <Modal title={translate("ecommerce.modelPicker.modelExampleLibraryMultipleViewsAndDetails")} open={open} onCancel={() => setOpen(false)} footer={<Button onClick={() => setOpen(false)}>{translate("account.payment.done")}</Button>} width={1000} destroyOnHidden>
+            <Modal
+                title={translate("ecommerce.modelPicker.modelExampleLibraryMultipleViewsAndDetails")}
+                open={open}
+                onCancel={() => setOpen(false)}
+                footer={<Button onClick={() => setOpen(false)}>{translate("account.payment.done")}</Button>}
+                width={1000}
+                destroyOnHidden
+            >
                 <p className="ecommerce-model-hint">{translate("ecommerce.modelPicker.theInitialCollectionCoversChinaTheUnitedStatesIndiaJapan")}</p>
                 <div className="ecommerce-model-filters">
                     <Select
@@ -141,7 +154,12 @@ export function EcommerceModelPicker({ enabled, references, primaryId, uploading
                             { value: "mature", label: translate("ecommerce.modelPicker.olderAdults") },
                         ]}
                     />
-                    <Select aria-label={translate("ecommerce.modelPicker.countriesAndRegions")} value={country} onChange={setCountry} options={[{ value: "all", label: translate("ecommerce.modelPicker.allMarkets") }, ...[...new Set(commerceModelCatalog.map((item) => item.country))].map((value) => ({ value, label: commerceUiText(value ) }))]} />
+                    <Select
+                        aria-label={translate("ecommerce.modelPicker.countriesAndRegions")}
+                        value={country}
+                        onChange={setCountry}
+                        options={[{ value: "all", label: translate("ecommerce.modelPicker.allMarkets") }, ...[...new Set(commerceModelCatalog.map((item) => item.country))].map((value) => ({ value, label: commerceUiText(value) }))]}
+                    />
                 </div>
                 <div className="ecommerce-model-grid">
                     {visible.map((item) => {
@@ -169,7 +187,7 @@ export function EcommerceModelPicker({ enabled, references, primaryId, uploading
                 </div>
             </Modal>
             <Modal
-                title={preview? commerceUiText(preview.name ) : translate("ecommerce.modelPicker.modelPreview")}
+                title={preview ? commerceUiText(preview.name) : translate("ecommerce.modelPicker.modelPreview")}
                 open={Boolean(preview)}
                 onCancel={() => setPreview(null)}
                 footer={

@@ -7,7 +7,6 @@ import { adjustAdminUserCredits } from "@/services/api/wallet";
 import { AdminModal } from "@/pages/admin/ui/overlays";
 import { translate } from "@/i18n";
 
-
 type AdjustValues = { amount: number; note: string };
 
 function toMicrocredits(value: number) {
@@ -123,13 +122,25 @@ export function UserCreditAdjustModal({ user, onClose, onAdjusted }: { user: Adm
                         ) : null}
                     </dl>
                     {pending ? (
-                        <p className="admin-user-credit-note">{translate("adminPages.users.userCreditAdjustModal.reason")}{pending.note}</p>
+                        <p className="admin-user-credit-note">
+                            {translate("adminPages.users.userCreditAdjustModal.reason")}
+                            {pending.note}
+                        </p>
                     ) : (
                         <Form form={form} layout="vertical" requiredMark={false}>
-                            <Form.Item name="amount" label={translate("adminPages.users.userCreditAdjustModal.change")} extra={translate("adminPages.users.userCreditAdjustModal.positiveValuesAddCreditsNegativeValuesDeductThem")} rules={[{ required: true, message: translate("adminPages.users.userCreditAdjustModal.enterTheCreditChange") }]}>
+                            <Form.Item
+                                name="amount"
+                                label={translate("adminPages.users.userCreditAdjustModal.change")}
+                                extra={translate("adminPages.users.userCreditAdjustModal.positiveValuesAddCreditsNegativeValuesDeductThem")}
+                                rules={[{ required: true, message: translate("adminPages.users.userCreditAdjustModal.enterTheCreditChange") }]}
+                            >
                                 <InputNumber className="w-full" precision={6} placeholder={translate("adminPages.users.userCreditAdjustModal.forExample100Or20")} autoFocus />
                             </Form.Item>
-                            <Form.Item name="note" label={translate("adminPages.users.userCreditAdjustModal.reasonForAdjustment")} rules={[{ required: true, whitespace: true, message: translate("adminPages.users.userCreditAdjustModal.pleaseEnterATicketNumberOrReason") }]}>
+                            <Form.Item
+                                name="note"
+                                label={translate("adminPages.users.userCreditAdjustModal.reasonForAdjustment")}
+                                rules={[{ required: true, whitespace: true, message: translate("adminPages.users.userCreditAdjustModal.pleaseEnterATicketNumberOrReason") }]}
+                            >
                                 <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} maxLength={200} showCount placeholder={translate("adminPages.users.userCreditAdjustModal.forExampleTicket1234CompensationForAFailedTask")} />
                             </Form.Item>
                         </Form>

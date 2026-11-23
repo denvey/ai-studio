@@ -63,15 +63,22 @@ export function ChannelModelHealthCell({ health, loading }: { health?: AdminChan
     const detail = (
         <div className="space-y-1 text-xs">
             <div>
-                {translate("admin.channelModelHealth.past24Hours")}{health.requests24h} {translate("admin.channelModelHealth.requestsSuccessful")} {health.succeeded24h}{translate("admin.channelModelHealth.failed")} {health.failed24h}
+                {translate("admin.channelModelHealth.past24Hours")}
+                {health.requests24h} {translate("admin.channelModelHealth.requestsSuccessful")} {health.succeeded24h}
+                {translate("admin.channelModelHealth.failed")} {health.failed24h}
             </div>
             <div>
-                {translate("admin.channelModelHealth.item7DaySuccessRate")}{formatRate(health.successRate7d)}（{health.requests7d} {translate("admin.channelModelHealth.requests")}
+                {translate("admin.channelModelHealth.item7DaySuccessRate")}
+                {formatRate(health.successRate7d)}（{health.requests7d} {translate("admin.channelModelHealth.requests")}
             </div>
-            <div>{translate("admin.channelModelHealth.item24HourP95Latency")}{health.requests24h ? formatDuration(health.p95DurationMs24h) : "--"}</div>
+            <div>
+                {translate("admin.channelModelHealth.item24HourP95Latency")}
+                {health.requests24h ? formatDuration(health.p95DurationMs24h) : "--"}
+            </div>
             {health.lastFailedAt ? (
                 <div>
-                    {translate("admin.channelModelHealth.latestFailure")}{new Date(health.lastFailedAt).toLocaleString(currentLocale(), { hour12: false })}
+                    {translate("admin.channelModelHealth.latestFailure")}
+                    {new Date(health.lastFailedAt).toLocaleString(currentLocale(), { hour12: false })}
                     {health.lastErrorCode ? ` · ${health.lastErrorCode}` : ""}
                 </div>
             ) : null}

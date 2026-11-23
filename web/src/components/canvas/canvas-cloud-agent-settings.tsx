@@ -68,12 +68,35 @@ type AgentSettingsProps = {
 
 // 颜色走状态语义 token，明暗主题和皮肤自动适配；short 是输入框权限胶囊上的两字名。
 const permissionOptions: Array<{ value: AgentPermissionMode; label: string; short: string; description: string; icon: typeof ShieldCheck; color: string }> = [
-    { value: "read_only", label: translate("canvasTools.canvasCloudAgentSettings.readOnly"), short: translate("canvasTools.canvasCloudAgentSettings.readOnly"), description: translate("canvasTools.canvasCloudAgentSettings.analyzeAndSuggestOnly"), icon: LockKeyhole, color: "var(--status-loading)" },
-    { value: "request_approval", label: translate("canvasTools.canvasCloudAgentSettings.requestApproval"), short: translate("canvasTools.canvasCloudAgentSettings.approval"), description: translate("canvasTools.canvasCloudAgentSettings.confirmBeforeWritingOrGenerating"), icon: ShieldCheck, color: "var(--status-warning)" },
-    { value: "auto", label: translate("canvasTools.canvasCloudAgentSettings.executeAutomatically"), short: translate("account.layout.oss.auto"), description: translate("canvasTools.canvasCloudAgentSettings.useAuthorizedToolsWithinBudget"), icon: CirclePlay, color: "var(--status-success)" },
+    {
+        value: "read_only",
+        label: translate("canvasTools.canvasCloudAgentSettings.readOnly"),
+        short: translate("canvasTools.canvasCloudAgentSettings.readOnly"),
+        description: translate("canvasTools.canvasCloudAgentSettings.analyzeAndSuggestOnly"),
+        icon: LockKeyhole,
+        color: "var(--status-loading)",
+    },
+    {
+        value: "request_approval",
+        label: translate("canvasTools.canvasCloudAgentSettings.requestApproval"),
+        short: translate("canvasTools.canvasCloudAgentSettings.approval"),
+        description: translate("canvasTools.canvasCloudAgentSettings.confirmBeforeWritingOrGenerating"),
+        icon: ShieldCheck,
+        color: "var(--status-warning)",
+    },
+    {
+        value: "auto",
+        label: translate("canvasTools.canvasCloudAgentSettings.executeAutomatically"),
+        short: translate("account.layout.oss.auto"),
+        description: translate("canvasTools.canvasCloudAgentSettings.useAuthorizedToolsWithinBudget"),
+        icon: CirclePlay,
+        color: "var(--status-success)",
+    },
 ];
 
-const contextOptions: Array<{ value: AgentContextKey; label: string; description: string }> = [{ value: "canvas", label: translate("canvasTools.canvasCloudAgentSettings.canvasNodeIndex"), description: translate("canvasTools.canvasCloudAgentSettings.eachRequestIncludesOnlyNodeIDsTypesAndTitlesContent") }];
+const contextOptions: Array<{ value: AgentContextKey; label: string; description: string }> = [
+    { value: "canvas", label: translate("canvasTools.canvasCloudAgentSettings.canvasNodeIndex"), description: translate("canvasTools.canvasCloudAgentSettings.eachRequestIncludesOnlyNodeIDsTypesAndTitlesContent") },
+];
 
 export function CanvasCloudAgentSettings(props: AgentSettingsProps) {
     const [section, setSection] = useState<SettingsSection>("home");
@@ -85,7 +108,13 @@ export function CanvasCloudAgentSettings(props: AgentSettingsProps) {
     return (
         <div className="canvas-agent-settings flex min-h-0 min-w-0 flex-1 flex-col" style={{ background: theme.node.panel }}>
             <header data-agent-drag-handle className="agent-panel-header flex shrink-0 items-center gap-2">
-                <Button type="text" shape="circle" icon={<ArrowLeft className="size-4" />} onClick={section === "home" ? props.onBack : goHome} aria-label={section === "home" ? translate("canvasTools.canvasCloudAgentSettings.backToConversation") : translate("canvasTools.canvasCloudAgentSettings.backToSettings")} />
+                <Button
+                    type="text"
+                    shape="circle"
+                    icon={<ArrowLeft className="size-4" />}
+                    onClick={section === "home" ? props.onBack : goHome}
+                    aria-label={section === "home" ? translate("canvasTools.canvasCloudAgentSettings.backToConversation") : translate("canvasTools.canvasCloudAgentSettings.backToSettings")}
+                />
                 <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold">{title}</div>
                     <div className="mt-0.5 text-[var(--fs-label)] opacity-40">{section === "home" ? translate("canvasTools.canvasCloudAgentSettings.appliesOnlyToTheNextNewRun") : sectionSubtitle(section)}</div>
@@ -95,7 +124,9 @@ export function CanvasCloudAgentSettings(props: AgentSettingsProps) {
                         {section === "skills" ? translate("canvasTools.canvasCloudAgentSettings.pinned", { v0: String(props.selectedSkillIds.length) }) : translate("canvasTools.canvasCloudAgentSettings.currentAgent")}
                     </span>
                 ) : null}
-                {props.onCollapse ? <Button type="text" shape="circle" icon={<X className="size-4" />} onClick={props.onCollapse} aria-label={translate("canvasTools.canvasCloudAgentSettings.collapseTheAgent")} title={translate("account.feedback.collapse")} /> : null}
+                {props.onCollapse ? (
+                    <Button type="text" shape="circle" icon={<X className="size-4" />} onClick={props.onCollapse} aria-label={translate("canvasTools.canvasCloudAgentSettings.collapseTheAgent")} title={translate("account.feedback.collapse")} />
+                ) : null}
             </header>
 
             {section === "home" ? <SettingsHome props={props} theme={theme} onOpen={setSection} /> : null}
@@ -168,12 +199,42 @@ function SettingsHome({ props, theme, onOpen }: { props: AgentSettingsProps; the
             <section>
                 <SettingLabel label={translate("canvasTools.canvasCloudAgentSettings.capabilitiesAndScope")} />
                 <div className="space-y-1">
-                    <SettingRow theme={theme} icon={<Cpu className="size-4" />} title={translate("canvasTools.canvasCloudAgentSettings.context")} summary={props.nodeCount === null ? translate("library.tasks.shared.unboundCanvas") : translate("canvasTools.canvasCloudAgentSettings.nodesScopes", { v0: String(props.nodeCount), v1: String(props.contextScope.length) })} onClick={() => onOpen("context")} />
+                    <SettingRow
+                        theme={theme}
+                        icon={<Cpu className="size-4" />}
+                        title={translate("canvasTools.canvasCloudAgentSettings.context")}
+                        summary={props.nodeCount === null ? translate("library.tasks.shared.unboundCanvas") : translate("canvasTools.canvasCloudAgentSettings.nodesScopes", { v0: String(props.nodeCount), v1: String(props.contextScope.length) })}
+                        onClick={() => onOpen("context")}
+                    />
                     <SettingRow theme={theme} icon={<BookMarked className="size-4" />} title={translate("canvasTools.canvasCloudAgentSettings.longTermPreferences")} summary={profileSummary(props.profileView)} onClick={() => onOpen("profile")} />
-                    <SettingRow theme={theme} icon={<BookMarked className="size-4" />} title={translate("canvasTools.canvasCloudAgentSettings.personalMemory")} summary={translate("canvasTools.canvasCloudAgentSettings.agentRemembersAndEditsThisDuringConversationsChangesCanBe")} onClick={() => onOpen("memories")} />
-                    <SettingRow theme={theme} icon={<Blocks className="size-4" />} title={translate("canvasTools.canvasCloudAgentSettings.skillsYourLibrary")} summary={skillsSummary(props.installedSkills, props.selectedSkillIds)} onClick={() => onOpen("skills")} />
-                    <SettingRow theme={theme} icon={<Wrench className="size-4" />} title={translate("canvasTools.canvasCloudAgentSettings.toolsAndConnections")} summary={translate("canvasTools.canvasCloudAgentSettings.canvasSkillReferenceFilesAndGenerationTasksThirdPartyConnections")} onClick={() => onOpen("mcp")} />
-                    <SettingRow theme={theme} icon={<Gauge className="size-4" />} title={translate("canvasTools.canvasCloudAgentSettings.budget")} summary={translate("canvasTools.canvasCloudAgentSettings.upToCreditsPerTurnFixedPriceModels", { v0: String(props.maxCredits || translate("canvasTools.canvasCloudAgentSettings.notSet")) })} onClick={() => onOpen("budget")} />
+                    <SettingRow
+                        theme={theme}
+                        icon={<BookMarked className="size-4" />}
+                        title={translate("canvasTools.canvasCloudAgentSettings.personalMemory")}
+                        summary={translate("canvasTools.canvasCloudAgentSettings.agentRemembersAndEditsThisDuringConversationsChangesCanBe")}
+                        onClick={() => onOpen("memories")}
+                    />
+                    <SettingRow
+                        theme={theme}
+                        icon={<Blocks className="size-4" />}
+                        title={translate("canvasTools.canvasCloudAgentSettings.skillsYourLibrary")}
+                        summary={skillsSummary(props.installedSkills, props.selectedSkillIds)}
+                        onClick={() => onOpen("skills")}
+                    />
+                    <SettingRow
+                        theme={theme}
+                        icon={<Wrench className="size-4" />}
+                        title={translate("canvasTools.canvasCloudAgentSettings.toolsAndConnections")}
+                        summary={translate("canvasTools.canvasCloudAgentSettings.canvasSkillReferenceFilesAndGenerationTasksThirdPartyConnections")}
+                        onClick={() => onOpen("mcp")}
+                    />
+                    <SettingRow
+                        theme={theme}
+                        icon={<Gauge className="size-4" />}
+                        title={translate("canvasTools.canvasCloudAgentSettings.budget")}
+                        summary={translate("canvasTools.canvasCloudAgentSettings.upToCreditsPerTurnFixedPriceModels", { v0: String(props.maxCredits || translate("canvasTools.canvasCloudAgentSettings.notSet")) })}
+                        onClick={() => onOpen("budget")}
+                    />
                 </div>
             </section>
         </div>
@@ -233,7 +294,9 @@ function SkillsWorkspace({ props, theme, tab, onTabChange }: { props: AgentSetti
                     className="mt-3 !h-10 !rounded-xl"
                 />
                 <p className="mt-3 text-xs leading-5" style={{ color: theme.node.muted }}>
-                    {tab === "market" ? translate("canvasTools.canvasCloudAgentSettings.onceInstalledTheAgentFindsAndUsesSkillsWhenA") : translate("canvasTools.canvasCloudAgentSettings.theAgentFindsSkillsSetToAutomaticAsNeededPin", { v0: String(AGENT_PINNED_SKILL_LIMIT) })}
+                    {tab === "market"
+                        ? translate("canvasTools.canvasCloudAgentSettings.onceInstalledTheAgentFindsAndUsesSkillsWhenA")
+                        : translate("canvasTools.canvasCloudAgentSettings.theAgentFindsSkillsSetToAutomaticAsNeededPin", { v0: String(AGENT_PINNED_SKILL_LIMIT) })}
                 </p>
             </div>
             <div className="canvas-agent-settings-scroll thin-scrollbar min-h-0 min-w-0 flex-1 space-y-1 overflow-y-auto p-4 pt-2">
@@ -279,7 +342,11 @@ function SkillsWorkspace({ props, theme, tab, onTabChange }: { props: AgentSetti
 function skillsSummary(installed: Skill[], pinnedIds: string[]) {
     if (!installed.length) return translate("canvasTools.canvasCloudAgentSettings.noSkillsInstalledYetInstallRecommendationsByIndustry");
     const auto = installed.filter((skill) => skill.agentMode !== "manual").length;
-    return translate("canvasTools.canvasCloudAgentSettings.installedAvailableForAutomaticUse", { v0: String(installed.length), v1: String(auto), v2: String(pinnedIds.length ? translate("canvasTools.canvasCloudAgentSettings.pinned2", { v0: String(pinnedIds.length) }) : "") });
+    return translate("canvasTools.canvasCloudAgentSettings.installedAvailableForAutomaticUse", {
+        v0: String(installed.length),
+        v1: String(auto),
+        v2: String(pinnedIds.length ? translate("canvasTools.canvasCloudAgentSettings.pinned2", { v0: String(pinnedIds.length) }) : ""),
+    });
 }
 
 type ProfileDraft = Pick<AgentProfileLayer, "content" | "revision" | "hash"> & { dirty: boolean };
@@ -360,7 +427,7 @@ function ProfileWorkspace({ props, theme }: { props: AgentSettingsProps; theme: 
                 <span className="flex items-center justify-between text-xs font-semibold">
                     <span>{scopeLabel(scope)}</span>
                     <span className="text-[var(--fs-label)] font-normal opacity-40">
-                        {translate("canvasTools.inline.canvasCloudAgentSettings.revision", { v0: String(draft.revision), v1: String(draft.dirty ? (" " + translate("canvasTools.canvasCloudAgentSettings.unsaved")) : "") })}
+                        {translate("canvasTools.inline.canvasCloudAgentSettings.revision", { v0: String(draft.revision), v1: String(draft.dirty ? " " + translate("canvasTools.canvasCloudAgentSettings.unsaved") : "") })}
                     </span>
                 </span>
                 <Input.TextArea
@@ -406,7 +473,11 @@ function profileSummary(view: AgentProfileView | null) {
 }
 
 function scopeLabel(scope: AgentProfileScope) {
-    return scope === "user" ? translate("canvasTools.canvasCloudAgentSettings.userPreferences") : scope === "project" ? translate("canvasTools.canvasCloudAgentSettings.projectPreferences") : translate("canvasTools.canvasCloudAgentSettings.currentCanvasPreferences");
+    return scope === "user"
+        ? translate("canvasTools.canvasCloudAgentSettings.userPreferences")
+        : scope === "project"
+          ? translate("canvasTools.canvasCloudAgentSettings.projectPreferences")
+          : translate("canvasTools.canvasCloudAgentSettings.currentCanvasPreferences");
 }
 
 function ProfileError({ message, onRetry, theme }: { message: string; onRetry: () => Promise<void>; theme: CanvasTheme }) {
@@ -459,7 +530,14 @@ function SkillRow({ skill, theme, pinned, pinDisabled, installed, installedView,
                 {installedView ? (
                     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs" style={{ color: theme.node.muted }}>
                         <span className="inline-flex items-center gap-2">
-                            <Switch size="sm" checked={auto} loading={modeSaving} disabled={modeDisabled} onChange={onModeChange} aria-label={translate("canvasTools.canvasCloudAgentSettings.allowTheAgentToUseAutomatically", { v0: String(skill.skillName) })} />
+                            <Switch
+                                size="sm"
+                                checked={auto}
+                                loading={modeSaving}
+                                disabled={modeDisabled}
+                                onChange={onModeChange}
+                                aria-label={translate("canvasTools.canvasCloudAgentSettings.allowTheAgentToUseAutomatically", { v0: String(skill.skillName) })}
+                            />
                             <span aria-hidden="true">{auto ? translate("account.layout.oss.auto") : translate("canvasTools.canvasCloudAgentSettings.manualOnly")}</span>
                         </span>
                         <Checkbox checked={pinned} disabled={pinDisabled} onChange={onTogglePin} aria-label={translate("canvasTools.canvasCloudAgentSettings.pinInThisConversation", { v0: String(skill.skillName) })}>
@@ -493,7 +571,12 @@ function McpWorkspace({ theme }: { theme: CanvasTheme }) {
             </div>
             <section>
                 <SettingLabel label={translate("canvasTools.canvasCloudAgentSettings.toolScope")} />
-                {[translate("canvasTools.canvasCloudAgentSettings.readSavedCanvases"), translate("canvasTools.canvasCloudAgentSettings.skillReferenceFilesPinnedVersions"), translate("canvasTools.canvasCloudAgentSettings.writeTextMarkdownNodes"), translate("canvasTools.canvasCloudAgentSettings.systemModelMediaGenerationAndTaskLookup")].map((tool) => (
+                {[
+                    translate("canvasTools.canvasCloudAgentSettings.readSavedCanvases"),
+                    translate("canvasTools.canvasCloudAgentSettings.skillReferenceFilesPinnedVersions"),
+                    translate("canvasTools.canvasCloudAgentSettings.writeTextMarkdownNodes"),
+                    translate("canvasTools.canvasCloudAgentSettings.systemModelMediaGenerationAndTaskLookup"),
+                ].map((tool) => (
                     <div key={tool} className="flex items-center gap-3 py-3 text-xs">
                         <Wrench className="size-4 shrink-0" style={{ color: theme.node.muted }} />
                         <span className="flex-1">{tool}</span>
@@ -553,9 +636,27 @@ function BudgetWorkspace({ props, theme }: { props: AgentSettingsProps; theme: C
                 <div className="text-sm font-semibold">{translate("canvasTools.canvasCloudAgentSettings.totalBudgetForThisRun")}</div>
                 <p className="mt-2 text-xs opacity-60">{translate("canvasTools.canvasCloudAgentSettings.theCreditBudgetLimitsSpendingSetGenerationTasksOrVideo")}</p>
             </div>
-            <BudgetInput label={translate("canvasTools.canvasCloudAgentSettings.creditLimit")} hint={translate("canvasTools.canvasCloudAgentSettings.requiredAndGreaterThan0CumulativeAcrossAllSteps")} value={props.maxCredits} onChange={props.onMaxCreditsChange} theme={theme} />
-            <BudgetInput label={translate("canvasTools.canvasCloudAgentSettings.generationTaskLimit")} hint={translate("canvasTools.canvasCloudAgentSettings.item0MeansUnlimitedReadOnlyModeDoesNotGenerate")} value={props.maxGenerationTasks} onChange={props.onMaxGenerationTasksChange} theme={theme} />
-            <BudgetInput label={translate("canvasTools.canvasCloudAgentSettings.videoSecondsLimit")} hint={translate("canvasTools.canvasCloudAgentSettings.item0MeansUnlimitedCumulativeRequestDuration")} value={props.maxVideoSeconds} onChange={props.onMaxVideoSecondsChange} theme={theme} />
+            <BudgetInput
+                label={translate("canvasTools.canvasCloudAgentSettings.creditLimit")}
+                hint={translate("canvasTools.canvasCloudAgentSettings.requiredAndGreaterThan0CumulativeAcrossAllSteps")}
+                value={props.maxCredits}
+                onChange={props.onMaxCreditsChange}
+                theme={theme}
+            />
+            <BudgetInput
+                label={translate("canvasTools.canvasCloudAgentSettings.generationTaskLimit")}
+                hint={translate("canvasTools.canvasCloudAgentSettings.item0MeansUnlimitedReadOnlyModeDoesNotGenerate")}
+                value={props.maxGenerationTasks}
+                onChange={props.onMaxGenerationTasksChange}
+                theme={theme}
+            />
+            <BudgetInput
+                label={translate("canvasTools.canvasCloudAgentSettings.videoSecondsLimit")}
+                hint={translate("canvasTools.canvasCloudAgentSettings.item0MeansUnlimitedCumulativeRequestDuration")}
+                value={props.maxVideoSeconds}
+                onChange={props.onMaxVideoSecondsChange}
+                theme={theme}
+            />
         </div>
     );
 }
@@ -609,7 +710,17 @@ function BudgetInput({ label, hint, value, onChange, theme }: { label: string; h
     );
 }
 function sectionTitle(section: SettingsSection) {
-    return section === "profile" ? translate("canvasTools.canvasCloudAgentSettings.longTermPreferences") : section === "memories" ? translate("canvasTools.canvasCloudAgentSettings.personalMemory") : section === "skills" ? "Skills" : section === "mcp" ? translate("canvasTools.canvasCloudAgentSettings.mCPAndTools") : section === "context" ? translate("canvasTools.canvasCloudAgentSettings.context") : translate("canvasTools.canvasCloudAgentSettings.budget");
+    return section === "profile"
+        ? translate("canvasTools.canvasCloudAgentSettings.longTermPreferences")
+        : section === "memories"
+          ? translate("canvasTools.canvasCloudAgentSettings.personalMemory")
+          : section === "skills"
+            ? "Skills"
+            : section === "mcp"
+              ? translate("canvasTools.canvasCloudAgentSettings.mCPAndTools")
+              : section === "context"
+                ? translate("canvasTools.canvasCloudAgentSettings.context")
+                : translate("canvasTools.canvasCloudAgentSettings.budget");
 }
 function sectionSubtitle(section: SettingsSection) {
     return section === "profile"

@@ -20,7 +20,6 @@ import { normalizeDraftCopy, normalizeSingleLine, hasUnsupportedControlCharacter
 import { type DraftFiles, FILE_RULES, type ResetState } from "./appearance-settings-parts";
 import { translate } from "@/i18n";
 
-
 export { type DraftFiles, FILE_RULES, type ResetState } from "./appearance-settings-parts";
 
 const EMPTY_FILES: DraftFiles = { logo: null, "logo-dark": null, video: null, poster: null };
@@ -413,7 +412,11 @@ export default function AppearanceSettingsPage() {
     const previews = useAppearancePreviews(setting, files, resets);
     const lightLogoSelected = Boolean(files.logo || (!resets.logo && setting?.logoResourceId));
     const darkLogoSelected = Boolean(files["logo-dark"] || (!resets["logo-dark"] && setting?.darkLogoResourceId));
-    const status = setting?.configured ? <AdminStatusBadge label={translate("adminPages.settings.appearanceSettingsPage.customized")} tone="success" /> : <AdminStatusBadge label={translate("adminPages.settings.appearanceSettingsPage.usingOriginalAppearance")} tone="neutral" />;
+    const status = setting?.configured ? (
+        <AdminStatusBadge label={translate("adminPages.settings.appearanceSettingsPage.customized")} tone="success" />
+    ) : (
+        <AdminStatusBadge label={translate("adminPages.settings.appearanceSettingsPage.usingOriginalAppearance")} tone="neutral" />
+    );
     const copyCustomized = normalizeDraftCopy(authHeroTitle) !== DEFAULT_PUBLIC_APPEARANCE.authHeroTitle || normalizeDraftCopy(authHeroDescription) !== DEFAULT_PUBLIC_APPEARANCE.authHeroDescription;
     const draftBrandName = brandName.trim() || translate("adminPages.settings.appearanceSettingsPage.siteName");
     const selectedSkin = skinThemes.find((skin) => skin.id === skinId) || skinThemes[0] || DEFAULT_CLASSIC_SKIN;
@@ -476,9 +479,16 @@ export default function AppearanceSettingsPage() {
                             <div>
                                 <div className="flex flex-wrap items-center gap-2">
                                     <strong>{dirty ? translate("adminPages.settings.appearanceSettingsPage.siteSettingsHaveUnsavedChanges") : translate("adminPages.settings.appearanceSettingsPage.siteAndAppearanceSettingsAreSyncedWithTheServer")}</strong>
-                                    <AdminStatusBadge label={dirty ? translate("adminPages.settings.appearanceSettingsPage.notYetApplied") : translate("adminPages.settings.appearanceSettingsPage.currentServerValue")} tone={dirty ? "warning" : "neutral"} />
+                                    <AdminStatusBadge
+                                        label={dirty ? translate("adminPages.settings.appearanceSettingsPage.notYetApplied") : translate("adminPages.settings.appearanceSettingsPage.currentServerValue")}
+                                        tone={dirty ? "warning" : "neutral"}
+                                    />
                                 </div>
-                                <p>{dirty ? translate("adminPages.settings.appearanceSettingsPage.draftsAreRetainedWhenSwitchingCategoriesSavingAppliesBrandingLogin") : translate("adminPages.settings.appearanceSettingsPage.manageSiteSettingsByCategoryWelcomePageChangesAreSaved")}</p>
+                                <p>
+                                    {dirty
+                                        ? translate("adminPages.settings.appearanceSettingsPage.draftsAreRetainedWhenSwitchingCategoriesSavingAppliesBrandingLogin")
+                                        : translate("adminPages.settings.appearanceSettingsPage.manageSiteSettingsByCategoryWelcomePageChangesAreSaved")}
+                                </p>
                             </div>
                         </div>
                         <div className="admin-appearance-command-actions">
@@ -532,8 +542,17 @@ export default function AppearanceSettingsPage() {
                                                         onChange={(event) => setBrandSlug(event.target.value.toLocaleLowerCase().replace(/[^a-z0-9-]/g, ""))}
                                                     />
                                                 </Form.Item>
-                                                <Form.Item label={translate("adminPages.settings.appearanceSettingsPage.redemptionCodePurchaseLink")} extra={translate("adminPages.settings.appearanceSettingsPage.enterAnHTTPSPurchasePageURLLeaveBlankToHide")}>
-                                                    <Input value={redeemPurchaseUrl} maxLength={500} showCount placeholder={translate("adminPages.settings.appearanceSettingsPage.forExampleHttpsWzypCnShopXxx")} onChange={(event) => setRedeemPurchaseUrl(event.target.value)} />
+                                                <Form.Item
+                                                    label={translate("adminPages.settings.appearanceSettingsPage.redemptionCodePurchaseLink")}
+                                                    extra={translate("adminPages.settings.appearanceSettingsPage.enterAnHTTPSPurchasePageURLLeaveBlankToHide")}
+                                                >
+                                                    <Input
+                                                        value={redeemPurchaseUrl}
+                                                        maxLength={500}
+                                                        showCount
+                                                        placeholder={translate("adminPages.settings.appearanceSettingsPage.forExampleHttpsWzypCnShopXxx")}
+                                                        onChange={(event) => setRedeemPurchaseUrl(event.target.value)}
+                                                    />
                                                 </Form.Item>
                                             </Form>
                                             <div className="admin-appearance-brand-logo admin-appearance-logo-stack">
@@ -547,7 +566,11 @@ export default function AppearanceSettingsPage() {
                                                     onSelect={selectFile}
                                                     onReset={resetAsset}
                                                     disabled={saving || refreshing || restoring}
-                                                    emptyLabel={darkLogoSelected ? translate("adminPages.settings.appearanceSettingsPage.theDarkModeLogoWillBeReusedAutomatically") : translate("adminPages.settings.appearanceSettingsPage.usesTheOriginalProjectLogoWhenNoneIsUploaded")}
+                                                    emptyLabel={
+                                                        darkLogoSelected
+                                                            ? translate("adminPages.settings.appearanceSettingsPage.theDarkModeLogoWillBeReusedAutomatically")
+                                                            : translate("adminPages.settings.appearanceSettingsPage.usesTheOriginalProjectLogoWhenNoneIsUploaded")
+                                                    }
                                                 />
                                                 <AssetPicker
                                                     slot="logo-dark"
@@ -559,7 +582,11 @@ export default function AppearanceSettingsPage() {
                                                     onSelect={selectFile}
                                                     onReset={resetAsset}
                                                     disabled={saving || refreshing || restoring}
-                                                    emptyLabel={lightLogoSelected ? translate("adminPages.settings.appearanceSettingsPage.theLightModeLogoWillBeReusedAutomatically") : translate("adminPages.settings.appearanceSettingsPage.usesTheOriginalProjectLogoWhenNoneIsUploaded")}
+                                                    emptyLabel={
+                                                        lightLogoSelected
+                                                            ? translate("adminPages.settings.appearanceSettingsPage.theLightModeLogoWillBeReusedAutomatically")
+                                                            : translate("adminPages.settings.appearanceSettingsPage.usesTheOriginalProjectLogoWhenNoneIsUploaded")
+                                                    }
                                                 />
                                                 <div className="admin-appearance-logo-frame-option">
                                                     <div className="admin-appearance-logo-frame-copy">
@@ -598,7 +625,11 @@ export default function AppearanceSettingsPage() {
                                         description={translate("adminPages.settings.appearanceSettingsPage.loginSignupAndPasswordRecoveryShareTheBrandTextAnd")}
                                         status={
                                             <AdminStatusBadge
-                                                label={copyCustomized || setting.authVideoResourceId || setting.authVideoPosterResourceId ? translate("adminPages.settings.appearanceSettingsPage.configured") : translate("adminPages.settings.appearanceSettingsPage.usingOriginalContent")}
+                                                label={
+                                                    copyCustomized || setting.authVideoResourceId || setting.authVideoPosterResourceId
+                                                        ? translate("adminPages.settings.appearanceSettingsPage.configured")
+                                                        : translate("adminPages.settings.appearanceSettingsPage.usingOriginalContent")
+                                                }
                                                 tone={copyCustomized || setting.authVideoResourceId || setting.authVideoPosterResourceId ? "success" : "neutral"}
                                             />
                                         }
@@ -606,10 +637,23 @@ export default function AppearanceSettingsPage() {
                                         <div className="admin-appearance-auth-layout">
                                             <div className="admin-appearance-auth-controls">
                                                 <Form className="admin-appearance-form" layout="vertical" requiredMark={false} disabled={saving || refreshing || restoring}>
-                                                    <Form.Item label={translate("adminPages.settings.appearanceSettingsPage.loginPageHeading")} extra={translate("adminPages.settings.appearanceSettingsPage.item180CharactersLineBreaksAllowedSharedByLoginSignup")}>
-                                                        <Input.TextArea value={authHeroTitle} maxLength={80} showCount autoSize={{ minRows: 2, maxRows: 4 }} placeholder={translate("adminPages.settings.appearanceSettingsPage.enterLoginPageHeading")} onChange={(event) => setAuthHeroTitle(event.target.value)} />
+                                                    <Form.Item
+                                                        label={translate("adminPages.settings.appearanceSettingsPage.loginPageHeading")}
+                                                        extra={translate("adminPages.settings.appearanceSettingsPage.item180CharactersLineBreaksAllowedSharedByLoginSignup")}
+                                                    >
+                                                        <Input.TextArea
+                                                            value={authHeroTitle}
+                                                            maxLength={80}
+                                                            showCount
+                                                            autoSize={{ minRows: 2, maxRows: 4 }}
+                                                            placeholder={translate("adminPages.settings.appearanceSettingsPage.enterLoginPageHeading")}
+                                                            onChange={(event) => setAuthHeroTitle(event.target.value)}
+                                                        />
                                                     </Form.Item>
-                                                    <Form.Item label={translate("adminPages.settings.appearanceSettingsPage.loginPageDescriptionOptional")} extra={translate("adminPages.settings.appearanceSettingsPage.upTo160CharactersLineBreaksAllowedLeaveBlankTo")}>
+                                                    <Form.Item
+                                                        label={translate("adminPages.settings.appearanceSettingsPage.loginPageDescriptionOptional")}
+                                                        extra={translate("adminPages.settings.appearanceSettingsPage.upTo160CharactersLineBreaksAllowedLeaveBlankTo")}
+                                                    >
                                                         <Input.TextArea
                                                             value={authHeroDescription}
                                                             maxLength={160}
@@ -628,7 +672,12 @@ export default function AppearanceSettingsPage() {
                                                         </span>
                                                         <span className="admin-appearance-video-autoplay-control">
                                                             <span>{authVideoAutoplay ? translate("adminPages.settings.appearanceSettingsPage.enabled") : translate("adminPages.settings.appearanceSettingsPage.disabled")}</span>
-                                                            <Switch checked={authVideoAutoplay} disabled={saving || refreshing || restoring} aria-label={translate("adminPages.settings.appearanceSettingsPage.autoplayLoginPageVideo")} onChange={setAuthVideoAutoplay} />
+                                                            <Switch
+                                                                checked={authVideoAutoplay}
+                                                                disabled={saving || refreshing || restoring}
+                                                                aria-label={translate("adminPages.settings.appearanceSettingsPage.autoplayLoginPageVideo")}
+                                                                onChange={setAuthVideoAutoplay}
+                                                            />
                                                         </span>
                                                     </div>
                                                     <AssetPicker
@@ -686,7 +735,12 @@ export default function AppearanceSettingsPage() {
                                 key: "welcome",
                                 label: translate("adminPages.settings.appearanceSettingsPage.welcomePage"),
                                 children: (
-                                    <SettingsSectionCard className="admin-appearance-section" icon={<Globe2 className="size-4" aria-hidden="true" />} title={translate("adminPages.settings.appearanceSettingsPage.welcomePage")} description={translate("adminPages.settings.appearanceSettingsPage.controlWhetherVisitorsCanAccessTheWelcomePageChangesAre")}>
+                                    <SettingsSectionCard
+                                        className="admin-appearance-section"
+                                        icon={<Globe2 className="size-4" aria-hidden="true" />}
+                                        title={translate("adminPages.settings.appearanceSettingsPage.welcomePage")}
+                                        description={translate("adminPages.settings.appearanceSettingsPage.controlWhetherVisitorsCanAccessTheWelcomePageChangesAre")}
+                                    >
                                         <div className="admin-appearance-section-form">
                                             <WelcomeSetting />
                                         </div>
@@ -702,7 +756,12 @@ export default function AppearanceSettingsPage() {
                                         icon={<Search className="size-4" aria-hidden="true" />}
                                         title={translate("adminPages.settings.appearanceSettingsPage.sEOMetadata")}
                                         description={translate("adminPages.settings.appearanceSettingsPage.setTheBrowserTitleSearchDescriptionAndKeywordsWhenLeft")}
-                                        status={<AdminStatusBadge label={seoTitle || seoDescription || seoKeywords ? translate("adminPages.settings.appearanceSettingsPage.customized") : translate("adminPages.settings.appearanceSettingsPage.followBrandAutomatically")} tone={seoTitle || seoDescription || seoKeywords ? "success" : "neutral"} />}
+                                        status={
+                                            <AdminStatusBadge
+                                                label={seoTitle || seoDescription || seoKeywords ? translate("adminPages.settings.appearanceSettingsPage.customized") : translate("adminPages.settings.appearanceSettingsPage.followBrandAutomatically")}
+                                                tone={seoTitle || seoDescription || seoKeywords ? "success" : "neutral"}
+                                            />
+                                        }
                                     >
                                         <Form className="admin-appearance-form admin-appearance-section-form" layout="vertical" requiredMark={false} disabled={saving || refreshing || restoring}>
                                             <div className="admin-appearance-form-grid">
@@ -710,7 +769,13 @@ export default function AppearanceSettingsPage() {
                                                     <Input value={seoTitle} maxLength={70} showCount placeholder={draftBrandName} onChange={(event) => setSeoTitle(event.target.value)} />
                                                 </Form.Item>
                                                 <Form.Item label={translate("adminPages.settings.appearanceSettingsPage.sEOKeywords")} extra={translate("adminPages.settings.appearanceSettingsPage.separateWithCommasGoogleDoesNotUseThisTagFor")}>
-                                                    <Input value={seoKeywords} maxLength={300} showCount placeholder={translate("adminPages.settings.appearanceSettingsPage.aIFilmmakingAIShortDramasCreativeWorkspace")} onChange={(event) => setSeoKeywords(event.target.value)} />
+                                                    <Input
+                                                        value={seoKeywords}
+                                                        maxLength={300}
+                                                        showCount
+                                                        placeholder={translate("adminPages.settings.appearanceSettingsPage.aIFilmmakingAIShortDramasCreativeWorkspace")}
+                                                        onChange={(event) => setSeoKeywords(event.target.value)}
+                                                    />
                                                 </Form.Item>
                                             </div>
                                             <Form.Item label={translate("adminPages.settings.appearanceSettingsPage.sEODescription")} extra={translate("adminPages.settings.appearanceSettingsPage.accuratelySummarizeTheSiteInOneOrTwoSentencesWithout")}>
@@ -736,7 +801,12 @@ export default function AppearanceSettingsPage() {
                                         icon={<Globe2 className="size-4" aria-hidden="true" />}
                                         title={translate("adminPages.settings.appearanceSettingsPage.homepageFooterAndICPRegistration")}
                                         description={translate("adminPages.settings.appearanceSettingsPage.setCopyrightAndICPRegistrationInformationAtTheBottomOf")}
-                                        status={<AdminStatusBadge label={icpFilingEnabled ? translate("adminPages.settings.appearanceSettingsPage.showICPRegistrationNumber") : translate("adminPages.settings.appearanceSettingsPage.iCPRegistrationNumberHidden")} tone={icpFilingEnabled ? "success" : "neutral"} />}
+                                        status={
+                                            <AdminStatusBadge
+                                                label={icpFilingEnabled ? translate("adminPages.settings.appearanceSettingsPage.showICPRegistrationNumber") : translate("adminPages.settings.appearanceSettingsPage.iCPRegistrationNumberHidden")}
+                                                tone={icpFilingEnabled ? "success" : "neutral"}
+                                            />
+                                        }
                                     >
                                         <div className="admin-appearance-section-form admin-appearance-footer-settings">
                                             <Form className="admin-appearance-form" layout="vertical" requiredMark={false} disabled={saving || refreshing || restoring}>
@@ -750,8 +820,17 @@ export default function AppearanceSettingsPage() {
                                                         onChange={(event) => setFooterCopyright(event.target.value)}
                                                     />
                                                 </Form.Item>
-                                                <Form.Item label={translate("adminPages.settings.appearanceSettingsPage.iCPRegistrationNumber")} extra={translate("adminPages.settings.appearanceSettingsPage.enterARealICPRegistrationNumberSuchAsICPXXXXXXXX")}>
-                                                    <Input value={icpFilingNumber} maxLength={64} showCount placeholder={translate("adminPages.settings.appearanceSettingsPage.forExampleICPXXXXXXXX")} onChange={(event) => setIcpFilingNumber(event.target.value)} />
+                                                <Form.Item
+                                                    label={translate("adminPages.settings.appearanceSettingsPage.iCPRegistrationNumber")}
+                                                    extra={translate("adminPages.settings.appearanceSettingsPage.enterARealICPRegistrationNumberSuchAsICPXXXXXXXX")}
+                                                >
+                                                    <Input
+                                                        value={icpFilingNumber}
+                                                        maxLength={64}
+                                                        showCount
+                                                        placeholder={translate("adminPages.settings.appearanceSettingsPage.forExampleICPXXXXXXXX")}
+                                                        onChange={(event) => setIcpFilingNumber(event.target.value)}
+                                                    />
                                                 </Form.Item>
                                             </Form>
                                             <div className="admin-appearance-logo-frame-option">
@@ -761,7 +840,13 @@ export default function AppearanceSettingsPage() {
                                                 </div>
                                                 <div className="admin-appearance-logo-frame-control">
                                                     <span>{icpFilingEnabled ? translate("adminPages.settings.appearanceSettingsPage.shown") : translate("adminPages.settings.appearanceSettingsPage.hidden")}</span>
-                                                    <Switch checked={icpFilingEnabled} disabled={saving || refreshing || restoring} aria-label={translate("adminPages.settings.appearanceSettingsPage.showICPRegistrationNumberInHomepageFooter")} aria-describedby="appearance-icp-help" onChange={setIcpFilingEnabled} />
+                                                    <Switch
+                                                        checked={icpFilingEnabled}
+                                                        disabled={saving || refreshing || restoring}
+                                                        aria-label={translate("adminPages.settings.appearanceSettingsPage.showICPRegistrationNumberInHomepageFooter")}
+                                                        aria-describedby="appearance-icp-help"
+                                                        onChange={setIcpFilingEnabled}
+                                                    />
                                                 </div>
                                             </div>
                                         </div>
@@ -792,8 +877,16 @@ export default function AppearanceSettingsPage() {
                                     </SettingsSectionCard>
                                 ),
                             },
-                            { key: "canvas", label: translate("adminPages.settings.appearanceSettingsPage.canvasSettings"), children: <CanvasAppearanceEditor value={canvas} onChange={setCanvas} disabled={saving || refreshing || restoring || canvasUploading} onUploading={setCanvasUploading} /> },
-                            { key: "updates", label: translate("account.layout.changelog.announcements"), children: <UpdateAnnouncementEditor value={updates} onChange={setUpdates} disabled={saving || refreshing || restoring || canvasUploading} onUploading={setCanvasUploading} /> },
+                            {
+                                key: "canvas",
+                                label: translate("adminPages.settings.appearanceSettingsPage.canvasSettings"),
+                                children: <CanvasAppearanceEditor value={canvas} onChange={setCanvas} disabled={saving || refreshing || restoring || canvasUploading} onUploading={setCanvasUploading} />,
+                            },
+                            {
+                                key: "updates",
+                                label: translate("account.layout.changelog.announcements"),
+                                children: <UpdateAnnouncementEditor value={updates} onChange={setUpdates} disabled={saving || refreshing || restoring || canvasUploading} onUploading={setCanvasUploading} />,
+                            },
                         ]}
                     />
                 </div>

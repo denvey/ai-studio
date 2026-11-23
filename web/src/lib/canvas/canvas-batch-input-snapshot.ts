@@ -5,7 +5,6 @@ import type { Asset } from "@/stores/use-asset-store";
 import type { CanvasBatchInputSnapshot, CanvasConnection, CanvasNodeData } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 /** Snapshot locators and compiled text, never the entire canvas or decoded image bytes. */
 export function createCanvasBatchInputSnapshot(node: CanvasNodeData, nodes: CanvasNodeData[], connections: CanvasConnection[], assets: Asset[]): CanvasBatchInputSnapshot {
     const prompt = nodeGenerationPrompt(node).trim();

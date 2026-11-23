@@ -11,7 +11,6 @@ import { AdminPageFrame } from "../components/admin-shell";
 import { AdminStatusBadge, SettingsSectionCard } from "../components/admin-ui";
 import { translate } from "@/i18n";
 
-
 type DrawingEngineDraft = {
     defaultEngine: CanvasDrawingEngine;
     tldrawLicenseKey: string;
@@ -242,7 +241,11 @@ export default function DrawingEngineSettingsPage() {
         );
     }
 
-    const licenseStatus = draftHasStoredLicense ? translate("adminPages.settings.drawingEngineSettingsPage.configuredInAdminPanel") : usingEnvironmentLicense ? translate("adminPages.settings.drawingEngineSettingsPage.providedByDeploymentEnvironment") : translate("account.layout.oss.cdnAuthNone");
+    const licenseStatus = draftHasStoredLicense
+        ? translate("adminPages.settings.drawingEngineSettingsPage.configuredInAdminPanel")
+        : usingEnvironmentLicense
+          ? translate("adminPages.settings.drawingEngineSettingsPage.providedByDeploymentEnvironment")
+          : translate("account.layout.oss.cdnAuthNone");
 
     return (
         <AdminPageFrame title={translate("adminPages.settings.drawingEngineSettingsPage.drawingTools")} description={translate("adminPages.settings.drawingEngineSettingsPage.manageTheDefaultEditorForNewDrawingsAndTldrawLicensing")} scroll>
@@ -251,7 +254,16 @@ export default function DrawingEngineSettingsPage() {
                     <div className="admin-drawing-command-copy" aria-live="polite">
                         <div className="flex flex-wrap items-center gap-2">
                             <strong>{dirty ? translate("adminPages.settings.drawingEngineSettingsPage.unsavedChanges", { v0: String(dirtyFields.length) }) : translate("adminPages.settings.drawingEngineSettingsPage.drawingToolSettingsSynced")}</strong>
-                            <AdminStatusBadge label={dirty ? translate("adminPages.settings.drawingEngineSettingsPage.notYetApplied") : savedSetting.configured ? translate("adminPages.settings.drawingEngineSettingsPage.serverSettings") : translate("adminPages.settings.drawingEngineSettingsPage.systemDefault")} tone={dirty ? "warning" : "neutral"} />
+                            <AdminStatusBadge
+                                label={
+                                    dirty
+                                        ? translate("adminPages.settings.drawingEngineSettingsPage.notYetApplied")
+                                        : savedSetting.configured
+                                          ? translate("adminPages.settings.drawingEngineSettingsPage.serverSettings")
+                                          : translate("adminPages.settings.drawingEngineSettingsPage.systemDefault")
+                                }
+                                tone={dirty ? "warning" : "neutral"}
+                            />
                         </div>
                     </div>
                     <div className="admin-drawing-command-actions">
@@ -293,7 +305,10 @@ export default function DrawingEngineSettingsPage() {
                                             key={option.value}
                                             type="button"
                                             className={cn("admin-drawing-engine-choice", selected && "is-selected", !available && "is-unavailable")}
-                                            aria-label={translate("adminPages.settings.drawingEngineSettingsPage.setAsTheDefaultEditorForNewDrawings", { v0: String(option.title), v1: String(available ? "" : translate("adminPages.settings.drawingEngineSettingsPage.configureTheLicenseBeforeSaving")) })}
+                                            aria-label={translate("adminPages.settings.drawingEngineSettingsPage.setAsTheDefaultEditorForNewDrawings", {
+                                                v0: String(option.title),
+                                                v1: String(available ? "" : translate("adminPages.settings.drawingEngineSettingsPage.configureTheLicenseBeforeSaving")),
+                                            })}
                                             aria-pressed={selected}
                                             disabled={saving}
                                             onClick={() => selectEngine(option.value)}
@@ -303,7 +318,16 @@ export default function DrawingEngineSettingsPage() {
                                                 <span className="min-w-0 flex-1">
                                                     <strong>{option.title}</strong>
                                                 </span>
-                                                <AdminStatusBadge label={selected ? translate("adminPages.settings.drawingEngineSettingsPage.selected") : available ? translate("account.settings.channels.ready") : translate("adminPages.settings.drawingEngineSettingsPage.licenseRequired")} tone={selected ? "info" : available ? "success" : "warning"} />
+                                                <AdminStatusBadge
+                                                    label={
+                                                        selected
+                                                            ? translate("adminPages.settings.drawingEngineSettingsPage.selected")
+                                                            : available
+                                                              ? translate("account.settings.channels.ready")
+                                                              : translate("adminPages.settings.drawingEngineSettingsPage.licenseRequired")
+                                                    }
+                                                    tone={selected ? "info" : available ? "success" : "warning"}
+                                                />
                                             </span>
                                             <span className="admin-drawing-engine-choice-description">{option.description}</span>
                                         </button>

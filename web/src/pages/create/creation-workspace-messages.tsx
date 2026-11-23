@@ -32,7 +32,6 @@ import { AppModal } from "@/components/ui/product/app-modal";
 import { creationResultEntries } from "./creation-result-urls";
 import { translate } from "@/i18n";
 
-
 export function CreationMessageView({
     item,
     shotNumber,
@@ -153,7 +152,8 @@ type CreationMessageStateTone = "pending" | "syncing" | "sync" | "error" | "canc
 
 // 消息头部的状态标签：区分“生成中 / 重新连接中 / 结果待同步 / 生成失败 / 已停止”，不把页面没跟上说成生成失败。
 function creationMessageState(item: CreationMessage): { tone: CreationMessageStateTone; label: string } | null {
-    if (item.status === "pending" || item.status === "streaming") return item.syncInterrupted ? { tone: "syncing", label: translate("shared.create.creationWorkspaceMessages.reconnecting") } : item.status === "pending" ? { tone: "pending", label: translate("canvasB.mediaVersion.generating") } : null;
+    if (item.status === "pending" || item.status === "streaming")
+        return item.syncInterrupted ? { tone: "syncing", label: translate("shared.create.creationWorkspaceMessages.reconnecting") } : item.status === "pending" ? { tone: "pending", label: translate("canvasB.mediaVersion.generating") } : null;
     if (item.status === "cancelled") return { tone: "cancelled", label: translate("create.status.stopped") };
     if (item.status === "error") {
         if (creationMessageNeedsResultSync(item)) return { tone: "sync", label: translate("shared.create.creationWorkspaceMessages.resultAwaitingSync") };
@@ -224,7 +224,11 @@ export function CreationUserMessage({ item, shotNumber, onEditUserMessage }: { i
                                     setPreviewType(kind === "video" ? "video" : "image");
                                     setPreviewUrl(kind === "video" ? attachment.url || "" : previewUrl);
                                 }}
-                                aria-label={previewable ? translate("shared.create.creationWorkspaceMessages.preview", { v0: String(attachment.name || translate("shared.create.creationWorkspaceMessages.attachment")) }) : attachment.name || translate("shared.create.creationWorkspaceMessages.attachment")}
+                                aria-label={
+                                    previewable
+                                        ? translate("shared.create.creationWorkspaceMessages.preview", { v0: String(attachment.name || translate("shared.create.creationWorkspaceMessages.attachment")) })
+                                        : attachment.name || translate("shared.create.creationWorkspaceMessages.attachment")
+                                }
                                 disabled={previewable && !previewUrl}
                             >
                                 {kind === "video" ? (
@@ -431,7 +435,13 @@ export function MediaResult({
                                 setPreviewType("image");
                                 setPreviewUrl(url);
                             }}
-                            aria-label={mediaStates[key] === "error" ? translate("shared.create.creationWorkspaceMessages.imageFailedToLoadClickToReload") : mediaStates[key] === "loaded" ? translate("shared.create.creationWorkspaceMessages.previewGeneratedImage") : translate("shared.create.creationWorkspaceMessages.loadingImage")}
+                            aria-label={
+                                mediaStates[key] === "error"
+                                    ? translate("shared.create.creationWorkspaceMessages.imageFailedToLoadClickToReload")
+                                    : mediaStates[key] === "loaded"
+                                      ? translate("shared.create.creationWorkspaceMessages.previewGeneratedImage")
+                                      : translate("shared.create.creationWorkspaceMessages.loadingImage")
+                            }
                             aria-busy={mediaStates[key] === "loaded" || mediaStates[key] === "error" ? undefined : true}
                         >
                             <img
@@ -459,7 +469,14 @@ export function MediaResult({
             )}
             <div className="creation-media-actions">
                 <span>{isVideo ? translate("shared.create.creationWorkspaceMessages.videoResult") : translate("shared.create.creationWorkspaceMessages.images", { v0: String(displayResultUrls.length) })}</span>
-                <Button type="link" size="small" loading={openingCanvas} disabled={!canContinueWithResults} title={canContinueWithResults ? undefined : translate("shared.create.creationWorkspaceMessages.theAssetMustFinishSavingBeforeItCanBeSent")} onClick={() => onContinueCanvas(resultAssetIds)}>
+                <Button
+                    type="link"
+                    size="small"
+                    loading={openingCanvas}
+                    disabled={!canContinueWithResults}
+                    title={canContinueWithResults ? undefined : translate("shared.create.creationWorkspaceMessages.theAssetMustFinishSavingBeforeItCanBeSent")}
+                    onClick={() => onContinueCanvas(resultAssetIds)}
+                >
                     {translate("shared.create.creationWorkspaceMessages.addToCanvas")}
                 </Button>
                 {displayResultUrls.map((url, index) => (
@@ -557,7 +574,8 @@ function creationPendingSpecs(item: CreationMessage) {
     const settings = item.settings;
     if (!settings) return "";
     const ratio = settings.ratio && settings.ratio.toLowerCase() !== "auto" ? settings.ratio : "";
-    if (item.mode === "video") return [ratio, settings.seconds ? translate("shared.create.creationWorkspaceMessages.s", { v0: String(settings.seconds) }) : "", settings.videoQuality ? `${settings.videoQuality.replace(/p$/i, "")}P` : ""].filter(Boolean).join(" · ");
+    if (item.mode === "video")
+        return [ratio, settings.seconds ? translate("shared.create.creationWorkspaceMessages.s", { v0: String(settings.seconds) }) : "", settings.videoQuality ? `${settings.videoQuality.replace(/p$/i, "")}P` : ""].filter(Boolean).join(" · ");
     const count = Number(settings.count) || 1;
     return [ratio, count > 1 ? translate("shared.create.creationWorkspaceMessages.images2", { v0: String(count) }) : ""].filter(Boolean).join(" · ");
 }
@@ -749,7 +767,13 @@ export function CreationAttachmentThumbnail({ item, onPreview, onRemove }: { ite
     return (
         <div className="creation-reference-card-content">
             {previewable ? (
-                <button type="button" className="creation-reference-card-preview" onClick={() => onPreview(kind === "video" ? "video" : "image", previewUrl)} aria-label={translate("shared.create.creationWorkspaceMessages.enlargePreview", { v0: String(item.name) })} disabled={!previewUrl}>
+                <button
+                    type="button"
+                    className="creation-reference-card-preview"
+                    onClick={() => onPreview(kind === "video" ? "video" : "image", previewUrl)}
+                    aria-label={translate("shared.create.creationWorkspaceMessages.enlargePreview", { v0: String(item.name) })}
+                    disabled={!previewUrl}
+                >
                     {content}
                     <span aria-hidden="true">
                         <Maximize2 />
@@ -780,9 +804,31 @@ export function CreationAttachmentThumbnail({ item, onPreview, onRemove }: { ite
 export type CreationThinking = { title: string; hint: string; steps: string[]; activity: string };
 
 export function thinkingFor(mode: CreationMode, brandName: string): CreationThinking {
-    if (mode === "image") return { title: translate("shared.create.creationWorkspaceMessages.drawingThisShotForYou"), hint: translate("shared.create.creationWorkspaceMessages.isInterpretingYourCompositionAndSendingItToTheImage", { v0: String(brandName) }), steps: [translate("shared.create.creationWorkspaceMessages.understandComposition"), translate("shared.create.creationWorkspaceMessages.setVisualStyle"), translate("shared.create.creationWorkspaceMessages.generateImage")], activity: translate("shared.create.creationWorkspaceMessages.analyzingTheCompositionAndSendingItToTheImageModel") };
-    if (mode === "text") return { title: translate("shared.create.creationWorkspaceMessages.writingThisPassageForYou"), hint: translate("shared.create.creationWorkspaceMessages.isOrganizingYourCreativeDirectionLanguageAndStructure", { v0: String(brandName) }), steps: [translate("shared.create.creationWorkspaceMessages.organizeContext"), translate("shared.create.creationWorkspaceMessages.composeText"), translate("shared.create.creationWorkspaceMessages.writePassage")], activity: translate("shared.create.creationWorkspaceMessages.organizingContextAndComposingTheText") };
-    return { title: translate("shared.create.creationWorkspaceMessages.creatingThisShotForYou"), hint: translate("shared.create.creationWorkspaceMessages.isBreakingDownYourShotScriptDesigningCameraMovementAnd", { v0: String(brandName) }), steps: [translate("shared.create.creationWorkspaceMessages.breakDownShots"), translate("shared.create.creationWorkspaceMessages.planCameraMovement"), translate("shared.create.creationWorkspaceMessages.setLighting"), translate("shared.create.creationWorkspaceMessages.renderVideo")], activity: translate("shared.create.creationWorkspaceMessages.planningShotsAndRenderingWithADirectorSApproach") };
+    if (mode === "image")
+        return {
+            title: translate("shared.create.creationWorkspaceMessages.drawingThisShotForYou"),
+            hint: translate("shared.create.creationWorkspaceMessages.isInterpretingYourCompositionAndSendingItToTheImage", { v0: String(brandName) }),
+            steps: [translate("shared.create.creationWorkspaceMessages.understandComposition"), translate("shared.create.creationWorkspaceMessages.setVisualStyle"), translate("shared.create.creationWorkspaceMessages.generateImage")],
+            activity: translate("shared.create.creationWorkspaceMessages.analyzingTheCompositionAndSendingItToTheImageModel"),
+        };
+    if (mode === "text")
+        return {
+            title: translate("shared.create.creationWorkspaceMessages.writingThisPassageForYou"),
+            hint: translate("shared.create.creationWorkspaceMessages.isOrganizingYourCreativeDirectionLanguageAndStructure", { v0: String(brandName) }),
+            steps: [translate("shared.create.creationWorkspaceMessages.organizeContext"), translate("shared.create.creationWorkspaceMessages.composeText"), translate("shared.create.creationWorkspaceMessages.writePassage")],
+            activity: translate("shared.create.creationWorkspaceMessages.organizingContextAndComposingTheText"),
+        };
+    return {
+        title: translate("shared.create.creationWorkspaceMessages.creatingThisShotForYou"),
+        hint: translate("shared.create.creationWorkspaceMessages.isBreakingDownYourShotScriptDesigningCameraMovementAnd", { v0: String(brandName) }),
+        steps: [
+            translate("shared.create.creationWorkspaceMessages.breakDownShots"),
+            translate("shared.create.creationWorkspaceMessages.planCameraMovement"),
+            translate("shared.create.creationWorkspaceMessages.setLighting"),
+            translate("shared.create.creationWorkspaceMessages.renderVideo"),
+        ],
+        activity: translate("shared.create.creationWorkspaceMessages.planningShotsAndRenderingWithADirectorSApproach"),
+    };
 }
 
 export function formatMessageTime(value: string) {

@@ -21,7 +21,6 @@ import { Select } from "@/components/ui/base/select";
 import { AdminPluginDetailModal, type AdminPluginDetail } from "./plugin-detail-modal";
 import { currentLocale, translate } from "@/i18n";
 
-
 type AdminPluginItem = AdminPluginDetail;
 
 export default function AdminPluginsPage() {
@@ -212,7 +211,10 @@ export default function AdminPluginsPage() {
                             className="plugin-state-switch"
                             loading={savingId === item.manifest.id}
                             checked={available}
-                            aria-label={translate("adminPages.plugins.pluginsPage.currently", { v0: String(item.manifest.name), v1: String(available ? translate("adminPages.plugins.pluginsPage.availableOnThePlatformClickToDisable") : translate("adminPages.plugins.pluginsPage.disabledOnThePlatformClickToEnable")) })}
+                            aria-label={translate("adminPages.plugins.pluginsPage.currently", {
+                                v0: String(item.manifest.name),
+                                v1: String(available ? translate("adminPages.plugins.pluginsPage.availableOnThePlatformClickToDisable") : translate("adminPages.plugins.pluginsPage.disabledOnThePlatformClickToEnable")),
+                            })}
                             onChange={(checked) => void changeAvailability(item, checked)}
                         />
                     </div>
@@ -226,11 +228,24 @@ export default function AdminPluginsPage() {
             align: "center",
             render: (_, item) => (
                 <div className="flex items-center justify-center gap-1">
-                    <Button type="text" size="small" aria-label={translate("adminPages.plugins.pluginsPage.viewDetails", { v0: String(item.manifest.name) })} icon={<FileText className="size-3.5" aria-hidden="true" />} onClick={() => setDetailId(item.manifest.id)}>
+                    <Button
+                        type="text"
+                        size="small"
+                        aria-label={translate("adminPages.plugins.pluginsPage.viewDetails", { v0: String(item.manifest.name) })}
+                        icon={<FileText className="size-3.5" aria-hidden="true" />}
+                        onClick={() => setDetailId(item.manifest.id)}
+                    >
                         {translate("account.layout.banner.details")}
                     </Button>
                     {item.management.origin === "uploaded" ? (
-                        <Button danger type="text" size="small" aria-label={translate("adminPages.plugins.pluginsPage.uninstall2", { v0: String(item.manifest.name) })} icon={<Trash2 className="size-3.5" aria-hidden="true" />} onClick={() => remove(item)} />
+                        <Button
+                            danger
+                            type="text"
+                            size="small"
+                            aria-label={translate("adminPages.plugins.pluginsPage.uninstall2", { v0: String(item.manifest.name) })}
+                            icon={<Trash2 className="size-3.5" aria-hidden="true" />}
+                            onClick={() => remove(item)}
+                        />
                     ) : (
                         <span title={translate("adminPages.plugins.pluginsPage.builtInPluginsCannotBeUninstalled")}>
                             <Button type="text" size="small" disabled aria-label={translate("adminPages.plugins.pluginsPage.isBuiltInAndCannotBeUninstalled", { v0: String(item.manifest.name) })} icon={<Trash2 className="size-3.5" aria-hidden="true" />} />

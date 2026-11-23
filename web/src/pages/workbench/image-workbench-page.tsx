@@ -558,7 +558,8 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                     const detailLoaded = Boolean(detail?.resultJson);
                     const missing = detailLoaded || detailErrors.has(task.id) ? 0 : Math.max(0, expected - taskOutputs.length);
                     for (let slot = 0; slot < missing; slot += 1) tiles.push({ type: "loading", key: `${task.id}:loading:${slot}`, task });
-                    if (detailLoaded && !taskOutputs.length) tiles.push({ type: "failed", key: `${task.id}:missing`, task: { ...task, status: "failed", error: translate("ecommerce.workbench.imageWorkbenchPage.theWorkIsGeneratedButItsPreviewCannotBeLoaded") } });
+                    if (detailLoaded && !taskOutputs.length)
+                        tiles.push({ type: "failed", key: `${task.id}:missing`, task: { ...task, status: "failed", error: translate("ecommerce.workbench.imageWorkbenchPage.theWorkIsGeneratedButItsPreviewCannotBeLoaded") } });
                     if (detailLoaded) counts.total += taskOutputs.length - expected;
                     return;
                 }
@@ -676,7 +677,8 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
         }
         dropped.forEach(revokeReferencePreview);
         setReferences(kept);
-        if (dropped.length) message.info(translate("ecommerce.workbench.imageWorkbenchPage.assetsDoNotApplyToAndWereRemoved", { v0: String(dropped.length), v1: String(next ? `“${next.name}”` : translate("ecommerce.workbench.imageWorkbenchPage.freeCreation")) }));
+        if (dropped.length)
+            message.info(translate("ecommerce.workbench.imageWorkbenchPage.assetsDoNotApplyToAndWereRemoved", { v0: String(dropped.length), v1: String(next ? `“${next.name}”` : translate("ecommerce.workbench.imageWorkbenchPage.freeCreation")) }));
     };
 
     const chooseTool = (next: WorkbenchTool | null) => {
@@ -760,7 +762,11 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                 const sameKind = [...referencesRef.current, ...pending].filter((entry) => entry.kind === item.kind).length;
                 const limit = referenceLimitFor(item.kind);
                 if (sameKind >= limit) {
-                    rejected.add(limit ? translate("ecommerce.workbench.imageWorkbenchPage.upToAssets", { v0: String(mediaLabel(item.kind)), v1: String(limit) }) : translate("ecommerce.workbench.imageWorkbenchPage.theCurrentModelDoesNotSupportReferences", { v0: String(mediaLabel(item.kind)) }));
+                    rejected.add(
+                        limit
+                            ? translate("ecommerce.workbench.imageWorkbenchPage.upToAssets", { v0: String(mediaLabel(item.kind)), v1: String(limit) })
+                            : translate("ecommerce.workbench.imageWorkbenchPage.theCurrentModelDoesNotSupportReferences", { v0: String(mediaLabel(item.kind)) }),
+                    );
                     if (item.previewUrl.startsWith("blob:")) URL.revokeObjectURL(item.previewUrl);
                     continue;
                 }
@@ -1418,10 +1424,26 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                 <SwitchRow
                     items={[
                         ...(videoProfile.generateAudio.supported
-                            ? [{ key: "audio", label: translate("ecommerce.workbench.imageWorkbenchPage.generateAudio"), detail: translate("ecommerce.workbench.imageWorkbenchPage.generateAmbientSoundOrMusicAlongsideTheVideo"), checked: config.videoGenerateAudio === "true", onChange: (value: boolean) => updateConfig("videoGenerateAudio", String(value)) }]
+                            ? [
+                                  {
+                                      key: "audio",
+                                      label: translate("ecommerce.workbench.imageWorkbenchPage.generateAudio"),
+                                      detail: translate("ecommerce.workbench.imageWorkbenchPage.generateAmbientSoundOrMusicAlongsideTheVideo"),
+                                      checked: config.videoGenerateAudio === "true",
+                                      onChange: (value: boolean) => updateConfig("videoGenerateAudio", String(value)),
+                                  },
+                              ]
                             : []),
                         ...(videoProfile.watermark.supported
-                            ? [{ key: "watermark", label: translate("ecommerce.workbench.imageWorkbenchPage.addWatermark"), detail: translate("ecommerce.workbench.imageWorkbenchPage.recommendedOffForAdvertisingAssets"), checked: config.videoWatermark === "true", onChange: (value: boolean) => updateConfig("videoWatermark", String(value)) }]
+                            ? [
+                                  {
+                                      key: "watermark",
+                                      label: translate("ecommerce.workbench.imageWorkbenchPage.addWatermark"),
+                                      detail: translate("ecommerce.workbench.imageWorkbenchPage.recommendedOffForAdvertisingAssets"),
+                                      checked: config.videoWatermark === "true",
+                                      onChange: (value: boolean) => updateConfig("videoWatermark", String(value)),
+                                  },
+                              ]
                             : []),
                     ]}
                 />
@@ -1445,7 +1467,10 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                 </div>
                 <aside className="wb-composer" aria-label={translate("ecommerce.workbench.imageWorkbenchPage.creationPanel", { v0: String(kindLabel) })} onPasteCapture={handlePaste}>
                     <header className="wb-composer-head">
-                        <h1 className="sr-only">{kindLabel}{translate("account.welcome.chapters.motion.label")}</h1>
+                        <h1 className="sr-only">
+                            {kindLabel}
+                            {translate("account.welcome.chapters.motion.label")}
+                        </h1>
                         {bothKinds ? (
                             <nav className="wb-kind-switch" aria-label={translate("ecommerce.workbench.imageWorkbenchPage.switchGenerationType")}>
                                 <button type="button" aria-pressed={kind === "image"} className={kind === "image" ? "is-active" : ""} onClick={() => kind !== "image" && navigate("/toolbox/image")}>
@@ -1532,7 +1557,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                                 />
                             ) : (
                                 <div className="wb-inline-error">
-                                    <span>{translate("ecommerce.workbench.imageWorkbenchPage.noModel", { kind: kindLabel})}</span>
+                                    <span>{translate("ecommerce.workbench.imageWorkbenchPage.noModel", { kind: kindLabel })}</span>
                                     <a href="/settings?section=models" target="_blank" rel="noreferrer">
                                         {translate("ecommerce.workbench.imageWorkbenchPage.openModelSettings")}
                                     </a>
@@ -1652,7 +1677,7 @@ export function WorkbenchPage({ kind }: { kind: WorkbenchKind }) {
                     </Button>,
                 ]}
             >
-                {presetPending ? <p className="wb-modal-copy">{translate("ecommerce.workbench.imageWorkbenchPage.currentTemplate", { name: presetPending.name})}</p> : null}
+                {presetPending ? <p className="wb-modal-copy">{translate("ecommerce.workbench.imageWorkbenchPage.currentTemplate", { name: presetPending.name })}</p> : null}
             </AppModal>
         </WorkspacePage>
     );

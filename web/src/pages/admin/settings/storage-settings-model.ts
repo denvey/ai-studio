@@ -7,7 +7,6 @@ import { DEFAULT_OSS_PATH_PREFIX, normalizeOSSConnectionTestInput, normalizeVolc
 import { type S3Preset } from "@/lib/oss-settings";
 import { currentLocale, translate } from "@/i18n";
 
-
 export type StorageMode = "local" | AdminOSSSetting["provider"];
 
 export type OSSFormValues = {
@@ -218,7 +217,17 @@ export function storageConfigurationReady(mode: StorageMode, values: StoragePayl
 }
 
 export function storageProviderLabel(provider?: StorageMode) {
-    return provider === "s3" ? translate("account.layout.oss.providers.s3") : provider === "tencent" ? translate("account.layout.oss.providers.tencent") : provider === "qiniu" ? translate("account.layout.oss.providers.qiniu") : provider === "volcengine" ? translate("account.layout.oss.providers.volcengine") : provider === "aliyun" ? translate("account.layout.oss.providers.aliyun") : translate("adminPages.settings.storageSettingsModel.localServer");
+    return provider === "s3"
+        ? translate("account.layout.oss.providers.s3")
+        : provider === "tencent"
+          ? translate("account.layout.oss.providers.tencent")
+          : provider === "qiniu"
+            ? translate("account.layout.oss.providers.qiniu")
+            : provider === "volcengine"
+              ? translate("account.layout.oss.providers.volcengine")
+              : provider === "aliyun"
+                ? translate("account.layout.oss.providers.aliyun")
+                : translate("adminPages.settings.storageSettingsModel.localServer");
 }
 
 export function providerGuidance(mode: Exclude<StorageMode, "local">) {

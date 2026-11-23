@@ -134,7 +134,9 @@ export default function ChannelsPage() {
         try {
             await refreshSystemChannels();
         } catch (error) {
-            message.warning(error instanceof Error ? translate("admin.channels.channelsPage.savedOnTheServerButSyncingTheSettingsFailed", { v0: String(error.message) }) : translate("admin.channels.channelsPage.savedOnTheServerButSyncingTheSettingsFailedReopen"));
+            message.warning(
+                error instanceof Error ? translate("admin.channels.channelsPage.savedOnTheServerButSyncingTheSettingsFailed", { v0: String(error.message) }) : translate("admin.channels.channelsPage.savedOnTheServerButSyncingTheSettingsFailedReopen"),
+            );
         }
     };
 
@@ -166,7 +168,14 @@ export default function ChannelsPage() {
             setDrawerOpen(false);
             return;
         }
-        modal.confirm({ title: translate("admin.channels.channelsPage.discardChannelChanges"), content: translate("admin.channels.channelsPage.unsavedConnectionDetailsWillBeLost"), okText: translate("admin.channels.channelsPage.discardChanges"), cancelText: translate("account.settings.prompts.switchCancel"), okButtonProps: { danger: true }, onOk: () => setDrawerOpen(false) });
+        modal.confirm({
+            title: translate("admin.channels.channelsPage.discardChannelChanges"),
+            content: translate("admin.channels.channelsPage.unsavedConnectionDetailsWillBeLost"),
+            okText: translate("admin.channels.channelsPage.discardChanges"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
+            okButtonProps: { danger: true },
+            onOk: () => setDrawerOpen(false),
+        });
     };
 
     const save = async () => {
@@ -341,7 +350,11 @@ export default function ChannelsPage() {
                     label: translate("common.delete"),
                     icon: <Trash2 className="size-3.5" />,
                     danger: true,
-                    confirm: { title: translate("admin.channels.channelsPage.deleteThisSystemChannel"), description: translate("admin.channels.channelsPage.onceDeletedTheChannelAndItsModelsNoLongerAppear"), okText: translate("account.ui.delete.confirm") },
+                    confirm: {
+                        title: translate("admin.channels.channelsPage.deleteThisSystemChannel"),
+                        description: translate("admin.channels.channelsPage.onceDeletedTheChannelAndItsModelsNoLongerAppear"),
+                        okText: translate("account.ui.delete.confirm"),
+                    },
                     onClick: () => removeChannel(channel),
                 },
             ]}
@@ -377,7 +390,13 @@ export default function ChannelsPage() {
                                 <Button size="small" icon={<Upload className="size-3.5" />} loading={transferring} onClick={() => importInputRef.current?.click()}>
                                     {translate("account.settings.memory.actors.seed")}
                                 </Button>
-                                <Button size="small" icon={<Download className="size-3.5" />} disabled={transferring || !channels.length} onClick={() => void exportChannels()} title={translate("admin.channels.channelsPage.exportAllSystemChannelsWithoutAPIKeysOrOtherSecrets")}>
+                                <Button
+                                    size="small"
+                                    icon={<Download className="size-3.5" />}
+                                    disabled={transferring || !channels.length}
+                                    onClick={() => void exportChannels()}
+                                    title={translate("admin.channels.channelsPage.exportAllSystemChannelsWithoutAPIKeysOrOtherSecrets")}
+                                >
                                     {translate("admin.channels.channelsPage.exportAll")}
                                 </Button>
                             </div>
@@ -437,7 +456,9 @@ export default function ChannelsPage() {
                                         <ChevronRight className="admin-channel-item-arrow size-3.5" aria-hidden="true" />
                                     </span>
                                     <span className="admin-channel-item-meta">
-                                        <span>{channel.models?.length || 0} {translate("admin.channels.channelsPage.models")}</span>
+                                        <span>
+                                            {channel.models?.length || 0} {translate("admin.channels.channelsPage.models")}
+                                        </span>
                                         <ChannelHealthBadge stats={channelHealth.get(channel.id)} />
                                         <span className="admin-channel-item-status" data-enabled={channel.enabled !== false}>
                                             {channel.enabled !== false ? translate("account.layout.oss.enabled") : translate("admin.channels.channelsPage.disabled")}
@@ -446,7 +467,11 @@ export default function ChannelsPage() {
                                 </button>
                             ))}
                             {!loading && !loadError && !visibleChannels.length ? (
-                                <AdminTableEmpty filtered={hasFilters} title={hasFilters ? undefined : translate("admin.channels.channelsPage.noSystemChannelsYet")} action={hasFilters ? <Button onClick={() => updateUrl({ filter: "", status: "all" })}>{translate("account.layout.state.clearFilters")}</Button> : undefined} />
+                                <AdminTableEmpty
+                                    filtered={hasFilters}
+                                    title={hasFilters ? undefined : translate("admin.channels.channelsPage.noSystemChannelsYet")}
+                                    action={hasFilters ? <Button onClick={() => updateUrl({ filter: "", status: "all" })}>{translate("account.layout.state.clearFilters")}</Button> : undefined}
+                                />
                             ) : null}
                         </div>
                         <div className="admin-channel-sidebar-footer">
@@ -458,22 +483,42 @@ export default function ChannelsPage() {
                             />
                         </div>
                     </aside>
-                    <section id="admin-channel-models" className="admin-channel-detail" aria-label={selectedChannel ? translate("admin.channels.channelsPage.manageModelsIn", { v0: String(selectedChannel.name) }) : translate("admin.channels.channelsPage.channelModelManagement")}>
+                    <section
+                        id="admin-channel-models"
+                        className="admin-channel-detail"
+                        aria-label={selectedChannel ? translate("admin.channels.channelsPage.manageModelsIn", { v0: String(selectedChannel.name) }) : translate("admin.channels.channelsPage.channelModelManagement")}
+                    >
                         {selectedChannel ? (
                             <>
                                 <header className="admin-channel-detail-header">
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <h2 className="admin-channel-detail-title">{selectedChannel.name}</h2>
-                                            <AdminStatusBadge label={selectedChannel.enabled !== false ? translate("account.layout.oss.enabled") : translate("admin.channels.channelsPage.disabled")} tone={selectedChannel.enabled !== false ? "success" : "neutral"} />
+                                            <AdminStatusBadge
+                                                label={selectedChannel.enabled !== false ? translate("account.layout.oss.enabled") : translate("admin.channels.channelsPage.disabled")}
+                                                tone={selectedChannel.enabled !== false ? "success" : "neutral"}
+                                            />
                                         </div>
                                         <p className="admin-channel-detail-url" title={selectedChannel.baseUrl}>
                                             {selectedChannel.baseUrl}
                                         </p>
                                         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-foreground/50">
-                                            <span>{selectedChannel.hasApiKey ? (selectedChannel.hasSecretKey ? translate("admin.channels.channelsPage.aKSKConfigured") : translate("admin.channels.channelsPage.aPIKeyConfigured")) : translate("admin.channels.channelsPage.credentialsNotConfigured")}</span>
-                                            <span>{translate("admin.channels.channelsPage.concurrencyLimit")}{selectedChannel.concurrencyLimit || translate("admin.channels.channelsPage.followSystem")}</span>
-                                            {selectedChannel.catalogProviderId ? <span>{translate("admin.channels.channelsPage.sourceProviderCatalog")} {selectedChannel.catalogProviderId}</span> : null}
+                                            <span>
+                                                {selectedChannel.hasApiKey
+                                                    ? selectedChannel.hasSecretKey
+                                                        ? translate("admin.channels.channelsPage.aKSKConfigured")
+                                                        : translate("admin.channels.channelsPage.aPIKeyConfigured")
+                                                    : translate("admin.channels.channelsPage.credentialsNotConfigured")}
+                                            </span>
+                                            <span>
+                                                {translate("admin.channels.channelsPage.concurrencyLimit")}
+                                                {selectedChannel.concurrencyLimit || translate("admin.channels.channelsPage.followSystem")}
+                                            </span>
+                                            {selectedChannel.catalogProviderId ? (
+                                                <span>
+                                                    {translate("admin.channels.channelsPage.sourceProviderCatalog")} {selectedChannel.catalogProviderId}
+                                                </span>
+                                            ) : null}
                                         </div>
                                     </div>
                                     {channelActions(selectedChannel)}
@@ -491,8 +536,24 @@ export default function ChannelsPage() {
                             </>
                         ) : (
                             <AdminTableEmpty
-                                title={loading ? translate("admin.channels.channelsPage.loadingChannels") : loadError ? translate("admin.channels.channelsPage.channelsAreTemporarilyUnavailable") : hasFilters ? translate("admin.channels.channelsPage.noMatchingChannels") : translate("admin.channels.channelsPage.addAChannelToStartManagingModels")}
-                                description={loading ? translate("admin.channels.channelsPage.channelModelsWillAppearHereWhenLoadingFinishes") : loadError ? translate("admin.channels.channelsPage.retryLoadingFromThePanelOnTheLeft") : hasFilters ? translate("admin.channels.channelsPage.adjustTheSearchOrStatusFilterOnTheLeft") : translate("admin.channels.channelsPage.addAChannelOnTheLeftAndConfigureItsConnection")}
+                                title={
+                                    loading
+                                        ? translate("admin.channels.channelsPage.loadingChannels")
+                                        : loadError
+                                          ? translate("admin.channels.channelsPage.channelsAreTemporarilyUnavailable")
+                                          : hasFilters
+                                            ? translate("admin.channels.channelsPage.noMatchingChannels")
+                                            : translate("admin.channels.channelsPage.addAChannelToStartManagingModels")
+                                }
+                                description={
+                                    loading
+                                        ? translate("admin.channels.channelsPage.channelModelsWillAppearHereWhenLoadingFinishes")
+                                        : loadError
+                                          ? translate("admin.channels.channelsPage.retryLoadingFromThePanelOnTheLeft")
+                                          : hasFilters
+                                            ? translate("admin.channels.channelsPage.adjustTheSearchOrStatusFilterOnTheLeft")
+                                            : translate("admin.channels.channelsPage.addAChannelOnTheLeftAndConfigureItsConnection")
+                                }
                             />
                         )}
                     </section>
@@ -532,7 +593,11 @@ export default function ChannelsPage() {
                     >
                         <Input.Password autoComplete="new-password" placeholder={editingChannel ? translate("admin.channels.channelsPage.leaveBlankToKeepTheCurrentCredentials") : translate("admin.channels.channelsPage.aPIKeyOrAccessKey")} />
                     </Form.Item>
-                    <Form.Item name="secretKey" label={editingChannel ? `Secret Key（${channelSecretText(editingChannel)}）` : translate("account.settings.channels.secretKey")} extra={translate("admin.channels.channelsPage.requiredOnlyForAKSKSignedProtocolsSuchAsOfficial")}>
+                    <Form.Item
+                        name="secretKey"
+                        label={editingChannel ? `Secret Key（${channelSecretText(editingChannel)}）` : translate("account.settings.channels.secretKey")}
+                        extra={translate("admin.channels.channelsPage.requiredOnlyForAKSKSignedProtocolsSuchAsOfficial")}
+                    >
                         <Input.Password autoComplete="new-password" placeholder={editingChannel ? translate("admin.channels.channelsPage.leaveBlankToKeepTheCurrentSecretKey") : "IAM Secret Key"} />
                     </Form.Item>
                     <div className="mb-6">

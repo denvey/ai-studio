@@ -1,8 +1,18 @@
-
 import { translate } from "@/i18n";
-export const loginMethodLabels: Record<string, string> = { password: translate("auth.login.passwordLabel"), email: translate("adminPages.loginLogs.loginLogDisplay.emailVerificationCode"), sms: translate("adminPages.loginLogs.loginLogDisplay.sMSVerificationCode"), linuxdo: "Linux.do", verification: translate("adminPages.loginLogs.loginLogDisplay.verificationCodeUnknownMethod"), unknown: translate("adminPages.loginLogs.loginLogDetailDrawer.notRecorded") };
+export const loginMethodLabels: Record<string, string> = {
+    password: translate("auth.login.passwordLabel"),
+    email: translate("adminPages.loginLogs.loginLogDisplay.emailVerificationCode"),
+    sms: translate("adminPages.loginLogs.loginLogDisplay.sMSVerificationCode"),
+    linuxdo: "Linux.do",
+    verification: translate("adminPages.loginLogs.loginLogDisplay.verificationCodeUnknownMethod"),
+    unknown: translate("adminPages.loginLogs.loginLogDetailDrawer.notRecorded"),
+};
 export const loginEventLabels: Record<string, string> = { login: translate("adminPages.loginLogs.loginLogDisplay.login"), logout: translate("adminPages.loginLogs.loginLogDisplay.userLogout") };
-export const loginSourceLabels: Record<string, string> = { login: translate("adminPages.loginLogs.loginLogDisplay.userLogin"), registration: translate("adminPages.loginLogs.loginLogDisplay.automaticLoginAfterRegistration"), logout: translate("adminPages.loginLogs.loginLogDisplay.userLogout") };
+export const loginSourceLabels: Record<string, string> = {
+    login: translate("adminPages.loginLogs.loginLogDisplay.userLogin"),
+    registration: translate("adminPages.loginLogs.loginLogDisplay.automaticLoginAfterRegistration"),
+    logout: translate("adminPages.loginLogs.loginLogDisplay.userLogout"),
+};
 
 // UA 只用于描述客户端自报信息，不能作为身份或安全判断依据。
 export function loginLogDevice(userAgent: string) {
@@ -25,6 +35,16 @@ export function loginLogDevice(userAgent: string) {
     const android = userAgent.match(/Android ([\d.]+)/);
     const ios = userAgent.match(/(?:iPhone|iPad|iPod).*OS ([\d_]+)/);
     const mac = userAgent.match(/Mac OS X ([\d_]+)/);
-    const os = android ? `Android ${android[1]}` : ios ? `iOS ${ios[1].replaceAll("_", ".")}` : /Windows NT/.test(userAgent) ? "Windows" : mac ? `macOS ${mac[1].replaceAll("_", ".")}` : /Linux/.test(userAgent) ? "Linux" : translate("adminPages.loginLogs.loginLogDisplay.unrecognizedOperatingSystem");
+    const os = android
+        ? `Android ${android[1]}`
+        : ios
+          ? `iOS ${ios[1].replaceAll("_", ".")}`
+          : /Windows NT/.test(userAgent)
+            ? "Windows"
+            : mac
+              ? `macOS ${mac[1].replaceAll("_", ".")}`
+              : /Linux/.test(userAgent)
+                ? "Linux"
+                : translate("adminPages.loginLogs.loginLogDisplay.unrecognizedOperatingSystem");
     return { browser, os };
 }

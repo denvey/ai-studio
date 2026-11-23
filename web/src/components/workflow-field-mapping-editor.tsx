@@ -12,7 +12,6 @@ import { EmptyState } from "@/components/ui/product/empty-state";
 import { Select } from "@/components/ui/base/select";
 import { translate } from "@/i18n";
 
-
 const sourceOptions = [
     { label: translate("shared.workflowFieldMappingEditor.keepWorkflowDefault"), value: "" },
     { label: translate("shared.workflowFieldMappingEditor.taskPrompt"), value: "prompt" },
@@ -75,9 +74,7 @@ export function WorkflowFieldMappingEditor({ fields, onChange, disabled = false 
     return (
         <div className="workflow-field-mapping-editor space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs text-foreground/60">
-                    {translate("shared.workflowFieldMappingEditor.summary", { total: fields.length, enabled: enabledCount })}
-                </p>
+                <p className="text-xs text-foreground/60">{translate("shared.workflowFieldMappingEditor.summary", { total: fields.length, enabled: enabledCount })}</p>
                 <div className="flex flex-wrap items-center gap-1">
                     <Button type="text" size="small" icon={<Power className="size-3.5" />} disabled={disabled || enabledControllableCount === controllableFields.length} onClick={() => updateAllFields(true)}>
                         {translate("shared.workflowFieldMappingEditor.enableAll")}
@@ -85,7 +82,13 @@ export function WorkflowFieldMappingEditor({ fields, onChange, disabled = false 
                     <Button type="text" size="small" danger icon={<PowerOff className="size-3.5" />} disabled={disabled || enabledControllableCount === 0} onClick={() => updateAllFields(false)}>
                         {translate("shared.workflowFieldMappingEditor.disableAll")}
                     </Button>
-                    <ToolButton size="sm" icon={<ListFilter />} active={showOnlyEnabled} label={showOnlyEnabled ? translate("shared.workflowFieldMappingEditor.showAll") : translate("shared.workflowFieldMappingEditor.showEnabledOnly")} onClick={() => setShowOnlyEnabled((current) => !current)} />
+                    <ToolButton
+                        size="sm"
+                        icon={<ListFilter />}
+                        active={showOnlyEnabled}
+                        label={showOnlyEnabled ? translate("shared.workflowFieldMappingEditor.showAll") : translate("shared.workflowFieldMappingEditor.showEnabledOnly")}
+                        onClick={() => setShowOnlyEnabled((current) => !current)}
+                    />
                 </div>
             </div>
             <Collapse
@@ -101,7 +104,14 @@ export function WorkflowFieldMappingEditor({ fields, onChange, disabled = false 
                     const safeToOverride = field.safeToOverride !== false;
                     const fieldDisabled = disabled || !enabled || !safeToOverride;
                     const configurationError = workflowFieldConfigurationError(field);
-                    const roleLabel = field.role === "prompt" ? translate("canvasA.assetView.prompt") : field.role === "media" ? translate("nav.tools.assets") : field.role === "internal" ? translate("shared.workflowFieldMappingEditor.internalParameter") : translate("shared.workflowFieldMappingEditor.businessParameter");
+                    const roleLabel =
+                        field.role === "prompt"
+                            ? translate("canvasA.assetView.prompt")
+                            : field.role === "media"
+                              ? translate("nav.tools.assets")
+                              : field.role === "internal"
+                                ? translate("shared.workflowFieldMappingEditor.internalParameter")
+                                : translate("shared.workflowFieldMappingEditor.businessParameter");
                     return {
                         key: field.id || `${field.nodeId}::${field.fieldName}::${index}`,
                         label: (
@@ -120,7 +130,13 @@ export function WorkflowFieldMappingEditor({ fields, onChange, disabled = false 
                         ),
                         extra: (
                             <span onClick={(event) => event.stopPropagation()}>
-                                <Switch size="sm" checked={enabled} disabled={disabled || !safeToOverride} aria-label={translate("shared.workflowFieldMappingEditor.enableField", { v0: String(field.label || field.fieldName) })} onChange={(checked) => updateField(index, { enabled: checked })} />
+                                <Switch
+                                    size="sm"
+                                    checked={enabled}
+                                    disabled={disabled || !safeToOverride}
+                                    aria-label={translate("shared.workflowFieldMappingEditor.enableField", { v0: String(field.label || field.fieldName) })}
+                                    onChange={(checked) => updateField(index, { enabled: checked })}
+                                />
                             </span>
                         ),
                         children: (
@@ -181,7 +197,11 @@ export function WorkflowFieldMappingEditor({ fields, onChange, disabled = false 
                                 ) : null}
                                 {sourceUsesIndex(source) ? (
                                     <label className="grid gap-1 text-xs text-foreground/60">
-                                        {source === "referenceImage" ? translate("shared.workflowFieldMappingEditor.imageSlot") : source === "referenceVideo" ? translate("shared.workflowFieldMappingEditor.videoSlot") : translate("shared.workflowFieldMappingEditor.audioSlot")}
+                                        {source === "referenceImage"
+                                            ? translate("shared.workflowFieldMappingEditor.imageSlot")
+                                            : source === "referenceVideo"
+                                              ? translate("shared.workflowFieldMappingEditor.videoSlot")
+                                              : translate("shared.workflowFieldMappingEditor.audioSlot")}
                                         <InputNumber
                                             className="w-full"
                                             min={1}

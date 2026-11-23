@@ -3,7 +3,6 @@ import { modelCapabilityConfigFor } from "@/lib/model-capabilities";
 import { resolveModelChannel, selectableModelsByCapability, type AiConfig } from "@/stores/use-config-store";
 import { translate } from "@/i18n";
 
-
 export const IMAGE_TO_PREVIS_AGENT_INSTRUCTION = [
     "请把这张画布图片复现为可编辑的 3D 预演台，而不是把图片放进预演台。",
     "先调用 canvas_inspect_image 读取该图片的真实画面，不能根据节点标题、提示词或文件名猜测内容。",

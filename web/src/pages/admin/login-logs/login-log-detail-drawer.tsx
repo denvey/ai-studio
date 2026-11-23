@@ -6,7 +6,6 @@ import { getAdminLoginLog, type LoginLog } from "@/services/api/login-logs";
 import { loginEventLabels, loginLogDevice, loginMethodLabels, loginSourceLabels } from "./login-log-display";
 import { translate } from "@/i18n";
 
-
 export function LoginLogDetailDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
     const [detail, setDetail] = useState<LoginLog | null>(null);
     const [error, setError] = useState("");

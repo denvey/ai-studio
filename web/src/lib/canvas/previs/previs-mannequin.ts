@@ -6,7 +6,6 @@ import { PREVIS_MANNEQUIN_BONES, type PrevisEvaluatedPose, type PrevisMannequinB
 import type { PrevisActorArchetype, PrevisActorProfile, PrevisRig } from "@/types/previs";
 import { translate } from "@/i18n";
 
-
 /**
  * 标准人偶：本地打包的 CC0 光滑人体（Quaternius Universal Animation Library 的 Mannequin，
  * 见 public/previs/LICENSE-mannequin.txt），蒙皮网格 + 53 根骨骼。

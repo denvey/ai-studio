@@ -3,7 +3,6 @@ import type { CanvasNodeMetadata } from "@/types/canvas";
 import type { PluginAgentAction } from "./plugin-types";
 import { translate } from "@/i18n";
 
-
 export function prepareAnalysisNodeAction(nodeType: string, title: string, metadata: () => CanvasNodeMetadata): PluginAgentAction {
     return {
         id: "prepare-input",

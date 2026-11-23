@@ -6,7 +6,6 @@ import type { LogicalModelQuote, ModelQuoteRequest, ModelRequestIntent } from "@
 import { modelOptionName, resolveModelChannel, type AiConfig, type ModelCapability } from "@/stores/use-config-store";
 import { currentLocale, translate } from "@/i18n";
 
-
 export type ModelPriceTier = NonNullable<NonNullable<AiConfig["channels"][number]["modelCosts"]>[number]["logicalPriceTiers"]>[number];
 
 type ModelCreditCost = {
@@ -74,7 +73,9 @@ export function priceTierSummaryLabel(tiers: ModelPriceTier[], capability?: Mode
         [
             fixedRequestValues.length ? formatPriceRange(fixedRequestValues, translate("shell.credits")) : "",
             perSecondValues.length ? formatPriceRange(perSecondValues, translate("shared.modelPricing.creditsSecond")) : "",
-            tokenValues.length ? `${capability === "video" ? "" : (translate("shared.videoSettingsPanel.output") + " ")}${formatPriceRange(tokenValues, capability === "video" ? translate("shared.modelPicker.creditsMillionVideoTokens") : translate("shared.modelPricing.creditsMillionTokens"))}${timeBased ? (" " + translate("shared.modelPricing.timeBased")) : ""}` : "",
+            tokenValues.length
+                ? `${capability === "video" ? "" : translate("shared.videoSettingsPanel.output") + " "}${formatPriceRange(tokenValues, capability === "video" ? translate("shared.modelPicker.creditsMillionVideoTokens") : translate("shared.modelPricing.creditsMillionTokens"))}${timeBased ? " " + translate("shared.modelPricing.timeBased") : ""}`
+                : "",
         ]
             .filter(Boolean)
             .join(" · ") || translate("account.layout.oss.cdnAuthNone")
@@ -89,11 +90,22 @@ function weekdayLabel(day: number) {
 export function tokenPriceRuleDescription(rule: NonNullable<ModelPriceTier["tokenPriceRules"]>[number]) {
     const days = [...(rule.weekdays || [])].sort((a, b) => a - b);
     const contiguous = days.length > 2 && days.every((day, index) => index === 0 || day === days[index - 1] + 1);
-    const dayLabel = days.length === 7 ? translate("shared.modelPricing.everyDay") : contiguous ? translate("shared.modelPricing.weekdayRange", { first: weekdayLabel(days[0]), last: weekdayLabel(days[days.length - 1]) }) : days.map(weekdayLabel).join(", ");
+    const dayLabel =
+        days.length === 7 ? translate("shared.modelPricing.everyDay") : contiguous ? translate("shared.modelPricing.weekdayRange", { first: weekdayLabel(days[0]), last: weekdayLabel(days[days.length - 1]) }) : days.map(weekdayLabel).join(", ");
     const format = (value: number) => value.toLocaleString(currentLocale());
-    const context = rule.maxInputTokens > 0 ? translate("shared.modelPricing.inputTokens", { v0: String(format(rule.minInputTokens)), v1: String(format(rule.maxInputTokens)) }) : rule.minInputTokens > 0 ? translate("shared.modelPricing.inputTokens2", { v0: String(format(rule.minInputTokens)) }) : "";
+    const context =
+        rule.maxInputTokens > 0
+            ? translate("shared.modelPricing.inputTokens", { v0: String(format(rule.minInputTokens)), v1: String(format(rule.maxInputTokens)) })
+            : rule.minInputTokens > 0
+              ? translate("shared.modelPricing.inputTokens2", { v0: String(format(rule.minInputTokens)) })
+              : "";
     const price = (value: number) => (value / 1_000_000).toLocaleString(currentLocale(), { maximumFractionDigits: 6 });
-    return translate("shared.modelPricing.inputOutputCachedInputCreditsMillionTokens", { v0: String([`${dayLabel} ${rule.start}–${rule.end}`, context].filter(Boolean).join(" · ")), v1: String(price(rule.inputTokenPriceMicrocredits)), v2: String(price(rule.outputTokenPriceMicrocredits)), v3: String(price(rule.cachedTokenPriceMicrocredits)) });
+    return translate("shared.modelPricing.inputOutputCachedInputCreditsMillionTokens", {
+        v0: String([`${dayLabel} ${rule.start}–${rule.end}`, context].filter(Boolean).join(" · ")),
+        v1: String(price(rule.inputTokenPriceMicrocredits)),
+        v2: String(price(rule.outputTokenPriceMicrocredits)),
+        v3: String(price(rule.cachedTokenPriceMicrocredits)),
+    });
 }
 
 export function formatPriceRange(values: number[], suffix: string) {
@@ -109,12 +121,17 @@ export function modelQuoteDescription(quote: LogicalModelQuote) {
     if (breakdown) descriptions.push(breakdown);
     const estimate = quote.videoTokenEstimate;
     if (estimate) {
-        descriptions.push(translate("shared.modelPricing.formulaEstimateVideoTokensWithAnExtraReservedByThe", { v0: String(estimate.formulaTokens.toLocaleString(currentLocale())), v1: String(estimate.reservationMarginPercent), v2: String(estimate.reservedTokens.toLocaleString(currentLocale())) }));
+        descriptions.push(
+            translate("shared.modelPricing.formulaEstimateVideoTokensWithAnExtraReservedByThe", {
+                v0: String(estimate.formulaTokens.toLocaleString(currentLocale())),
+                v1: String(estimate.reservationMarginPercent),
+                v2: String(estimate.reservedTokens.toLocaleString(currentLocale())),
+            }),
+        );
         if (estimate.referenceDurationEstimated && !breakdown) descriptions.push(translate("shared.modelPricing.unknownReferenceVideoDurationIsEstimatedAt15Seconds"));
         if (estimate.dimensionsEstimated) descriptions.push(translate("shared.modelPricing.actualAspectRatioIsNotYetKnownDimensionsAreEstimated"));
     }
-    if (quote.billingMode === "token")
-        descriptions.push(estimate ? translate("shared.modelPricing.theEstimateIsNotACostCapSuccessfulTasksAre") : translate("shared.modelPricing.theEstimateIsNotACostCapFinalBillingUses"));
+    if (quote.billingMode === "token") descriptions.push(estimate ? translate("shared.modelPricing.theEstimateIsNotACostCapSuccessfulTasksAre") : translate("shared.modelPricing.theEstimateIsNotACostCapFinalBillingUses"));
     return descriptions.join("；");
 }
 
@@ -189,7 +206,11 @@ export function referenceVideoQuoteBreakdown(reference: LogicalModelQuote["refer
     if (!reference || reference.count <= 0) return "";
     const seconds = reference.billedSeconds > 0 ? reference.billedSeconds : reference.referenceSeconds;
     const referenceText = seconds > 0 ? translate("shared.modelPricing.referenceVideoSeconds", { v0: String(formatSeconds(seconds)) }) : translate("shared.modelPricing.referenceVideos", { v0: String(reference.count) });
-    const status = reference.billed ? (reference.estimated ? translate("shared.modelPricing.referenceVideosBilledSeparatelyUnknownDurationEstimatedAt15Seconds") : translate("shared.modelPricing.referenceVideosBilledSeparately")) : translate("shared.modelPricing.referenceVideosFreeOfCharge");
+    const status = reference.billed
+        ? reference.estimated
+            ? translate("shared.modelPricing.referenceVideosBilledSeparatelyUnknownDurationEstimatedAt15Seconds")
+            : translate("shared.modelPricing.referenceVideosBilledSeparately")
+        : translate("shared.modelPricing.referenceVideosFreeOfCharge");
     return translate("shared.modelPricing.generateSeconds", { v0: String(formatSeconds(reference.generatedSeconds)), v1: String(referenceText), v2: String(status) });
 }
 

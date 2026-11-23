@@ -7,7 +7,6 @@ import { buildRecordingTranscodeArgs } from "./canvas-video-merge-args";
 import { concatVideoFiles } from "./canvas-video-concat";
 import { translate } from "@/i18n";
 
-
 export type MergeVideoInput = { id: string; url?: string; storageKey?: string };
 export type MergeVideoProgress = { phase: "loading" | "reading" | "encoding"; progress: number };
 

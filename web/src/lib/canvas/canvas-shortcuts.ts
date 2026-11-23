@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export type CanvasShortcutCategoryId = "common" | "navigation" | "selection" | "editing";
 
@@ -128,7 +127,12 @@ export const CANVAS_SHORTCUTS: CanvasShortcutItem[] = [
         category: "selection",
         title: translate("shared.canvas.canvasShortcuts.marqueeSelectNodes"),
         description: translate("shared.canvas.canvasShortcuts.dragOnEmptySpaceToBoxSelectShiftAddsCommand"),
-        keys: [[translate("shared.canvas.canvasShortcuts.leftDragOnEmptySpace")], ["Shift", translate("shared.canvas.canvasShortcuts.drag")], [CANVAS_MODIFIER_KEY, translate("shared.canvas.canvasShortcuts.drag")], ["Alt", translate("shared.canvas.canvasShortcuts.drag")]],
+        keys: [
+            [translate("shared.canvas.canvasShortcuts.leftDragOnEmptySpace")],
+            ["Shift", translate("shared.canvas.canvasShortcuts.drag")],
+            [CANVAS_MODIFIER_KEY, translate("shared.canvas.canvasShortcuts.drag")],
+            ["Alt", translate("shared.canvas.canvasShortcuts.drag")],
+        ],
         keywords: ["多选", "范围", "selection"],
     },
     {

@@ -87,9 +87,35 @@ function ActorMotionSection({ object, playhead, onUpdate }: { object: PrevisObje
                                     {displayPrevisMotionLabel(item.motion)}
                                     {conflict ? <TriangleAlert role="img" aria-label={translate("canvasTools.previs.previsInspectors.overlappingActions")} className="ml-1 inline-block size-3.5 align-[-0.125em] text-[var(--status-warning)]" /> : null}
                                 </span>
-                                <InputNumber size="small" aria-label={translate("canvasTools.previs.previsInspectors.startSeconds")} min={0} max={60} step={0.1} value={item.start} addonAfter="s" onChange={(start) => patch(item.id, { start: Math.max(0, Number(start) || 0) })} />
-                                <InputNumber size="small" aria-label={translate("canvasTools.previs.previsInspectors.durationSeconds")} min={0.2} max={60} step={0.1} value={item.duration} addonAfter={translate("canvasTools.previs.previsInspectors.length")} onChange={(duration) => patch(item.id, { duration: Math.max(0.2, Number(duration) || 0.2) })} />
-                                <Slider className="previs-motion-row__intensity" aria-label={translate("canvasTools.previs.previsInspectors.intensity")} min={0.2} max={1.6} step={0.05} value={item.intensity ?? 1} onChange={(intensity) => patch(item.id, { intensity })} />
+                                <InputNumber
+                                    size="small"
+                                    aria-label={translate("canvasTools.previs.previsInspectors.startSeconds")}
+                                    min={0}
+                                    max={60}
+                                    step={0.1}
+                                    value={item.start}
+                                    addonAfter="s"
+                                    onChange={(start) => patch(item.id, { start: Math.max(0, Number(start) || 0) })}
+                                />
+                                <InputNumber
+                                    size="small"
+                                    aria-label={translate("canvasTools.previs.previsInspectors.durationSeconds")}
+                                    min={0.2}
+                                    max={60}
+                                    step={0.1}
+                                    value={item.duration}
+                                    addonAfter={translate("canvasTools.previs.previsInspectors.length")}
+                                    onChange={(duration) => patch(item.id, { duration: Math.max(0.2, Number(duration) || 0.2) })}
+                                />
+                                <Slider
+                                    className="previs-motion-row__intensity"
+                                    aria-label={translate("canvasTools.previs.previsInspectors.intensity")}
+                                    min={0.2}
+                                    max={1.6}
+                                    step={0.05}
+                                    value={item.intensity ?? 1}
+                                    onChange={(intensity) => patch(item.id, { intensity })}
+                                />
                                 <button type="button" className="previs-motion-row__remove" aria-label={translate("canvasTools.previs.previsInspectors.deleteAction", { v0: String(displayPrevisMotionLabel(item.motion)) })} onClick={() => remove(item.id)}>
                                     <Trash2 className="size-3" />
                                 </button>
@@ -280,7 +306,11 @@ export function ObjectInspector({
                             <GuideStep index={1} title={translate("canvasTools.previs.previsInspectors.blocking")} done={hasPath} hint={translate("canvasTools.previs.previsInspectors.dragOnTheGroundInTopViewToDrawA")}>
                                 <div className="previs-anim-guide__actions">
                                     <Button size="small" type={pathDrawing ? "primary" : "default"} icon={<Route className="size-3.5" />} onClick={onToggleDrawPath}>
-                                        {pathDrawing ? translate("canvasTools.previs.previsInspectors.cancelDrawing") : hasPath ? translate("canvasTools.previs.previsInspectors.redrawBlockingPath") : translate("canvasTools.previs.previsInspectors.drawBlockingPath")}
+                                        {pathDrawing
+                                            ? translate("canvasTools.previs.previsInspectors.cancelDrawing")
+                                            : hasPath
+                                              ? translate("canvasTools.previs.previsInspectors.redrawBlockingPath")
+                                              : translate("canvasTools.previs.previsInspectors.drawBlockingPath")}
                                     </Button>
                                     {hasPath ? (
                                         <Button size="small" type="text" onClick={onClearPath}>
@@ -290,7 +320,12 @@ export function ObjectInspector({
                                 </div>
                             </GuideStep>
                             {isPrevisStandardActor(object) ? (
-                                <GuideStep index={2} title={translate("canvasTools.previs.previsInspectors.motion")} done={motionCount > 0} hint={translate("canvasTools.previs.previsInspectors.moveTheTimelinePlayheadToTheActionStartTimeCurrently", { v0: String(playhead.toFixed(1)) })}>
+                                <GuideStep
+                                    index={2}
+                                    title={translate("canvasTools.previs.previsInspectors.motion")}
+                                    done={motionCount > 0}
+                                    hint={translate("canvasTools.previs.previsInspectors.moveTheTimelinePlayheadToTheActionStartTimeCurrently", { v0: String(playhead.toFixed(1)) })}
+                                >
                                     <ActorMotionSection object={object} playhead={playhead} onUpdate={onUpdate} />
                                 </GuideStep>
                             ) : null}
@@ -330,7 +365,9 @@ export function ObjectInspector({
                             <summary>{isActor ? translate("canvasTools.previs.previsInspectors.advancedManualKeyframes") : translate("canvasTools.previs.previsInspectors.keyframes")}</summary>
                             <div className="previs-inspector-advanced__body">
                                 <Button size="small" block icon={<Focus className="size-3.5" />} onClick={onAddKeyframe}>
-                                    {selectedBone ? translate("canvasTools.previs.previsInspectors.recordCurrentBodyPartAtS", { v0: String(playhead.toFixed(1)) }) : translate("canvasTools.previs.previsInspectors.recordAKeyframeAtS", { v0: String(playhead.toFixed(1)) })}
+                                    {selectedBone
+                                        ? translate("canvasTools.previs.previsInspectors.recordCurrentBodyPartAtS", { v0: String(playhead.toFixed(1)) })
+                                        : translate("canvasTools.previs.previsInspectors.recordAKeyframeAtS", { v0: String(playhead.toFixed(1)) })}
                                 </Button>
                                 <div className="previs-inspector-note">
                                     {translate("canvasTools.inline.previsInspectors.positionKeyframesBonesKeyframesEnableAutoKeyframeOnTheTimeline", { v0: String(object.keyframes.length), v1: String(boneKeyCount) })}
@@ -380,7 +417,13 @@ export function ObjectInspector({
             {activeTab === "props" ? (
                 <>
                     <InspectorGroup title={translate("canvasTools.previs.previsInspectors.position")} hint={isActor ? translate("canvasTools.previs.previsInspectors.yIsTheHeightOfTheFeetAboveTheGround") : undefined}>
-                        <TransformFields transform={rendered} onChange={onTransformEdit} scaleLabel={isActor ? translate("canvasB.sizePicker.placeholder") : translate("canvasTools.previs.previsInspectors.size")} scaleUnit={isActor ? "×" : translate("canvasTools.previs.scaleFactorUnit")} scaleAxisLabels={isActor ? undefined : ["W", "H", "D"]} />
+                        <TransformFields
+                            transform={rendered}
+                            onChange={onTransformEdit}
+                            scaleLabel={isActor ? translate("canvasB.sizePicker.placeholder") : translate("canvasTools.previs.previsInspectors.size")}
+                            scaleUnit={isActor ? "×" : translate("canvasTools.previs.scaleFactorUnit")}
+                            scaleAxisLabels={isActor ? undefined : ["W", "H", "D"]}
+                        />
                         <Button size="small" block disabled={grounded} onClick={() => onTransformEdit(dropPrevisObjectToGround({ ...object, transform: rendered, keyframes: [] }).transform)}>
                             {translate("canvasTools.previs.previsInspectors.snapToGround")}
                         </Button>
@@ -396,14 +439,26 @@ export function ObjectInspector({
                                     onChange={(archetype: PrevisActorArchetype) => onUpdate({ archetype, actorProfile: previsActorProfileForArchetype(archetype) })}
                                 />
                             </Field>
-                            <ProfileSlider label={translate("canvasTools.previs.previsInspectors.height")} min={0.5} max={1.5} value={profile.height} suffix={`${(profile.height * PREVIS_MANNEQUIN_HEIGHT).toFixed(2)}m`} onChange={(height) => updateProfile({ height })} />
+                            <ProfileSlider
+                                label={translate("canvasTools.previs.previsInspectors.height")}
+                                min={0.5}
+                                max={1.5}
+                                value={profile.height}
+                                suffix={`${(profile.height * PREVIS_MANNEQUIN_HEIGHT).toFixed(2)}m`}
+                                onChange={(height) => updateProfile({ height })}
+                            />
                             <ProfileSlider label={translate("canvasTools.previs.previsInspectors.shoulderWidth")} min={0.6} max={1.5} value={profile.shoulderWidth} onChange={(shoulderWidth) => updateProfile({ shoulderWidth })} />
                             <ProfileSlider label={translate("canvasTools.previs.previsInspectors.torso")} min={0.7} max={1.3} value={profile.torsoRatio} onChange={(torsoRatio) => updateProfile({ torsoRatio })} />
                             <ProfileSlider label={translate("canvasTools.previs.previsInspectors.head")} min={0.7} max={1.5} value={profile.headRatio} onChange={(headRatio) => updateProfile({ headRatio })} />
                         </InspectorGroup>
                     ) : null}
                     <InspectorGroup title={translate("canvasA.characterStudio.groups.appearance")}>
-                        <ColorRow value={object.color} swatches={isActor ? PREVIS_ACTOR_SWATCHES : undefined} label={isActor ? translate("canvasTools.previs.previsInspectors.characterHexColor") : translate("canvasTools.previs.previsInspectors.hexColor")} onChange={(color) => onUpdate({ color })} />
+                        <ColorRow
+                            value={object.color}
+                            swatches={isActor ? PREVIS_ACTOR_SWATCHES : undefined}
+                            label={isActor ? translate("canvasTools.previs.previsInspectors.characterHexColor") : translate("canvasTools.previs.previsInspectors.hexColor")}
+                            onChange={(color) => onUpdate({ color })}
+                        />
                         <div className="previs-inspector-toggles">
                             <label className="previs-inspector-toggle">
                                 <span>{translate("canvasTools.previs.previsInspectors.visible")}</span>
@@ -595,7 +650,13 @@ export function ShotInspector({
                 {capabilities.timeline && camera ? (
                     <>
                         <div className="previs-anim-guide__actions">
-                            <Button size="small" icon={<Video className="size-3.5" />} disabled={shot.cameraMove === "static"} title={translate("canvasTools.previs.previsInspectors.generateStartAndEndKeyframesFromTheSelectedCameraMovement")} onClick={onApplyCameraMove}>
+                            <Button
+                                size="small"
+                                icon={<Video className="size-3.5" />}
+                                disabled={shot.cameraMove === "static"}
+                                title={translate("canvasTools.previs.previsInspectors.generateStartAndEndKeyframesFromTheSelectedCameraMovement")}
+                                onClick={onApplyCameraMove}
+                            >
                                 {translate("canvasTools.previs.previsInspectors.generateCameraMovement")}
                             </Button>
                             <Button size="small" type={pathDrawing ? "primary" : "default"} icon={<Route className="size-3.5" />} onClick={onToggleDrawPath}>
@@ -617,7 +678,12 @@ export function ShotInspector({
                 ) : null}
             </InspectorGroup>
             <InspectorGroup title={translate("canvasTools.previs.previsInspectors.shotIntent")}>
-                <Input.TextArea autoSize={{ minRows: 2, maxRows: 6 }} value={shot.prompt} placeholder={translate("canvasTools.previs.previsInspectors.characterPerformanceActionsAndNarrativeGoalsAddedToTheGeneration")} onChange={(event) => onUpdateShot({ prompt: event.target.value })} />
+                <Input.TextArea
+                    autoSize={{ minRows: 2, maxRows: 6 }}
+                    value={shot.prompt}
+                    placeholder={translate("canvasTools.previs.previsInspectors.characterPerformanceActionsAndNarrativeGoalsAddedToTheGeneration")}
+                    onChange={(event) => onUpdateShot({ prompt: event.target.value })}
+                />
             </InspectorGroup>
         </Inspector>
     );
@@ -667,7 +733,14 @@ export function TransformFields({
     return (
         <>
             <Vec3Field label={translate("canvasTools.previs.previsInspectors.position")} unit="m" value={transform.position} onChange={(position) => onChange({ ...transform, position })} />
-            <Vec3Field label={translate("canvasTools.previs.previsInspectors.rotate")} unit="°" value={degrees} step={5} precision={1} onChange={(rotation) => onChange({ ...transform, rotation: rotation.map((value) => value / RAD_TO_DEG) as PrevisVec3 })} />
+            <Vec3Field
+                label={translate("canvasTools.previs.previsInspectors.rotate")}
+                unit="°"
+                value={degrees}
+                step={5}
+                precision={1}
+                onChange={(rotation) => onChange({ ...transform, rotation: rotation.map((value) => value / RAD_TO_DEG) as PrevisVec3 })}
+            />
             <Vec3Field label={scaleLabel} unit={scaleUnit} value={transform.scale} step={0.1} axisLabels={scaleAxisLabels} onChange={(scale) => onChange({ ...transform, scale })} />
         </>
     );

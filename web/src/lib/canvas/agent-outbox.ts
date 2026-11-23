@@ -9,7 +9,6 @@ import type { AgentPermissionMode, AgentReasoningMode, AgentRun } from "@/servic
 import { canvasResourceMentionToken, type CanvasResourceReference } from "@/lib/canvas/canvas-resource-references";
 import { translate } from "@/i18n";
 
-
 export const AGENT_OUTBOX_MAX_ITEMS = 5;
 /** 与后端 validateCloudAgentRequest 的提示词上限一致。 */
 export const AGENT_PROMPT_MAX_CHARS = 16000;

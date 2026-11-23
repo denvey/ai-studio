@@ -10,7 +10,6 @@ import { AdminPageFrame } from "../components/admin-shell";
 import { AdminStatTile, AdminStatusBadge, SettingsSectionCard } from "../components/admin-ui";
 import { currentLocale, translate } from "@/i18n";
 
-
 type PolicyGroup = "resource" | "storage" | "task" | "request";
 type RuntimePolicyDraft = Pick<RuntimePolicySetting, "resource" | "storage" | "task" | "request">;
 type PolicyField = { group: PolicyGroup; name: string; label: string; extra: string; unit: string; min?: number; max: number };
@@ -25,39 +24,218 @@ type PolicySectionDefinition = {
 };
 
 const resourceFields: PolicyField[] = [
-    { group: "resource", name: "resourceUploadMB", label: translate("adminPages.settings.runtimePolicySettingsPage.singleRegularResourceFile"), extra: translate("adminPages.settings.runtimePolicySettingsPage.perFileLimitForAssetUploadsAndRemoteImports"), unit: "MB", max: 999 },
-    { group: "resource", name: "generatedFileMB", label: translate("adminPages.settings.runtimePolicySettingsPage.aSingleGeneratedResource"), extra: translate("adminPages.settings.runtimePolicySettingsPage.perFileLimitForUpstreamGenerationResponsesAndStoredResources"), unit: "MB", max: 999 },
-    { group: "resource", name: "dailyUploadMB", label: translate("adminPages.settings.runtimePolicySettingsPage.dailyUploadTotal"), extra: translate("adminPages.settings.runtimePolicySettingsPage.resourceAndAttachmentUploadsAreCountedPerUTCCalendarDay"), unit: "MB", max: 999_999 },
-    { group: "resource", name: "storedFileGB", label: translate("adminPages.settings.runtimePolicySettingsPage.totalAccountFiles"), extra: translate("adminPages.settings.runtimePolicySettingsPage.totalOfResourceFilesAndAgentSessionAttachments"), unit: "GB", max: 999 },
-    { group: "resource", name: "structuredDataMB", label: translate("adminPages.settings.runtimePolicySettingsPage.totalStructuredData"), extra: translate("adminPages.settings.runtimePolicySettingsPage.totalStructuredDataForCanvasesAssetsAndAgentSessions"), unit: "MB", max: 999_999 },
-    { group: "resource", name: "taskDataGB", label: translate("adminPages.settings.runtimePolicySettingsPage.totalTaskData"), extra: translate("adminPages.settings.runtimePolicySettingsPage.totalOfTaskHistoryResultsAndUpstreamRequestLogs"), unit: "GB", max: 999 },
-    { group: "resource", name: "assetCount", label: translate("adminPages.settings.runtimePolicySettingsPage.assets"), extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfAssetRecordsAnAccountCanStore"), unit: translate("account.layout.pagination.item"), max: 999_999_999 },
-    { group: "resource", name: "canvasCount", label: translate("adminPages.settings.runtimePolicySettingsPage.canvases"), extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfCanvasesAnAccountCanStore"), unit: translate("adminPages.settings.runtimePolicySettingsPage.items"), max: 999_999_999 },
-    { group: "resource", name: "taskCount", label: translate("adminPages.settings.runtimePolicySettingsPage.taskHistoryEntries"), extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfTaskHistoryRecordsRetainedPerAccount"), unit: translate("account.layout.pagination.item"), max: 999_999_999 },
-    { group: "resource", name: "apiCallLogCount", label: translate("adminPages.settings.runtimePolicySettingsPage.requestLogs"), extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfUpstreamRequestLogsRetainedPerAccount"), unit: translate("account.layout.pagination.item"), max: 999_999_999 },
-    { group: "resource", name: "recycleBinRetentionDays", label: translate("adminPages.settings.runtimePolicySettingsPage.recycleBinAutomaticCleanupInterval"), extra: translate("adminPages.settings.runtimePolicySettingsPage.daysBeforeAssetsInTheRecycleBinArePermanentlyDeleted"), unit: translate("adminPages.settings.runtimePolicySettingsPage.days"), min: 0, max: 365 },
+    {
+        group: "resource",
+        name: "resourceUploadMB",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.singleRegularResourceFile"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.perFileLimitForAssetUploadsAndRemoteImports"),
+        unit: "MB",
+        max: 999,
+    },
+    {
+        group: "resource",
+        name: "generatedFileMB",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.aSingleGeneratedResource"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.perFileLimitForUpstreamGenerationResponsesAndStoredResources"),
+        unit: "MB",
+        max: 999,
+    },
+    {
+        group: "resource",
+        name: "dailyUploadMB",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.dailyUploadTotal"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.resourceAndAttachmentUploadsAreCountedPerUTCCalendarDay"),
+        unit: "MB",
+        max: 999_999,
+    },
+    {
+        group: "resource",
+        name: "storedFileGB",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.totalAccountFiles"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.totalOfResourceFilesAndAgentSessionAttachments"),
+        unit: "GB",
+        max: 999,
+    },
+    {
+        group: "resource",
+        name: "structuredDataMB",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.totalStructuredData"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.totalStructuredDataForCanvasesAssetsAndAgentSessions"),
+        unit: "MB",
+        max: 999_999,
+    },
+    {
+        group: "resource",
+        name: "taskDataGB",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.totalTaskData"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.totalOfTaskHistoryResultsAndUpstreamRequestLogs"),
+        unit: "GB",
+        max: 999,
+    },
+    {
+        group: "resource",
+        name: "assetCount",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.assets"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfAssetRecordsAnAccountCanStore"),
+        unit: translate("account.layout.pagination.item"),
+        max: 999_999_999,
+    },
+    {
+        group: "resource",
+        name: "canvasCount",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.canvases"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfCanvasesAnAccountCanStore"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.items"),
+        max: 999_999_999,
+    },
+    {
+        group: "resource",
+        name: "taskCount",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.taskHistoryEntries"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfTaskHistoryRecordsRetainedPerAccount"),
+        unit: translate("account.layout.pagination.item"),
+        max: 999_999_999,
+    },
+    {
+        group: "resource",
+        name: "apiCallLogCount",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.requestLogs"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfUpstreamRequestLogsRetainedPerAccount"),
+        unit: translate("account.layout.pagination.item"),
+        max: 999_999_999,
+    },
+    {
+        group: "resource",
+        name: "recycleBinRetentionDays",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.recycleBinAutomaticCleanupInterval"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.daysBeforeAssetsInTheRecycleBinArePermanentlyDeleted"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.days"),
+        min: 0,
+        max: 365,
+    },
 ];
 
 const storageFields: PolicyField[] = [
-    { group: "storage", name: "transferTimeoutSeconds", label: translate("adminPages.settings.runtimePolicySettingsPage.objectStorageTransferTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumWaitTimeForObjectStorageUploadsDownloadsDeletionsAnd"), unit: translate("account.settings.models.unitSecond"), min: 10, max: 3_600 },
-    { group: "storage", name: "accessURLTTLSeconds", label: translate("adminPages.settings.runtimePolicySettingsPage.accessURLValidity"), extra: translate("adminPages.settings.runtimePolicySettingsPage.validityOfSignedURLsUsedByBrowsersToAccessObject"), unit: translate("account.settings.models.unitSecond"), min: 60, max: 86_400 },
-    { group: "storage", name: "providerAccessURLTTLSeconds", label: translate("adminPages.settings.runtimePolicySettingsPage.providerAccessURLValidity"), extra: translate("adminPages.settings.runtimePolicySettingsPage.validityOfURLsUsedByModelsOrOtherExternalProviders"), unit: translate("account.settings.models.unitSecond"), min: 300, max: 86_400 },
-    { group: "storage", name: "nonSeekableBufferMB", label: translate("adminPages.settings.runtimePolicySettingsPage.nonSeekableUploadBuffer"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumMemoryBufferForS3CompatibleStorageWhenReceivingA"), unit: "MB", max: 999 },
-    { group: "storage", name: "errorBodyKB", label: translate("adminPages.settings.runtimePolicySettingsPage.errorResponseRetention"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumDiagnosticContentRetainedFromObjectStorageErrorResponses"), unit: "KB", max: 1_024 },
+    {
+        group: "storage",
+        name: "transferTimeoutSeconds",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.objectStorageTransferTimeout"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumWaitTimeForObjectStorageUploadsDownloadsDeletionsAnd"),
+        unit: translate("account.settings.models.unitSecond"),
+        min: 10,
+        max: 3_600,
+    },
+    {
+        group: "storage",
+        name: "accessURLTTLSeconds",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.accessURLValidity"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.validityOfSignedURLsUsedByBrowsersToAccessObject"),
+        unit: translate("account.settings.models.unitSecond"),
+        min: 60,
+        max: 86_400,
+    },
+    {
+        group: "storage",
+        name: "providerAccessURLTTLSeconds",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.providerAccessURLValidity"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.validityOfURLsUsedByModelsOrOtherExternalProviders"),
+        unit: translate("account.settings.models.unitSecond"),
+        min: 300,
+        max: 86_400,
+    },
+    {
+        group: "storage",
+        name: "nonSeekableBufferMB",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.nonSeekableUploadBuffer"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumMemoryBufferForS3CompatibleStorageWhenReceivingA"),
+        unit: "MB",
+        max: 999,
+    },
+    {
+        group: "storage",
+        name: "errorBodyKB",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.errorResponseRetention"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumDiagnosticContentRetainedFromObjectStorageErrorResponses"),
+        unit: "KB",
+        max: 1_024,
+    },
 ];
 const concurrencyFields: PolicyField[] = [
-    { group: "task", name: "workerConcurrency", label: translate("adminPages.settings.runtimePolicySettingsPage.workerConcurrency"), extra: translate("adminPages.settings.runtimePolicySettingsPage.backgroundTasksTheClusterRunsConcurrently"), unit: translate("adminPages.settings.runtimePolicySettingsPage.items"), max: 999 },
-    { group: "task", name: "channelConcurrency", label: translate("adminPages.settings.runtimePolicySettingsPage.globalChannelConcurrency"), extra: translate("adminPages.settings.runtimePolicySettingsPage.concurrencyLimitUsedWhenChannelSelectionFollowsTheSystemDefault"), unit: translate("adminPages.settings.runtimePolicySettingsPage.items"), max: 999 },
-    { group: "task", name: "activeTaskLimit", label: translate("adminPages.settings.runtimePolicySettingsPage.accountActiveTasks"), extra: translate("adminPages.settings.runtimePolicySettingsPage.totalTasksQueuedOrRunningAtOncePerAccountAcross"), unit: translate("adminPages.settings.runtimePolicySettingsPage.items"), max: 999 },
+    {
+        group: "task",
+        name: "workerConcurrency",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.workerConcurrency"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.backgroundTasksTheClusterRunsConcurrently"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.items"),
+        max: 999,
+    },
+    {
+        group: "task",
+        name: "channelConcurrency",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.globalChannelConcurrency"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.concurrencyLimitUsedWhenChannelSelectionFollowsTheSystemDefault"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.items"),
+        max: 999,
+    },
+    {
+        group: "task",
+        name: "activeTaskLimit",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.accountActiveTasks"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.totalTasksQueuedOrRunningAtOncePerAccountAcross"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.items"),
+        max: 999,
+    },
 ];
 
 const timeoutFields: PolicyField[] = [
-    { group: "task", name: "imageTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.imageTaskTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeBeforeAnImageTaskIsMarkedFailed"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
-    { group: "task", name: "textTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.textTaskTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeForTextTasks"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
-    { group: "task", name: "audioTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.audioTaskTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeForAudioTasks"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
-    { group: "task", name: "videoTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.videoTaskTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeForVideoTasks"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
-    { group: "task", name: "storyboardTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.storyboardTaskTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeForAgentStoryboardTasks"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
-    { group: "task", name: "defaultTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.defaultTaskTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeUsedWhenNoSpecificTypeMatches"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
+    {
+        group: "task",
+        name: "imageTimeoutMinutes",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.imageTaskTimeout"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeBeforeAnImageTaskIsMarkedFailed"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"),
+        max: 9_999,
+    },
+    {
+        group: "task",
+        name: "textTimeoutMinutes",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.textTaskTimeout"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeForTextTasks"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"),
+        max: 9_999,
+    },
+    {
+        group: "task",
+        name: "audioTimeoutMinutes",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.audioTaskTimeout"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeForAudioTasks"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"),
+        max: 9_999,
+    },
+    {
+        group: "task",
+        name: "videoTimeoutMinutes",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.videoTaskTimeout"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeForVideoTasks"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"),
+        max: 9_999,
+    },
+    {
+        group: "task",
+        name: "storyboardTimeoutMinutes",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.storyboardTaskTimeout"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeForAgentStoryboardTasks"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"),
+        max: 9_999,
+    },
+    {
+        group: "task",
+        name: "defaultTimeoutMinutes",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.defaultTaskTimeout"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimeUsedWhenNoSpecificTypeMatches"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"),
+        max: 9_999,
+    },
 ];
 
 const agentFields: PolicyField[] = [
@@ -90,32 +268,172 @@ const agentFields: PolicyField[] = [
 ];
 
 const rateFields: PolicyField[] = [
-    { group: "request", name: "taskCreatePerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.taskCreated"), extra: translate("adminPages.settings.runtimePolicySettingsPage.tasksThatCanBeCreatedPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
-    { group: "request", name: "resourceUploadPerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.resourceUploads"), extra: translate("adminPages.settings.runtimePolicySettingsPage.resourceUploadsPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
-    { group: "request", name: "resourceImportPerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.resourceImports"), extra: translate("adminPages.settings.runtimePolicySettingsPage.remoteResourceImportsPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
-    { group: "request", name: "assetWritePerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.assetWrites"), extra: translate("adminPages.settings.runtimePolicySettingsPage.assetWritesPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
-    { group: "request", name: "canvasWritePerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.canvasWrites"), extra: translate("adminPages.settings.runtimePolicySettingsPage.canvasWritesPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
-    { group: "request", name: "registerPerHour", label: translate("adminPages.settings.runtimePolicySettingsPage.accountRegistration"), extra: translate("adminPages.settings.runtimePolicySettingsPage.registrationRequestsAllowedPerIPPerHourIncludingFailedAttempts"), unit: translate("adminPages.settings.runtimePolicySettingsPage.hour"), max: 999_999 },
-    { group: "request", name: "emailCodePerHour", label: translate("auth.recovery.code"), extra: translate("adminPages.settings.runtimePolicySettingsPage.verificationCodeRequestsPerIPPerHourAtLeast60"), unit: translate("adminPages.settings.runtimePolicySettingsPage.hour"), max: 999_999 },
-    { group: "request", name: "loginIPPerTenMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.signInIP"), extra: translate("adminPages.settings.runtimePolicySettingsPage.signInAttemptsAllowedPerIPPer10Minutes"), unit: translate("adminPages.settings.runtimePolicySettingsPage.item10Min"), max: 999_999 },
-    { group: "request", name: "loginAccountPerTenMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.accountAndIPCombination"), extra: translate("adminPages.settings.runtimePolicySettingsPage.signInAttemptsPer10MinutesForAGivenIP"), unit: translate("adminPages.settings.runtimePolicySettingsPage.item10Min"), max: 999_999 },
-    { group: "request", name: "systemRelayPerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.systemChannelRelay"), extra: translate("adminPages.settings.runtimePolicySettingsPage.systemChannelRequestsPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
-    { group: "request", name: "customRelayPerMinute", label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelRelay"), extra: translate("adminPages.settings.runtimePolicySettingsPage.customChannelRequestsPerAccountPerMinute"), unit: translate("adminPages.settings.runtimePolicySettingsPage.min"), max: 999_999 },
+    {
+        group: "request",
+        name: "taskCreatePerMinute",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.taskCreated"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.tasksThatCanBeCreatedPerAccountPerMinute"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.min"),
+        max: 999_999,
+    },
+    {
+        group: "request",
+        name: "resourceUploadPerMinute",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.resourceUploads"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.resourceUploadsPerAccountPerMinute"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.min"),
+        max: 999_999,
+    },
+    {
+        group: "request",
+        name: "resourceImportPerMinute",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.resourceImports"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.remoteResourceImportsPerAccountPerMinute"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.min"),
+        max: 999_999,
+    },
+    {
+        group: "request",
+        name: "assetWritePerMinute",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.assetWrites"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.assetWritesPerAccountPerMinute"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.min"),
+        max: 999_999,
+    },
+    {
+        group: "request",
+        name: "canvasWritePerMinute",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.canvasWrites"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.canvasWritesPerAccountPerMinute"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.min"),
+        max: 999_999,
+    },
+    {
+        group: "request",
+        name: "registerPerHour",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.accountRegistration"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.registrationRequestsAllowedPerIPPerHourIncludingFailedAttempts"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.hour"),
+        max: 999_999,
+    },
+    {
+        group: "request",
+        name: "emailCodePerHour",
+        label: translate("auth.recovery.code"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.verificationCodeRequestsPerIPPerHourAtLeast60"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.hour"),
+        max: 999_999,
+    },
+    {
+        group: "request",
+        name: "loginIPPerTenMinutes",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.signInIP"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.signInAttemptsAllowedPerIPPer10Minutes"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.item10Min"),
+        max: 999_999,
+    },
+    {
+        group: "request",
+        name: "loginAccountPerTenMinutes",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.accountAndIPCombination"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.signInAttemptsPer10MinutesForAGivenIP"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.item10Min"),
+        max: 999_999,
+    },
+    {
+        group: "request",
+        name: "systemRelayPerMinute",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.systemChannelRelay"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.systemChannelRequestsPerAccountPerMinute"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.min"),
+        max: 999_999,
+    },
+    {
+        group: "request",
+        name: "customRelayPerMinute",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelRelay"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.customChannelRequestsPerAccountPerMinute"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.min"),
+        max: 999_999,
+    },
 ];
 
 const relayFields: PolicyField[] = [
-    { group: "request", name: "customRelayConcurrency", label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelConcurrency"), extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfConcurrentCustomChannelRequestsPerAccount"), unit: translate("adminPages.settings.runtimePolicySettingsPage.items"), max: 999 },
-    { group: "request", name: "customRelayRequestMB", label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelRequestBody"), extra: translate("adminPages.settings.runtimePolicySettingsPage.requestBodyLimitWhenRelayingToCustomUpstreams"), unit: "MB", max: 999 },
-    { group: "request", name: "customRelayResponseMB", label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelResponseBody"), extra: translate("adminPages.settings.runtimePolicySettingsPage.readLimitForCustomUpstreamJSONAndStreamingResponses"), unit: "MB", max: 999 },
-    { group: "request", name: "customRelayTimeoutMinutes", label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelTimeout"), extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumWaitTimeForCustomChannelConnectionsAndResponses"), unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"), max: 9_999 },
-    { group: "request", name: "systemRelayRequestMB", label: translate("adminPages.settings.runtimePolicySettingsPage.systemChannelRequestBody"), extra: translate("adminPages.settings.runtimePolicySettingsPage.requestBodyLimitWhenRelayingToSystemChannels"), unit: "MB", max: 999 },
-    { group: "request", name: "systemRelayResponseMB", label: translate("adminPages.settings.runtimePolicySettingsPage.systemChannelResponseBody"), extra: translate("adminPages.settings.runtimePolicySettingsPage.readLimitForUpstreamResponsesOnSystemChannels"), unit: "MB", max: 999 },
-    { group: "request", name: "channelCircuitFailureCount", label: translate("adminPages.settings.runtimePolicySettingsPage.circuitBreakerFailureThreshold"), extra: translate("adminPages.settings.runtimePolicySettingsPage.theCircuitBreakerOpensAfterThisManyConsecutiveFailuresWithin"), unit: translate("account.settings.models.unitCall"), max: 999 },
-    { group: "request", name: "channelCircuitOpenSeconds", label: translate("adminPages.settings.runtimePolicySettingsPage.circuitBreakerDuration"), extra: translate("adminPages.settings.runtimePolicySettingsPage.howLongRequestsAreRejectedOnceTheChannelSCircuit"), unit: translate("account.settings.models.unitSecond"), max: 86_400 },
+    {
+        group: "request",
+        name: "customRelayConcurrency",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelConcurrency"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.numberOfConcurrentCustomChannelRequestsPerAccount"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.items"),
+        max: 999,
+    },
+    {
+        group: "request",
+        name: "customRelayRequestMB",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelRequestBody"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.requestBodyLimitWhenRelayingToCustomUpstreams"),
+        unit: "MB",
+        max: 999,
+    },
+    {
+        group: "request",
+        name: "customRelayResponseMB",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelResponseBody"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.readLimitForCustomUpstreamJSONAndStreamingResponses"),
+        unit: "MB",
+        max: 999,
+    },
+    {
+        group: "request",
+        name: "customRelayTimeoutMinutes",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.customChannelTimeout"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.maximumWaitTimeForCustomChannelConnectionsAndResponses"),
+        unit: translate("adminPages.settings.runtimePolicySettingsPage.minutes"),
+        max: 9_999,
+    },
+    {
+        group: "request",
+        name: "systemRelayRequestMB",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.systemChannelRequestBody"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.requestBodyLimitWhenRelayingToSystemChannels"),
+        unit: "MB",
+        max: 999,
+    },
+    {
+        group: "request",
+        name: "systemRelayResponseMB",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.systemChannelResponseBody"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.readLimitForUpstreamResponsesOnSystemChannels"),
+        unit: "MB",
+        max: 999,
+    },
+    {
+        group: "request",
+        name: "channelCircuitFailureCount",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.circuitBreakerFailureThreshold"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.theCircuitBreakerOpensAfterThisManyConsecutiveFailuresWithin"),
+        unit: translate("account.settings.models.unitCall"),
+        max: 999,
+    },
+    {
+        group: "request",
+        name: "channelCircuitOpenSeconds",
+        label: translate("adminPages.settings.runtimePolicySettingsPage.circuitBreakerDuration"),
+        extra: translate("adminPages.settings.runtimePolicySettingsPage.howLongRequestsAreRejectedOnceTheChannelSCircuit"),
+        unit: translate("account.settings.models.unitSecond"),
+        max: 86_400,
+    },
 ];
 
 const policySections: PolicySectionDefinition[] = [
-    { id: "policy-resource", icon: <Database className="size-4" aria-hidden="true" />, title: translate("adminPages.settings.runtimePolicySettingsPage.resourceAndAccountQuotas"), shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.resourceQuotas"), description: translate("adminPages.settings.runtimePolicySettingsPage.limitsForUploadsFileSizeStructuredDataAndHistory"), fields: resourceFields },
+    {
+        id: "policy-resource",
+        icon: <Database className="size-4" aria-hidden="true" />,
+        title: translate("adminPages.settings.runtimePolicySettingsPage.resourceAndAccountQuotas"),
+        shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.resourceQuotas"),
+        description: translate("adminPages.settings.runtimePolicySettingsPage.limitsForUploadsFileSizeStructuredDataAndHistory"),
+        fields: resourceFields,
+    },
     {
         id: "policy-storage",
         icon: <Database className="size-4" aria-hidden="true" />,
@@ -134,7 +452,14 @@ const policySections: PolicySectionDefinition[] = [
         fields: concurrencyFields,
         status: <AdminStatusBadge label={translate("adminPages.settings.runtimePolicySettingsPage.hotReloadedAfterSaving")} tone="info" />,
     },
-    { id: "policy-timeout", icon: <TimerReset className="size-4" aria-hidden="true" />, title: translate("adminPages.settings.runtimePolicySettingsPage.taskTimeout"), shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.taskTimeout"), description: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimePerGenerationType"), fields: timeoutFields },
+    {
+        id: "policy-timeout",
+        icon: <TimerReset className="size-4" aria-hidden="true" />,
+        title: translate("adminPages.settings.runtimePolicySettingsPage.taskTimeout"),
+        shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.taskTimeout"),
+        description: translate("adminPages.settings.runtimePolicySettingsPage.maximumRunTimePerGenerationType"),
+        fields: timeoutFields,
+    },
     {
         id: "policy-agent",
         icon: <Orbit className="size-4" aria-hidden="true" />,
@@ -144,8 +469,22 @@ const policySections: PolicySectionDefinition[] = [
         fields: agentFields,
         status: <AdminStatusBadge label={translate("adminPages.settings.runtimePolicySettingsPage.hotReloadedAfterSaving")} tone="info" />,
     },
-    { id: "policy-rate", icon: <ShieldCheck className="size-4" aria-hidden="true" />, title: translate("adminPages.settings.runtimePolicySettingsPage.businessRateLimits"), shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.businessRateLimits"), description: translate("adminPages.settings.runtimePolicySettingsPage.fixedWindowRequestLimitsByAccountAndIP"), fields: rateFields },
-    { id: "policy-relay", icon: <Network className="size-4" aria-hidden="true" />, title: translate("adminPages.settings.runtimePolicySettingsPage.channelRelayingAndCircuitBreaking"), shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.relayAndCircuitBreakers"), description: translate("adminPages.settings.runtimePolicySettingsPage.requestBodyResponseBodyConcurrencyTimeoutsAndUpstreamFailureProtection"), fields: relayFields },
+    {
+        id: "policy-rate",
+        icon: <ShieldCheck className="size-4" aria-hidden="true" />,
+        title: translate("adminPages.settings.runtimePolicySettingsPage.businessRateLimits"),
+        shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.businessRateLimits"),
+        description: translate("adminPages.settings.runtimePolicySettingsPage.fixedWindowRequestLimitsByAccountAndIP"),
+        fields: rateFields,
+    },
+    {
+        id: "policy-relay",
+        icon: <Network className="size-4" aria-hidden="true" />,
+        title: translate("adminPages.settings.runtimePolicySettingsPage.channelRelayingAndCircuitBreaking"),
+        shortTitle: translate("adminPages.settings.runtimePolicySettingsPage.relayAndCircuitBreakers"),
+        description: translate("adminPages.settings.runtimePolicySettingsPage.requestBodyResponseBodyConcurrencyTimeoutsAndUpstreamFailureProtection"),
+        fields: relayFields,
+    },
 ];
 const allPolicyFields = policySections.flatMap((section) => section.fields);
 
@@ -288,7 +627,11 @@ export default function RuntimePolicySettingsPage() {
             content: (
                 <div className="admin-runtime-policy-confirm-copy">
                     <p>{translate("adminPages.settings.runtimePolicySettingsPage.thisSetsAll42QuotaConcurrencyRateAndTimeoutValues")}</p>
-                    <p>{dirty ? translate("adminPages.settings.runtimePolicySettingsPage.theCurrentDraftChangesWillBeOverwritten", { v0: String(dirtyFields.length) }) : translate("adminPages.settings.runtimePolicySettingsPage.onlyTheDraftOnThisPageChangesSaveChangesTo")}</p>
+                    <p>
+                        {dirty
+                            ? translate("adminPages.settings.runtimePolicySettingsPage.theCurrentDraftChangesWillBeOverwritten", { v0: String(dirtyFields.length) })
+                            : translate("adminPages.settings.runtimePolicySettingsPage.onlyTheDraftOnThisPageChangesSaveChangesTo")}
+                    </p>
                 </div>
             ),
             okText: translate("adminPages.settings.runtimePolicySettingsPage.fillDraft"),
@@ -324,7 +667,11 @@ export default function RuntimePolicySettingsPage() {
             content: (
                 <div className="admin-runtime-policy-confirm-copy">
                     <p>{translate("adminPages.settings.runtimePolicySettingsPage.thisDeletesAdminSavedCustomPoliciesAndImmediatelyRestoresAll")}</p>
-                    {dirty ? <p>{translate("canvasB.mediaVersion.current")} {dirtyFields.length} {translate("adminPages.settings.runtimePolicySettingsPage.unsavedChangesWillAlsoBeDiscarded")}</p> : null}
+                    {dirty ? (
+                        <p>
+                            {translate("canvasB.mediaVersion.current")} {dirtyFields.length} {translate("adminPages.settings.runtimePolicySettingsPage.unsavedChangesWillAlsoBeDiscarded")}
+                        </p>
+                    ) : null}
                 </div>
             ),
             okText: translate("adminPages.settings.runtimePolicySettingsPage.restoreSystemDefaults"),
@@ -463,8 +810,19 @@ export default function RuntimePolicySettingsPage() {
                             </span>
                             <div>
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <strong>{dirty ? translate("adminPages.settings.runtimePolicySettingsPage.unsavedChanges", { v0: String(dirtyFields.length) }) : translate("adminPages.settings.runtimePolicySettingsPage.resourceAndPolicyStatusSynced")}</strong>
-                                    <AdminStatusBadge label={dirty ? translate("adminPages.settings.runtimePolicySettingsPage.notYetApplied") : savedSetting.configured ? translate("adminPages.settings.runtimePolicySettingsPage.adminConfiguration") : translate("adminPages.settings.runtimePolicySettingsPage.systemDefault")} tone={dirty ? "warning" : savedSetting.configured ? "success" : "neutral"} />
+                                    <strong>
+                                        {dirty ? translate("adminPages.settings.runtimePolicySettingsPage.unsavedChanges", { v0: String(dirtyFields.length) }) : translate("adminPages.settings.runtimePolicySettingsPage.resourceAndPolicyStatusSynced")}
+                                    </strong>
+                                    <AdminStatusBadge
+                                        label={
+                                            dirty
+                                                ? translate("adminPages.settings.runtimePolicySettingsPage.notYetApplied")
+                                                : savedSetting.configured
+                                                  ? translate("adminPages.settings.runtimePolicySettingsPage.adminConfiguration")
+                                                  : translate("adminPages.settings.runtimePolicySettingsPage.systemDefault")
+                                        }
+                                        tone={dirty ? "warning" : savedSetting.configured ? "success" : "neutral"}
+                                    />
                                 </div>
                                 <p>{dirty ? translate("adminPages.settings.runtimePolicySettingsPage.changesAreDraftsOnThisPageTheyAffectRunningOperations") : updateDetail}</p>
                             </div>
@@ -502,10 +860,34 @@ export default function RuntimePolicySettingsPage() {
                     ) : null}
 
                     <div className="admin-runtime-policy-overview" aria-label={translate("adminPages.settings.runtimePolicySettingsPage.resourceAndPolicyOverview")}>
-                        <AdminStatTile label={translate("adminPages.settings.runtimePolicySettingsPage.configurationSource")} value={savedSetting.configured ? translate("adminPages.settings.runtimePolicySettingsPage.adminConfiguration") : translate("adminPages.settings.runtimePolicySettingsPage.systemDefault")} detail={updateDetail} />
-                        <AdminStatTile label={translate("adminPages.settings.runtimePolicySettingsPage.unsavedChanges2")} value={dirtyFields.length} detail={dirty ? translate("adminPages.settings.runtimePolicySettingsPage.draftOnThisPageNotYetApplied") : translate("adminPages.settings.runtimePolicySettingsPage.currentDraftMatchesTheServer")} />
-                        <AdminStatTile label={translate("adminPages.settings.runtimePolicySettingsPage.workerConcurrency")} value={formatNumber(workerConcurrency)} detail={dirtyFields.some((field) => field.name === "workerConcurrency") ? translate("adminPages.settings.runtimePolicySettingsPage.draftStatusPreview") : translate("adminPages.settings.runtimePolicySettingsPage.clusterBackgroundTaskConcurrency")} />
-                        <AdminStatTile label={translate("adminPages.settings.runtimePolicySettingsPage.accountActiveTasks")} value={formatNumber(activeTaskLimit)} detail={dirtyFields.some((field) => field.name === "activeTaskLimit") ? translate("adminPages.settings.runtimePolicySettingsPage.draftStatusPreview") : translate("adminPages.settings.runtimePolicySettingsPage.queuedAndRunningTasksPerAccount")} />
+                        <AdminStatTile
+                            label={translate("adminPages.settings.runtimePolicySettingsPage.configurationSource")}
+                            value={savedSetting.configured ? translate("adminPages.settings.runtimePolicySettingsPage.adminConfiguration") : translate("adminPages.settings.runtimePolicySettingsPage.systemDefault")}
+                            detail={updateDetail}
+                        />
+                        <AdminStatTile
+                            label={translate("adminPages.settings.runtimePolicySettingsPage.unsavedChanges2")}
+                            value={dirtyFields.length}
+                            detail={dirty ? translate("adminPages.settings.runtimePolicySettingsPage.draftOnThisPageNotYetApplied") : translate("adminPages.settings.runtimePolicySettingsPage.currentDraftMatchesTheServer")}
+                        />
+                        <AdminStatTile
+                            label={translate("adminPages.settings.runtimePolicySettingsPage.workerConcurrency")}
+                            value={formatNumber(workerConcurrency)}
+                            detail={
+                                dirtyFields.some((field) => field.name === "workerConcurrency")
+                                    ? translate("adminPages.settings.runtimePolicySettingsPage.draftStatusPreview")
+                                    : translate("adminPages.settings.runtimePolicySettingsPage.clusterBackgroundTaskConcurrency")
+                            }
+                        />
+                        <AdminStatTile
+                            label={translate("adminPages.settings.runtimePolicySettingsPage.accountActiveTasks")}
+                            value={formatNumber(activeTaskLimit)}
+                            detail={
+                                dirtyFields.some((field) => field.name === "activeTaskLimit")
+                                    ? translate("adminPages.settings.runtimePolicySettingsPage.draftStatusPreview")
+                                    : translate("adminPages.settings.runtimePolicySettingsPage.queuedAndRunningTasksPerAccount")
+                            }
+                        />
                     </div>
 
                     {policySections.map((section) => (

@@ -10,7 +10,6 @@ import { PluginMarkdown } from "./plugin-markdown";
 import "./plugins.css";
 import { translate } from "@/i18n";
 
-
 type UploadPluginModalProps = {
     open: boolean;
     onClose: () => void;
@@ -164,7 +163,9 @@ export function UploadPluginModal({ open, onClose, onUpload }: UploadPluginModal
                             ) : (
                                 <>
                                     <CloudUpload className="plugin-upload-dropzone-icon" />
-                                    <p className="ant-upload-text">{isDraggingPlugin ? translate("shared.plugins.pluginDocumentationModals.dropTheFileToUploadThePlugin") : translate("shared.plugins.pluginDocumentationModals.clickToSelectAPluginFileOrDragItHere")}</p>
+                                    <p className="ant-upload-text">
+                                        {isDraggingPlugin ? translate("shared.plugins.pluginDocumentationModals.dropTheFileToUploadThePlugin") : translate("shared.plugins.pluginDocumentationModals.clickToSelectAPluginFileOrDragItHere")}
+                                    </p>
                                     <p className="ant-upload-hint">{translate("shared.plugins.pluginDocumentationModals.supportsYingcePluginPackagesUpTo48MiB")}</p>
                                 </>
                             )}

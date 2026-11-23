@@ -18,7 +18,6 @@ import { buildBackendToolRequests, type ResponseFunctionTool, type ResponseInput
 import { assertAgentExchangeBudget } from "@/lib/canvas/agent-context-budget";
 import { translate } from "@/i18n";
 
-
 export { logicalModelIDForConfig };
 
 export type BackendGenerationMode = "text" | "image" | "video" | "audio";

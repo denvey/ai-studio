@@ -2,7 +2,6 @@ import { ChoiceBrowser } from "./choice-browser";
 import type { ModelProtocolDefinition, ProtocolCapability } from "@/lib/model-protocols";
 import { translate } from "@/i18n";
 
-
 export function ModelProtocolBrowser({
     capability,
     protocols,

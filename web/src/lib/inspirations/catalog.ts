@@ -2,7 +2,6 @@ import type { CreationMode } from "@/lib/creation-mode";
 import { HIGHLIGHT_REVISIONS } from "./source-revisions";
 import { translate } from "@/i18n";
 
-
 export type InspirationSourceId = "original" | "chatgpt-prompts" | "seedance" | "haohaoxue" | "youmind";
 
 export type InspirationSourceInfo = {

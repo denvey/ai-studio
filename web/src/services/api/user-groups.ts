@@ -1,7 +1,6 @@
 import { http } from "@/services/api/request";
 import { currentLocale, translate } from "@/i18n";
 
-
 /** 用户端分组徽章外观；none 不展示。 */
 export type UserGroupBadgeStyle = "none" | "vip" | "svip";
 

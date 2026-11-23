@@ -19,7 +19,6 @@ import { agentAvatarBundleFileURL, live2DModelURL, uploadAgentAvatarBundle, uplo
 import { AgentAvatarVideo } from "@/components/canvas/agent-avatar-video";
 import { translate } from "@/i18n";
 
-
 export function CanvasAppearanceEditor({ value, onChange, disabled, onUploading }: { value: CanvasAppearance; onChange: (value: CanvasAppearance) => void; disabled: boolean; onUploading: (value: boolean) => void }) {
     const { message } = App.useApp();
     const reducedMotion = useReducedMotion() ?? false;
@@ -112,7 +111,9 @@ export function CanvasAppearanceEditor({ value, onChange, disabled, onUploading 
         <div className="grid gap-6 lg:grid-cols-2">
             <div>
                 <h3 className="mb-3 font-semibold">{translate("adminPages.settings.canvasAppearanceEditor.agentIdentityAndText")}</h3>
-                <p className="mb-4 text-sm text-foreground/60">{translate("adminPages.settings.canvasAppearanceEditor.independentOfSiteBrandingTheAssistantNameIsUsedIn")} {"{agentName}"} {translate("adminPages.settings.canvasAppearanceEditor.toReferenceTheNameToolPermissionsAreUnchanged")}</p>
+                <p className="mb-4 text-sm text-foreground/60">
+                    {translate("adminPages.settings.canvasAppearanceEditor.independentOfSiteBrandingTheAssistantNameIsUsedIn")} {"{agentName}"} {translate("adminPages.settings.canvasAppearanceEditor.toReferenceTheNameToolPermissionsAreUnchanged")}
+                </p>
                 <Form layout="vertical" disabled={disabled || uploading}>
                     {(
                         [
@@ -145,9 +146,7 @@ export function CanvasAppearanceEditor({ value, onChange, disabled, onUploading 
                         change(type === "bundle" ? { avatarType: type, avatarClipStates: value.avatarClipStates || DEFAULT_AGENT_AVATAR_CLIP_STATES } : { avatarType: type });
                     }}
                 />
-                {value.avatarType === "live2d" ? (
-                    <p className="text-sm text-foreground/60">{translate("adminPages.settings.canvasAppearanceEditor.uploadAnAuthorizedCubism34RuntimeZIPWithOne")}</p>
-                ) : null}
+                {value.avatarType === "live2d" ? <p className="text-sm text-foreground/60">{translate("adminPages.settings.canvasAppearanceEditor.uploadAnAuthorizedCubism34RuntimeZIPWithOne")}</p> : null}
                 {value.avatarType === "bundle" ? (
                     <div className="grid gap-3">
                         <input
@@ -271,7 +270,14 @@ export function CanvasAppearanceEditor({ value, onChange, disabled, onUploading 
                 </div>
                 <label className="flex items-center gap-3 text-sm">
                     {translate("adminPages.settings.canvasAppearanceEditor.avatarHeight")}
-                    <InputNumber aria-label={translate("adminPages.settings.canvasAppearanceEditor.avatarHeight")} min={120} max={360} value={value.avatarHeight} disabled={disabled || uploading} onChange={(height) => height !== null && change({ avatarHeight: height })} />
+                    <InputNumber
+                        aria-label={translate("adminPages.settings.canvasAppearanceEditor.avatarHeight")}
+                        min={120}
+                        max={360}
+                        value={value.avatarHeight}
+                        disabled={disabled || uploading}
+                        onChange={(height) => height !== null && change({ avatarHeight: height })}
+                    />
                     px
                 </label>
                 <div className="grid justify-items-center gap-3 rounded-xl border border-border bg-background p-5" aria-label={translate("adminPages.settings.canvasAppearanceEditor.agentAvatarPreview")}>

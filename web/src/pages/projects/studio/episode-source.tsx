@@ -50,7 +50,8 @@ function CharCounter({ chars, limit }: { chars: number; limit: number }) {
     const over = chars > limit;
     return (
         <span className={`drama-composer-count ${over ? "is-over" : ""}`}>
-            {formatCount(chars)} / {formatCount(limit)} {translate("drama.studio.episodeSource.characters")}{over ? (" " + translate("drama.studio.episodeSource.dialogueBeyondThisLimitWillBeLostSplitTheContent")) : ""}
+            {formatCount(chars)} / {formatCount(limit)} {translate("drama.studio.episodeSource.characters")}
+            {over ? " " + translate("drama.studio.episodeSource.dialogueBeyondThisLimitWillBeLostSplitTheContent") : ""}
         </span>
     );
 }
@@ -184,7 +185,12 @@ export function AddEpisodeModal({
     const add = useMutation({
         mutationFn: () => addDramaEpisode(projectId, { title: title.trim(), text, sourceFormat: format, ...(placement ? { anchorEpisodeId: placement.anchorId, position: placement.position } : {}) }),
         onSuccess: (detail) => {
-            message.success(translate(placement ? (format === "novel" ? "drama.sentences.episodeInsertedAdaptation" : "drama.sentences.episodeInsertedBreakdown") : (format === "novel" ? "drama.sentences.episodeAddedAdaptation" : "drama.sentences.episodeAddedBreakdown"), { number: detail.episode.number }));
+            message.success(
+                translate(
+                    placement ? (format === "novel" ? "drama.sentences.episodeInsertedAdaptation" : "drama.sentences.episodeInsertedBreakdown") : format === "novel" ? "drama.sentences.episodeAddedAdaptation" : "drama.sentences.episodeAddedBreakdown",
+                    { number: detail.episode.number },
+                ),
+            );
             onAdded(detail.episode.id);
         },
         onError: (error) => message.error(error instanceof Error ? error.message : placement ? translate("drama.studio.episodeSource.insertionFailed") : translate("drama.studio.episodeSource.failedToAdd")),
@@ -193,7 +199,9 @@ export function AddEpisodeModal({
         <SourceComposer
             open={open}
             title={placement ? translate(placement.position === "before" ? "drama.sentences.insertEpisodeBefore" : "drama.sentences.insertEpisodeAfter", { number: placement.anchorNumber }) : translate("drama.sentences.addEpisode", { number: nextNumber })}
-            subtitle={placement ? translate("drama.studio.episodeSource.theNewEpisodeBecomesEpisodeAndLaterEpisodesAreRenumbered", { v0: String(nextNumber) }) : translate("drama.studio.episodeSource.includeOnlyThisEpisodeSContentEarlierEpisodesAreUnaffected")}
+            subtitle={
+                placement ? translate("drama.studio.episodeSource.theNewEpisodeBecomesEpisodeAndLaterEpisodesAreRenumbered", { v0: String(nextNumber) }) : translate("drama.studio.episodeSource.includeOnlyThisEpisodeSContentEarlierEpisodesAreUnaffected")
+            }
             format={format}
             onFormat={setFormat}
             text={text}
@@ -205,7 +213,13 @@ export function AddEpisodeModal({
             side={
                 <label className="drama-composer-field">
                     <span className="drama-composer-label">{translate("drama.studio.episodeSource.episodeTitle")}</span>
-                    <Input value={title} maxLength={60} placeholder={translate("drama.studio.episodeSource.leaveBlankForEpisode", { v0: String(nextNumber) })} aria-label={translate("drama.studio.episodeSource.episodeTitle")} onChange={(event) => setTitle(event.target.value)} />
+                    <Input
+                        value={title}
+                        maxLength={60}
+                        placeholder={translate("drama.studio.episodeSource.leaveBlankForEpisode", { v0: String(nextNumber) })}
+                        aria-label={translate("drama.studio.episodeSource.episodeTitle")}
+                        onChange={(event) => setTitle(event.target.value)}
+                    />
                 </label>
             }
             notice={

@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export const commerceKnowledgeDomains = [
     { id: "KB01", label: translate("adminPages.knowledgeDomainCoverage.globalEcommerceIndustry") },

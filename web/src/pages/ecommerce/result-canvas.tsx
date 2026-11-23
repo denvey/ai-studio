@@ -654,7 +654,14 @@ export function EcommerceResultCanvas({
             placement="top"
             mouseEnterDelay={0.12}
         >
-            <button type="button" aria-label={label} aria-pressed={[translate("ecommerce.resultCanvas.select"), translate("ecommerce.resultCanvas.handTool"), translate("ecommerce.resultCanvas.enterText")].includes(label) ? active : undefined} className={active ? "is-active" : ""} disabled={disabled} onClick={action}>
+            <button
+                type="button"
+                aria-label={label}
+                aria-pressed={[translate("ecommerce.resultCanvas.select"), translate("ecommerce.resultCanvas.handTool"), translate("ecommerce.resultCanvas.enterText")].includes(label) ? active : undefined}
+                className={active ? "is-active" : ""}
+                disabled={disabled}
+                onClick={action}
+            >
                 {active ? <motion.span className="commerce-canvas-tool-active" layoutId={reducedMotion ? undefined : "commerce-canvas-tool"} transition={{ type: "spring", stiffness: 440, damping: 34 }} aria-hidden="true" /> : null}
                 {icon}
             </button>

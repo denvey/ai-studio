@@ -4,7 +4,6 @@ import { registerPlugin } from "../plugin-registry";
 import { PLUGIN_API_VERSION, type PluginManifest, type RegisteredPlugin } from "../plugin-types";
 import { translate } from "@/i18n";
 
-
 export const MEDIA_CONVERSION_PLUGIN_ID = "media-conversion";
 
 const manifest: PluginManifest = {
@@ -15,8 +14,7 @@ const manifest: PluginManifest = {
     publishedAt: "2026-09-08",
     updatedAt: "2026-09-08",
     description: translate("shared.plugins.builtin.mediaConversion.addsAnImageConversionNodeSupportingGrayscaleCannyEdgesAI"),
-    documentation:
-        translate("shared.plugins.builtin.mediaConversion.mediaConversionNodeConnectAnImageToAConversionNode"),
+    documentation: translate("shared.plugins.builtin.mediaConversion.mediaConversionNodeConnectAnImageToAConversionNode"),
     author: translate("shared.plugins.builtin.mediaConversion.yingceTeam"),
     surfaces: ["node"],
     permissions: ["canvas.read", "canvas.write", "media.read"],

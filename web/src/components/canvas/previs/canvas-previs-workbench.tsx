@@ -283,7 +283,13 @@ export function CanvasPrevisWorkbench({
         next.shots = next.shots.map((shot) => ({ ...shot, fps: shot.fps || 24 }));
         // 旧数据可能有掉到地下的对象（例如误拖 gizmo 的 Y 轴）：打开时一次性拉回地面并提示。
         const grounded = groundPrevisScene(next);
-        if (grounded.fixed.length) message.info(translate("canvasTools.previs.canvasPrevisWorkbench.placedBackOnTheGround", { v0: String(grounded.fixed.slice(0, 3).join("、")), v1: String(grounded.fixed.length > 3 ? (" " + translate("canvasTools.previs.canvasPrevisWorkbench.etc")) : "") }));
+        if (grounded.fixed.length)
+            message.info(
+                translate("canvasTools.previs.canvasPrevisWorkbench.placedBackOnTheGround", {
+                    v0: String(grounded.fixed.slice(0, 3).join("、")),
+                    v1: String(grounded.fixed.length > 3 ? " " + translate("canvasTools.previs.canvasPrevisWorkbench.etc") : ""),
+                }),
+            );
         stagedRef.current?.end("cancel");
         initializedSceneIdRef.current = scene.id;
         writeDraft(grounded.scene);
@@ -663,7 +669,9 @@ export function CanvasPrevisWorkbench({
         if (result.kind === "actor" || result.kind === "prop") {
             // 逐个经过 addObject：统一走放置锚点、碰撞避让与落地规则。
             result.objects.forEach((object) => addObject(object));
-            message.success(result.objects.length > 1 ? translate("canvasTools.previs.canvasPrevisWorkbench.addedObjects", { v0: String(result.objects.length) }) : translate("canvasTools.previs.canvasPrevisWorkbench.added", { v0: String(result.objects[0]?.name) }));
+            message.success(
+                result.objects.length > 1 ? translate("canvasTools.previs.canvasPrevisWorkbench.addedObjects", { v0: String(result.objects.length) }) : translate("canvasTools.previs.canvasPrevisWorkbench.added", { v0: String(result.objects[0]?.name) }),
+            );
             return;
         }
         if (result.kind === "light") {
@@ -686,7 +694,16 @@ export function CanvasPrevisWorkbench({
 
     const addShot = () => {
         if (!activeCamera) return;
-        const shot: PrevisShot = { id: nanoid(), name: translate("canvasTools.previs.canvasPrevisWorkbench.shot3", { v0: String((draft?.shots.length || 0) + 1) }), cameraId: activeCamera.id, duration: 5, fps: 24, shotSize: "medium", cameraMove: "static", prompt: "" };
+        const shot: PrevisShot = {
+            id: nanoid(),
+            name: translate("canvasTools.previs.canvasPrevisWorkbench.shot3", { v0: String((draft?.shots.length || 0) + 1) }),
+            cameraId: activeCamera.id,
+            duration: 5,
+            fps: 24,
+            shotSize: "medium",
+            cameraMove: "static",
+            prompt: "",
+        };
         commit((current) => ({ ...current, shots: [...current.shots, shot], activeShotId: shot.id }));
         setPlayhead(0);
     };
@@ -892,7 +909,17 @@ export function CanvasPrevisWorkbench({
                 objects: current.objects.map((item) => {
                     if (item.id !== id) return item;
                     const existing = item.motionClips || [];
-                    const motionClips = existing.length ? existing : animations.map((clip) => ({ id: nanoid(), name: clip.name || translate("canvasTools.previs.canvasPrevisWorkbench.actionClip"), sourceAnimation: clip.name, start: 0, duration: Math.max(0.1, clip.duration), playbackRate: 1, loop: true }));
+                    const motionClips = existing.length
+                        ? existing
+                        : animations.map((clip) => ({
+                              id: nanoid(),
+                              name: clip.name || translate("canvasTools.previs.canvasPrevisWorkbench.actionClip"),
+                              sourceAnimation: clip.name,
+                              start: 0,
+                              duration: Math.max(0.1, clip.duration),
+                              playbackRate: 1,
+                              loop: true,
+                          }));
                     return { ...item, rig, motionClips };
                 }),
             }));
@@ -1006,7 +1033,8 @@ export function CanvasPrevisWorkbench({
     };
 
     const renderModeFileLabel = () => PREVIS_RENDER_MODE_LABELS.find((item) => item.value === renderMode)?.label || translate("account.feedback.preview");
-    const outputFileName = (suffix: string, extension: string) => `${(draftRef.current?.title || translate("canvasTools.previs.canvasPrevisWorkbench.previs")).replace(/[\\/:*?"<>|]/g, "_")}-${activeShot?.name || translate("canvasTools.previs.canvasPrevisWorkbench.shot2")}-${suffix}.${extension}`;
+    const outputFileName = (suffix: string, extension: string) =>
+        `${(draftRef.current?.title || translate("canvasTools.previs.canvasPrevisWorkbench.previs")).replace(/[\\/:*?"<>|]/g, "_")}-${activeShot?.name || translate("canvasTools.previs.canvasPrevisWorkbench.shot2")}-${suffix}.${extension}`;
 
     /** 内置截图：当前渲染模式、镜头摄影机、镜头画幅，直接下载。 */
     async function downloadShotScreenshot() {
@@ -1190,7 +1218,13 @@ export function CanvasPrevisWorkbench({
             trajectorySessionRef.current = true;
             trajectoryPreviousViewModeRef.current = viewMode;
             if (viewMode !== "top") setViewMode("top");
-            message.info(trajectoryTarget ? translate("canvasTools.previs.canvasPrevisWorkbench.dragOnTheGroundAndReleaseToFinishClickAgain", { v0: String(trajectoryTarget.kind === "camera" ? translate("canvasTools.previs.canvasPrevisWorkbench.drawAMovementPathForTheCamera") : translate("canvasTools.previs.canvasPrevisWorkbench.drawABlockingPathForTheCharacter")) }) : translate("canvasTools.previs.canvasPrevisWorkbench.pathDrawingModeEnabledSelectAnActorOrCameraOn"));
+            message.info(
+                trajectoryTarget
+                    ? translate("canvasTools.previs.canvasPrevisWorkbench.dragOnTheGroundAndReleaseToFinishClickAgain", {
+                          v0: String(trajectoryTarget.kind === "camera" ? translate("canvasTools.previs.canvasPrevisWorkbench.drawAMovementPathForTheCamera") : translate("canvasTools.previs.canvasPrevisWorkbench.drawABlockingPathForTheCharacter")),
+                      })
+                    : translate("canvasTools.previs.canvasPrevisWorkbench.pathDrawingModeEnabledSelectAnActorOrCameraOn"),
+            );
             return;
         }
         if (!trajectoryDrawing && trajectorySessionRef.current) {
@@ -1236,7 +1270,13 @@ export function CanvasPrevisWorkbench({
             setSequencerVisible(true);
             setPlayhead(start);
             setPlaying(true);
-            message.success(translate("canvasTools.previs.canvasPrevisWorkbench.generatedStartsAtSAndFinishesInSPlayingPreview", { v0: String(selectedActor ? translate("canvasTools.previs.canvasPrevisWorkbench.blocking") : translate("canvasTools.previs.canvasPrevisWorkbench.cameraPath")), v1: String(start.toFixed(1)), v2: String(duration.toFixed(1)) }));
+            message.success(
+                translate("canvasTools.previs.canvasPrevisWorkbench.generatedStartsAtSAndFinishesInSPlayingPreview", {
+                    v0: String(selectedActor ? translate("canvasTools.previs.canvasPrevisWorkbench.blocking") : translate("canvasTools.previs.canvasPrevisWorkbench.cameraPath")),
+                    v1: String(start.toFixed(1)),
+                    v2: String(duration.toFixed(1)),
+                }),
+            );
         },
         [capabilities.timeline, commit, message, selectedActor, selectedCamera, setMode, setPlayhead, setPlaying, setSequencerVisible, snappedPlayhead, trajectoryTarget],
     );
@@ -1318,7 +1358,13 @@ export function CanvasPrevisWorkbench({
     return (
         <div data-canvas-previs-workbench data-canvas-no-zoom className="previs-desk fixed inset-0 z-[var(--z-toast)] flex min-h-0 min-w-0 flex-col overflow-hidden" style={workbenchThemeStyle}>
             <header className="previs-desk-header thin-scrollbar overflow-x-auto overflow-y-hidden">
-                <button type="button" className="previs-desk-icon-button" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.closePrevisWorkbench")} title={translate("canvasTools.previs.canvasPrevisWorkbench.closePrevisWorkbench")} onClick={closeWorkbench}>
+                <button
+                    type="button"
+                    className="previs-desk-icon-button"
+                    aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.closePrevisWorkbench")}
+                    title={translate("canvasTools.previs.canvasPrevisWorkbench.closePrevisWorkbench")}
+                    onClick={closeWorkbench}
+                >
                     <X className="size-4" />
                 </button>
                 <div className="previs-desk-brand">
@@ -1329,7 +1375,12 @@ export function CanvasPrevisWorkbench({
                     <span className="previs-desk-brand-sub">{translate("canvasTools.previs.canvasPrevisWorkbench.aIDramaPrevis")}</span>
                 </div>
                 <span className="previs-desk-divider" />
-                <input className="previs-desk-scene-title" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.sceneTitle")} value={draft.title} onChange={(event) => replaceWithoutHistory((current) => ({ ...current, title: event.target.value }))} />
+                <input
+                    className="previs-desk-scene-title"
+                    aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.sceneTitle")}
+                    value={draft.title}
+                    onChange={(event) => replaceWithoutHistory((current) => ({ ...current, title: event.target.value }))}
+                />
                 <div className="previs-desk-history">
                     <button type="button" aria-label={translate("account.settings.memory.actors.restore")} title={translate("canvasTools.previs.canvasPrevisWorkbench.undoCtrlZ")} disabled={!history.length} onClick={undo}>
                         <Undo2 className="size-4" />
@@ -1340,7 +1391,15 @@ export function CanvasPrevisWorkbench({
                 </div>
                 <div className="previs-desk-context-summary" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.currentWorkContext")}>
                     <span className="previs-desk-context-dot" />
-                    <span>{selectedActor ? translate("canvasTools.previs.canvasPrevisWorkbench.character", { v0: String(selectedActor.name) }) : selectedLight ? translate("canvasTools.previs.canvasPrevisWorkbench.light2", { v0: String(selectedLight.name) }) : selectedCameraId ? translate("canvasTools.previs.canvasPrevisWorkbench.camera", { v0: String(selectedCamera?.name || activeCamera?.name || translate("canvasTools.previs.canvasPrevisWorkbench.camera2")) }) : translate("canvasTools.previs.canvasPrevisWorkbench.shot", { v0: String(activeShot.name) })}</span>
+                    <span>
+                        {selectedActor
+                            ? translate("canvasTools.previs.canvasPrevisWorkbench.character", { v0: String(selectedActor.name) })
+                            : selectedLight
+                              ? translate("canvasTools.previs.canvasPrevisWorkbench.light2", { v0: String(selectedLight.name) })
+                              : selectedCameraId
+                                ? translate("canvasTools.previs.canvasPrevisWorkbench.camera", { v0: String(selectedCamera?.name || activeCamera?.name || translate("canvasTools.previs.canvasPrevisWorkbench.camera2")) })
+                                : translate("canvasTools.previs.canvasPrevisWorkbench.shot", { v0: String(activeShot.name) })}
+                    </span>
                 </div>
                 <nav className="previs-mode-switch" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.previsWorkbenchMode")}>
                     {PREVIS_MODES.map((item) => (
@@ -1371,11 +1430,24 @@ export function CanvasPrevisWorkbench({
                     </button>
                 ) : null}
                 {onboardingScope ? (
-                    <button type="button" className="previs-desk-icon-button" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.restartGuide")} title={translate("canvasTools.previs.canvasPrevisWorkbench.restartGuide")} onClick={() => setOnboardingRestartSignal((value) => value + 1)}>
+                    <button
+                        type="button"
+                        className="previs-desk-icon-button"
+                        aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.restartGuide")}
+                        title={translate("canvasTools.previs.canvasPrevisWorkbench.restartGuide")}
+                        onClick={() => setOnboardingRestartSignal((value) => value + 1)}
+                    >
                         <Lightbulb className="size-4" />
                     </button>
                 ) : null}
-                <Select className="previs-desk-header-select" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.previewMode")} value={renderMode} options={renderModeOptions} onChange={(value: PrevisRenderMode) => setRenderMode(value)} size="small" />
+                <Select
+                    className="previs-desk-header-select"
+                    aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.previewMode")}
+                    value={renderMode}
+                    options={renderModeOptions}
+                    onChange={(value: PrevisRenderMode) => setRenderMode(value)}
+                    size="small"
+                />
                 <button type="button" className="previs-desk-header-action" title={translate("canvasTools.previs.canvasPrevisWorkbench.screenshotCurrentRenderModeShotCameraP")} onClick={() => void downloadShotScreenshot()}>
                     <Aperture className="size-3.5" />
                     {translate("canvasTools.previs.canvasPrevisWorkbench.screenshot")}
@@ -1403,7 +1475,13 @@ export function CanvasPrevisWorkbench({
                         </button>
                     </Dropdown>
                 )}
-                <button type="button" className={`previs-desk-header-action ${monitorOpen ? "is-active" : ""}`} aria-pressed={monitorOpen} title={monitorOpen ? translate("canvasTools.previs.canvasPrevisWorkbench.closeSecondScreenMonitor") : translate("canvasTools.previs.canvasPrevisWorkbench.sendToSecondScreenShowShotViewInASeparate")} onClick={toggleMonitor}>
+                <button
+                    type="button"
+                    className={`previs-desk-header-action ${monitorOpen ? "is-active" : ""}`}
+                    aria-pressed={monitorOpen}
+                    title={monitorOpen ? translate("canvasTools.previs.canvasPrevisWorkbench.closeSecondScreenMonitor") : translate("canvasTools.previs.canvasPrevisWorkbench.sendToSecondScreenShowShotViewInASeparate")}
+                    onClick={toggleMonitor}
+                >
                     <MonitorUp className="size-3.5" />
                     {monitorOpen ? translate("canvasTools.previs.canvasPrevisWorkbench.closeMonitor") : translate("canvasTools.previs.canvasPrevisWorkbench.secondScreen")}
                 </button>
@@ -1411,7 +1489,13 @@ export function CanvasPrevisWorkbench({
                     <Video className="size-3.5" />
                     {translate("canvasTools.previs.canvasPrevisWorkbench.generateClayRender")}
                 </button>
-                <button type="button" className="previs-desk-header-action" onClick={() => void exportDepthPass()} disabled={recording || depthExporting} title={translate("canvasTools.previs.canvasPrevisWorkbench.captureDepthImageAndVideoWhiteNearBlackFarShot")}>
+                <button
+                    type="button"
+                    className="previs-desk-header-action"
+                    onClick={() => void exportDepthPass()}
+                    disabled={recording || depthExporting}
+                    title={translate("canvasTools.previs.canvasPrevisWorkbench.captureDepthImageAndVideoWhiteNearBlackFarShot")}
+                >
                     <Layers className="size-3.5" />
                     {depthExporting ? translate("canvasTools.previs.canvasPrevisWorkbench.capturing") : translate("canvasTools.previs.canvasPrevisWorkbench.depthCapture")}
                 </button>
@@ -1430,17 +1514,34 @@ export function CanvasPrevisWorkbench({
                             <span className="pv-panel-header__count">{draft.objects.length + draft.cameras.length}</span>
                         </div>
                         <div className="pv-panel-header__actions">
-                            <button type="button" className="pv-icon-btn" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.addToScene")} title={translate("canvasTools.previs.canvasPrevisWorkbench.addCharactersPropsLightsOrCameras")} onClick={() => openAddDialog("actor")}>
+                            <button
+                                type="button"
+                                className="pv-icon-btn"
+                                aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.addToScene")}
+                                title={translate("canvasTools.previs.canvasPrevisWorkbench.addCharactersPropsLightsOrCameras")}
+                                onClick={() => openAddDialog("actor")}
+                            >
                                 <Plus className="size-4" />
                             </button>
-                            <button type="button" className="pv-icon-btn pv-panel-close" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.closeScenePanel")} title={translate("canvasTools.previs.canvasPrevisWorkbench.closeScenePanel")} onClick={() => setScenePanelOpen(false)}>
+                            <button
+                                type="button"
+                                className="pv-icon-btn pv-panel-close"
+                                aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.closeScenePanel")}
+                                title={translate("canvasTools.previs.canvasPrevisWorkbench.closeScenePanel")}
+                                onClick={() => setScenePanelOpen(false)}
+                            >
                                 <X className="size-3.5" />
                             </button>
                         </div>
                     </div>
                     <label className="pv-scene-search">
                         <Search className="size-3.5" />
-                        <input aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.searchSceneObjects")} value={sceneQuery} onChange={(event) => setSceneQuery(event.target.value)} placeholder={translate("canvasTools.previs.canvasPrevisWorkbench.searchObjectsCamerasLights")} />
+                        <input
+                            aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.searchSceneObjects")}
+                            value={sceneQuery}
+                            onChange={(event) => setSceneQuery(event.target.value)}
+                            placeholder={translate("canvasTools.previs.canvasPrevisWorkbench.searchObjectsCamerasLights")}
+                        />
                         {sceneQuery ? (
                             <button type="button" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.clearSearch")} onClick={() => setSceneQuery("")}>
                                 <X className="size-3" />
@@ -1551,8 +1652,18 @@ export function CanvasPrevisWorkbench({
                                         <span className="pv-entity-row__info">
                                             <span className="pv-entity-row__name">{obj.name}</span>
                                             <span className="pv-entity-row__meta">
-                                                {obj.kind === "billboard" ? translate("canvasTools.previs.canvasPrevisWorkbench.backdrop") : obj.kind === "model" ? translate("canvasA.assetView.model") : obj.primitive === "plane" ? translate("canvasTools.previs.canvasPrevisWorkbench.plane") : obj.primitive === "sphere" ? translate("canvasTools.previs.canvasPrevisWorkbench.sphere") : obj.primitive === "cylinder" ? translate("canvasTools.previs.canvasPrevisWorkbench.cylinder") : translate("canvasTools.previs.canvasPrevisWorkbench.geometry")} ·{" "}
-                                                {obj.transform.scale.map((v) => v.toFixed(1)).join("×")}m
+                                                {obj.kind === "billboard"
+                                                    ? translate("canvasTools.previs.canvasPrevisWorkbench.backdrop")
+                                                    : obj.kind === "model"
+                                                      ? translate("canvasA.assetView.model")
+                                                      : obj.primitive === "plane"
+                                                        ? translate("canvasTools.previs.canvasPrevisWorkbench.plane")
+                                                        : obj.primitive === "sphere"
+                                                          ? translate("canvasTools.previs.canvasPrevisWorkbench.sphere")
+                                                          : obj.primitive === "cylinder"
+                                                            ? translate("canvasTools.previs.canvasPrevisWorkbench.cylinder")
+                                                            : translate("canvasTools.previs.canvasPrevisWorkbench.geometry")}{" "}
+                                                · {obj.transform.scale.map((v) => v.toFixed(1)).join("×")}m
                                             </span>
                                         </span>
                                     </button>
@@ -1585,7 +1696,12 @@ export function CanvasPrevisWorkbench({
                                                 <span className="pv-bg-row__name">{node.title || translate("account.feedback.image")}</span>
                                             </button>
                                             <div className="pv-bg-row__btns">
-                                                <button type="button" className={`pv-bg-btn ${isPanorama ? "pv-bg-btn--active" : ""}`} title={translate("canvasTools.previs.canvasPrevisWorkbench.setAs360Background")} onClick={() => setPanoramaEnvironment(node)}>
+                                                <button
+                                                    type="button"
+                                                    className={`pv-bg-btn ${isPanorama ? "pv-bg-btn--active" : ""}`}
+                                                    title={translate("canvasTools.previs.canvasPrevisWorkbench.setAs360Background")}
+                                                    onClick={() => setPanoramaEnvironment(node)}
+                                                >
                                                     360°
                                                 </button>
                                                 {linked ? (
@@ -1639,7 +1755,14 @@ export function CanvasPrevisWorkbench({
                                         <span className="pv-entity-row__info">
                                             <span className="pv-entity-row__name">{light.name}</span>
                                             <span className="pv-entity-row__meta">
-                                                {light.type === "directional" ? translate("canvasTools.previs.canvasPrevisWorkbench.directionalLight") : light.type === "point" ? translate("canvasTools.previs.canvasPrevisWorkbench.pointLight") : light.type === "spot" ? translate("canvasTools.previs.canvasPrevisWorkbench.spotlight") : translate("canvasTools.previs.canvasPrevisWorkbench.environment")} × {light.intensity.toFixed(1)}
+                                                {light.type === "directional"
+                                                    ? translate("canvasTools.previs.canvasPrevisWorkbench.directionalLight")
+                                                    : light.type === "point"
+                                                      ? translate("canvasTools.previs.canvasPrevisWorkbench.pointLight")
+                                                      : light.type === "spot"
+                                                        ? translate("canvasTools.previs.canvasPrevisWorkbench.spotlight")
+                                                        : translate("canvasTools.previs.canvasPrevisWorkbench.environment")}{" "}
+                                                × {light.intensity.toFixed(1)}
                                             </span>
                                         </span>
                                     </button>
@@ -1696,7 +1819,10 @@ export function CanvasPrevisWorkbench({
                             {trajectoryTarget ? (
                                 <>
                                     <span>
-                                        {translate("canvasTools.inline.canvasPrevisWorkbench.drawingFor", { v0: String(trajectoryTarget.name), v1: String(trajectoryTarget.kind === "camera" ? translate("canvasTools.previs.canvasPrevisWorkbench.cameraPath") : translate("canvasTools.previs.canvasPrevisWorkbench.blocking")) })}
+                                        {translate("canvasTools.inline.canvasPrevisWorkbench.drawingFor", {
+                                            v0: String(trajectoryTarget.name),
+                                            v1: String(trajectoryTarget.kind === "camera" ? translate("canvasTools.previs.canvasPrevisWorkbench.cameraPath") : translate("canvasTools.previs.canvasPrevisWorkbench.blocking")),
+                                        })}
                                     </span>
                                     <small>{translate("canvasTools.previs.canvasPrevisWorkbench.dragOnTheGroundAndReleaseToFinishClickThe")}</small>
                                 </>
@@ -1774,7 +1900,15 @@ export function CanvasPrevisWorkbench({
                 <aside className={`pv-panel pv-panel--right thin-scrollbar ${inspectorOpen ? "is-open" : ""}`}>
                     <div className="pv-panel-header">
                         <div className="pv-panel-header__title">
-                            <span className="pv-panel-header__sub">{selectedObject ? (selectedObject.kind === "actor" || selectedObject.primitive === "character" ? translate("account.welcome.chapters.world.label") : translate("canvasTools.previs.canvasPrevisWorkbench.props")) : selectedLight ? translate("canvasTools.previs.canvasPrevisWorkbench.light") : translate("canvasTools.previs.canvasPrevisWorkbench.shot2")}</span>
+                            <span className="pv-panel-header__sub">
+                                {selectedObject
+                                    ? selectedObject.kind === "actor" || selectedObject.primitive === "character"
+                                        ? translate("account.welcome.chapters.world.label")
+                                        : translate("canvasTools.previs.canvasPrevisWorkbench.props")
+                                    : selectedLight
+                                      ? translate("canvasTools.previs.canvasPrevisWorkbench.light")
+                                      : translate("canvasTools.previs.canvasPrevisWorkbench.shot2")}
+                            </span>
                         </div>
                         <div className="pv-panel-header__actions">
                             {selectedObject || selectedLight ? (
@@ -1790,7 +1924,13 @@ export function CanvasPrevisWorkbench({
                                     {translate("canvasTools.previs.canvasPrevisWorkbench.backToShot")}
                                 </button>
                             ) : null}
-                            <button type="button" className="pv-icon-btn pv-mobile-inspector-close" aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.closePropertiesPanel")} title={translate("canvasTools.previs.canvasPrevisWorkbench.closePropertiesPanel")} onClick={() => setInspectorOpen(false)}>
+                            <button
+                                type="button"
+                                className="pv-icon-btn pv-mobile-inspector-close"
+                                aria-label={translate("canvasTools.previs.canvasPrevisWorkbench.closePropertiesPanel")}
+                                title={translate("canvasTools.previs.canvasPrevisWorkbench.closePropertiesPanel")}
+                                onClick={() => setInspectorOpen(false)}
+                            >
                                 <X className="size-3.5" />
                             </button>
                         </div>
@@ -1867,7 +2007,13 @@ export function CanvasPrevisWorkbench({
                                 {translate("canvasTools.previs.canvasPrevisWorkbench.generationPrompt")}
                                 <span
                                     className={`pv-output-dot ${lastClayExport?.shotId === activeShot.id ? "pv-output-dot--done" : recording ? "pv-output-dot--recording" : ""}`}
-                                    title={lastClayExport?.shotId === activeShot.id ? translate("canvasTools.previs.canvasPrevisWorkbench.clayRenderVideoGenerated") : recording ? translate("canvasTools.previs.canvasPrevisWorkbench.recordingClayRenderVideo") : translate("canvasTools.previs.canvasPrevisWorkbench.noClayRenderVideoGeneratedYet")}
+                                    title={
+                                        lastClayExport?.shotId === activeShot.id
+                                            ? translate("canvasTools.previs.canvasPrevisWorkbench.clayRenderVideoGenerated")
+                                            : recording
+                                              ? translate("canvasTools.previs.canvasPrevisWorkbench.recordingClayRenderVideo")
+                                              : translate("canvasTools.previs.canvasPrevisWorkbench.noClayRenderVideoGeneratedYet")
+                                    }
                                 />
                                 <button
                                     type="button"

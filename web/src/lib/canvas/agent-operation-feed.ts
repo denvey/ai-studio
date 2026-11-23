@@ -2,7 +2,6 @@ import { agentToolCategory, agentToolName, agentToolRetryLabel, agentToolStatus,
 import { agentToolRetry } from "./agent-tool-retry";
 import { translate } from "@/i18n";
 
-
 /**
  * Agent 的"操作信息"（工具调用记录）在消息流里是一条条 `role === "tool"` 的消息。一轮运行动辄
  * 十几步，逐条铺开会把正文挤出可视区，所以界面上把它们折成一行：默认只报最新一步，点击展开

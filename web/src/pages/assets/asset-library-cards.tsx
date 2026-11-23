@@ -74,12 +74,23 @@ export function AssetCard({
 }) {
     const summary = assetSummary(asset);
     const menuItems: MenuProps["items"] = isTrash
-        ? [{ key: "restore", icon: <RotateCcw className="size-3.5" />, label: translate("shared.assets.assetLibraryCards.restoreToAssetLibrary"), onClick: onRestore }, { type: "divider" as const }, { key: "delete", danger: true, icon: <Trash2 className="size-3.5" />, label: translate("library.picker.deletePermanently"), onClick: onDelete }]
+        ? [
+              { key: "restore", icon: <RotateCcw className="size-3.5" />, label: translate("shared.assets.assetLibraryCards.restoreToAssetLibrary"), onClick: onRestore },
+              { type: "divider" as const },
+              { key: "delete", danger: true, icon: <Trash2 className="size-3.5" />, label: translate("library.picker.deletePermanently"), onClick: onDelete },
+          ]
         : [
               ...(asset.kind === "text" || asset.kind === "image" ? [{ key: "edit", icon: <PencilLine className="size-3.5" />, label: translate("account.settings.channels.edit"), onClick: onEdit }] : []),
               ...(asset.kind === "text" ? [{ key: "copy", icon: <Copy className="size-3.5" />, label: translate("shared.assets.assetLibraryCards.copyText"), onClick: () => void onCopy(asset) }] : []),
-              ...(asset.kind === "image" || asset.kind === "video" || asset.kind === "audio" || asset.kind === "model" ? [{ key: "download", icon: <Download className="size-3.5" />, label: translate("canvasA.assetView.download"), onClick: () => onDownload(asset) }] : []),
-              { key: "move", icon: <FolderOpen className="size-3.5" />, label: translate("shared.assets.assetLibraryCards.moveToCategory"), children: folderOptions.map((folder) => ({ key: folder.value || "uncategorized", label: folder.label, onClick: () => onMoveToFolder(folder.value) })) },
+              ...(asset.kind === "image" || asset.kind === "video" || asset.kind === "audio" || asset.kind === "model"
+                  ? [{ key: "download", icon: <Download className="size-3.5" />, label: translate("canvasA.assetView.download"), onClick: () => onDownload(asset) }]
+                  : []),
+              {
+                  key: "move",
+                  icon: <FolderOpen className="size-3.5" />,
+                  label: translate("shared.assets.assetLibraryCards.moveToCategory"),
+                  children: folderOptions.map((folder) => ({ key: folder.value || "uncategorized", label: folder.label, onClick: () => onMoveToFolder(folder.value) })),
+              },
               { type: "divider" as const },
               { key: "archive", icon: <Trash2 className="size-3.5 text-amber-500" />, label: translate("shared.assets.assetLibraryCards.moveToTrash"), onClick: onArchive },
               { key: "delete", danger: true, icon: <Trash2 className="size-3.5" />, label: translate("library.picker.deletePermanently"), onClick: onDelete },
@@ -160,7 +171,9 @@ export function AssetCover({
                     <AudioWaveCover asset={asset} />
                 ) : asset.kind === "entity" && (asset.category === "environment" || asset.category === "prop") ? (
                     <div className="assets-cover-fallback">
-                        <span>{assetCategoryLabel(asset.category)} {translate("shared.assets.assetLibraryCards.imagePendingGeneration")}</span>
+                        <span>
+                            {assetCategoryLabel(asset.category)} {translate("shared.assets.assetLibraryCards.imagePendingGeneration")}
+                        </span>
                     </div>
                 ) : asset.kind === "entity" ? (
                     <CharacterAssetCover asset={asset} />

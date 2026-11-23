@@ -6,7 +6,6 @@ import { AdminSegmented } from "./ui/controls";
 import "./ecommerce-management.css";
 import { translate } from "@/i18n";
 
-
 const EcommerceKnowledgePage = lazy(() => import("./ecommerce-knowledge-page"));
 const EcommerceSkillsPage = lazy(() => import("./ecommerce-skills-page"));
 const EcommerceCategoriesPage = lazy(() => import("./ecommerce-categories-page"));

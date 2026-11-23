@@ -82,7 +82,8 @@ export function AssetPackageModal({ open, projectId, episodes, onClose }: { open
                 </div>
                 <footer className="drama-composer-foot">
                     <span className="drama-composer-count">
-                        {translate("drama.studio.assetTransfer.selected")} {chosen.length} {translate("drama.studio.assetTransfer.episodes2")}{media && segments ? translate("drama.studio.assetTransfer.aboutStorySegments", { v0: String(segments) }) : ""}
+                        {translate("drama.studio.assetTransfer.selected")} {chosen.length} {translate("drama.studio.assetTransfer.episodes2")}
+                        {media && segments ? translate("drama.studio.assetTransfer.aboutStorySegments", { v0: String(segments) }) : ""}
                     </span>
                     <span className="flex-1" />
                     <Button onClick={onClose}>{translate("common.cancel")}</Button>
@@ -204,7 +205,8 @@ export function AssetImportModal({ open, projectId, onClose }: { open: boolean; 
                                 <>
                                     <strong title={fileName}>{fileName}</strong>
                                     <span>
-                                        {translate("drama.sentences.importPackage", { name: pkg.manifest.drama.name, cast: pkg.manifest.cast.length, episodes: pkg.manifest.episodes.length })}{prompts ? (" " + translate("drama.studio.assetTransfer.includesPrompts")) : (" " + translate("drama.studio.assetTransfer.noPrompts"))}
+                                        {translate("drama.sentences.importPackage", { name: pkg.manifest.drama.name, cast: pkg.manifest.cast.length, episodes: pkg.manifest.episodes.length })}
+                                        {prompts ? " " + translate("drama.studio.assetTransfer.includesPrompts") : " " + translate("drama.studio.assetTransfer.noPrompts")}
                                     </span>
                                 </>
                             ) : (
@@ -241,13 +243,16 @@ export function AssetImportModal({ open, projectId, onClose }: { open: boolean; 
                                     <span>{translate("drama.studio.assetTransfer.matchingAgainstThisProduction")}</span>
                                 ) : (
                                     <span>
-                                        {translate("drama.studio.assetTransfer.willWrite")} {currentPlan.value!.operations.length} {translate("drama.studio.assetTransfer.itemsReferenceImages")} {counts.images} {translate("drama.studio.assetTransfer.designText")} {counts.texts} {translate("drama.studio.assetTransfer.segmentPrompts")} {counts.segments} {translate("drama.studio.assetTransfer.shotPrompts")} {counts.shots}
+                                        {translate("drama.studio.assetTransfer.willWrite")} {currentPlan.value!.operations.length} {translate("drama.studio.assetTransfer.itemsReferenceImages")} {counts.images}{" "}
+                                        {translate("drama.studio.assetTransfer.designText")} {counts.texts} {translate("drama.studio.assetTransfer.segmentPrompts")} {counts.segments} {translate("drama.studio.assetTransfer.shotPrompts")} {counts.shots}
                                     </span>
                                 )}
                                 {progress ? <Progress percent={Math.round((progress.done / Math.max(progress.total, 1)) * 100)} size="small" /> : null}
                                 {currentPlan?.value?.skipped.length ? (
                                     <details>
-                                        <summary>{translate("drama.studio.assetTransfer.skip")} {currentPlan.value.skipped.length} {translate("library.picker.itemUnit")}</summary>
+                                        <summary>
+                                            {translate("drama.studio.assetTransfer.skip")} {currentPlan.value.skipped.length} {translate("library.picker.itemUnit")}
+                                        </summary>
                                         <ul>
                                             {currentPlan.value.skipped.map((item) => (
                                                 <li key={item}>{item}</li>
@@ -257,7 +262,9 @@ export function AssetImportModal({ open, projectId, onClose }: { open: boolean; 
                                 ) : null}
                                 {result?.failed.length ? (
                                     <details open>
-                                        <summary>{translate("library.assets.batch.failed")} {result.failed.length} {translate("library.picker.itemUnit")}</summary>
+                                        <summary>
+                                            {translate("library.assets.batch.failed")} {result.failed.length} {translate("library.picker.itemUnit")}
+                                        </summary>
                                         <ul>
                                             {result.failed.map((item) => (
                                                 <li key={item.label}>
@@ -272,7 +279,13 @@ export function AssetImportModal({ open, projectId, onClose }: { open: boolean; 
                     ) : null}
                 </div>
                 <footer className="drama-composer-foot">
-                    <span className="drama-composer-count">{result ? translate("drama.studio.assetTransfer.completeItemsSucceeded", { v0: String(result.succeeded), v1: String(result.failed.length ? translate("drama.studio.assetTransfer.failed", { v0: String(result.failed.length) }) : "") }) : progress ? translate("drama.studio.assetTransfer.importing", { v0: String(progress.done), v1: String(progress.total) }) : ""}</span>
+                    <span className="drama-composer-count">
+                        {result
+                            ? translate("drama.studio.assetTransfer.completeItemsSucceeded", { v0: String(result.succeeded), v1: String(result.failed.length ? translate("drama.studio.assetTransfer.failed", { v0: String(result.failed.length) }) : "") })
+                            : progress
+                              ? translate("drama.studio.assetTransfer.importing", { v0: String(progress.done), v1: String(progress.total) })
+                              : ""}
+                    </span>
                     <span className="flex-1" />
                     {result ? (
                         <Button type="primary" onClick={close}>
@@ -312,8 +325,12 @@ export function JianyingDraftModal({ open, projectId, episodeId, episodeLabel, r
             <div className="drama-composer drama-transfer">
                 <header className="drama-composer-head">
                     <div className="min-w-0">
-                        <strong>{translate("drama.studio.assetTransfer.exportJianyingDraft2")} {episodeLabel}</strong>
-                        <span>{readySegments} {translate("drama.studio.assetTransfer.segmentVideosArePlacedOnTheMainTrackInFinal")}</span>
+                        <strong>
+                            {translate("drama.studio.assetTransfer.exportJianyingDraft2")} {episodeLabel}
+                        </strong>
+                        <span>
+                            {readySegments} {translate("drama.studio.assetTransfer.segmentVideosArePlacedOnTheMainTrackInFinal")}
+                        </span>
                     </div>
                     <Button type="text" icon={<X className="size-4" />} aria-label={translate("common.close")} onClick={onClose} />
                 </header>

@@ -325,7 +325,14 @@ export function InactiveVideoPreview({ node, theme, onPlay }: Pick<CanvasNodeCon
                         fallback={<Video className="size-7 text-white/40" />}
                     />
                 ) : (
-                    <img src={localPreviewUrl} alt={translate("canvasTools.canvasNodeMediaContent.staticPreview", { v0: String(node.title || translate("account.feedback.video")) })} loading="lazy" decoding="sync" draggable={false} className="pointer-events-none size-full select-none object-contain" />
+                    <img
+                        src={localPreviewUrl}
+                        alt={translate("canvasTools.canvasNodeMediaContent.staticPreview", { v0: String(node.title || translate("account.feedback.video")) })}
+                        loading="lazy"
+                        decoding="sync"
+                        draggable={false}
+                        className="pointer-events-none size-full select-none object-contain"
+                    />
                 )}
                 <VideoPreviewPlayButton title={node.title || translate("account.feedback.video")} onPlay={onPlay} />
             </div>
@@ -333,7 +340,18 @@ export function InactiveVideoPreview({ node, theme, onPlay }: Pick<CanvasNodeCon
     }
     return (
         <div ref={previewRef} className="group/video-preview relative size-full">
-            <InactiveMediaCard icon={<Video className="size-7" />} title={node.title || translate("account.feedback.video")} hint={hydrating ? translate("canvasTools.canvasNodeMediaContent.generatingFirstFrame") : nearViewport ? translate("canvasTools.canvasNodeMediaContent.clickToPlayVideo") : translate("canvasTools.canvasNodeMediaContent.firstFrameLoadsWhenInView")} theme={theme} />
+            <InactiveMediaCard
+                icon={<Video className="size-7" />}
+                title={node.title || translate("account.feedback.video")}
+                hint={
+                    hydrating
+                        ? translate("canvasTools.canvasNodeMediaContent.generatingFirstFrame")
+                        : nearViewport
+                          ? translate("canvasTools.canvasNodeMediaContent.clickToPlayVideo")
+                          : translate("canvasTools.canvasNodeMediaContent.firstFrameLoadsWhenInView")
+                }
+                theme={theme}
+            />
             <VideoPreviewPlayButton title={node.title || translate("account.feedback.video")} onPlay={onPlay} />
         </div>
     );
@@ -588,12 +606,18 @@ export function ImageContent({
                 />
                 {node.metadata?.imageLayerGroup?.incomplete ? (
                     <div role="status" className="absolute bottom-2 left-2 right-2 rounded bg-black/75 px-2 py-1 text-xs text-amber-300">
-                        {translate("canvasTools.inline.canvasNodeMediaContent.partialCompositionLayersPassedExpandToViewAndRetryFailed", { v0: String(node.metadata.imageLayerGroup.incomplete.completed), v1: String(node.metadata.imageLayerGroup.incomplete.total), v2: String(node.metadata.imageLayerGroup.incomplete.missingBackground ? translate("canvasTools.canvasNodeMediaContent.completeBackgroundMissing") : "") })}
+                        {translate("canvasTools.inline.canvasNodeMediaContent.partialCompositionLayersPassedExpandToViewAndRetryFailed", {
+                            v0: String(node.metadata.imageLayerGroup.incomplete.completed),
+                            v1: String(node.metadata.imageLayerGroup.incomplete.total),
+                            v2: String(node.metadata.imageLayerGroup.incomplete.missingBackground ? translate("canvasTools.canvasNodeMediaContent.completeBackgroundMissing") : ""),
+                        })}
                     </div>
                 ) : null}
                 {node.metadata?.imageLayerGroup?.compositeStatus === "updating" || node.metadata?.imageLayerGroup?.compositeStatus === "error" ? (
                     <div role="status" className="absolute inset-0 grid place-items-center bg-black/60 p-4 text-center text-xs text-white">
-                        {node.metadata.imageLayerGroup.compositeStatus === "updating" ? translate("canvasB.imageLayers.updatingComposite") : node.metadata.imageLayerGroup.compositeError || translate("canvasTools.canvasNodeMediaContent.failedToUpdateTheCompositeImageRetryInLayerManagement")}
+                        {node.metadata.imageLayerGroup.compositeStatus === "updating"
+                            ? translate("canvasB.imageLayers.updatingComposite")
+                            : node.metadata.imageLayerGroup.compositeError || translate("canvasTools.canvasNodeMediaContent.failedToUpdateTheCompositeImageRetryInLayerManagement")}
                     </div>
                 ) : null}
             </div>

@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export type OSSProvider = "aliyun" | "tencent" | "qiniu" | "volcengine" | "s3";
 

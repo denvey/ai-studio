@@ -4,7 +4,6 @@ import { uploadMediaFile, type UploadedFile } from "@/services/file-storage";
 import { buildApiUrl, resolveModelRequestConfig, type AiConfig } from "@/stores/use-config-store";
 import { translate } from "@/i18n";
 
-
 type RequestOptions = { signal?: AbortSignal };
 
 function aiApiUrl(config: AiConfig, path: string) {

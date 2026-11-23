@@ -306,7 +306,16 @@ export function workbenchParameterSummary(kind: WorkbenchKind, parameters: Recor
         const resolution = text(parameters.imageResolution);
         if (resolution && resolution !== "auto") items.push(resolution.toUpperCase());
         const quality = text(parameters.quality);
-        if (quality && quality !== "auto" && !/^\d(\.\d)?k$/i.test(quality)) items.push({ low: translate("ecommerce.workbench.workbenchBatches.fast"), medium: translate("library.assets.density.standard"), high: translate("ecommerce.workbench.workbenchBatches.highDefinition"), standard: translate("library.assets.density.standard"), hd: translate("ecommerce.workbench.workbenchBatches.highDefinition") }[quality.toLowerCase()] || quality);
+        if (quality && quality !== "auto" && !/^\d(\.\d)?k$/i.test(quality))
+            items.push(
+                {
+                    low: translate("ecommerce.workbench.workbenchBatches.fast"),
+                    medium: translate("library.assets.density.standard"),
+                    high: translate("ecommerce.workbench.workbenchBatches.highDefinition"),
+                    standard: translate("library.assets.density.standard"),
+                    hd: translate("ecommerce.workbench.workbenchBatches.highDefinition"),
+                }[quality.toLowerCase()] || quality,
+            );
     } else {
         const seconds = Number(parameters.seconds);
         if (Number.isFinite(seconds) && seconds > 0) items.push(translate("ecommerce.workbench.workbenchBatches.s", { v0: String(seconds) }));

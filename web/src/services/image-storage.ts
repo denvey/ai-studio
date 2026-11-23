@@ -7,7 +7,6 @@ import { getResourceAccess, importResourceFromUrl, isResourceUrl, resolveResourc
 import { getCachedResourceBlob, primeResourceBlobCache } from "@/services/resource-blob-cache";
 import { translate } from "@/i18n";
 
-
 export type UploadedImage = {
     url: string;
     storageKey: string;

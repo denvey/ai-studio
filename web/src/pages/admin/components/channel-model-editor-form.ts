@@ -204,7 +204,8 @@ export function validateChannelModelPrices(values: Pick<ChannelModelFormValues, 
                 (image?.quality.supported !== false && specific(tier.quality)) ||
                 specific(tier.resolution) ||
                 specific(tier.size);
-            if (!(specific(tier.operation) || (capability === "image" && imageCondition) || (capability === "video" && specific(tier.resolution)))) fail(translate("admin.channelModelEditorForm.specificationPricesRequireAtLeastOneMatchConditionChooseThe"));
+            if (!(specific(tier.operation) || (capability === "image" && imageCondition) || (capability === "video" && specific(tier.resolution))))
+                fail(translate("admin.channelModelEditorForm.specificationPricesRequireAtLeastOneMatchConditionChooseThe"));
         }
         const prices = tier.billingMode !== "token" ? [tier.unitPrice] : capability === "video" ? [tier.outputTokenPrice] : [tier.inputTokenPrice, tier.outputTokenPrice, tier.cachedTokenPrice, tier.cacheWriteTokenPrice ?? 0];
         if (prices.some((price) => typeof price !== "number" || !Number.isFinite(price) || price < 0 || price > 1_000_000)) fail(translate("admin.channelModelEditorForm.theCreditPriceMustBeAValidNumberFrom0"));

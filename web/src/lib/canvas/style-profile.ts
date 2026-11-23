@@ -1,4 +1,3 @@
-
 import { translate } from "@/i18n";
 export type StyleAssetKind = "lora" | "template" | "reference" | "prompt";
 export type StyleAssetStatus = "draft" | "validated" | "unavailable";
@@ -245,14 +244,29 @@ function isStyleCoverUrl(value: string) {
 }
 
 function resolveAssetExecution(asset: StyleAssetBinding, context: StyleExecutionContext): StyleExecutionAsset {
-    if (asset.status !== "validated") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "skip", reason: asset.status === "unavailable" ? translate("shared.canvas.styleProfile.theAssetIsCurrentlyUnavailable") : translate("shared.canvas.styleProfile.assetNotVerifiedYet") };
+    if (asset.status !== "validated")
+        return {
+            assetId: asset.id,
+            title: asset.title,
+            kind: asset.kind,
+            action: "skip",
+            reason: asset.status === "unavailable" ? translate("shared.canvas.styleProfile.theAssetIsCurrentlyUnavailable") : translate("shared.canvas.styleProfile.assetNotVerifiedYet"),
+        };
     if (asset.baseModels?.length && !asset.baseModels.some((model) => model.trim().toLowerCase() === context.model.trim().toLowerCase())) {
         return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: translate("shared.canvas.styleProfile.compatibleWithOnly", { v0: String(asset.baseModels.join("、")) }) };
     }
     if (asset.kind === "prompt") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "prompt", reason: translate("shared.canvas.styleProfile.appendToTheProjectArtStylePrompt") };
-    if (asset.kind === "template" && (asset.promptFragment?.trim() || asset.triggerWords?.length)) return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "prompt", reason: translate("shared.canvas.styleProfile.currentlyRunningWithTheTemplateSTriggerWords") };
+    if (asset.kind === "template" && (asset.promptFragment?.trim() || asset.triggerWords?.length))
+        return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "prompt", reason: translate("shared.canvas.styleProfile.currentlyRunningWithTheTemplateSTriggerWords") };
     if (asset.kind === "reference") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: translate("shared.canvas.styleProfile.automaticInjectionOfProjectReferenceImagesIntoTheAdapterIs") };
-    if (asset.kind === "lora") return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: translate("shared.canvas.styleProfile.theCurrentProtocolDoesNotHaveLoRAAdaptersEnabled", { v0: String(context.interfaceType || translate("account.feedback.image")) }) };
+    if (asset.kind === "lora")
+        return {
+            assetId: asset.id,
+            title: asset.title,
+            kind: asset.kind,
+            action: "block",
+            reason: translate("shared.canvas.styleProfile.theCurrentProtocolDoesNotHaveLoRAAdaptersEnabled", { v0: String(context.interfaceType || translate("account.feedback.image")) }),
+        };
     return { assetId: asset.id, title: asset.title, kind: asset.kind, action: "block", reason: translate("shared.canvas.styleProfile.theCurrentProtocolDoesNotSupportThisExecutionAsset") };
 }
 

@@ -488,7 +488,11 @@ export const AgentChatMessage = memo(function AgentChatMessage({
                     ) : item.compaction.status === "completed" ? (
                         <span className="font-medium">{item.text}</span>
                     ) : (
-                        <span className="font-medium">{item.text || item.compaction.errorMessage || (item.compaction.status === "aborted" ? translate("canvasTools.canvasCloudAgentChatUi.contextCompactionCanceled") : translate("canvasTools.canvasCloudAgentChatUi.contextCompactionFailed"))}</span>
+                        <span className="font-medium">
+                            {item.text ||
+                                item.compaction.errorMessage ||
+                                (item.compaction.status === "aborted" ? translate("canvasTools.canvasCloudAgentChatUi.contextCompactionCanceled") : translate("canvasTools.canvasCloudAgentChatUi.contextCompactionFailed"))}
+                        </span>
                     )}
                 </div>
             </div>
@@ -589,10 +593,22 @@ export const AgentChatMessage = memo(function AgentChatMessage({
                             ) : null}
                             {item.interjection === "undelivered" && onRequeueInterjection ? (
                                 <>
-                                    <button type="button" className="agent-interjection-action" title={translate("canvasTools.canvasCloudAgentChatUi.sendThisMessageAsTheNextRun")} aria-label={translate("canvasTools.canvasCloudAgentChatUi.sendThisUndeliveredInterjectionAsTheNextRun")} onClick={() => onRequeueInterjection(item.id, "send")}>
+                                    <button
+                                        type="button"
+                                        className="agent-interjection-action"
+                                        title={translate("canvasTools.canvasCloudAgentChatUi.sendThisMessageAsTheNextRun")}
+                                        aria-label={translate("canvasTools.canvasCloudAgentChatUi.sendThisUndeliveredInterjectionAsTheNextRun")}
+                                        onClick={() => onRequeueInterjection(item.id, "send")}
+                                    >
                                         {translate("canvasTools.canvasCloudAgentChatUi.sendAsNextRun")}
                                     </button>
-                                    <button type="button" className="agent-interjection-action" title={translate("canvasTools.canvasCloudAgentChatUi.returnToQueueAndEdit")} aria-label={translate("canvasTools.canvasCloudAgentChatUi.editThisUndeliveredInterjection")} onClick={() => onRequeueInterjection(item.id, "edit")}>
+                                    <button
+                                        type="button"
+                                        className="agent-interjection-action"
+                                        title={translate("canvasTools.canvasCloudAgentChatUi.returnToQueueAndEdit")}
+                                        aria-label={translate("canvasTools.canvasCloudAgentChatUi.editThisUndeliveredInterjection")}
+                                        onClick={() => onRequeueInterjection(item.id, "edit")}
+                                    >
                                         {translate("account.settings.channels.edit")}
                                     </button>
                                 </>
@@ -1042,7 +1058,9 @@ export function AgentToolCard({
                         ))}
                         {isNodeRead && (collapsedReadNodeCount > 0 || readExpanded) ? (
                             <button type="button" className="agent-tool-more" aria-expanded={readExpanded} onClick={() => setReadExpanded((current) => !current)}>
-                                {readExpanded ? translate("canvasTools.canvasCloudAgentChatUi.collapseOtherNodes", { v0: String(Math.max(0, actions.length - 1)) }) : translate("canvasTools.canvasCloudAgentChatUi.otherNodesWereOnlyListedNotVisuallyInspectedExpandTo", { v0: String(collapsedReadNodeCount) })}
+                                {readExpanded
+                                    ? translate("canvasTools.canvasCloudAgentChatUi.collapseOtherNodes", { v0: String(Math.max(0, actions.length - 1)) })
+                                    : translate("canvasTools.canvasCloudAgentChatUi.otherNodesWereOnlyListedNotVisuallyInspectedExpandTo", { v0: String(collapsedReadNodeCount) })}
                             </button>
                         ) : null}
                     </div>
@@ -1054,7 +1072,9 @@ export function AgentToolCard({
                         <p className="whitespace-pre-wrap break-words">{text}</p>
                     </details>
                 ) : null}
-                {state.isError && objectField(objectField(detail, "result"), "taskId") ? <span className="agent-tool-note break-all">{translate("canvasTools.inline.canvasCloudAgentChatUi.taskID", { v0: String(String(objectField(objectField(detail, "result"), "taskId"))) })}</span> : null}
+                {state.isError && objectField(objectField(detail, "result"), "taskId") ? (
+                    <span className="agent-tool-note break-all">{translate("canvasTools.inline.canvasCloudAgentChatUi.taskID", { v0: String(String(objectField(objectField(detail, "result"), "taskId"))) })}</span>
+                ) : null}
                 {undoState?.status === "error" ? (
                     <span className="agent-tool-note text-[var(--status-error)]" role="alert">
                         {translate("canvasTools.inline.canvasCloudAgentChatUi.undoFailed", { v0: String(undoState.error || translate("canvasTools.canvasCloudAgentChatUi.checkTheCanvasStateAndTryAgain")) })}
@@ -1076,7 +1096,11 @@ export function AgentToolCard({
                         disabled={undoState?.status === "pending"}
                         onClick={() => onUndo?.(undoTarget)}
                     >
-                        {undoState?.status === "pending" ? translate("canvasTools.canvasCloudAgentChatUi.undoing") : undoState?.status === "error" ? translate("canvasTools.canvasCloudAgentChatUi.retryUndo") : translate("canvasTools.canvasCloudAgentChatUi.undoThisStep")}
+                        {undoState?.status === "pending"
+                            ? translate("canvasTools.canvasCloudAgentChatUi.undoing")
+                            : undoState?.status === "error"
+                              ? translate("canvasTools.canvasCloudAgentChatUi.retryUndo")
+                              : translate("canvasTools.canvasCloudAgentChatUi.undoThisStep")}
                     </Button>
                 ) : null}
             </div>
@@ -1123,7 +1147,13 @@ export const AgentOperationFeed = memo(function AgentOperationFeed({
     const categoryLabel = latestRetry ? translate("canvasTools.canvasCloudAgentChatUi.automaticCorrection") : agentToolCategoryLabel(latestToolName, category);
     const categoryIcon = agentToolCategoryIcon(latestToolName, category, Boolean(latestRetry));
     const label = agentOperationSegmentLabel(items);
-    const visibleLabel = latestRetry ? translate("canvasTools.canvasCloudAgentChatUi.attempts2", { v0: String(latestRetry.status === "recovered" ? translate("canvasTools.canvasCloudAgentChatUi.recovered") : translate("canvasTools.canvasCloudAgentChatUi.incomplete")), v1: String(latestRetry.attempt), v2: String(latestRetry.maxAttempts) }) : label;
+    const visibleLabel = latestRetry
+        ? translate("canvasTools.canvasCloudAgentChatUi.attempts2", {
+              v0: String(latestRetry.status === "recovered" ? translate("canvasTools.canvasCloudAgentChatUi.recovered") : translate("canvasTools.canvasCloudAgentChatUi.incomplete")),
+              v1: String(latestRetry.attempt),
+              v2: String(latestRetry.maxAttempts),
+          })
+        : label;
     // 错误摘要始终可见；详情只由用户展开，状态变化不挤走正在阅读的正文。
     const failed = agentOperationFailed(latest);
     const expanded = userExpanded ?? false;
@@ -1141,7 +1171,12 @@ export const AgentOperationFeed = memo(function AgentOperationFeed({
                 aria-expanded={expanded}
                 aria-controls={listId}
                 // aria-label 会顶掉可见文字，所以类别与最新一步必须自己报出来。
-                aria-label={translate("canvasTools.canvasCloudAgentChatUi.stepRecordedLatestStep", { v0: String(expanded ? translate("account.feedback.collapse") : translate("canvasTools.canvasCloudAgentChatUi.expand")), v1: String(items.length), v2: String(categoryLabel), v3: String(label) })}
+                aria-label={translate("canvasTools.canvasCloudAgentChatUi.stepRecordedLatestStep", {
+                    v0: String(expanded ? translate("account.feedback.collapse") : translate("canvasTools.canvasCloudAgentChatUi.expand")),
+                    v1: String(items.length),
+                    v2: String(categoryLabel),
+                    v3: String(label),
+                })}
                 onClick={() => setUserExpanded(!expanded)}
             >
                 <span className="agent-activity-glyph" aria-hidden="true">
@@ -1403,17 +1438,37 @@ export function AgentQuestionBar({
                 <div className="flex items-start gap-2 px-3 pt-2">
                     <HelpCircle className="mt-[1px] size-3.5 shrink-0" style={{ color: theme.accent.primary }} />
                     <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 text-[var(--fs-label)] opacity-55">{question.round && question.maxRounds ? translate("canvasTools.canvasCloudAgentChatUi.confirm", { v0: String(question.round), v1: String(question.maxRounds) }) : translate("canvasTools.canvasCloudAgentChatUi.confirmRequirements")}</div>
+                        <div className="flex items-center gap-2 text-[var(--fs-label)] opacity-55">
+                            {question.round && question.maxRounds
+                                ? translate("canvasTools.canvasCloudAgentChatUi.confirm", { v0: String(question.round), v1: String(question.maxRounds) })
+                                : translate("canvasTools.canvasCloudAgentChatUi.confirmRequirements")}
+                        </div>
                         <div className="text-xs font-semibold leading-5">{question.question}</div>
                         <div className="mt-0.5 text-[var(--fs-label)] opacity-50">{translate("canvasTools.canvasCloudAgentChatUi.recommendedValuesAreFilledInAdjustThemAsNeededOptional")}</div>
                     </div>
                 </div>
                 <div className="agent-question-scroll-controls" aria-label={translate("canvasTools.canvasCloudAgentChatUi.scrollForm")}>
-                    <span>{scrollEdges.below ? translate("canvasTools.canvasCloudAgentChatUi.moreOptionsBelow") : scrollEdges.above ? translate("canvasTools.canvasCloudAgentChatUi.endOfForm") : translate("canvasTools.canvasCloudAgentChatUi.continueImmediatelyAfterConfirming")}</span>
-                    <button type="button" aria-label={translate("canvasTools.canvasCloudAgentChatUi.scrollUpInTheForm")} disabled={!scrollEdges.above} onClick={() => fieldsScrollRef.current?.scrollBy({ top: -Math.max(80, fieldsScrollRef.current.clientHeight * 0.8) })}>
+                    <span>
+                        {scrollEdges.below
+                            ? translate("canvasTools.canvasCloudAgentChatUi.moreOptionsBelow")
+                            : scrollEdges.above
+                              ? translate("canvasTools.canvasCloudAgentChatUi.endOfForm")
+                              : translate("canvasTools.canvasCloudAgentChatUi.continueImmediatelyAfterConfirming")}
+                    </span>
+                    <button
+                        type="button"
+                        aria-label={translate("canvasTools.canvasCloudAgentChatUi.scrollUpInTheForm")}
+                        disabled={!scrollEdges.above}
+                        onClick={() => fieldsScrollRef.current?.scrollBy({ top: -Math.max(80, fieldsScrollRef.current.clientHeight * 0.8) })}
+                    >
                         <ChevronUp className="size-3.5" />
                     </button>
-                    <button type="button" aria-label={translate("canvasTools.canvasCloudAgentChatUi.scrollDownForMoreOptions")} disabled={!scrollEdges.below} onClick={() => fieldsScrollRef.current?.scrollBy({ top: Math.max(80, fieldsScrollRef.current.clientHeight * 0.8) })}>
+                    <button
+                        type="button"
+                        aria-label={translate("canvasTools.canvasCloudAgentChatUi.scrollDownForMoreOptions")}
+                        disabled={!scrollEdges.below}
+                        onClick={() => fieldsScrollRef.current?.scrollBy({ top: Math.max(80, fieldsScrollRef.current.clientHeight * 0.8) })}
+                    >
                         <ChevronDown className="size-3.5" />
                     </button>
                 </div>
@@ -1562,7 +1617,9 @@ export function AgentQuestionBar({
             <div className="flex items-start gap-2 px-3 pt-2">
                 <HelpCircle className="mt-[1px] size-3.5 shrink-0" style={{ color: theme.accent.primary }} />
                 <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 text-[var(--fs-label)] opacity-55">{question.round && question.maxRounds ? translate("canvasTools.canvasCloudAgentChatUi.confirm", { v0: String(question.round), v1: String(question.maxRounds) }) : translate("canvasTools.canvasCloudAgentChatUi.confirmationNeeded")}</div>
+                    <div className="flex items-center gap-2 text-[var(--fs-label)] opacity-55">
+                        {question.round && question.maxRounds ? translate("canvasTools.canvasCloudAgentChatUi.confirm", { v0: String(question.round), v1: String(question.maxRounds) }) : translate("canvasTools.canvasCloudAgentChatUi.confirmationNeeded")}
+                    </div>
                     <div className="text-xs font-semibold leading-5">{question.question}</div>
                 </div>
             </div>
@@ -1575,7 +1632,9 @@ export function AgentQuestionBar({
                 />
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 px-3 pb-2">
-                <span className="text-[var(--fs-label)] opacity-50">{question.allowFreeform === false ? translate("canvasTools.canvasCloudAgentChatUi.chooseAnOptionAbove") : translate("canvasTools.canvasCloudAgentChatUi.youCanAlsoAddDetailsInTheInputBelow")}</span>
+                <span className="text-[var(--fs-label)] opacity-50">
+                    {question.allowFreeform === false ? translate("canvasTools.canvasCloudAgentChatUi.chooseAnOptionAbove") : translate("canvasTools.canvasCloudAgentChatUi.youCanAlsoAddDetailsInTheInputBelow")}
+                </span>
                 <button
                     type="button"
                     disabled={disabled}
@@ -1657,7 +1716,14 @@ function AgentMessageAttachments({ attachments }: { attachments: CloudAgentChatA
         <>
             <div className="mt-2 grid grid-cols-3 gap-2">
                 {attachments.map((item) => (
-                    <button key={item.id} type="button" className="group relative overflow-hidden rounded-lg" onClick={() => setPreview(item)} onDoubleClick={() => setPreview(item)} aria-label={translate("canvasTools.canvasCloudAgentChatUi.viewImage", { v0: String(item.name) })}>
+                    <button
+                        key={item.id}
+                        type="button"
+                        className="group relative overflow-hidden rounded-lg"
+                        onClick={() => setPreview(item)}
+                        onDoubleClick={() => setPreview(item)}
+                        aria-label={translate("canvasTools.canvasCloudAgentChatUi.viewImage", { v0: String(item.name) })}
+                    >
                         <img src={item.url} alt={item.name} className="aspect-square w-full object-cover transition-opacity duration-150 group-hover:opacity-90" />
                     </button>
                 ))}

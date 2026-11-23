@@ -106,7 +106,16 @@ export function PrevisAddDialog({
         else onConfirm({ kind, camera: previewCamera });
     };
 
-    const confirmLabel = kind === "actor" ? (crowd ? translate("canvasTools.previs.previsAddDialog.add9Characters") : translate("canvasTools.previs.previsAddDialog.add", { v0: String(actorTemplate.label) })) : kind === "prop" ? translate("canvasTools.previs.previsAddDialog.add", { v0: String(prop.name) }) : kind === "light" ? translate("canvasTools.previs.previsAddDialog.add", { v0: String(lightPreset.label) }) : translate("canvasTools.previs.previsAddDialog.addCamera", { v0: String(cameraPreset.label) });
+    const confirmLabel =
+        kind === "actor"
+            ? crowd
+                ? translate("canvasTools.previs.previsAddDialog.add9Characters")
+                : translate("canvasTools.previs.previsAddDialog.add", { v0: String(actorTemplate.label) })
+            : kind === "prop"
+              ? translate("canvasTools.previs.previsAddDialog.add", { v0: String(prop.name) })
+              : kind === "light"
+                ? translate("canvasTools.previs.previsAddDialog.add", { v0: String(lightPreset.label) })
+                : translate("canvasTools.previs.previsAddDialog.addCamera", { v0: String(cameraPreset.label) });
     const category = PREVIS_PROP_LIBRARY.find((item) => item.id === propCategory) ?? PREVIS_PROP_LIBRARY[0];
 
     return (
@@ -196,7 +205,13 @@ export function PrevisAddDialog({
                         )}
                     </div>
                     <div className="previs-add-dialog__preview">
-                        <div className="previs-add-dialog__preview-label">{kind === "camera" ? translate("canvasTools.previs.previsAddDialog.cameraViewPreview") : kind === "light" ? translate("canvasTools.previs.previsAddDialog.lightingPreviewReferenceActor") : translate("canvasTools.previs.previsAddDialog.previewDragToRotate")}</div>
+                        <div className="previs-add-dialog__preview-label">
+                            {kind === "camera"
+                                ? translate("canvasTools.previs.previsAddDialog.cameraViewPreview")
+                                : kind === "light"
+                                  ? translate("canvasTools.previs.previsAddDialog.lightingPreviewReferenceActor")
+                                  : translate("canvasTools.previs.previsAddDialog.previewDragToRotate")}
+                        </div>
                         <Canvas shadows dpr={[1, 1.75]} camera={{ position: [2.6, 1.7, 3.4], fov: 40 }} gl={{ antialias: true, preserveDrawingBuffer: false }}>
                             <color attach="background" args={["#d8dde3"]} />
                             <Suspense fallback={null}>
@@ -276,10 +291,24 @@ function Swatches({ colors, value, onChange }: { colors: string[]; value: string
     return (
         <div className="previs-add-dialog__swatches">
             {colors.map((color) => (
-                <button key={color} type="button" aria-label={translate("canvasTools.previs.previsAddDialog.color2", { v0: String(color) })} aria-pressed={value === color} className={`previs-add-dialog__swatch ${value === color ? "is-active" : ""}`} style={{ background: color }} onClick={() => onChange(color)} />
+                <button
+                    key={color}
+                    type="button"
+                    aria-label={translate("canvasTools.previs.previsAddDialog.color2", { v0: String(color) })}
+                    aria-pressed={value === color}
+                    className={`previs-add-dialog__swatch ${value === color ? "is-active" : ""}`}
+                    style={{ background: color }}
+                    onClick={() => onChange(color)}
+                />
             ))}
             <ColorPicker size="small" value={value} disabledAlpha getPopupContainer={(node) => node.parentElement ?? document.body} onChange={(color) => onChange(color.toHexString())}>
-                <button type="button" aria-label={translate("canvasTools.previs.previsAddDialog.customColor")} aria-pressed={custom} className={`previs-add-dialog__swatch previs-add-dialog__swatch--custom ${custom ? "is-active" : ""}`} style={custom ? { background: value } : undefined} />
+                <button
+                    type="button"
+                    aria-label={translate("canvasTools.previs.previsAddDialog.customColor")}
+                    aria-pressed={custom}
+                    className={`previs-add-dialog__swatch previs-add-dialog__swatch--custom ${custom ? "is-active" : ""}`}
+                    style={custom ? { background: value } : undefined}
+                />
             </ColorPicker>
             <input
                 className="previs-add-dialog__hex"

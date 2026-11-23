@@ -40,7 +40,11 @@ export function ArtCritiqueNodeContent({ node }: ArtCritiqueNodeProps) {
                 <div className="min-w-0 flex-1">
                     <div className="truncate text-[var(--fs-label)] font-semibold">{translate("canvasA.artCritique.title")}</div>
                     <div className="truncate text-[var(--fs-tiny)]" style={{ color: theme.node.muted }}>
-                        {enabled ? translate("canvasTools.nodes.aiArtCritiqueNode.visualAnalysisSVGAnnotationsOriginalImageUnchanged") : state.report ? translate("canvasTools.nodes.aiArtCritiqueNode.pluginDisabledPreviousReportsAreReadOnly") : translate("canvasTools.nodes.aiArtCritiqueNode.pluginDisabledEnableItInPluginManagementFirst")}
+                        {enabled
+                            ? translate("canvasTools.nodes.aiArtCritiqueNode.visualAnalysisSVGAnnotationsOriginalImageUnchanged")
+                            : state.report
+                              ? translate("canvasTools.nodes.aiArtCritiqueNode.pluginDisabledPreviousReportsAreReadOnly")
+                              : translate("canvasTools.nodes.aiArtCritiqueNode.pluginDisabledEnableItInPluginManagementFirst")}
                     </div>
                 </div>
                 <StatusBadge status={status} stage={state.analysisStage} />
@@ -63,7 +67,9 @@ export function ArtCritiqueNodeContent({ node }: ArtCritiqueNodeProps) {
                                 : translate("canvasTools.nodes.aiArtCritiqueNode.connectAnImageNode")}
                         </div>
                     </div>
-                    {status === "completed" && issueCount ? <span className="shrink-0 rounded-full bg-black/45 px-2 py-1 text-[var(--fs-micro)] font-semibold">{translate("canvasTools.inline.aiArtCritiqueNode.items", { v0: String(issueCount) })}</span> : null}
+                    {status === "completed" && issueCount ? (
+                        <span className="shrink-0 rounded-full bg-black/45 px-2 py-1 text-[var(--fs-micro)] font-semibold">{translate("canvasTools.inline.aiArtCritiqueNode.items", { v0: String(issueCount) })}</span>
+                    ) : null}
                 </div>
             </div>
 
@@ -103,7 +109,13 @@ export function ArtCritiqueNodeContent({ node }: ArtCritiqueNodeProps) {
                 }}
             >
                 {status === "running" ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
-                {status === "running" ? translate("canvasTools.nodes.aiArtCritiqueNode.reviewing") : state.report ? (status === "stale" ? translate("canvasA.artCritique.rerun") : translate("canvasTools.nodes.aiArtCritiqueNode.viewReviewReport")) : translate("canvasTools.nodes.aiArtCritiqueNode.startAIReview")}
+                {status === "running"
+                    ? translate("canvasTools.nodes.aiArtCritiqueNode.reviewing")
+                    : state.report
+                      ? status === "stale"
+                          ? translate("canvasA.artCritique.rerun")
+                          : translate("canvasTools.nodes.aiArtCritiqueNode.viewReviewReport")
+                      : translate("canvasTools.nodes.aiArtCritiqueNode.startAIReview")}
                 {status !== "running" ? <ArrowRight className="size-4" aria-hidden="true" /> : null}
             </button>
         </div>

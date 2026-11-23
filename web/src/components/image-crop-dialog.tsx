@@ -6,7 +6,6 @@ import { centeredAspectSelection, resizeSelection, selectAspect, translateSelect
 import { useImageToolSource } from "@/hooks/use-image-tool-source";
 import { translate } from "@/i18n";
 
-
 export type { ImageCropRect } from "@/lib/canvas/image-operation-plan";
 export type ImageCropDialogProps = { dataUrl: string; open: boolean; onClose: () => void; onConfirm: (crop: ImageCropRect) => void; fixedAspect?: number; title?: string; confirmLoading?: boolean };
 const initialSelection: ImageCropRect = { x: 0.1, y: 0.1, width: 0.8, height: 0.8 };
@@ -36,7 +35,12 @@ function CropEditor({ dataUrl, onClose, onConfirm, fixedAspect, title = translat
     const stage = useRef<HTMLDivElement>(null);
     const gesture = useRef<Gesture | null>(null);
     const output = size ? resolveCropPixels(size, selection) : null;
-    const outputLabel = output && fixedAspect === 1 ? translate("shared.imageCropDialog.outputPx", { v0: String(Math.min(output.width, output.height)), v1: String(Math.min(output.width, output.height)) }) : output ? translate("shared.imageCropDialog.outputPx", { v0: String(output.width), v1: String(output.height) }) : error || translate("shared.imageCropDialog.loadingImage");
+    const outputLabel =
+        output && fixedAspect === 1
+            ? translate("shared.imageCropDialog.outputPx", { v0: String(Math.min(output.width, output.height)), v1: String(Math.min(output.width, output.height)) })
+            : output
+              ? translate("shared.imageCropDialog.outputPx", { v0: String(output.width), v1: String(output.height) })
+              : error || translate("shared.imageCropDialog.loadingImage");
     const begin = (event: PointerEvent<HTMLElement>, grip: CropGrip | null) => {
         if (confirmLoading || event.button !== 0 || gesture.current || !stage.current || !size) return;
         const bounds = stage.current.getBoundingClientRect();

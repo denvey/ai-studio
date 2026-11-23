@@ -20,7 +20,12 @@ export function MediaTransportFields({ value = {}, onChange, channel }: { value?
                             aria-label={translate("admin.mediaTransportFields.transport", { v0: String(label) })}
                             value={value[kind] || (model ? "inherit" : "protocol")}
                             onChange={(mode) => onChange?.({ ...value, [kind]: mode })}
-                            options={[...(model ? [{ value: "inherit", label: translate("admin.mediaTransportFields.useChannelSetting", { v0: String(mediaTransportLabel(channel?.[kind])) }) }] : []), { value: "protocol", label: translate("admin.mediaTransportFields.protocolDefault") }, { value: "url", label: "URL" }, { value: "base64", label: "Base64" }]}
+                            options={[
+                                ...(model ? [{ value: "inherit", label: translate("admin.mediaTransportFields.useChannelSetting", { v0: String(mediaTransportLabel(channel?.[kind])) }) }] : []),
+                                { value: "protocol", label: translate("admin.mediaTransportFields.protocolDefault") },
+                                { value: "url", label: "URL" },
+                                { value: "base64", label: "Base64" },
+                            ]}
                         />
                     </label>
                 ))}

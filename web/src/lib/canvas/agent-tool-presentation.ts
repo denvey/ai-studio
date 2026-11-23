@@ -1,7 +1,6 @@
 import { agentToolRetry, type AgentToolRetry } from "./agent-tool-retry";
 import { translate } from "@/i18n";
 
-
 /**
  * 前端工具清单，口径与后端 `CloudAgentSupportedToolNames()`
  * （`backend/internal/app/cloud_agent_tools.go`，从 `compileCloudAgentTools` 派生）逐一对齐。
@@ -58,13 +57,30 @@ export const AGENT_TOOL_METADATA: Record<string, AgentToolMetadataEntry> = {
     // 清单 ≠ 画面：这个工具只读到节点存在/类型/标题/规模。说成"已读取当前画布"会被读成看过图。
     canvas_get_state: { summary: translate("shared.canvas.agentToolPresentation.readTheCanvasInventoryImagesNotViewed"), failureMessage: translate("shared.canvas.agentToolPresentation.failedToGetTheCanvasInventory") },
     task_get: { summary: translate("shared.canvas.agentToolPresentation.checkedTaskStatus"), failureMessage: translate("shared.canvas.agentToolPresentation.failedToCheckTaskStatus") },
-    canvas_apply_ops: { summary: ({ pending }) => (pending ? translate("shared.canvas.agentToolPresentation.preparingToUpdateCanvasContent") : translate("shared.canvas.agentToolPresentation.canvasContentSavedToTheServer")), failureMessage: translate("shared.canvas.agentToolPresentation.failedToUpdateCanvasContent") },
+    canvas_apply_ops: {
+        summary: ({ pending }) => (pending ? translate("shared.canvas.agentToolPresentation.preparingToUpdateCanvasContent") : translate("shared.canvas.agentToolPresentation.canvasContentSavedToTheServer")),
+        failureMessage: translate("shared.canvas.agentToolPresentation.failedToUpdateCanvasContent"),
+    },
     model_list: { summary: translate("shared.canvas.agentToolPresentation.retrievedAvailableModels"), failureMessage: translate("shared.canvas.agentToolPresentation.failedToGetAvailableModels") },
-    canvas_create_character: { summary: ({ pending }) => (pending ? translate("shared.canvas.agentToolPresentation.preparingToCreateACharacterCard") : translate("shared.canvas.agentToolPresentation.characterCardCreatedAndAddedToTheCanvas")), failureMessage: translate("shared.canvas.agentToolPresentation.failedToCreateACharacterCard") },
+    canvas_create_character: {
+        summary: ({ pending }) => (pending ? translate("shared.canvas.agentToolPresentation.preparingToCreateACharacterCard") : translate("shared.canvas.agentToolPresentation.characterCardCreatedAndAddedToTheCanvas")),
+        failureMessage: translate("shared.canvas.agentToolPresentation.failedToCreateACharacterCard"),
+    },
     // 短剧工具只在关联短剧的精修画布上出现：读取作品上下文，或把画布媒体采用为短剧的新版本（总要审批）。
     drama_get_context: { summary: translate("shared.canvas.agentToolPresentation.readDramaSettingsAndEpisodes"), failureMessage: translate("shared.canvas.agentToolPresentation.failedToReadDramaInformation") },
-    drama_adopt_canvas_media: { summary: ({ pending }) => (pending ? translate("shared.canvas.agentToolPresentation.preparingToAdoptIntoTheDrama") : translate("shared.canvas.agentToolPresentation.adoptedIntoTheDramaAsTheNewCurrentVersion")), failureMessage: translate("shared.canvas.agentToolPresentation.failedToAdoptIntoTheDrama") },
-    generate_media: { summary: ({ pending, detail }) => (pending ? translate("shared.canvas.agentToolPresentation.preparingToCreateMediaNodesAndGenerate") : field(detail, "eventType") === "tool_completed" ? translate("shared.canvas.agentToolPresentation.generationResultsWrittenBackToCanvasNodes") : translate("shared.canvas.agentToolPresentation.mediaNodesCreatedGenerationTasksSubmitted")), failureMessage: translate("shared.canvas.agentToolPresentation.mediaGenerationIncomplete") },
+    drama_adopt_canvas_media: {
+        summary: ({ pending }) => (pending ? translate("shared.canvas.agentToolPresentation.preparingToAdoptIntoTheDrama") : translate("shared.canvas.agentToolPresentation.adoptedIntoTheDramaAsTheNewCurrentVersion")),
+        failureMessage: translate("shared.canvas.agentToolPresentation.failedToAdoptIntoTheDrama"),
+    },
+    generate_media: {
+        summary: ({ pending, detail }) =>
+            pending
+                ? translate("shared.canvas.agentToolPresentation.preparingToCreateMediaNodesAndGenerate")
+                : field(detail, "eventType") === "tool_completed"
+                  ? translate("shared.canvas.agentToolPresentation.generationResultsWrittenBackToCanvasNodes")
+                  : translate("shared.canvas.agentToolPresentation.mediaNodesCreatedGenerationTasksSubmitted"),
+        failureMessage: translate("shared.canvas.agentToolPresentation.mediaGenerationIncomplete"),
+    },
     // 批量生成：一次审批，后台并发提交；回执里是本批的完成情况。
     generate_media_batch: {
         summary: ({ pending, detail }) => {
@@ -114,7 +130,12 @@ export const AGENT_TOOL_METADATA: Record<string, AgentToolMetadataEntry> = {
     },
     // 收尾闸门（工作项 A）：被拦下时卡片要说清"这次没结束"，而不是千篇一律的"操作已完成"。
     finish_run: {
-        summary: ({ pending, detail }) => (pending ? translate("shared.canvas.agentToolPresentation.preparingToFinishAndProvideTheFinalResponse") : field(field(detail, "result"), "completionBlocked") === true ? translate("shared.canvas.agentToolPresentation.finalizationBlockedContinuingUnfinishedItems") : translate("shared.canvas.agentToolPresentation.finishedAndProvidedTheFinalResponse")),
+        summary: ({ pending, detail }) =>
+            pending
+                ? translate("shared.canvas.agentToolPresentation.preparingToFinishAndProvideTheFinalResponse")
+                : field(field(detail, "result"), "completionBlocked") === true
+                  ? translate("shared.canvas.agentToolPresentation.finalizationBlockedContinuingUnfinishedItems")
+                  : translate("shared.canvas.agentToolPresentation.finishedAndProvidedTheFinalResponse"),
         failureMessage: translate("shared.canvas.agentToolPresentation.finalizationIncomplete"),
     },
     // 长期记忆只属于当前用户，不是画布写入；结果状态来自 memory_update 回执（applied / pending_review / unchanged）。
@@ -138,7 +159,10 @@ export const AGENT_TOOL_METADATA: Record<string, AgentToolMetadataEntry> = {
         },
         failureMessage: translate("shared.canvas.agentToolPresentation.skillMarketplaceSearchFailed"),
     },
-    skill_recommend: { summary: ({ pending }) => (pending ? translate("shared.canvas.agentToolPresentation.preparingSkillInstallationRecommendations") : translate("shared.canvas.agentToolPresentation.skillInstallationRecommendedYouChooseWhetherToInstall")), failureMessage: translate("shared.canvas.agentToolPresentation.skillRecommendationsNotShown") },
+    skill_recommend: {
+        summary: ({ pending }) => (pending ? translate("shared.canvas.agentToolPresentation.preparingSkillInstallationRecommendations") : translate("shared.canvas.agentToolPresentation.skillInstallationRecommendedYouChooseWhetherToInstall")),
+        failureMessage: translate("shared.canvas.agentToolPresentation.skillRecommendationsNotShown"),
+    },
 };
 
 /** 画布上"读到清单"的只读工具：无像素，chip 必须是存在式。 */
@@ -240,7 +264,9 @@ export function friendlyAgentToolSummary(toolName: string, text: string, detail?
         if (Number.isFinite(available) && available > 0) {
             const pinned = field(detail, "skillIds");
             const pinnedCount = Array.isArray(pinned) ? pinned.length : Number(/固定\s*(\d+)\s*个/u.exec(text)?.[1] || 0);
-            return pinnedCount ? translate("shared.canvas.agentToolPresentation.installedSkillsCanBeDiscoveredAutomaticallyPinned", { v0: String(available), v1: String(pinnedCount) }) : translate("shared.canvas.agentToolPresentation.installedSkillsCanBeDiscoveredAutomatically", { v0: String(available) });
+            return pinnedCount
+                ? translate("shared.canvas.agentToolPresentation.installedSkillsCanBeDiscoveredAutomaticallyPinned", { v0: String(available), v1: String(pinnedCount) })
+                : translate("shared.canvas.agentToolPresentation.installedSkillsCanBeDiscoveredAutomatically", { v0: String(available) });
         }
         // 历史事件文案：“已启用 3 个技能”“固定加载 3 个技能”。
         const count = /(?:加载|启用)\s*(\d+)\s*个/u.exec(text)?.[1];
@@ -253,7 +279,10 @@ export function friendlyAgentToolSummary(toolName: string, text: string, detail?
         const listing = path === "" || (path === undefined && Array.isArray(files));
         const target = typeof path === "string" && path ? `${name} · ${path}` : name;
         if (failed) return `${listing ? translate("shared.canvas.agentToolPresentation.failedToListReferenceFiles") : translate("shared.canvas.agentToolPresentation.failedToReadReferenceMaterial")} · ${target}`;
-        if (listing && Array.isArray(files)) return files.length ? translate("shared.canvas.agentToolPresentation.readableReferenceFiles", { v0: String(name), v1: String(files.length) }) : translate("shared.canvas.agentToolPresentation.noReadableReferenceFilesUsingLoadedContent", { v0: String(name) });
+        if (listing && Array.isArray(files))
+            return files.length
+                ? translate("shared.canvas.agentToolPresentation.readableReferenceFiles", { v0: String(name), v1: String(files.length) })
+                : translate("shared.canvas.agentToolPresentation.noReadableReferenceFilesUsingLoadedContent", { v0: String(name) });
         return `${pending ? translate("shared.canvas.agentToolPresentation.preparingToReadReferenceMaterial") : translate("shared.canvas.agentToolPresentation.referenceMaterialRead")} · ${target}`;
     }
     const metadata = AGENT_TOOL_METADATA[toolName];

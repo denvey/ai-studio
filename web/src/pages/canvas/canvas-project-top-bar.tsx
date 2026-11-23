@@ -157,7 +157,12 @@ export function CanvasTopBar({
                             />
                         ) : (
                             <div className="canvas-topbar-title-row flex min-w-0 items-center gap-0.5">
-                                <button type="button" className="min-w-0 flex-1 truncate text-left text-base font-semibold tracking-normal transition-opacity hover:opacity-75" onClick={onStartTitleEditing} title={translate("canvasTools.canvasProjectTopBar.clickToRenameTheCanvas")}>
+                                <button
+                                    type="button"
+                                    className="min-w-0 flex-1 truncate text-left text-base font-semibold tracking-normal transition-opacity hover:opacity-75"
+                                    onClick={onStartTitleEditing}
+                                    title={translate("canvasTools.canvasProjectTopBar.clickToRenameTheCanvas")}
+                                >
                                     {title}
                                 </button>
                                 <CanvasTopBarTooltip label={translate("canvasTools.canvasProjectTopBar.renameCanvas")}>
@@ -178,7 +183,11 @@ export function CanvasTopBar({
                                 <Link
                                     to={`/projects/${encodeURIComponent(projectContext.projectId)}`}
                                     className="inline-flex min-w-0 items-center gap-1 hover:underline"
-                                    title={projectContext.kind === "drama" ? translate("canvasTools.canvasProjectTopBar.openDramaStudio", { v0: String(projectContext.projectName) }) : translate("canvasTools.canvasProjectTopBar.backToProject", { v0: String(projectContext.projectName) })}
+                                    title={
+                                        projectContext.kind === "drama"
+                                            ? translate("canvasTools.canvasProjectTopBar.openDramaStudio", { v0: String(projectContext.projectName) })
+                                            : translate("canvasTools.canvasProjectTopBar.backToProject", { v0: String(projectContext.projectName) })
+                                    }
                                 >
                                     {projectContext.kind === "drama" ? <Clapperboard className="size-3 shrink-0" /> : <FolderKanban className="size-3 shrink-0" />}
                                     <span className="max-w-[120px] truncate">{projectContext.projectName}</span>
@@ -220,7 +229,13 @@ export function CanvasTopBar({
                                 ],
                             }}
                         >
-                            <Button type="text" className="canvas-topbar-action canvas-topbar-import-button !h-10 !rounded-xl !px-2 !font-medium" style={{ color: theme.node.text }} icon={<CloudDownload className="size-4" />} aria-label={translate("canvasTools.canvasProjectTopBar.importThirdPartyCanvas")}>
+                            <Button
+                                type="text"
+                                className="canvas-topbar-action canvas-topbar-import-button !h-10 !rounded-xl !px-2 !font-medium"
+                                style={{ color: theme.node.text }}
+                                icon={<CloudDownload className="size-4" />}
+                                aria-label={translate("canvasTools.canvasProjectTopBar.importThirdPartyCanvas")}
+                            >
                                 <span className="hidden lg:inline">{translate("canvasTools.canvasProjectTopBar.importThirdPartyCanvas")}</span>
                             </Button>
                         </Dropdown>
@@ -240,7 +255,14 @@ export function CanvasTopBar({
                         </CanvasTopBarTooltip>
                     ) : null}
                     <CanvasTopBarTooltip label={translate("canvasTools.canvasProjectTopBar.enterFocusModeShiftCtrlCmdF")}>
-                        <Button type="text" className="canvas-topbar-action !h-10 !w-10 !min-w-10 !rounded-xl !p-0" style={{ color: theme.node.text }} icon={<Focus className="size-4" />} onClick={onEnterFocusMode} aria-label={translate("canvasTools.canvasProjectTopBar.enterFocusMode")} />
+                        <Button
+                            type="text"
+                            className="canvas-topbar-action !h-10 !w-10 !min-w-10 !rounded-xl !p-0"
+                            style={{ color: theme.node.text }}
+                            icon={<Focus className="size-4" />}
+                            onClick={onEnterFocusMode}
+                            aria-label={translate("canvasTools.canvasProjectTopBar.enterFocusMode")}
+                        />
                     </CanvasTopBarTooltip>
                     {shortDramaGuide ? (
                         <CanvasTopBarTooltip label={shortDramaGuide.collapsed ? translate("canvasTools.canvasProjectTopBar.expandTheShortDramaWorkflow") : translate("canvasTools.canvasProjectTopBar.collapseTheShortDramaWorkflow")}>
@@ -258,7 +280,14 @@ export function CanvasTopBar({
                         </CanvasTopBarTooltip>
                     ) : null}
                     <CanvasTopBarTooltip label={translate("canvasTools.canvasProjectTopBar.shareCanvas")}>
-                        <Button type="text" className="canvas-topbar-action !h-10 !w-10 !min-w-10 !rounded-xl !p-0" style={{ color: theme.node.text }} icon={<Share2 className="size-4" />} onClick={onShare} aria-label={translate("canvasTools.canvasProjectTopBar.shareCanvas")} />
+                        <Button
+                            type="text"
+                            className="canvas-topbar-action !h-10 !w-10 !min-w-10 !rounded-xl !p-0"
+                            style={{ color: theme.node.text }}
+                            icon={<Share2 className="size-4" />}
+                            onClick={onShare}
+                            aria-label={translate("canvasTools.canvasProjectTopBar.shareCanvas")}
+                        />
                     </CanvasTopBarTooltip>
                 </div>
             </div>
@@ -284,9 +313,19 @@ function CanvasViewSwitch({ view, onChange, dockStyle, theme }: { view: CanvasPr
     return (
         <div role="group" aria-label={translate("canvasTools.canvasProjectTopBar.canvasView")} className="canvas-topbar-cluster canvas-topbar-view-switch pointer-events-auto hidden items-center justify-self-center xl:flex" style={style}>
             {items.map((item) => (
-                <CanvasTopBarTooltip key={item.value} label={view === item.value ? translate("canvasTools.canvasProjectTopBar.currentView", { v0: String(item.label) }) : translate("canvasTools.canvasProjectTopBar.switchToView", { v0: String(item.label) })}>
+                <CanvasTopBarTooltip
+                    key={item.value}
+                    label={view === item.value ? translate("canvasTools.canvasProjectTopBar.currentView", { v0: String(item.label) }) : translate("canvasTools.canvasProjectTopBar.switchToView", { v0: String(item.label) })}
+                >
                     {/* 未分层的 `button { color: inherit }` 会压过 @layer 里的颜色规则，颜色走行内变量，由样式表按状态切换。 */}
-                    <button type="button" className="canvas-topbar-view-option" style={{ color: "var(--view-switch-color)" }} aria-label={translate("canvasTools.canvasProjectTopBar.view", { v0: String(item.label) })} aria-pressed={view === item.value} onClick={() => onChange(item.value)}>
+                    <button
+                        type="button"
+                        className="canvas-topbar-view-option"
+                        style={{ color: "var(--view-switch-color)" }}
+                        aria-label={translate("canvasTools.canvasProjectTopBar.view", { v0: String(item.label) })}
+                        aria-pressed={view === item.value}
+                        onClick={() => onChange(item.value)}
+                    >
                         {item.icon}
                     </button>
                 </CanvasTopBarTooltip>

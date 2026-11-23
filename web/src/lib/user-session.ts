@@ -22,7 +22,6 @@ import { withGenerationConsumersPaused } from "@/services/generation-consumer-li
 import { recordDiagnosticEvent } from "@/services/diagnostics/client-diagnostics";
 import { translate } from "@/i18n";
 
-
 export async function switchUserStorageScope(userId?: string | null) {
     await withGenerationConsumersPaused(async () => {
         await withRemoteUserDataSyncExclusive(async () => {

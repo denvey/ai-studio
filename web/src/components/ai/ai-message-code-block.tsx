@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Check, Copy } from "lucide-react";
 import { translate } from "@/i18n";
 
-
 type AiMessageCodeBlockProps = {
     children?: ReactNode;
     className?: string;

@@ -5,7 +5,6 @@ import { defaultConfig, encodeChannelModel, type ModelCapability, type ModelChan
 import type { ModelProtocol } from "@/lib/model-protocols";
 import { translate } from "@/i18n";
 
-
 export async function testChannelModelConnection(channel: ModelChannel, model: string, capability: ModelCapability, protocol: ModelProtocol) {
     if (!channel.baseUrl.trim()) throw new Error(translate("shared.modelConnectionTest.enterABaseURLFirst"));
     if (!channel.apiKey.trim()) throw new Error(translate("shared.modelConnectionTest.enterAnAPIKeyFirst"));

@@ -31,7 +31,9 @@ function DocumentEntries({ record }: { record: AdminAgentMemoryDocument }) {
                     <section key={section.key} aria-label={section.label} className="min-w-0">
                         <h4 className="mb-2 text-xs font-semibold">
                             {section.label}
-                            <span className="ml-2 font-normal text-muted-foreground">{entries.length} {translate("account.layout.pagination.item")}</span>
+                            <span className="ml-2 font-normal text-muted-foreground">
+                                {entries.length} {translate("account.layout.pagination.item")}
+                            </span>
                         </h4>
                         {entries.length ? (
                             <ul className="space-y-1.5 text-xs leading-5">
@@ -148,7 +150,8 @@ export default function AgentMemoryDocumentsPanel() {
                             {translate("common.refresh")}
                         </Button>
                         <span className="text-xs opacity-60">
-                            {translate("admin.agentMemoryDocumentsPanel.total")} {items.length} {translate("admin.agentMemoryDocumentsPanel.files")}{userId ? "" : translate("admin.agentMemoryDocumentsPanel.mostRecentlyUpdatedUpTo200Files")}
+                            {translate("admin.agentMemoryDocumentsPanel.total")} {items.length} {translate("admin.agentMemoryDocumentsPanel.files")}
+                            {userId ? "" : translate("admin.agentMemoryDocumentsPanel.mostRecentlyUpdatedUpTo200Files")}
                         </span>
                     </div>
                 }

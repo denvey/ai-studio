@@ -84,7 +84,13 @@ export function ChannelModelEditor({
             onClose();
             return;
         }
-        modal.confirm({ title: translate("admin.channelModelEditor.discardUnsavedChanges"), content: translate("admin.channelModelEditor.yourChangesAreUnsavedAndWillBeDiscardedWhenYou"), okText: translate("admin.channelModelEditor.discardChanges"), cancelText: translate("account.settings.prompts.switchCancel"), onOk: onClose });
+        modal.confirm({
+            title: translate("admin.channelModelEditor.discardUnsavedChanges"),
+            content: translate("admin.channelModelEditor.yourChangesAreUnsavedAndWillBeDiscardedWhenYou"),
+            okText: translate("admin.channelModelEditor.discardChanges"),
+            cancelText: translate("account.settings.prompts.switchCancel"),
+            onOk: onClose,
+        });
     };
 
     const handleFormValuesChange = (changed: Partial<FormValues>) => {
@@ -239,7 +245,15 @@ export function ChannelModelEditor({
                             icon={<FlaskConical className="size-4" />}
                             loading={testing}
                             disabled={saving || protocolLoading || Boolean(protocolError)}
-                            onClick={() => modal.confirm({ title: translate("admin.channelModelEditor.testModelConnection"), content: translate("admin.channelModelEditor.testingSendsARealUpstreamRequestAndMayIncurProvider"), okText: translate("admin.channelModelEditor.startTest"), cancelText: translate("common.cancel"), onOk: testModel })}
+                            onClick={() =>
+                                modal.confirm({
+                                    title: translate("admin.channelModelEditor.testModelConnection"),
+                                    content: translate("admin.channelModelEditor.testingSendsARealUpstreamRequestAndMayIncurProvider"),
+                                    okText: translate("admin.channelModelEditor.startTest"),
+                                    cancelText: translate("common.cancel"),
+                                    onOk: testModel,
+                                })
+                            }
                         >
                             {translate("account.settings.modelConfig.test")}
                         </Button>
@@ -332,7 +346,12 @@ export function ChannelModelEditor({
                                             />
                                         ) : null}
                                         <ChannelModelTagsEditor />
-                                        <Form.Item name="description" label={translate("admin.channelModelEditor.modelDescription")} extra={translate("admin.channelModelEditor.alwaysShownInSecondaryChannelOptionsInTheCreationInterface")} rules={[{ max: 500, message: translate("admin.channelModelEditor.theModelDescriptionMustNotExceed500Characters") }]}>
+                                        <Form.Item
+                                            name="description"
+                                            label={translate("admin.channelModelEditor.modelDescription")}
+                                            extra={translate("admin.channelModelEditor.alwaysShownInSecondaryChannelOptionsInTheCreationInterface")}
+                                            rules={[{ max: 500, message: translate("admin.channelModelEditor.theModelDescriptionMustNotExceed500Characters") }]}
+                                        >
                                             <Input.TextArea rows={3} maxLength={500} showCount placeholder={translate("admin.channelModelEditor.describeHowToUseThisChannelModel")} />
                                         </Form.Item>
                                     </section>
@@ -350,7 +369,12 @@ export function ChannelModelEditor({
                                                     ]}
                                                 />
                                             </Form.Item>
-                                            <Form.Item className="admin-model-protocol-field" name="protocol" label={translate("admin.channelModelEditor.requestProtocol")} rules={[{ validator: async (_, value) => validateChannelModelProtocol(form.getFieldValue("capability"), value, protocols) }]}>
+                                            <Form.Item
+                                                className="admin-model-protocol-field"
+                                                name="protocol"
+                                                label={translate("admin.channelModelEditor.requestProtocol")}
+                                                rules={[{ validator: async (_, value) => validateChannelModelProtocol(form.getFieldValue("capability"), value, protocols) }]}
+                                            >
                                                 <ModelProtocolBrowser disabled={busy} capability={modelCapability} protocols={protocols} loading={protocolLoading} error={protocolError} />
                                             </Form.Item>
                                             {protocolError && (
@@ -377,11 +401,17 @@ export function ChannelModelEditor({
                             forceRender: true,
                             children: (
                                 <div className="admin-model-editor-tab-content">
-                                    {configurationChanged && <Alert type="warning" showIcon title={translate("admin.channelModelEditor.capabilitiesOrProtocolChanged")} description={translate("admin.channelModelEditor.referencesAndParametersHaveBeenResetToTheNewProtocol")} />}{" "}
+                                    {configurationChanged && (
+                                        <Alert type="warning" showIcon title={translate("admin.channelModelEditor.capabilitiesOrProtocolChanged")} description={translate("admin.channelModelEditor.referencesAndParametersHaveBeenResetToTheNewProtocol")} />
+                                    )}{" "}
                                     {modelCapability === "text" || modelCapability === "image" || modelCapability === "video" ? (
                                         <section className="admin-model-editor-section admin-model-editor-section-stacked admin-model-editor-references">
                                             <SectionHeading title={translate("admin.channelModelEditor.referencesAndLimits")} description={translate("admin.channelModelEditor.configureCountSizeDurationAndGeneralLimitsForEachMedia")} />
-                                            <Form.Item name={["capabilityConfig", "mediaTransport"]} label={translate("admin.channelModelEditor.referenceMediaDelivery")} extra={translate("admin.channelModelEditor.modelSettingsTakePriorityFollowedByChannelDefaultsThenProtocol")}>
+                                            <Form.Item
+                                                name={["capabilityConfig", "mediaTransport"]}
+                                                label={translate("admin.channelModelEditor.referenceMediaDelivery")}
+                                                extra={translate("admin.channelModelEditor.modelSettingsTakePriorityFollowedByChannelDefaultsThenProtocol")}
+                                            >
                                                 <MediaTransportFields channel={channel.mediaTransport || {}} />
                                             </Form.Item>
                                             <div className="admin-model-editor-section-content">
@@ -421,7 +451,13 @@ export function ChannelModelEditor({
                                             </div>
                                         </section>
                                     ) : null}
-                                    {modelCapability === "audio" && <Alert type="info" title={translate("admin.channelModelEditor.audioModelsNeedNoAdditionalReferenceOrParameterSettings")} description={translate("admin.channelModelEditor.configureTheRequestProtocolAndCreditPricingInTheirRespective")} />}
+                                    {modelCapability === "audio" && (
+                                        <Alert
+                                            type="info"
+                                            title={translate("admin.channelModelEditor.audioModelsNeedNoAdditionalReferenceOrParameterSettings")}
+                                            description={translate("admin.channelModelEditor.configureTheRequestProtocolAndCreditPricingInTheirRespective")}
+                                        />
+                                    )}
                                 </div>
                             ),
                         },
@@ -431,7 +467,14 @@ export function ChannelModelEditor({
                             forceRender: true,
                             children: (
                                 <div className="admin-model-editor-tab-content">
-                                    {configurationChanged && <Alert type="warning" showIcon title={translate("admin.channelModelEditor.reviewPricing")} description={translate("admin.channelModelEditor.capabilitiesOrProtocolChangedReviewSpecificationConditionsBillingMethodsAnd")} />}{" "}
+                                    {configurationChanged && (
+                                        <Alert
+                                            type="warning"
+                                            showIcon
+                                            title={translate("admin.channelModelEditor.reviewPricing")}
+                                            description={translate("admin.channelModelEditor.capabilitiesOrProtocolChangedReviewSpecificationConditionsBillingMethodsAnd")}
+                                        />
+                                    )}{" "}
                                     <section className="admin-model-editor-section">
                                         <SectionHeading title={translate("admin.channelModelEditor.userCreditPrices")} description={translate("admin.channelModelEditor.startWithOneFlatPriceAddSpecificationPricesWhenGeneration")} />
                                         <div className="admin-model-editor-section-content">

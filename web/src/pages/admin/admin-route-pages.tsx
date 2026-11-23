@@ -9,7 +9,6 @@ import { BillingAutoRefundToggle } from "./components/billing-auto-refund-toggle
 import { AdminSegmented } from "./ui/controls";
 import { translate } from "@/i18n";
 
-
 const AnalyticsPanel = lazy(() => import("./components/analytics-panel"));
 const AdminAnnouncementsPanel = lazy(() => import("./components/admin-announcements-panel"));
 const AdminBannerAnnouncementsPanel = lazy(() => import("./components/admin-banner-announcements-panel"));

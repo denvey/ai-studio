@@ -5,7 +5,6 @@ import { getAdminFeatureAvailability, updateAdminFeatureAvailability } from "@/s
 import { useUserStore } from "@/stores/use-user-store";
 import { translate } from "@/i18n";
 
-
 export function WelcomeSetting() {
     const { message } = App.useApp();
     const [enabled, setEnabled] = useState<boolean | null>(null);
@@ -59,7 +58,9 @@ export function WelcomeSetting() {
                 ) : null}
             </div>
             <div className="admin-appearance-logo-frame-control">
-                <span>{enabled === null ? translate("account.settings.diagnostics.loading") : saving ? translate("canvasA.drawingModal.saving") : enabled ? translate("account.layout.oss.enabled") : translate("adminPages.settings.welcomeSetting.disabled")}</span>
+                <span>
+                    {enabled === null ? translate("account.settings.diagnostics.loading") : saving ? translate("canvasA.drawingModal.saving") : enabled ? translate("account.layout.oss.enabled") : translate("adminPages.settings.welcomeSetting.disabled")}
+                </span>
                 <Switch aria-label={translate("adminPages.settings.welcomeSetting.enableWelcomePage")} checked={enabled === true} disabled={enabled === null || saving || Boolean(error)} onChange={(value) => void changeWelcome(value)} />
             </div>
         </div>

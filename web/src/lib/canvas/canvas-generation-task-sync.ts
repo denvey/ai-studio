@@ -25,7 +25,6 @@ import { resetGenerationTaskMetadata } from "@/lib/canvas/canvas-task-state";
 import { CanvasNodeType, type CanvasGenerationMode, type CanvasNodeData, type CanvasNodeMetadata } from "@/types/canvas";
 import { translate } from "@/i18n";
 
-
 export function generationTaskInput(task: GenerationTask) {
     if (!task.inputJson) return null;
     try {

@@ -247,8 +247,18 @@ export function ChannelModelManager({ channel, onChanged, health, healthLoading 
                             {item.displayName || item.modelKey}
                         </div>
                         <div className="admin-monospace truncate text-xs text-foreground/45">{item.modelKey}</div>
-                        {item.channelLabel ? <div className="truncate text-xs text-foreground/60">{translate("admin.channelModelManager.channelDisplayName")}{item.channelLabel}</div> : null}
-                        {item.providerModelKey && item.providerModelKey !== item.modelKey ? <div className="admin-monospace truncate text-xs text-foreground/35">{translate("admin.channelModelManager.upstream")}{item.providerModelKey}</div> : null}
+                        {item.channelLabel ? (
+                            <div className="truncate text-xs text-foreground/60">
+                                {translate("admin.channelModelManager.channelDisplayName")}
+                                {item.channelLabel}
+                            </div>
+                        ) : null}
+                        {item.providerModelKey && item.providerModelKey !== item.modelKey ? (
+                            <div className="admin-monospace truncate text-xs text-foreground/35">
+                                {translate("admin.channelModelManager.upstream")}
+                                {item.providerModelKey}
+                            </div>
+                        ) : null}
                     </div>
                 </div>
             ),
@@ -271,7 +281,12 @@ export function ChannelModelManager({ channel, onChanged, health, healthLoading 
         },
         { title: translate("admin.channelModelManager.tierCostSellingPriceMarkup"), width: 310, render: (_, item) => <ChannelModelCostSummary item={item} /> },
         { title: translate("canvasA.assetView.version"), dataIndex: "priceVersion", width: 75, render: (value) => `v${value}` },
-        { title: translate("library.tasks.detail.status"), dataIndex: "enabled", width: 85, render: (enabled) => <AdminStatusBadge label={enabled ? translate("account.layout.oss.switchOn") : translate("account.layout.oss.switchOff")} tone={enabled ? "success" : "neutral"} /> },
+        {
+            title: translate("library.tasks.detail.status"),
+            dataIndex: "enabled",
+            width: 85,
+            render: (enabled) => <AdminStatusBadge label={enabled ? translate("account.layout.oss.switchOn") : translate("account.layout.oss.switchOff")} tone={enabled ? "success" : "neutral"} />,
+        },
         {
             title: translate("account.settings.runninghub.actions"),
             width: 206,
@@ -285,9 +300,21 @@ export function ChannelModelManager({ channel, onChanged, health, healthLoading 
                         {item.enabled ? translate("account.layout.oss.switchOff") : translate("account.layout.oss.switchOn")}
                     </Button>
                     <Tooltip title={translate("admin.channelModelManager.duplicateModel")}>
-                        <Button size="small" aria-label={translate("admin.channelModelManager.duplicateModel2", { v0: String(item.displayName || item.modelKey) })} disabled={deletingSelected} icon={<Copy className="size-3.5" />} onClick={() => startCopy(item)} />
+                        <Button
+                            size="small"
+                            aria-label={translate("admin.channelModelManager.duplicateModel2", { v0: String(item.displayName || item.modelKey) })}
+                            disabled={deletingSelected}
+                            icon={<Copy className="size-3.5" />}
+                            onClick={() => startCopy(item)}
+                        />
                     </Tooltip>
-                    <Popconfirm title={translate("admin.channelModelManager.deleteModel")} description={translate("admin.channelModelManager.modelsUsedByPublicSupplyRoutesOrOngoingTasksCannot")} okText={translate("common.delete")} cancelText={translate("common.cancel")} onConfirm={() => void remove(item)}>
+                    <Popconfirm
+                        title={translate("admin.channelModelManager.deleteModel")}
+                        description={translate("admin.channelModelManager.modelsUsedByPublicSupplyRoutesOrOngoingTasksCannot")}
+                        okText={translate("common.delete")}
+                        cancelText={translate("common.cancel")}
+                        onConfirm={() => void remove(item)}
+                    >
                         <Button size="small" danger disabled={deletingSelected} title={translate("admin.channelModelManager.deleteModel")} aria-label={translate("admin.channelModelManager.deleteModel")} icon={<Trash2 className="size-3.5" />} />
                     </Popconfirm>
                 </Space>
@@ -357,7 +384,13 @@ export function ChannelModelManager({ channel, onChanged, health, healthLoading 
                 empty={
                     <AdminTableEmpty
                         title={loadError ? translate("admin.channelModelManager.failedToLoadModels") : items.length ? translate("admin.channelModelManager.noMatchingModels") : translate("admin.channelModelManager.thisChannelHasNoModelsYet")}
-                        description={loadError ? translate("admin.channelModelManager.theModelListIsCurrentlyUnavailableTryLoadingItAgain") : items.length ? translate("admin.channelModelManager.adjustYourSearchOrFiltersAndTryAgain") : translate("admin.channelModelManager.clickFetchModelsAboveToImportFromUpstreamOrAdd")}
+                        description={
+                            loadError
+                                ? translate("admin.channelModelManager.theModelListIsCurrentlyUnavailableTryLoadingItAgain")
+                                : items.length
+                                  ? translate("admin.channelModelManager.adjustYourSearchOrFiltersAndTryAgain")
+                                  : translate("admin.channelModelManager.clickFetchModelsAboveToImportFromUpstreamOrAdd")
+                        }
                     />
                 }
                 toolbar={
@@ -395,7 +428,9 @@ export function ChannelModelManager({ channel, onChanged, health, healthLoading 
                         ) : null}
                         {status !== "all" ? (
                             <AdminFilterChip
-                                label={translate("admin.channelModelManager.status", { v0: String(status === "enabled" ? translate("account.layout.oss.enabled") : status === "disabled" ? translate("admin.channelModelManager.disabled") : translate("admin.channelModelManager.successRateBelow80")) })}
+                                label={translate("admin.channelModelManager.status", {
+                                    v0: String(status === "enabled" ? translate("account.layout.oss.enabled") : status === "disabled" ? translate("admin.channelModelManager.disabled") : translate("admin.channelModelManager.successRateBelow80")),
+                                })}
                                 onRemove={() => {
                                     setStatus("all");
                                     setPage(1);
@@ -537,7 +572,9 @@ export function ChannelModelManager({ channel, onChanged, health, healthLoading 
                 ]}
             >
                 <div className="space-y-3">
-                    <p className="m-0 text-sm text-foreground/65">{translate("admin.channelModelManager.upstreamReturned")} {fetchPreviewModels.length} {translate("admin.channelModelManager.modelsExistingModelsAreSelectedByDefaultNewModelsAre")}</p>
+                    <p className="m-0 text-sm text-foreground/65">
+                        {translate("admin.channelModelManager.upstreamReturned")} {fetchPreviewModels.length} {translate("admin.channelModelManager.modelsExistingModelsAreSelectedByDefaultNewModelsAre")}
+                    </p>
                     <Input
                         allowClear
                         autoFocus
@@ -573,7 +610,11 @@ export function ChannelModelManager({ channel, onChanged, health, healthLoading 
                                 onChange={(values) => setSelectedFetchModels(values as string[])}
                             />
                         ) : (
-                            <p className="m-0 py-6 text-center text-sm text-foreground/55">{translate("admin.channelModelManager.noAssetsMatching")}{fetchKeyword.trim()}{translate("admin.channelModelManager.models2")}</p>
+                            <p className="m-0 py-6 text-center text-sm text-foreground/55">
+                                {translate("admin.channelModelManager.noAssetsMatching")}
+                                {fetchKeyword.trim()}
+                                {translate("admin.channelModelManager.models2")}
+                            </p>
                         )}
                     </div>
                     <div className="text-xs text-foreground/50">
@@ -607,5 +648,11 @@ export function ChannelModelManager({ channel, onChanged, health, healthLoading 
 }
 
 function capabilityLabel(value: ChannelModel["capability"]) {
-    return { text: translate("account.settings.modelConfig.capabilities.text"), image: translate("account.feedback.image"), video: translate("account.feedback.video"), audio: translate("account.settings.modelConfig.capabilities.audio"), "": translate("account.settings.modelConfig.capabilities.pending") }[value];
+    return {
+        text: translate("account.settings.modelConfig.capabilities.text"),
+        image: translate("account.feedback.image"),
+        video: translate("account.feedback.video"),
+        audio: translate("account.settings.modelConfig.capabilities.audio"),
+        "": translate("account.settings.modelConfig.capabilities.pending"),
+    }[value];
 }

@@ -2,7 +2,6 @@ import { assertPixelSize, resolveCropPixels, type ImageCropRect, type PixelSize 
 import { loadRasterImage } from "@/lib/image-raster";
 import { translate } from "@/i18n";
 
-
 const MAX_AVATAR_PIXELS = 16_000_000;
 const MAX_AVATAR_SIDE = 512;
 

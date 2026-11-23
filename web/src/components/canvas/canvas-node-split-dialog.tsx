@@ -23,7 +23,16 @@ function SplitEditor({ dataUrl, onClose, onConfirm }: SplitDialogProps) {
         setGrid((previous) => ({ ...previous, [axis]: Math.min(MAX_IMAGE_GRID, Math.max(1, Math.round(value))) }));
     };
     return (
-        <AppModal open title={translate("canvasB.gridSplit.label")} width={780} centered onCancel={onClose} okText={translate("canvasTools.canvasNodeSplitDialog.generateChildNodes", { v0: String(grid.rows * grid.columns) })} onOk={() => valid && onConfirm(grid)} okButtonProps={{ disabled: !valid }}>
+        <AppModal
+            open
+            title={translate("canvasB.gridSplit.label")}
+            width={780}
+            centered
+            onCancel={onClose}
+            okText={translate("canvasTools.canvasNodeSplitDialog.generateChildNodes", { v0: String(grid.rows * grid.columns) })}
+            onOk={() => valid && onConfirm(grid)}
+            okButtonProps={{ disabled: !valid }}
+        >
             <p className="mb-4 text-sm text-muted-foreground">{translate("canvasTools.canvasNodeSplitDialog.splitTheSourceImageIntoRowsAndColumnsChildNodes")}</p>
             <div className="grid gap-4 md:grid-cols-[1fr_220px]">
                 <figure className="m-0 flex min-w-0 flex-col items-center gap-3 rounded-lg border border-border bg-surface-active p-3">
@@ -44,10 +53,21 @@ function SplitEditor({ dataUrl, onClose, onConfirm }: SplitDialogProps) {
                     {(["rows", "columns"] as const).map((axis) => (
                         <label key={axis} className="flex flex-col gap-2 text-sm">
                             {axis === "rows" ? translate("canvasTools.canvasNodeSplitDialog.rows") : translate("canvasTools.canvasNodeSplitDialog.columns")}
-                            <InputNumber aria-label={axis === "rows" ? translate("canvasTools.canvasNodeSplitDialog.rows2") : translate("canvasTools.canvasNodeSplitDialog.columns2")} min={1} max={MAX_IMAGE_GRID} precision={0} value={grid[axis]} onChange={(value) => updateCount(axis, value)} />
+                            <InputNumber
+                                aria-label={axis === "rows" ? translate("canvasTools.canvasNodeSplitDialog.rows2") : translate("canvasTools.canvasNodeSplitDialog.columns2")}
+                                min={1}
+                                max={MAX_IMAGE_GRID}
+                                precision={0}
+                                value={grid[axis]}
+                                onChange={(value) => updateCount(axis, value)}
+                            />
                         </label>
                     ))}
-                    <output className="text-sm text-muted-foreground">{previewSize ? translate("canvasTools.canvasNodeSplitDialog.eachTileIsApproximatelyPxAllEdgePixelsArePreserved", { v0: String(previewSize.width), v1: String(previewSize.height) }) : translate("canvasTools.canvasNodeSplitDialog.waitingForValidImageDimensions")}</output>
+                    <output className="text-sm text-muted-foreground">
+                        {previewSize
+                            ? translate("canvasTools.canvasNodeSplitDialog.eachTileIsApproximatelyPxAllEdgePixelsArePreserved", { v0: String(previewSize.width), v1: String(previewSize.height) })
+                            : translate("canvasTools.canvasNodeSplitDialog.waitingForValidImageDimensions")}
+                    </output>
                     {error || (size && !valid) ? (
                         <p role="alert" className="text-sm text-destructive">
                             {error || translate("canvasTools.canvasNodeSplitDialog.theRowOrColumnCountExceedsTheImageDimensionsReduce")}

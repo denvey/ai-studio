@@ -115,7 +115,13 @@ export function WorkbenchViewer({
                                     <span className="wb-viewer-counter">
                                         {index + 1} / {outputs.length}
                                     </span>
-                                    <button type="button" className="wb-viewer-nav is-prev" data-icon-only aria-label={translate("ecommerce.workbench.workbenchViewer.previous")} onClick={() => onNavigate(outputs[(index - 1 + outputs.length) % outputs.length])}>
+                                    <button
+                                        type="button"
+                                        className="wb-viewer-nav is-prev"
+                                        data-icon-only
+                                        aria-label={translate("ecommerce.workbench.workbenchViewer.previous")}
+                                        onClick={() => onNavigate(outputs[(index - 1 + outputs.length) % outputs.length])}
+                                    >
                                         <ChevronLeft />
                                     </button>
                                     <button type="button" className="wb-viewer-nav is-next" data-icon-only aria-label={translate("ecommerce.workbench.workbenchViewer.next")} onClick={() => onNavigate(outputs[(index + 1) % outputs.length])}>
@@ -127,7 +133,15 @@ export function WorkbenchViewer({
                         {outputs.length > 1 ? (
                             <div className="wb-viewer-strip" role="listbox" aria-label={translate("ecommerce.workbench.workbenchViewer.worksInThisBatch")}>
                                 {outputs.map((item, itemIndex) => (
-                                    <button key={item.key} type="button" role="option" aria-selected={item.key === output.key} aria-label={translate("ecommerce.workbench.workbenchViewer.item", { v0: String(itemIndex + 1) })} className={item.key === output.key ? "is-active" : ""} onClick={() => onNavigate(item)}>
+                                    <button
+                                        key={item.key}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={item.key === output.key}
+                                        aria-label={translate("ecommerce.workbench.workbenchViewer.item", { v0: String(itemIndex + 1) })}
+                                        className={item.key === output.key ? "is-active" : ""}
+                                        onClick={() => onNavigate(item)}
+                                    >
                                         {item.thumbUrl ? <img src={item.thumbUrl} alt="" loading="lazy" /> : <span className="wb-viewer-strip-video" />}
                                     </button>
                                 ))}
@@ -137,7 +151,10 @@ export function WorkbenchViewer({
                     <aside className="wb-viewer-info">
                         <header>
                             <div>
-                                <span className="wb-viewer-kicker">{kind === "image" ? translate("account.feedback.image") : translate("account.feedback.video")}{translate("ecommerce.workbench.workbenchViewer.works")}</span>
+                                <span className="wb-viewer-kicker">
+                                    {kind === "image" ? translate("account.feedback.image") : translate("account.feedback.video")}
+                                    {translate("ecommerce.workbench.workbenchViewer.works")}
+                                </span>
                                 <h2>{batch.toolName || translate("ecommerce.workbench.workbenchViewer.freeCreation")}</h2>
                             </div>
                             <button type="button" className="wb-icon-button" data-icon-only aria-label={translate("ecommerce.workbench.workbenchViewer.closePreview")} onClick={onClose}>
@@ -205,7 +222,8 @@ export function WorkbenchViewer({
                         </div>
                         <footer className="wb-viewer-actions">
                             <Button type="primary" icon={<Download />} onClick={() => onDownload(output)}>
-                                {translate("canvasA.assetView.download")}{output.kind === "video" ? translate("account.feedback.video") : translate("canvasPage.batchReferences.original")}
+                                {translate("canvasA.assetView.download")}
+                                {output.kind === "video" ? translate("account.feedback.video") : translate("canvasPage.batchReferences.original")}
                             </Button>
                             <div className="wb-viewer-secondary">
                                 {onUseAsReference && output.kind === "image" && output.resourceId ? (

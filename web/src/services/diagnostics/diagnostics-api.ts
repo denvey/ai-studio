@@ -3,7 +3,6 @@ import { localizedApiErrorMessage } from "@/services/api/error-codes";
 import type { ClientDiagnosticEvent } from "./client-diagnostics";
 import { translate } from "@/i18n";
 
-
 export type DiagnosticExportInput = {
     from: string;
     to: string;
@@ -55,7 +54,10 @@ export async function exportDiagnosticBundle(input: DiagnosticExportInput): Prom
             try {
                 const payload = raw ? (JSON.parse(raw) as { code?: number; msg?: string }) : null;
                 if (payload) {
-                    const message = status === 404 ? translate("shared.diagnostics.diagnosticsApi.theDiagnosticsEndpointIsNotDeployedRestartOrRebuildThe") : localizedApiErrorMessage(undefined, payload.msg || translate("shared.diagnostics.diagnosticsApi.failedToExportTheDiagnosticsBundle"));
+                    const message =
+                        status === 404
+                            ? translate("shared.diagnostics.diagnosticsApi.theDiagnosticsEndpointIsNotDeployedRestartOrRebuildThe")
+                            : localizedApiErrorMessage(undefined, payload.msg || translate("shared.diagnostics.diagnosticsApi.failedToExportTheDiagnosticsBundle"));
                     throw new ApiError(message, { status, code: payload.code, cause: error });
                 }
             } catch (parseError) {

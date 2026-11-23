@@ -3,7 +3,6 @@ import { useAdminContext } from "../admin-context";
 import UsersPanel from "./users-panel";
 import { translate } from "@/i18n";
 
-
 export default function UsersPage() {
     const { updateUserReference } = useAdminContext();
     return (

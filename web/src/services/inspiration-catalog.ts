@@ -8,7 +8,6 @@ import { catalogIdOf, curatedInspirations, type CreationInspiration, type Inspir
 import { getPublicInspirationFeed, type InspirationFeed } from "@/services/api/inspiration-feed";
 import { translate } from "@/i18n";
 
-
 /** manifest.json 里每个来源带的分类码译名表。 */
 type SourceManifest = { revision?: string; count?: number; categories?: Record<string, string> };
 type CatalogManifest = { generatedAt?: string; sources?: Record<string, SourceManifest> };

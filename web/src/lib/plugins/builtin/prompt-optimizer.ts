@@ -13,7 +13,6 @@ import type {
 } from "../plugin-types";
 import { translate } from "@/i18n";
 
-
 export const PROMPT_OPTIMIZER_PLUGIN_ID = "prompt-optimizer";
 
 const modeLabels: Record<PromptOptimizationMode, string> = {

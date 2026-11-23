@@ -9,7 +9,6 @@ import { updateAnnouncementPreviewURL, uploadAppearanceAsset } from "@/services/
 import "./update-announcement-editor.css";
 import { translate } from "@/i18n";
 
-
 export function UpdateAnnouncementEditor({ value, onChange, disabled, onUploading }: { value: UpdateAnnouncement; onChange: (value: UpdateAnnouncement) => void; disabled: boolean; onUploading: (value: boolean) => void }) {
     const { message } = App.useApp();
     const [uploading, setUploading] = useState("");
@@ -30,7 +29,12 @@ export function UpdateAnnouncementEditor({ value, onChange, disabled, onUploadin
         const allowed = video ? ["video/mp4", "video/webm"] : ["image/png", "image/jpeg", "image/webp"];
         const maxMB = video ? 256 : 10;
         if (!allowed.includes(file.type) || file.size <= 0 || file.size > maxMB * 1024 * 1024) {
-            message.error(translate("adminPages.settings.updateAnnouncementEditor.pleaseSelectUpToMB", { v0: String(video ? translate("adminPages.settings.updateAnnouncementEditor.mP4WebMVideo") : translate("adminPages.settings.updateAnnouncementEditor.pNGJPEGWebPImage")), v1: String(maxMB) }));
+            message.error(
+                translate("adminPages.settings.updateAnnouncementEditor.pleaseSelectUpToMB", {
+                    v0: String(video ? translate("adminPages.settings.updateAnnouncementEditor.mP4WebMVideo") : translate("adminPages.settings.updateAnnouncementEditor.pNGJPEGWebPImage")),
+                    v1: String(maxMB),
+                }),
+            );
             return;
         }
         setUploading(selected.blockId);
@@ -83,9 +87,16 @@ export function UpdateAnnouncementEditor({ value, onChange, disabled, onUploadin
                     {value.releases.map((release, index) => (
                         <section className="admin-update-announcement-release" key={release.id}>
                             <div className="admin-update-announcement-toolbar">
-                                <strong>{translate("adminPages.settings.updateAnnouncementEditor.announcementVersions")} {index + 1}</strong>
+                                <strong>
+                                    {translate("adminPages.settings.updateAnnouncementEditor.announcementVersions")} {index + 1}
+                                </strong>
                                 <div>
-                                    <Button aria-label={translate("adminPages.settings.updateAnnouncementEditor.moveAnnouncementVersionUp", { v0: String(index + 1) })} icon={<ArrowUp className="size-4" />} disabled={locked || index === 0} onClick={() => change({ releases: moveUpdateItem(value.releases, index, -1) })} />
+                                    <Button
+                                        aria-label={translate("adminPages.settings.updateAnnouncementEditor.moveAnnouncementVersionUp", { v0: String(index + 1) })}
+                                        icon={<ArrowUp className="size-4" />}
+                                        disabled={locked || index === 0}
+                                        onClick={() => change({ releases: moveUpdateItem(value.releases, index, -1) })}
+                                    />
                                     <Button
                                         aria-label={translate("adminPages.settings.updateAnnouncementEditor.moveAnnouncementVersionDown", { v0: String(index + 1) })}
                                         icon={<ArrowDown className="size-4" />}
@@ -106,14 +117,26 @@ export function UpdateAnnouncementEditor({ value, onChange, disabled, onUploadin
                             <Form layout="vertical" disabled={locked}>
                                 <div className="admin-update-announcement-meta">
                                     <Form.Item label={translate("adminPages.settings.updateAnnouncementEditor.versionNumber")} htmlFor={`update-version-${release.id}`}>
-                                        <Input id={`update-version-${release.id}`} value={release.version} maxLength={40} placeholder={translate("adminPages.settings.updateAnnouncementEditor.forExampleV200")} onChange={(event) => changeRelease(release.id, { version: event.target.value })} />
+                                        <Input
+                                            id={`update-version-${release.id}`}
+                                            value={release.version}
+                                            maxLength={40}
+                                            placeholder={translate("adminPages.settings.updateAnnouncementEditor.forExampleV200")}
+                                            onChange={(event) => changeRelease(release.id, { version: event.target.value })}
+                                        />
                                     </Form.Item>
                                     <Form.Item label={translate("adminPages.settings.updateAnnouncementEditor.releaseDateOptional")} htmlFor={`update-date-${release.id}`}>
                                         <Input id={`update-date-${release.id}`} type="date" value={release.date} onChange={(event) => changeRelease(release.id, { date: event.target.value })} />
                                     </Form.Item>
                                 </div>
                                 <Form.Item label={translate("adminPages.settings.updateAnnouncementEditor.titleOptional")} htmlFor={`update-title-${release.id}`}>
-                                    <Input id={`update-title-${release.id}`} value={release.title} maxLength={100} placeholder={translate("adminPages.settings.updateAnnouncementEditor.thisUpdateSTheme")} onChange={(event) => changeRelease(release.id, { title: event.target.value })} />
+                                    <Input
+                                        id={`update-title-${release.id}`}
+                                        value={release.title}
+                                        maxLength={100}
+                                        placeholder={translate("adminPages.settings.updateAnnouncementEditor.thisUpdateSTheme")}
+                                        onChange={(event) => changeRelease(release.id, { title: event.target.value })}
+                                    />
                                 </Form.Item>
                             </Form>
                             {release.blocks.map((block, blockIndex) => (
@@ -156,7 +179,11 @@ export function UpdateAnnouncementEditor({ value, onChange, disabled, onUploadin
                                             />
                                         </Form.Item>
                                         {block.type === "text" ? (
-                                            <Form.Item label={translate("adminPages.settings.updateAnnouncementEditor.body")} htmlFor={`update-text-${block.id}`} extra={translate("adminPages.settings.updateAnnouncementEditor.supportsLineBreaksListsAndMarkdownBoldText")}>
+                                            <Form.Item
+                                                label={translate("adminPages.settings.updateAnnouncementEditor.body")}
+                                                htmlFor={`update-text-${block.id}`}
+                                                extra={translate("adminPages.settings.updateAnnouncementEditor.supportsLineBreaksListsAndMarkdownBoldText")}
+                                            >
                                                 <Input.TextArea
                                                     id={`update-text-${block.id}`}
                                                     value={block.text}
@@ -215,7 +242,9 @@ export function UpdateAnnouncementEditor({ value, onChange, disabled, onUploadin
                 </div>
                 <aside className="admin-update-announcement-preview" aria-label={translate("adminPages.settings.updateAnnouncementEditor.liveAnnouncementPreview")}>
                     <div className="admin-update-announcement-preview-heading">
-                        <strong>{translate("adminPages.settings.updateAnnouncementEditor.announcement")} {value.currentVersion || translate("adminPages.settings.updateAnnouncementEditor.versionNotEntered")}</strong>
+                        <strong>
+                            {translate("adminPages.settings.updateAnnouncementEditor.announcement")} {value.currentVersion || translate("adminPages.settings.updateAnnouncementEditor.versionNotEntered")}
+                        </strong>
                         <span>{translate("adminPages.settings.updateAnnouncementEditor.livePreviewAppliedAfterSaving")}</span>
                     </div>
                     <UpdateAnnouncementContent value={value} mediaURL={(block) => (block.resourceId ? updateAnnouncementPreviewURL(block.resourceId) : "")} />

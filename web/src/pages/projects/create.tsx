@@ -330,7 +330,16 @@ export default function DramaCreatePage() {
         if (!analysis) return [];
         const list: Array<{ key: string; message: string; blocking: boolean }> = analysis.issues.filter((issue) => issue.kind !== "too_long").map((issue) => ({ key: issue.kind, message: issue.message, blocking: false }));
         const limit = translate("drama.create.item10000Characters", { v0: String(EPISODE_SOURCE_CHARS / 10_000) });
-        if (longSelected) list.push({ key: "too_long_selected", message: translate("drama.create.theSelectedExceedsOfSourceTextSplitItWithEpisode", { v0: String(longSelected), v1: String(perEpisode && chaptersPerEpisode === 1 ? translate("drama.create.episodes") : translate("drama.create.chapters2")), v2: String(limit) }), blocking: true });
+        if (longSelected)
+            list.push({
+                key: "too_long_selected",
+                message: translate("drama.create.theSelectedExceedsOfSourceTextSplitItWithEpisode", {
+                    v0: String(longSelected),
+                    v1: String(perEpisode && chaptersPerEpisode === 1 ? translate("drama.create.episodes") : translate("drama.create.chapters2")),
+                    v2: String(limit),
+                }),
+                blocking: true,
+            });
         const longReserved = longChapters.length - longSelected;
         if (longReserved) list.push({ key: "too_long_reserved", message: translate("drama.create.otherChaptersExceedAndAreNotSelectedSplitThemBefore", { v0: String(longReserved), v1: String(limit) }), blocking: false });
         return list;
@@ -360,7 +369,12 @@ export default function DramaCreatePage() {
         return (
             <WorkspacePage fluid scroll={false}>
                 {draftQuery.isError ? (
-                    <WorkspaceErrorState title={translate("drama.create.draftUnavailable")} description={draftQuery.error instanceof Error ? draftQuery.error.message : translate("drama.create.theDraftDoesNotExistOrProductionHasAlreadyStarted")} actionLabel={translate("drama.create.backToProductions")} onRetry={() => navigate("/projects")} />
+                    <WorkspaceErrorState
+                        title={translate("drama.create.draftUnavailable")}
+                        description={draftQuery.error instanceof Error ? draftQuery.error.message : translate("drama.create.theDraftDoesNotExistOrProductionHasAlreadyStarted")}
+                        actionLabel={translate("drama.create.backToProductions")}
+                        onRetry={() => navigate("/projects")}
+                    />
                 ) : (
                     <WorkspaceLoadingState label={translate("drama.create.openingDraft")} />
                 )}
@@ -396,7 +410,10 @@ export default function DramaCreatePage() {
                                     autoFocus
                                     value={pasteText}
                                     onChange={(event) => setPasteText(event.target.value)}
-                                    placeholder={translate("drama.create.headingsSuchAs1OrChapter1AreSplitAutomatically", { v0: String(SOURCE_FORMAT_LABEL[sourceFormat].placeholder), v1: String(sourceFormat === "novel" ? "" : translate("drama.create.eachHeadingStartsAnEpisode")) })}
+                                    placeholder={translate("drama.create.headingsSuchAs1OrChapter1AreSplitAutomatically", {
+                                        v0: String(SOURCE_FORMAT_LABEL[sourceFormat].placeholder),
+                                        v1: String(sourceFormat === "novel" ? "" : translate("drama.create.eachHeadingStartsAnEpisode")),
+                                    })}
                                     autoSize={{ minRows: 14, maxRows: 24 }}
                                 />
                                 <div className="flex justify-end gap-2">
@@ -424,7 +441,13 @@ export default function DramaCreatePage() {
                                     {translate("drama.create.noFilePasteTheText")}
                                 </button>
                                 <div className="drama-drop-steps">
-                                    {[sourceFormat === "storyboard" ? translate("drama.create.importStoryboard") : translate("drama.create.parseEpisodes"), translate("drama.create.buildCharactersPropsAndScenes"), sourceFormat === "novel" ? translate("drama.create.adaptScriptAndSegmentPrompts") : translate("drama.create.createShotsAndSegmentPrompts"), translate("drama.create.generateVideoByStorySegment"), translate("drama.create.renderFinalCut")].map((step, index) => (
+                                    {[
+                                        sourceFormat === "storyboard" ? translate("drama.create.importStoryboard") : translate("drama.create.parseEpisodes"),
+                                        translate("drama.create.buildCharactersPropsAndScenes"),
+                                        sourceFormat === "novel" ? translate("drama.create.adaptScriptAndSegmentPrompts") : translate("drama.create.createShotsAndSegmentPrompts"),
+                                        translate("drama.create.generateVideoByStorySegment"),
+                                        translate("drama.create.renderFinalCut"),
+                                    ].map((step, index) => (
                                         <span key={step}>
                                             <b>{index + 1}</b>
                                             {step}
@@ -527,7 +550,15 @@ export default function DramaCreatePage() {
                                     value={groupSize}
                                     onChange={setGroupSize}
                                     chapterCount={analysis.chapters.length}
-                                    error={oversizedGroup ? translate("drama.create.totalsCharactersEachEpisodeSSourceIsLimitedToCharacters", { v0: String(oversizedGroup.label), v1: String(formatCount(oversizedGroup.chars)), v2: String(formatCount(EPISODE_GROUP_CHARS)) }) : undefined}
+                                    error={
+                                        oversizedGroup
+                                            ? translate("drama.create.totalsCharactersEachEpisodeSSourceIsLimitedToCharacters", {
+                                                  v0: String(oversizedGroup.label),
+                                                  v1: String(formatCount(oversizedGroup.chars)),
+                                                  v2: String(formatCount(EPISODE_GROUP_CHARS)),
+                                              })
+                                            : undefined
+                                    }
                                 />
                             ) : null}
                         </div>
@@ -554,7 +585,13 @@ export default function DramaCreatePage() {
                         </div>
                         <div className="grid gap-3">
                             <DramaAssetImageModels models={resolvedModels} onModelsChange={(patch) => setModels((current) => ({ ...current, ...patch }))} assets={assets} onAssetsChange={setAssetDraft} />
-                            <AssetSchemePicker value={assets} onChange={setAssetDraft} sample={{ style: style?.prompt || "", characterName: translate("drama.create.protagonist"), sceneName: translate("drama.create.mainScene") }} layout="compact" imageModel={imageOption} />
+                            <AssetSchemePicker
+                                value={assets}
+                                onChange={setAssetDraft}
+                                sample={{ style: style?.prompt || "", characterName: translate("drama.create.protagonist"), sceneName: translate("drama.create.mainScene") }}
+                                layout="compact"
+                                imageModel={imageOption}
+                            />
                         </div>
                     </section>
                     <section>
@@ -707,7 +744,9 @@ export default function DramaCreatePage() {
                         {noFittingVideo ? (
                             <p className="flex items-start gap-2 text-[var(--fs-tiny)] leading-5 text-[var(--status-error)]">
                                 <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                                {videoContinuity === "tail_frame" ? translate("drama.create.noVideoModelSupportsLastFrameChainingChangeTheAspect", { v0: String(aspectRatio) }) : translate("drama.create.noVideoModelSupportsOutputChangeTheAspectRatioOr", { v0: String(aspectRatio) })}
+                                {videoContinuity === "tail_frame"
+                                    ? translate("drama.create.noVideoModelSupportsLastFrameChainingChangeTheAspect", { v0: String(aspectRatio) })
+                                    : translate("drama.create.noVideoModelSupportsOutputChangeTheAspectRatioOr", { v0: String(aspectRatio) })}
                                 {videoResolution ? translate("drama.create.youCanAlsoResetTheVideoResolutionToItsDefault") : ""}
                             </p>
                         ) : null}

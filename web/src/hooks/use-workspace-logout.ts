@@ -6,7 +6,6 @@ import { applyUserSession } from "@/lib/user-session";
 import { logout } from "@/services/api/auth";
 import { translate } from "@/i18n";
 
-
 /**
  * 工作区退出登录：供侧栏底部与顶部账户菜单共用。
  * 写路径强校验：失败必须明确提示，不得静默吞错。

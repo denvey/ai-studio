@@ -3,7 +3,6 @@ import { resourceFileUrl, resourceIdFromStorageKey, resourceStorageKey, uploadRe
 import type { ReferenceImage } from "@/types/image";
 import { translate } from "@/i18n";
 
-
 export async function resolveCanvasDrawingReference(projectId: string, image: ReferenceImage): Promise<ReferenceImage> {
     const source = image.source;
     if (!source || source.kind !== "drawing") return image;
@@ -38,6 +37,8 @@ export async function resolveCanvasDrawingReference(projectId: string, image: Re
         return { ...image, dataUrl: "", url, storageKey, type: resource.mimeType || render.mimeType };
     } catch (error) {
         if (error === drawingChangedError) throw error;
-        throw new Error(error instanceof Error ? translate("shared.canvas.canvasDrawingReference.failedToUploadTheDrawingReferenceImage", { v0: String(error.message) }) : translate("shared.canvas.canvasDrawingReference.failedToUploadTheDrawingReferenceImage2"));
+        throw new Error(
+            error instanceof Error ? translate("shared.canvas.canvasDrawingReference.failedToUploadTheDrawingReferenceImage", { v0: String(error.message) }) : translate("shared.canvas.canvasDrawingReference.failedToUploadTheDrawingReferenceImage2"),
+        );
     }
 }

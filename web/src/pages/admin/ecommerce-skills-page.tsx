@@ -7,7 +7,6 @@ import { installEcommerceSkillFile, installEcommerceSkillGitHub, renameEcommerce
 import "./ecommerce-skills.css";
 import { translate } from "@/i18n";
 
-
 export default function EcommerceSkillsPage() {
     const { message } = App.useApp();
     const [skills, setSkills] = useState<EcommerceManagedSkill[]>([]);
@@ -120,10 +119,15 @@ export default function EcommerceSkillsPage() {
         >
             {error ? <Alert type="error" showIcon message={error} /> : null}
             <Space wrap>
-                <Tag icon={<Sparkles size={12} />}>{translate("canvasA.skillSuggestion.installedBadge")} {skills.length}</Tag>
-                <Typography.Text>{translate("account.layout.oss.enabled")} {skills.filter((skill) => skill.enabled).length}</Typography.Text>
+                <Tag icon={<Sparkles size={12} />}>
+                    {translate("canvasA.skillSuggestion.installedBadge")} {skills.length}
+                </Tag>
+                <Typography.Text>
+                    {translate("account.layout.oss.enabled")} {skills.filter((skill) => skill.enabled).length}
+                </Typography.Text>
                 <Typography.Text type="secondary">
-                    {translate("adminPages.ecommerceSkillsPage.gitHubAdaptation")} {skills.filter((skill) => skill.origin === "github-adapted").length} {translate("adminPages.ecommerceSkillsPage.original")} {skills.filter((skill) => skill.origin === "first-party").length}
+                    {translate("adminPages.ecommerceSkillsPage.gitHubAdaptation")} {skills.filter((skill) => skill.origin === "github-adapted").length} {translate("adminPages.ecommerceSkillsPage.original")}{" "}
+                    {skills.filter((skill) => skill.origin === "first-party").length}
                 </Typography.Text>
             </Space>
             <Alert type="info" showIcon message={translate("adminPages.ecommerceSkillsPage.enabledByDefaultAfterInstallationTheAgentAnalyzesAllEnabled")} />
@@ -141,7 +145,12 @@ export default function EcommerceSkillsPage() {
                         { value: "first-party", label: translate("adminPages.ecommerceSkillsPage.original2") },
                     ]}
                 />
-                <Select value={group} onChange={setGroup} style={{ width: 160 }} options={[{ value: "", label: translate("adminPages.ecommerceSkillsPage.allPurposes") }, ...[...new Set(skills.map((skill) => skill.group))].map((value) => ({ value, label: value }))]} />
+                <Select
+                    value={group}
+                    onChange={setGroup}
+                    style={{ width: 160 }}
+                    options={[{ value: "", label: translate("adminPages.ecommerceSkillsPage.allPurposes") }, ...[...new Set(skills.map((skill) => skill.group))].map((value) => ({ value, label: value }))]}
+                />
                 <Select
                     value={status}
                     onChange={setStatus}
@@ -226,19 +235,21 @@ export default function EcommerceSkillsPage() {
                         key: "enabled",
                         width: 120,
                         render: (_, skill) => (
-                            <Switch checked={skill.enabled} checkedChildren={translate("account.layout.oss.switchOn")} unCheckedChildren={translate("adminPages.ecommerceSkillsPage.off")} loading={saving === skill.id} disabled={loading || Boolean(saving && saving !== skill.id)} onChange={(enabled) => void toggle(skill, enabled)} />
+                            <Switch
+                                checked={skill.enabled}
+                                checkedChildren={translate("account.layout.oss.switchOn")}
+                                unCheckedChildren={translate("adminPages.ecommerceSkillsPage.off")}
+                                loading={saving === skill.id}
+                                disabled={loading || Boolean(saving && saving !== skill.id)}
+                                onChange={(enabled) => void toggle(skill, enabled)}
+                            />
                         ),
                     },
                 ]}
             />
             <AppModal title={translate("adminPages.ecommerceSkillsPage.installECommerceSkills")} open={installOpen} onCancel={() => !installing && setInstallOpen(false)} closable={!installing} maskClosable={!installing} footer={null}>
                 <Space orientation="vertical" size={16} style={{ width: "100%" }}>
-                    <Alert
-                        type="info"
-                        showIcon
-                        title={translate("adminPages.ecommerceSkillsPage.supportsSkillPackagesOver500MBUpTo1GB")}
-                        description={translate("adminPages.ecommerceSkillsPage.installedSkillsAreEnabledByDefaultAndMarkedWithA")}
-                    />
+                    <Alert type="info" showIcon title={translate("adminPages.ecommerceSkillsPage.supportsSkillPackagesOver500MBUpTo1GB")} description={translate("adminPages.ecommerceSkillsPage.installedSkillsAreEnabledByDefaultAndMarkedWithA")} />
                     {installError ? <Alert type="error" showIcon title={installError} /> : null}
                     <Upload
                         accept=".zip,.md,.markdown"
@@ -251,7 +262,13 @@ export default function EcommerceSkillsPage() {
                     >
                         <Button loading={installing}>{translate("adminPages.ecommerceSkillsPage.chooseZIPMarkdownToInstall")}</Button>
                     </Upload>
-                    {installing ? progress < 0 ? <Typography.Text role="status">{translate("adminPages.ecommerceSkillsPage.readingGitHubAndInstallingSkills")}</Typography.Text> : <Progress percent={progress} status="active" format={(value) => (value === 100 ? translate("adminPages.ecommerceSkillsPage.parsing") : `${value}%`)} /> : null}
+                    {installing ? (
+                        progress < 0 ? (
+                            <Typography.Text role="status">{translate("adminPages.ecommerceSkillsPage.readingGitHubAndInstallingSkills")}</Typography.Text>
+                        ) : (
+                            <Progress percent={progress} status="active" format={(value) => (value === 100 ? translate("adminPages.ecommerceSkillsPage.parsing") : `${value}%`)} />
+                        )
+                    ) : null}
                     <label htmlFor="ecommerce-skill-url">{translate("adminPages.ecommerceSkillsPage.gitHubRepositoryOrSkillDirectoryURL")}</label>
                     <Input id="ecommerce-skill-url" value={url} onChange={(event) => setUrl(event.target.value)} disabled={installing} placeholder="https://github.com/owner/repo" />
                     <label htmlFor="ecommerce-skill-subdir">{translate("adminPages.ecommerceSkillsPage.skillSubdirectoryRequiredForCollections")}</label>

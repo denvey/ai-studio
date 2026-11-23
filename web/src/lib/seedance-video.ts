@@ -4,7 +4,6 @@ import type { ReferenceImage } from "@/types/image";
 import type { ReferenceAudio, ReferenceVideo } from "@/types/media";
 import { translate } from "@/i18n";
 
-
 // Existing channel contract values; these are not a claim about every provider's current limits.
 export const SEEDANCE_REFERENCE_LIMITS = { images: 9, videos: 3, audios: 3, imageMaxBytes: 30 * 1048576, videoMaxBytes: 50 * 1048576, audioMaxBytes: 15 * 1048576 };
 export const seedanceResolutionOptions = [

@@ -140,7 +140,11 @@ export function CanvasNodeLayerDecompositionDialog({
                         <p className="mt-2 text-sm opacity-60">{translate("canvasTools.canvasNodeLayerDecompositionDialog.dragOnTheImageToSelectFocusAreasAIWill")}</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                        {regions.length ? <Tag color="blue">{translate("canvasTools.inline.canvasNodeLayerDecompositionDialog.areasSelected", { v0: String(regions.length) })}</Tag> : <span className="rounded-md bg-black/5 px-2 py-1 text-xs dark:bg-white/5">{translate("canvasTools.canvasNodeLayerDecompositionDialog.noAreasSelectedSplitBasedOnDescription")}</span>}
+                        {regions.length ? (
+                            <Tag color="blue">{translate("canvasTools.inline.canvasNodeLayerDecompositionDialog.areasSelected", { v0: String(regions.length) })}</Tag>
+                        ) : (
+                            <span className="rounded-md bg-black/5 px-2 py-1 text-xs dark:bg-white/5">{translate("canvasTools.canvasNodeLayerDecompositionDialog.noAreasSelectedSplitBasedOnDescription")}</span>
+                        )}
                         {regions.length ? (
                             <Button size="small" icon={<RotateCcw className="size-3.5" />} onClick={() => setRegions([])}>
                                 {translate("canvasTools.canvasNodeLayerDecompositionDialog.clearSelection")}
@@ -152,7 +156,13 @@ export function CanvasNodeLayerDecompositionDialog({
                             </span>
                         )}
                     </div>
-                    <Input.TextArea aria-label={translate("canvasTools.canvasNodeLayerDecompositionDialog.layerSplittingInstructions")} rows={5} value={prompt} placeholder={translate("canvasTools.canvasNodeLayerDecompositionDialog.describeWhatToSplit")} onChange={(event) => setPrompt(event.target.value)} />
+                    <Input.TextArea
+                        aria-label={translate("canvasTools.canvasNodeLayerDecompositionDialog.layerSplittingInstructions")}
+                        rows={5}
+                        value={prompt}
+                        placeholder={translate("canvasTools.canvasNodeLayerDecompositionDialog.describeWhatToSplit")}
+                        onChange={(event) => setPrompt(event.target.value)}
+                    />
                     <div className="space-y-2">
                         <div className="text-sm font-medium opacity-75">{translate("canvasTools.canvasNodeLayerDecompositionDialog.visualPlanningModel")}</div>
                         <ModelPicker

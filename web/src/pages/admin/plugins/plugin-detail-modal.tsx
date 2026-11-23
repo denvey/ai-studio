@@ -12,7 +12,6 @@ import { AdminStatusBadge } from "../components/admin-ui";
 import { AdminModal } from "../ui/overlays";
 import { translate } from "@/i18n";
 
-
 export type AdminPluginDetail = {
     manifest: PluginManifest | PluginManifestV2;
     source: string;
@@ -64,7 +63,11 @@ function PluginDetail({ plugin, state, typeLabel, icon }: { plugin: AdminPluginD
                     <div className="admin-plugin-detail-badges">
                         <AdminStatusBadge label={typeLabel} tone={management.origin === "uploaded" ? "warning" : management.kind === "application" ? "info" : "neutral"} />
                         <AdminStatusBadge label={available ? translate("adminPages.plugins.pluginDetailModal.enabledOnPlatform") : translate("adminPages.plugins.pluginDetailModal.disabledOnPlatform")} tone={available ? "success" : "neutral"} />
-                        {manifest.trusted ? <AdminStatusBadge label={translate("adminPages.plugins.pluginDetailModal.sourceVerified")} tone="success" /> : <AdminStatusBadge label={translate("adminPages.plugins.pluginDetailModal.sourceNotVerified")} tone="warning" />}
+                        {manifest.trusted ? (
+                            <AdminStatusBadge label={translate("adminPages.plugins.pluginDetailModal.sourceVerified")} tone="success" />
+                        ) : (
+                            <AdminStatusBadge label={translate("adminPages.plugins.pluginDetailModal.sourceNotVerified")} tone="warning" />
+                        )}
                         {plugin.status === "invalid" ? <AdminStatusBadge label={translate("adminPages.plugins.pluginDetailModal.invalidPluginPackage")} tone="error" /> : null}
                         <span className="admin-plugin-detail-id" title={manifest.id}>
                             {manifest.id}
@@ -77,8 +80,12 @@ function PluginDetail({ plugin, state, typeLabel, icon }: { plugin: AdminPluginD
                     {plugin.error ? <Alert type="error" showIcon title={translate("adminPages.plugins.pluginDetailModal.failedToLoadPlugin")} description={plugin.error} /> : null}
                     <FactGroup icon={<SlidersHorizontal />} title={translate("adminPages.plugins.pluginDetailModal.manage")}>
                         <Fact label={translate("canvasA.assetView.origin")}>{originLabel(management.origin)}</Fact>
-                        <Fact label={translate("adminPages.plugins.pluginDetailModal.scope")}>{management.activationScope === "user" ? translate("adminPages.plugins.pluginDetailModal.usersEnableIndividually") : translate("adminPages.plugins.pluginDetailModal.appliesGloballyControlledByAdministrators")}</Fact>
-                        {management.activationScope === "user" ? <Fact label={translate("adminPages.plugins.pluginDetailModal.enabledUsers")}>{translate("adminPages.plugins.pluginDetailModal.users", { v0: String(state?.enabledUserCount || 0) })}</Fact> : null}
+                        <Fact label={translate("adminPages.plugins.pluginDetailModal.scope")}>
+                            {management.activationScope === "user" ? translate("adminPages.plugins.pluginDetailModal.usersEnableIndividually") : translate("adminPages.plugins.pluginDetailModal.appliesGloballyControlledByAdministrators")}
+                        </Fact>
+                        {management.activationScope === "user" ? (
+                            <Fact label={translate("adminPages.plugins.pluginDetailModal.enabledUsers")}>{translate("adminPages.plugins.pluginDetailModal.users", { v0: String(state?.enabledUserCount || 0) })}</Fact>
+                        ) : null}
                         <Fact label={translate("adminPages.plugins.pluginDetailModal.configurationMethod")}>{configurationLabel(management.configurationScope)}</Fact>
                     </FactGroup>
                     <FactGroup icon={<KeyRound />} title={translate("adminPages.plugins.pluginDetailModal.permissions")}>
@@ -167,8 +174,16 @@ function configurationLabel(scope: PluginManagement["configurationScope"]) {
 }
 
 function runtimeLabel(manifest: PluginManifest | PluginManifestV2) {
-    const names: Record<string, string> = { declarative: translate("adminPages.plugins.pluginDetailModal.declarative"), sandbox: translate("adminPages.plugins.pluginDetailModal.sandbox"), worker: "Worker", "trusted-backend": translate("adminPages.plugins.pluginDetailModal.trustedBackend") };
-    const parts = [manifest.runtime?.backend ? translate("adminPages.plugins.pluginDetailModal.backend", { v0: String(names[manifest.runtime.backend] || manifest.runtime.backend) }) : "", manifest.runtime?.web ? translate("adminPages.plugins.pluginDetailModal.frontend", { v0: String(names[manifest.runtime.web] || manifest.runtime.web) }) : ""].filter(Boolean);
+    const names: Record<string, string> = {
+        declarative: translate("adminPages.plugins.pluginDetailModal.declarative"),
+        sandbox: translate("adminPages.plugins.pluginDetailModal.sandbox"),
+        worker: "Worker",
+        "trusted-backend": translate("adminPages.plugins.pluginDetailModal.trustedBackend"),
+    };
+    const parts = [
+        manifest.runtime?.backend ? translate("adminPages.plugins.pluginDetailModal.backend", { v0: String(names[manifest.runtime.backend] || manifest.runtime.backend) }) : "",
+        manifest.runtime?.web ? translate("adminPages.plugins.pluginDetailModal.frontend", { v0: String(names[manifest.runtime.web] || manifest.runtime.web) }) : "",
+    ].filter(Boolean);
     return parts.join(" · ") || translate("adminPages.plugins.pluginDetailModal.notDeclared");
 }
 

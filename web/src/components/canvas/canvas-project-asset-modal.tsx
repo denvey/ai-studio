@@ -15,7 +15,9 @@ const categoryLabels: Record<string, string> = { all: translate("canvasTools.can
 
 /** 弹窗标题与底部说明：未关联项目的自由画布展示的是个人素材库，标题不能写成“项目资产”。 */
 export function projectAssetModalCopy(linkedToProject: boolean) {
-    return linkedToProject ? { title: translate("canvasTools.canvasProjectAssetModal.projectAssets"), note: translate("canvasTools.canvasProjectAssetModal.characterReferencesResolveToTheCurrentVersionAtGenerationTime") } : { title: translate("canvasTools.canvasProjectAssetModal.myAssets"), note: translate("canvasTools.canvasProjectAssetModal.thisCanvasIsNotLinkedToAProjectAllYour") };
+    return linkedToProject
+        ? { title: translate("canvasTools.canvasProjectAssetModal.projectAssets"), note: translate("canvasTools.canvasProjectAssetModal.characterReferencesResolveToTheCurrentVersionAtGenerationTime") }
+        : { title: translate("canvasTools.canvasProjectAssetModal.myAssets"), note: translate("canvasTools.canvasProjectAssetModal.thisCanvasIsNotLinkedToAProjectAllYour") };
 }
 
 type ProjectPickerItem = { id: string; category: string; folderId?: string; project?: ProjectAsset; character?: ProjectAsset; media?: Asset };
@@ -69,13 +71,23 @@ export function CanvasProjectAssetModal({
                     title: character?.title || project?.title || media?.title || translate("canvasTools.canvasProjectAssetModal.untitledAsset"),
                     category: item.category,
                     folderId: item.folderId,
-                    kindLabel: character ? translate("canvasA.characterNode.card") : mediaKind === "video" ? translate("account.feedback.video") : mediaKind === "audio" ? translate("account.settings.modelConfig.capabilities.audio") : mediaKind === "text" ? translate("account.settings.modelConfig.capabilities.text") : translate("account.feedback.image"),
+                    kindLabel: character
+                        ? translate("canvasA.characterNode.card")
+                        : mediaKind === "video"
+                          ? translate("account.feedback.video")
+                          : mediaKind === "audio"
+                            ? translate("account.settings.modelConfig.capabilities.audio")
+                            : mediaKind === "text"
+                              ? translate("account.settings.modelConfig.capabilities.text")
+                              : translate("account.feedback.image"),
                     mediaKind,
                     asset: media,
                     imageUrl: coverRepresentation ? resourceFileUrl(coverRepresentation.resourceId) : project?.mediaType === "image" && remoteResourceId ? resourceFileUrl(remoteResourceId) : undefined,
                     imageStorageKey: coverRepresentation ? `resource:${coverRepresentation.resourceId}` : remoteResourceId ? `resource:${remoteResourceId}` : undefined,
                     imageFit: character ? "contain" : "cover",
-                    description: character ? `${character.character?.visualStatus === "ready" ? translate("canvasA.characterLibrary.visualReady") : translate("canvasA.characterNode.visualPending")} · ${character.character?.voiceStatus === "ready" ? translate("canvasA.characterLibrary.voiceBound") : translate("canvasA.characterNode.voiceUnbound")}` : project?.previewText,
+                    description: character
+                        ? `${character.character?.visualStatus === "ready" ? translate("canvasA.characterLibrary.visualReady") : translate("canvasA.characterNode.visualPending")} · ${character.character?.voiceStatus === "ready" ? translate("canvasA.characterLibrary.voiceBound") : translate("canvasA.characterNode.voiceUnbound")}`
+                        : project?.previewText,
                     searchText: [media?.tags?.join(" ") || "", project?.previewText || ""].join(" "),
                 };
             }),

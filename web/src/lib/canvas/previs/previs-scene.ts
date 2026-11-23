@@ -22,7 +22,6 @@ import type {
 } from "@/types/previs";
 import { translate } from "@/i18n";
 
-
 export const PREVIS_LEGACY_DEFAULT_ACTOR_COLOR = "#f1f3f5";
 export const PREVIS_ACTOR_COLORS = ["#2f7de1", "#d84949", "#dfae3f", "#34a276", "#8b5cf6", "#e879f9", "#f97316", "#06b6d4", "#84cc16", "#ec4899", "#a78bfa", "#fb7185", "#22d3ee", "#4ade80", "#facc15", "#f472b6", "#818cf8", "#34d399"] as const;
 

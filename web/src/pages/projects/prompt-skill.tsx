@@ -49,7 +49,14 @@ export function PromptSkillField({ value, onChange, step = "prompt", compact }: 
                         <strong>{value.skillName || value.skillId}</strong>
                         <span title={value.path}>{value.path}</span>
                     </div>
-                    <Link to={`/skills/${encodeURIComponent(value.skillId)}/edit`} target="_blank" rel="noreferrer" className="drama-pskill-edit" aria-label={translate("drama.promptSkill.openInTheSkillLibraryYouCanEditSkillsYou")} title={translate("drama.promptSkill.openInTheSkillLibraryYouCanEditSkillsYou")}>
+                    <Link
+                        to={`/skills/${encodeURIComponent(value.skillId)}/edit`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="drama-pskill-edit"
+                        aria-label={translate("drama.promptSkill.openInTheSkillLibraryYouCanEditSkillsYou")}
+                        title={translate("drama.promptSkill.openInTheSkillLibraryYouCanEditSkillsYou")}
+                    >
                         <PenLine className="size-3.5" />
                     </Link>
                     <Button size="small" onClick={() => setOpen(true)}>
@@ -149,7 +156,8 @@ function PromptSkillModal({ open, step, initial, onClose, onPick }: { open: bool
                             {path || translate("drama.promptSkill.sourceText")}
                             {content ? (
                                 <span>
-                                    {content.length.toLocaleString(currentLocale())} {translate("drama.promptSkill.characters")}{content.length > 16000 ? (" " + translate("drama.promptSkill.contentBeyond16000CharactersWillNotBeSent")) : ""}
+                                    {content.length.toLocaleString(currentLocale())} {translate("drama.promptSkill.characters")}
+                                    {content.length > 16000 ? " " + translate("drama.promptSkill.contentBeyond16000CharactersWillNotBeSent") : ""}
                                 </span>
                             ) : null}
                         </div>

@@ -74,19 +74,31 @@ export const SOURCE_FORMAT_LABEL: Record<DramaSourceFormat, { title: string; det
         title: translate("drama.dramaShared.novelSource"),
         detail: translate("drama.dramaShared.adaptSourceTextIntoShotsPreservingQuotedDialogueWordFor"),
         placeholder: translate("drama.dramaShared.pasteTheNovelTextDialogueInQuotationMarksWillBe"),
-        guide: [translate("drama.dramaShared.dialogueInOrIsPreservedWordForWord"), translate("drama.dramaShared.turnNarrationAndInnerThoughtsIntoFilmableActionsAndExpressions"), translate("drama.dramaShared.useOnlyOriginalSentencesForNarrationDoNotInventNew")],
+        guide: [
+            translate("drama.dramaShared.dialogueInOrIsPreservedWordForWord"),
+            translate("drama.dramaShared.turnNarrationAndInnerThoughtsIntoFilmableActionsAndExpressions"),
+            translate("drama.dramaShared.useOnlyOriginalSentencesForNarrationDoNotInventNew"),
+        ],
     },
     script: {
         title: translate("drama.dramaShared.script"),
         detail: translate("drama.dramaShared.breakAnExistingScriptIntoShotsWithoutChangingAnyDialogue"),
         placeholder: translate("drama.dramaShared.pasteTheEpisodeScriptExampleFormat1"),
-        guide: [translate("drama.dramaShared.oneLinePerUtteranceCharacterDialogueOrCharacterExpressionDialogue"), translate("drama.dramaShared.startActionAndVisualDescriptionLinesWith"), translate("drama.dramaShared.writeNarrationAsAllDialogueIsPreservedVerbatim")],
+        guide: [
+            translate("drama.dramaShared.oneLinePerUtteranceCharacterDialogueOrCharacterExpressionDialogue"),
+            translate("drama.dramaShared.startActionAndVisualDescriptionLinesWith"),
+            translate("drama.dramaShared.writeNarrationAsAllDialogueIsPreservedVerbatim"),
+        ],
     },
     storyboard: {
         title: translate("account.welcome.chapters.shots.label"),
         detail: translate("drama.dramaShared.importAnExistingStoryboardTableAndPreserveItsOriginalShots"),
         placeholder: translate("drama.dramaShared.pasteAStoryboardTableInMarkdownOrCopiedFromA"),
-        guide: [translate("drama.dramaShared.theFirstRowContainsHeadersSceneCharacterShotSizeCamera"), translate("drama.dramaShared.importMarkdownTablesOrContentCopiedFromExcelDirectlyWithout"), translate("drama.dramaShared.separateMultipleDialogueLinesInACellWithBrTo")],
+        guide: [
+            translate("drama.dramaShared.theFirstRowContainsHeadersSceneCharacterShotSizeCamera"),
+            translate("drama.dramaShared.importMarkdownTablesOrContentCopiedFromExcelDirectlyWithout"),
+            translate("drama.dramaShared.separateMultipleDialogueLinesInACellWithBrTo"),
+        ],
     },
 };
 
@@ -96,11 +108,7 @@ export function EpisodeGroupField({ value, onChange, chapterCount, error, disabl
         <div className="drama-episode-group">
             <span>{translate("drama.dramaShared.chaptersPerEpisode")}</span>
             <InputNumber size="small" min={1} max={12} precision={0} value={value} disabled={disabled} onChange={(next) => onChange(Math.max(1, Math.min(12, Number(next) || 1)))} aria-label={translate("drama.dramaShared.chaptersPerEpisode")} />
-            {chapterCount ? (
-                <small>
-                    {translate("drama.sentences.episodeGroupTotal", { chapters: chapterCount, episodes: Math.ceil(chapterCount / value) })}
-                </small>
-            ) : null}
+            {chapterCount ? <small>{translate("drama.sentences.episodeGroupTotal", { chapters: chapterCount, episodes: Math.ceil(chapterCount / value) })}</small> : null}
             {error ? (
                 <p className="drama-episode-group-error" role="alert">
                     <AlertTriangle className="size-3.5" aria-hidden />

@@ -2,7 +2,6 @@ import type { Live2DLoader as Loader } from "pixi-live2d-display/cubism4";
 import { apiBaseURL } from "@/services/api/request";
 import { translate } from "@/i18n";
 
-
 const installed = new WeakSet<typeof Loader>();
 
 // The SDK's default XHR loader omits cross-origin cookies and has no deadline.

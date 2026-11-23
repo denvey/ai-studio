@@ -4,7 +4,6 @@ import type { TimelineProject } from "@/types/timeline";
 import { SUBTITLE_FILE, buildSubtitleSrt, getOrderedSubtitleClips, type TimelineRenderPlan, type TimelineRenderSource } from "./timeline-to-ffmpeg";
 import { translate } from "@/i18n";
 
-
 export type TimelineExportProgress = {
     phase: "loading" | "reading" | "encoding";
     percent: number;
@@ -77,7 +76,7 @@ export async function runTimelineRenderPlan(
 
     try {
         for (const source of sources) {
-            onProgress?.({ phase: "reading", percent: 5, detail: (translate("shared.timeline.timelineExportRunner.readingAsset") + " ") + source.fileName });
+            onProgress?.({ phase: "reading", percent: 5, detail: translate("shared.timeline.timelineExportRunner.readingAsset") + " " + source.fileName });
             await ffmpeg.writeFile(source.fileName, await readSource(source));
             writtenFiles.add(source.fileName);
         }

@@ -41,7 +41,9 @@ export function FinalView({
     }, 0);
     const download = () => {
         if (!episode.finalResourceId) return;
-        void downloadResource(episode.finalResourceId, translate("drama.studio.finalView.episodeMp4", { v0: String(title), v1: String(episode.number) })).catch((error) => message.error(error instanceof Error ? error.message : translate("canvasA.assetView.downloadFailed")));
+        void downloadResource(episode.finalResourceId, translate("drama.studio.finalView.episodeMp4", { v0: String(title), v1: String(episode.number) })).catch((error) =>
+            message.error(error instanceof Error ? error.message : translate("canvasA.assetView.downloadFailed")),
+        );
     };
     return (
         <div className="drama-finalv">
@@ -52,7 +54,9 @@ export function FinalView({
                     ) : (
                         <div className="drama-finalv-empty">
                             <Film className="size-6" aria-hidden />
-                            <span>{STAGE_LABEL[episode.stage]} {translate("drama.studio.finalView.rendersAutomaticallyWhenAllSegmentVideosAreReady")}</span>
+                            <span>
+                                {STAGE_LABEL[episode.stage]} {translate("drama.studio.finalView.rendersAutomaticallyWhenAllSegmentVideosAreReady")}
+                            </span>
                         </div>
                     )}
                 </div>
@@ -69,17 +73,13 @@ export function FinalView({
                             }}
                         >
                             <MediaThumb resourceId={segment.tailFrameResourceId} alt={segment.title} fallback={<span className="drama-filmstrip-empty" />} />
-                            <span>
-                                {translate("drama.sentences.segmentTime", { number: segment.index + 1, time: secondsLabel(segment.durationMs) })}
-                            </span>
+                            <span>{translate("drama.sentences.segmentTime", { number: segment.index + 1, time: secondsLabel(segment.durationMs) })}</span>
                         </button>
                     ))}
                 </div>
             </div>
             <aside className="drama-finalv-side">
-                <h2>
-                    {translate("drama.sentences.episodeTitle", { number: episode.number, title: episode.title })}
-                </h2>
+                <h2>{translate("drama.sentences.episodeTitle", { number: episode.number, title: episode.title })}</h2>
                 <p>
                     {formatDuration(episode.durationMs)} · {segments.length} {translate("drama.studio.finalView.storySegmentsDialogueAndSoundEffectsComeFromTheVideo")}
                 </p>
@@ -94,12 +94,23 @@ export function FinalView({
                 <Button icon={<Scissors className="size-4" />} disabled={!readySegments} loading={cutOpening} onClick={onOpenCut}>
                     {translate("drama.studio.finalView.editOnCanvas")}
                 </Button>
-                <Button icon={<Clapperboard className="size-4" />} disabled={!readySegments} onClick={() => setExportingDraft(true)} title={readySegments ? translate("drama.studio.finalView.exportAJianyingProDraftToContinueEditingInJianying") : translate("drama.studio.finalView.thisEpisodeHasNoCompletedSegmentVideosYet")}>
+                <Button
+                    icon={<Clapperboard className="size-4" />}
+                    disabled={!readySegments}
+                    onClick={() => setExportingDraft(true)}
+                    title={readySegments ? translate("drama.studio.finalView.exportAJianyingProDraftToContinueEditingInJianying") : translate("drama.studio.finalView.thisEpisodeHasNoCompletedSegmentVideosYet")}
+                >
                     {translate("drama.studio.finalView.exportJianyingDraft")}
                 </Button>
-                {readySegments ? <p className="drama-editor-note">{translate("drama.studio.finalView.load")} {readySegments} {translate("drama.studio.finalView.segmentVideosIntoTheRefinementCanvasTimelineInFinalCut")}</p> : null}
+                {readySegments ? (
+                    <p className="drama-editor-note">
+                        {translate("drama.studio.finalView.load")} {readySegments} {translate("drama.studio.finalView.segmentVideosIntoTheRefinementCanvasTimelineInFinalCut")}
+                    </p>
+                ) : null}
             </aside>
-            {exportingDraft ? <JianyingDraftModal open projectId={projectId} episodeId={episode.id} episodeLabel={translate("drama.studio.finalView.episode", { v0: String(episode.number) })} readySegments={readySegments} onClose={() => setExportingDraft(false)} /> : null}
+            {exportingDraft ? (
+                <JianyingDraftModal open projectId={projectId} episodeId={episode.id} episodeLabel={translate("drama.studio.finalView.episode", { v0: String(episode.number) })} readySegments={readySegments} onClose={() => setExportingDraft(false)} />
+            ) : null}
         </div>
     );
 }
